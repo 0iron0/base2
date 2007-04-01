@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package name="BOM">
+	<include src="object.js"/>
+	<include src="namespace.js"/>
+	<include src="Base.js"/>
+	<include src="MSIE.js"/>
+	<include src="Window.js"/>
+</package>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package name="base2" publish="false">
+	<include src="Base.js"/>
+	<include src="lang/package.xml"/>
+	<include src="Base/forEach.js"/>
+	<include src="../String.js"/>
+	<include src="Abstract.js"/>
+	<include src="Module.js"/>
+	<include src="Enumerable.js"/>
+	<include src="Array2.js"/>
+	<include src="Hash.js"/>
+	<include src="Collection.js"/>
+	<include src="RegGrp.js"/>
+	<include src="RegGrp/Item.js"/>
+	<include src="Namespace.js"/>
+	<include src="lang/namespace.js"/>
+</package>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package name="selector" publish="false" closure="false">
+	<include src="Parser.js"/>
+	<include src="Selector/operators.js"/>
+	<include src="Selector/pseudoClasses.js"/>
+	<include src="Selector/parse.js"/>
+	<include src="XPathParser.js"/>
+	<include src="Selector/xpath.js"/>
+</package>

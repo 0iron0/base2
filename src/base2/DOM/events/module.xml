@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package name="events" publish="false" closure="false">
+	<include src="Event.js"/>
+	<include src="EventTarget.js"/>
+	<include src="DocumentEvent.js"/>
+	<include src="DOMContentLoaded.js"/>
+</package>

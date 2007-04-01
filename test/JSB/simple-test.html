@@ -1,0 +1,63 @@
+<?php
+header('Expires: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+header('Cache-Control: no-cache, must-revalidate, max-age=0');
+?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+ <title>Test Page</title>
+ <meta name="author" content="Dean Edwards"/>
+ <meta name="copyright" content="&copy; copyright 2006, Dean Edwards"/>
+ <script src="http://dean.edwards.test/base2/trunk/src/legacy.js" type="text/javascript"></script>
+ <script src="http://dean.edwards.test/base2/trunk/src/base2/JSB/package.php?full<?php print(time()) ?>" type="text/javascript"></script>
+ <style type="text/css">
+ 	p.binding1 {background-color: yellow;}
+ 	p.binding2 {font-weight: bold;}
+ </style>
+ <script type="text/javascript">
+	var Binding1 = base2.JSB.Binding.extend({
+		onmouseover: function() {
+			this.addClass("binding1");
+		},
+		
+		onmouseout: function() {
+			this.removeClass("binding1");
+		}
+	});
+	
+	var Binding2 = Binding1.extend({
+		ondocumentclick: function() {
+			this.innerHTML = "ondocumentclick!"
+		},
+		
+		onmouseover: function() {
+			this.addClass("binding2");
+		},
+		
+		onmouseout: function() {
+			this.removeClass("binding2");
+		}
+	});
+	
+	new base2.JSB.RuleList({
+		"body > p": Binding2,
+		"p": Binding1
+	});
+ </script>
+</head>
+
+<body lang="en">
+ <p>Hello World!</p>
+ <p>Hello World!</p>
+ <p>Hello World!</p>
+ <div style="background-color: silver">
+  <p>Hello World!</p>
+  <p>Hello World!</p>
+  <p>Hello World!</p>
+  <p>Hello World!</p>
+ </div>
+ <p>Hello World!</p>
+ <p>Hello World!</p>
+ <p>Hello World!</p>
+</body>
+</html>
