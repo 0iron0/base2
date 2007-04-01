@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package name="selectors-api" publish="false" closure="false">
+	<include src="NodeSelector.js"/>
+	<include src="DocumentSelector.js"/>
+	<include src="ElementSelector.js"/>
+	<include src="StaticNodeList.js"/>
+	<include src="Selector.js"/>
+	<include src="Parser.js"/>
+	<include src="Selector/operators.js"/>
+	<include src="Selector/pseudoClasses.js"/>
+	<include src="Selector/parse.js"/>
+</package>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package name="lang" closure="false" publish="false">
+	<include src="main.js"/>
+	<include src="extend.js"/>
+	<include src="assignID.js"/>
+	<include src="forEach.js"/>
+</package>

@@ -1,0 +1,48 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+ <head>
+  <title>base2: Simple Inheritance Test</title>
+  <meta name="author" content="Dean Edwards"/>
+  <meta name="copyright" content="&copy; copyright 2006, Dean Edwards"/>
+  <link rel="icon" href="http://dean.edwards.name/favicon.ico"/>
+  <script src="../src/legacy.js" type="text/javascript"></script>
+  <script src="../src/base2/Base.js" type="text/javascript"></script>
+ </head>
+ <body>
+  <script type="text/javascript">
+	var Animal = Base.extend({
+		constructor: function(name) {
+			this.name = name;
+		},
+		
+		name: "",
+		
+		eat: function() {
+			this.say("Yum!");
+		},
+		
+		say: function(message) {
+			document.write("<p><b>" + this.name + "</b>: " + message + "</p>");
+		}
+	});
+	
+	var Cat = Animal.extend({
+		eat: function(food) {
+			if (food.constructor == Mouse) this.base();
+			else this.say("Yuk! I only eat mice.");
+		}
+	});
+	
+	var Mouse = Animal.extend();
+	
+	// test
+	var tom = new Cat("Tom");
+	var jerry = new Mouse("Jerry");
+	jerry.eat("cheese");
+	// ==> Jerry: Yum!
+	tom.eat("cheese");
+	// ==> Tom: Yuk! I only eat mice.
+	tom.eat(jerry);
+	// ==> Tom: Yum!
+  </script>
+ </body>
+</html>

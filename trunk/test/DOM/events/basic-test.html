@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+ <title>base2: Event Handling Test</title>
+ <meta name="author" content="Dean Edwards"/>
+ <!-- keeping code tidy!! -->
+ <meta name="copyright" content="&copy; copyright 2007, Dean Edwards"/>
+ <style type="text/css">
+ #clickable {background-color: yellow; text-align: center;}
+ #clickable.active {background-color: lime;}
+ button {margin-right: 1em;}
+ </style>
+ <script src="http://dean.edwards.test/base2/trunk/src/legacy.js" type="text/javascript"></script>
+ <script src="http://dean.edwards.test/base2/trunk/src/base2/DOM/package.php?full<?php print(time()) ?>" type="text/javascript"></script>
+ <script type="text/javascript">
+ 	base2.DOM.bind(document);
+ 	var clickable;
+ 	onload = function() {
+ 		clickable = document.matchSingle("#clickable");
+ 	};
+	function addListener() {
+		clickable.addEventListener("click", youClickedMe, false);
+		clickable.addClass("active");
+	};
+	function removeListener() {
+		clickable.removeEventListener("click", youClickedMe, false);
+		clickable.removeClass("active");
+	};
+	function dispatch() {
+		var event = document.createEvent("MouseEvents");
+		event.initEvent("click", true, true);
+		clickable.dispatchEvent(event);
+	};
+	function youClickedMe() {
+		alert("click");
+	};
+ </script>
+</head>
+<body>
+ <h1>base2: Event Handling Test</h1>
+ <p id="clickable">Click me.</p>
+ <p><button onclick="addListener()">addEventListener()</button><!--
+ --><button onclick="removeListener()">removeEventListener()</button><!--
+ --><button onclick="dispatch()">dispatchEvent()</button></p>
+</body>
+</html>

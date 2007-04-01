@@ -1,0 +1,3 @@
+
+var DOMImplementation = Binding.extend({
+});
