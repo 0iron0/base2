@@ -178,6 +178,7 @@ var Packer = Base.extend({
 	}),
 	
 	whitespace: {
+		"(\\d)\\s+(\\.\\s*[a-z$_\\[\\(])": "$1 $2", // http://dean.edwards.name/weblog/2007/04/packer3/#comment84066
 		"([+-])\\s+([+-])": "$1 $2", // c = a++ +b;
 		"(\\b|\\$)\\s+(\\b|\\$)": "$1 $2",
 		"\\s+": REMOVE
