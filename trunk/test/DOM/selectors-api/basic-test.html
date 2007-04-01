@@ -12,13 +12,13 @@
 	p.test {margin: 0 1ex 0 1ex; color: gray;}
 	p.test a {background-color: red; color: black;}
  </style>
- <script src="http://dean.edwards.test/base2/trunk/src/legacy.js" type="text/javascript"></script>
- <script src="http://dean.edwards.test/base2/trunk/src/base2/DOM/package.php?full<?php print(time()) ?>" type="text/javascript"></script>
+ <script src="../../../src/legacy.js" type="text/javascript"></script>
+ <script src="../../../src/base2/DOM/package.php?full<?php print(time()) ?>" type="text/javascript"></script>
  <script type="text/javascript">
  	base2.DOM.bind(document);
 	document.addEventListener("DOMContentLoaded", function() {
 		this.matchAll("pre").forEach(function(pre) {
-			// get the CSS rule from the <pre> tag
+			// get the CSS rule from the pre tag
 			var rule = pre.firstChild.nodeValue;
 			// extract the selector part
 			var selector = rule.slice(0, rule.indexOf("{"));
