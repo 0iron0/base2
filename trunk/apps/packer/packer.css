@@ -11,7 +11,7 @@ textarea.disabled, .disabled textarea {background-color: #EEEEEE; border: 2px so
 #output {background-color: #F0F0F0;}
 #controls {float: right; text-align: right;}
 #controls select {font-size: 0.83em; vertical-align: top;}
-#message {font-size: xx-small; margin-top: 0.5em;}
+#message {font-size: x-small; margin-top: 0.5em;}
 .error {color: #AA3333;}
 #packer #message {margin: 0 0 1em 0; float: right;}
 #help {float: right;}
