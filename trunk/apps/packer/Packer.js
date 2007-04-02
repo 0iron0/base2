@@ -166,8 +166,8 @@ var Packer = Base.extend({
 		// line comment followed by a RegExp
 		"(\\/\\/[^\\n]*)\\s+(\\/[^\\/*](\\\\.|[^\\/\\n\\\\])*\\/)": "$2",
 		// MSIE conditional comment markers
-		"\\/\\/@/": IGNORE,
-		"\\/\\*@/": IGNORE,
+		"\\/\\*@": IGNORE,
+		"@\\*\\/": IGNORE,
 		"(@\\/\\/[^\\n]*)\\n": "$1\\n",
 		// line comment
 		"\\/\\/[^\\n]*": REMOVE,
