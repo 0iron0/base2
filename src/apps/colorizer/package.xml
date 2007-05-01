@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package publish="false" closure="false">
+	<include src="Colorizer.js"/>
+	<include src="schemes/xml.js"/>
+	<include src="schemes/html.js"/>
+	<include src="schemes/css.js"/>
+	<include src="schemes/javascript.js"/>
+	<include src="schemes/html-multi.js"/>
+</package>

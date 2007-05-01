@@ -1,11 +1,11 @@
 
-var $Legacy = window.$Legacy || {};
+var Legacy = typeof $Legacy == "undefined" ? {} : $Legacy;
 
 var K = function(k) {return k};
 
-var assert = function(condition, message, Error) {
+var assert = function(condition, message, Err) {
 	if (!condition) {
-		throw new (Error || window.Error)(message || "Assertion failed.");
+		throw new (Err || Error)(message || "Assertion failed.");
 	}
 };
 
@@ -14,6 +14,12 @@ var assertType = function(object, type, message) {
 		var condition = typeof type == "function" ? instanceOf(object, type) : typeof object == type;
 		assert(condition, message || "Invalid type.", TypeError);
 	}
+};
+
+var copy = function(object) {
+	var fn = new Function;
+	fn.prototype = object;
+	return new fn;
 };
 
 var format = function(string) {
@@ -27,7 +33,7 @@ var format = function(string) {
 	});
 };
 
-var $instanceOf = $Legacy.instanceOf || new Function("o,k", "return o instanceof k");
+var $instanceOf = Legacy.instanceOf || new Function("o,k", "return o instanceof k");
 var instanceOf = function(object, klass) {
 	assertType(klass, "function", "Invalid 'instanceOf' operand.");
 	if ($instanceOf(object, klass)) return true;
@@ -43,7 +49,7 @@ var instanceOf = function(object, klass) {
 			return typeof object == typeof klass.prototype.valueOf();
 		case Array:
 			// this is the only troublesome one
-			return object.join && object.splice && !arguments.callee(object, Function);
+			return !!(object.join && object.splice && !arguments.callee(object, Function));
 		case Date:
 			return !!object.getTimezoneOffset;
 		case RegExp:

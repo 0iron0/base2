@@ -1,13 +1,14 @@
 
 // browser specific code
 
-var MSIE = /*@cc_on!@*/false;
 var element = document.createElement("span");
+var jscript/*@cc_on=@_jscript_version@*/; // http://dean.edwards.name/weblog/2007/03/sniff/#comment85164
 
 var BOM = {
 	userAgent: "",
 
 	init: function() {
+		var MSIE/*@cc_on=true@*/;
 		// initialise the user agent string
 		var userAgent = navigator.userAgent;
 		// fix opera's (and others) user agent string
@@ -23,7 +24,7 @@ var BOM = {
 		var not = test.charAt(0) == "!";
 		test = test
 			.replace(/^\!?(if\s*|platform\s+)?/, "")
-			.replace(/^(["']?)([^\(].*)(\1)$/, "/$2/i.test(BOM.userAgent)");
+			.replace(/^(["']?)([^\(].*)(\1)$/, "/($2)/i.test(BOM.userAgent)");
 		try {
 			eval("r=!!" + test);
 		} catch (error) {

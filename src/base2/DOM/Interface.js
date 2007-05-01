@@ -11,7 +11,8 @@ var Interface = Module.extend(null, {
 		//  forwards to:
 		//    element.addEventListener(type, func, capture)
 		this[name] = function(object) {
-			return (object[name].ancestor || object[name]).apply(object, slice(arguments, 1));
+			var m = (object.base && object.base == object[name].ancestor) ? "base" : name;
+			return object[m].apply(object, slice(arguments, 1));
 		};
 	},
 	
@@ -40,18 +41,18 @@ var Interface = Module.extend(null, {
 			// can't invoke Function.apply on COM object methods. Shame.
 			//  (this is also required for Safari)
 			this[name] = function(object) {
-				var method = (object.base && object.base == object[name].ancestor) ? "base" : name;
+				var m = (object.base && object.base == object[name].ancestor) ? "base" : name;
 				// unroll for speed
 				switch (arguments.length) {
-					case 1: return object[method]();
-					case 2: return object[method](arguments[1]);
-					case 3: return object[method](arguments[1], arguments[2]);
-					case 4: return object[method](arguments[1], arguments[2], arguments[3]);
+					case 1: return object[m]();
+					case 2: return object[m](arguments[1]);
+					case 3: return object[m](arguments[1], arguments[2]);
+					case 4: return object[m](arguments[1], arguments[2], arguments[3]);
 				}
 				// use eval() if there are lots of arguments
 				var args = [], i = arguments.length;
 				while (i-- > 1) args[i - 1] = "arguments[" + i + "]";
-				eval("var returnValue=object[method](" + args + ")");
+				eval("var returnValue=object[m](" + args + ")");
 				return returnValue;
 			};
 		}

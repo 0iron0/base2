@@ -1,9 +1,16 @@
 
 // http://www.whatwg.org/specs/web-apps/current-work/#htmldocument
+// http://www.whatwg.org/specs/web-apps/current-work/#getelementsbyclassname
 
 var HTMLDocument = Document.extend({
 	"@!(document.nodeType)": {
 		nodeType: 9
+	},
+	
+	"@!(document.getElementsByClassName)": { // firefox3?
+		getElementsByClassName: function(document, classNames) {
+			return this.matchAll(document, "." + classNames.join("."));
+		}
 	}
 }, {
 	// http://www.whatwg.org/specs/web-apps/current-work/#activeelement	

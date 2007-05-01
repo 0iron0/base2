@@ -13,20 +13,20 @@ var Selector = Base.extend({
 	},
 	
 	exec: function(context, single) {
-		try {
+	//	try {
 			var result = this.$evaluate(context || document, single);
-		} catch (error) { // probably an invalid selector =)
-			throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
-		}
+	//	} catch (error) { // probably an invalid selector =)
+	//		throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
+	//	}
 		return single ? result : new StaticNodeList(result);
 	},
 	
 	test: function(element) {
 		//-dean: improve this for simple selectors
-		element.setAttribute("base2_test", true);
-		var selector = new Selector(this + "[base2_test]");
+		element.setAttribute("b2_test", true);
+		var selector = new Selector(this + "[b2_test]");
 		var result = selector.exec(Traversal.getOwnerDocument(element), 1);
-		element.removeAttribute("base2_test");
+		element.removeAttribute("b2_test");
 		return result == element;
 	},
 	

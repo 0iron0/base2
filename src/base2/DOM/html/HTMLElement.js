@@ -1,4 +1,6 @@
 
+// http://www.whatwg.org/specs/web-apps/current-work/#getelementsbyclassname
+
 var HTMLElement = Element.extend({
 	addClass: function(element, className) {
 		if (!this.hasClass(element, className)) {
@@ -16,7 +18,13 @@ var HTMLElement = Element.extend({
 		var regexp = new RegExp("(^|\\s)" + className + "(\\s|$)");
 		element.className = element.className.replace(regexp, "$2");
 		return className;
-	}
+	},
+	
+	"@!(element.getElementsByClassName)": { // firefox3?
+		getElementsByClassName: function(element, classNames) {
+			return this.matchAll(element, "." + classNames.join("."));
+		}
+	}	
 }, {
 	bindings: {},
 	tags: "*",

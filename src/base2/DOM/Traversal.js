@@ -31,7 +31,7 @@ var Traversal = Module.extend({
 	},
 
 	getTextContent: function(node) {
-		return node.textContent;
+		return node[Traversal.$TEXT];
 	},
 
 	isEmpty: function(node) {
@@ -42,12 +42,12 @@ var Traversal = Module.extend({
 		}
 		return true;
 	},
+
+	setTextContent: function(node, text) {
+		return node[Traversal.$TEXT] = text;
+	},
 	
 	"@MSIE": {
-		getTextContent: function(node) {
-			return node.innerText;
-		},
-		
 		getDefaultView: function(node) {
 			return this.getDocument(node).parentWindow;
 		},
@@ -60,6 +60,8 @@ var Traversal = Module.extend({
 		}
 	}
 }, {
+	$TEXT: "textContent",
+	
 	contains: function(node, target) {
 		return this.isDocument(node) ? node == this.getOwnerDocument(target) : node != target && node.contains(target);
 	},
@@ -82,6 +84,10 @@ var Traversal = Module.extend({
 			while (target && (target = target.parentNode) && node != target) continue;
 			return !!target;
 		}
+	},
+	
+	"@MSIE": {
+		$TEXT: "innerText"
 	},
 	
 	"@MSIE5": {

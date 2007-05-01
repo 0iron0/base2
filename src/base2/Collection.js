@@ -68,6 +68,7 @@ var Collection = Hash.extend({
 	},
 
 	storeAt: function(index, item) {
+		//-dean: get rid of this?
 		assert(index < this.count(), "Index out of bounds.");
 		arguments[0] = this[KEYS][index];
 		return this.store.apply(this, arguments);

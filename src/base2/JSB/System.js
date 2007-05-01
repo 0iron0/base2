@@ -19,6 +19,7 @@ var System = new Base({
 		// call deferred calls
 		if (!System.ready) {
 			System.ready = true;
+			DOM.bind(document);
 			System._deferred.sort(function(a, b) {
 				return a.rank - b.rank;
 			});

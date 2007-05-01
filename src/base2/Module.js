@@ -45,7 +45,7 @@ var Module = Abstract.extend(null, {
 				// instance methods call the equivalent static method
 				if (typeof property == "function") {
 					property = function() {
-						var base; // force inheritance
+						base; // force inheritance
 						return module[name].apply(module, [this].concat(slice(arguments)));
 					};
 				}

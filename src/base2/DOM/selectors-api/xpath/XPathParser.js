@@ -35,8 +35,8 @@ var XPathParser = Parser.extend({
 	init: function() {
 		// build the prototype
 		this.values.attributes[""] = "[@$1]";
-		this.sorter = new RegGrp(_XPATH_SORTER);
-		this.rules = extend({}, this.optimised.values);
+	//-	this.sorter = new RegGrp(_XPATH_SORTER);
+		this.rules = copy(this.optimised.values);
 		forEach (this.types, function(add, type) {
 			forEach (this.values[type], add, this.rules);
 		}, this);
