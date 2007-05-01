@@ -8,11 +8,10 @@ header('Cache-Control: no-cache, must-revalidate, max-age=0');
  <title>Test Page</title>
  <meta name="author" content="Dean Edwards"/>
  <meta name="copyright" content="&copy; copyright 2006, Dean Edwards"/>
- <link rel="stylesheet" type="text/css" href="http://dean.edwards.test/base2/trunk/src/base2/apps/colorizer/default.css"/>
- <script src="http://dean.edwards.test/base2/trunk/src/legacy.js?<?php echo(time())?>" type="text/javascript"></script>
- <script src="http://dean.edwards.test/base2/trunk/src/base2/JSB/package.php?full<?php echo(time())?>" type="text/javascript"></script>
- <script src="http://dean.edwards.test/base2/trunk/src/base2/apps/colorizer/package.php?<?php echo(time())?>" type="text/javascript"></script>
- <script src="bindings.js?<?php echo(time())?>" type="text/javascript"></script>
+ <link rel="stylesheet" type="text/css" href="default.css"/>
+ <script src="../../../lib/base2-jsb-fp.js" type="text/javascript"></script>
+ <script src="../colorizer-p.js" type="text/javascript"></script>
+ <script src="bindings.js" type="text/javascript"></script>
 </head>
 <body>
 <h2>star-light</h2>
@@ -39,7 +38,6 @@ header('Cache-Control: no-cache, must-revalidate, max-age=0');
  &lt;/head&gt;
  &lt;body&gt;
   &lt;p&gt;Hello&amp;nbsp;World!&lt;/p&gt;
-  &lt;p&gt;test="World"!&lt;/p&gt;
  &lt;/body&gt;
 &lt;/html&gt;
 </pre>
@@ -106,82 +104,8 @@ function getText(a, b, c) {
  &lt;/head&gt;
  &lt;body&gt;
   &lt;p&gt;Hello&amp;nbsp;World!&lt;/p&gt;
-  &lt;p&gt;Hello "World"!&lt;/p&gt;
  &lt;/body&gt;
 &lt;/html&gt;
 </pre>
-
-<h2>PHP</h2>
-<pre class="php">
-&lt;?php
-// author: dean@edwards.name
-$string = "/* string */";
-print('Hello Dean!');
-function getText($a, $b, $c) {
-	return $a + $b + $c;
-};
-?>
-</pre>
-
-<h2>Email/Discussion</h2>
-<pre class="email">
-So said the script writer:
-&gt; I like *bold* text! :-)
-&gt;
-&gt; But the other man said:
-&gt;&gt; I like /italicised/ text. :(
-&gt;&gt;
-&gt;&gt; A third fellow chimed in:
-&gt;&gt;&gt; I think _underlined_ text should suit you both. ;-)
-&gt;&gt;&gt;
-&gt;&gt; _Hey_! He's right! :-)
-&gt; _Groovy_. ;-)
-</pre>
-
-<h3>VBScript</h3>
-<pre class="vbscript">
-Rem this is a "comment"
-' so is this
-Function MyHex(ByVal Number)
-	Dim Sign
-	Const HexChars = "0123456789ABCDEF"
-	Sign = Sgn(Number)
-	Number = Fix(Abs(CDbl(number)))
-	If Number = 0 Then
-		MyHex = "0"
-		Exit Function
-	End If
-	While Number > 0
-		MyHex = Mid(HexChars, 1 + (Number - 16 * Fix(Number / 16)), 1) &amp; MyHex
-		Number = Fix(Number/16)
-	WEnd
-	If Sign = -1 Then MyHex = "-" &amp; MyHex
-End Function
-</pre>
-
-<h3>T-SQL</h3>
-<pre class="tsql">
-CREATE PROC nth (
-	@table_name sysname,
-	@column_name sysname,
-	@nth int
-)
-AS
-BEGIN
-
---Date written: December 23rd 2000
---Purpose: To find out the nth highest number in a column.
-
-SET @table_name = RTRIM(@table_name)
-SET @column_name = RTRIM(@column_name)
-
-DECLARE @exec_str CHAR(400)
-IF (SELECT OBJECT_ID(@table_name,'U')) IS NULL
-BEGIN
-	RAISERROR('Invalid table name',18,1)
-	RETURN -1
-END
-</pre>
-
 </body>
 </html>

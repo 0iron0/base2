@@ -1,10 +1,10 @@
 
-//eval(base2.namespace);
+eval(base2.namespace);
 
 var DEFAULT = "@0";
 var IGNORE  = RegGrp.IGNORE;
 
-var Colorizer = RegGrp.extend({
+Colorizer = RegGrp.extend({
 	constructor: function(values, patterns, properties) {
 		this.patterns = patterns || {};
 		this.extend(properties);
@@ -16,9 +16,9 @@ var Colorizer = RegGrp.extend({
 	urls: true,
 
 	copy: function() {
-		var copy = this.base();
-		copy.patterns = copy(this.patterns);
-		return copy;
+		var colorizer = this.base();
+		colorizer.patterns = copy(this.patterns);
+		return colorizer;
 	},
 	
 	exec: function(text) {

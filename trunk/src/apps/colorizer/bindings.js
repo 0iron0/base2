@@ -6,7 +6,7 @@ new base2.JSB.Rule("pre", {
 			// use the first class name that matches a highlighter
 			var engine = names[i];
 			var colorizer = Colorizer[engine];
-			if (instanceOf(colorizer, Colorizer)) {
+			if (colorizer instanceof Colorizer) {
 				var textContent = base2.Traversal.getTextContent(this);
 				this.innerHTML = colorizer.exec(textContent);
 				this.addClass("highlight");
