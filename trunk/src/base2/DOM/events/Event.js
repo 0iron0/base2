@@ -27,26 +27,32 @@ var Event = Binding.extend({
 		}
 	}
 }, {
-	"@MSIE.+mac": {	
-		bind: function(event) {
-			// Mac IE5 does not allow expando properties on the event object so
-			//  we copy the object instead.
-			return this.base(extend({
-				preventDefault: function() {
-					if (this.cancelable !== false) {
-						this.returnValue = false;
-					}
-				}
-			}, event));
-		}
-	},
-	
-	"@MSIE.+win": {
-		bind: function(event) {
+	"@MSIE": {
+/*		bind: function(event) {
 			//-dean: put more fixes here
-			this.base(event);
-			event.target = event.srcElement;
-			return event;
+			return this.base(event);
+		}, */
+		
+		"Mac": {
+			bind: function(event) {
+				// Mac IE5 does not allow expando properties on the event object so
+				//  we copy the object instead.
+				return this.base(extend({
+					preventDefault: function() {
+						if (this.cancelable !== false) {
+							this.returnValue = false;
+						}
+					}
+				}, event));
+			}
+		},
+		
+		"Windows": {
+			bind: function(event) {
+				this.base(event);
+				event.target = event.srcElement;
+				return event;
+			}
 		}
 	}
 });

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package name="JSON">
+	<include src="namespace.js"/>
+	<include src="Object.js"/>
+	<include src="Array.js"/>
+	<include src="Boolean.js"/>
+	<include src="Date.js"/>
+	<include src="Number.js"/>
+	<include src="String.js"/>
+</package>

@@ -129,4 +129,3 @@ extend(EventTarget, {
 		this.base(target, event);
 	}
 });
-

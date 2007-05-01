@@ -45,13 +45,21 @@ var RegGrp = Collection.extend({
 	},
 	
 	toString: function() {
-		return "(" + this.keys().join(")|(") + ")";
+		var length = 0;
+		return "(" + this.map(function(item) {
+			// fix back references
+			var expression = String(item).replace(/\\(\d+)/g, function($, index) {
+				return "\\" + (1 + Number(index) + length);
+			});
+			length += item.length + 1;
+			return expression;
+		}).join(")|(") + ")";
 	}
 }, {
 	IGNORE: "$0",
 	
 	init: function() {
-		forEach ("add,exists,fetch,remove".split(","), function(name) {
+		forEach ("add,exists,fetch,remove,store".split(","), function(name) {
 			extend(this, name, function(expression) {
 				if (instanceOf(expression, RegExp)) {
 					expression = expression.source;

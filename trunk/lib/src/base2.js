@@ -1,19 +1,18 @@
+// timestamp: Tue, 01 May 2007 19:13:00
 /*
 	base2.js - copyright 2007, Dean Edwards
 	http://www.opensource.org/licenses/mit-license
 */
 
-// timestamp: Sun, 01 Apr 2007 05:39:59
-
 var base2 = {};
 
 // You know, writing a javascript library is awfully time consuming.
 
-new function() { ////////////////////  BEGIN: CLOSURE  ////////////////////
+new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
-// ========================================================================
+// =========================================================================
 // base2/Base.js
-// ========================================================================
+// =========================================================================
 
 // version 1.1
 
@@ -121,17 +120,17 @@ Base = Base.extend({
 	}
 });
 
-// ========================================================================
+// =========================================================================
 // lang/main.js
-// ========================================================================
+// =========================================================================
 
-var $Legacy = window.$Legacy || {};
+var Legacy = typeof $Legacy == "undefined" ? {} : $Legacy;
 
 var K = function(k) {return k};
 
-var assert = function(condition, message, Error) {
+var assert = function(condition, message, Err) {
 	if (!condition) {
-		throw new (Error || window.Error)(message || "Assertion failed.");
+		throw new (Err || Error)(message || "Assertion failed.");
 	}
 };
 
@@ -140,6 +139,12 @@ var assertType = function(object, type, message) {
 		var condition = typeof type == "function" ? instanceOf(object, type) : typeof object == type;
 		assert(condition, message || "Invalid type.", TypeError);
 	}
+};
+
+var copy = function(object) {
+	var fn = new Function;
+	fn.prototype = object;
+	return new fn;
 };
 
 var format = function(string) {
@@ -153,7 +158,7 @@ var format = function(string) {
 	});
 };
 
-var $instanceOf = $Legacy.instanceOf || new Function("o,k", "return o instanceof k");
+var $instanceOf = Legacy.instanceOf || new Function("o,k", "return o instanceof k");
 var instanceOf = function(object, klass) {
 	assertType(klass, "function", "Invalid 'instanceOf' operand.");
 	if ($instanceOf(object, klass)) return true;
@@ -169,7 +174,7 @@ var instanceOf = function(object, klass) {
 			return typeof object == typeof klass.prototype.valueOf();
 		case Array:
 			// this is the only troublesome one
-			return object.join && object.splice && !arguments.callee(object, Function);
+			return !!(object.join && object.splice && !arguments.callee(object, Function));
 		case Date:
 			return !!object.getTimezoneOffset;
 		case RegExp:
@@ -201,9 +206,9 @@ var trim = function(string) {
 	return String(string).replace(TRIM, "");	
 };
 
-// ========================================================================
+// =========================================================================
 // lang/extend.js
-// ========================================================================
+// =========================================================================
 
 var base = function(object, args) {
 	// invoke the base method with all supplied arguments
@@ -215,20 +220,20 @@ var extend = function(object) {
 	return Base.prototype.extend.apply(object, slice(arguments, 1));
 };
 
-// ========================================================================
+// =========================================================================
 // lang/assignID.js
-// ========================================================================
+// =========================================================================
 
 var $ID = 1;
 var assignID = function(object) {
 	// assign a unique id
-	if (!object.base2ID) object.base2ID = "base2_" + $ID++;
+	if (!object.base2ID) object.base2ID = "b2_" + $ID++;
 	return object.base2ID;
 };
 
-// ========================================================================
+// =========================================================================
 // lang/forEach.js
-// ========================================================================
+// =========================================================================
 
 if (typeof StopIteration == "undefined") {
 	StopIteration = new Error("StopIteration");
@@ -267,8 +272,8 @@ forEach.Array = function(array, block, context) {
 	}
 };
 
-forEach.Function = function(fn, object, block, context) {
-	// enumerate object and compare its keys with fn's prototype
+forEach.Function = Legacy.forEach || function(fn, object, block, context) {
+	// enumerate an object and compare its keys with fn's prototype
 	for (var key in object) {
 		if (fn.prototype[key] === undefined) {
 			block.call(context, object[key], key, object);
@@ -276,17 +281,26 @@ forEach.Function = function(fn, object, block, context) {
 	}
 };
 
-// ========================================================================
+// =========================================================================
 // base2/Base/forEach.js
-// ========================================================================
+// =========================================================================
 
 Base.forEach = function(object, block, context) {
 	forEach.Function(this, object, block, context);
 };
 
-// ========================================================================
+// =========================================================================
+// base2/../Function.js
+// =========================================================================
+
+// some browsers don't define this
+
+Function.prototype.prototype = {};
+
+
+// =========================================================================
 // base2/../String.js
-// ========================================================================
+// =========================================================================
 
 // fix String.replace (Safari/IE5.0)
 
@@ -315,9 +329,9 @@ if ("".replace(/^/, String)) {
 	});
 }
 
-// ========================================================================
+// =========================================================================
 // base2/Abstract.js
-// ========================================================================
+// =========================================================================
 
 var Abstract = Base.extend({
 	constructor: function() {
@@ -325,9 +339,9 @@ var Abstract = Base.extend({
 	}
 });
 
-// ========================================================================
+// =========================================================================
 // base2/Module.js
-// ========================================================================
+// =========================================================================
 
 // based on ruby's Module class and Mozilla's Array generics:
 //   http://www.ruby-doc.org/core/classes/Module.html
@@ -375,7 +389,7 @@ var Module = Abstract.extend(null, {
 				// instance methods call the equivalent static method
 				if (typeof property == "function") {
 					property = function() {
-						var base; // force inheritance
+						base; // force inheritance
 						return module[name].apply(module, [this].concat(slice(arguments)));
 					};
 				}
@@ -389,9 +403,9 @@ var Module = Abstract.extend(null, {
 });
 
 
-// ========================================================================
+// =========================================================================
 // base2/Enumerable.js
-// ========================================================================
+// =========================================================================
 
 var Enumerable = Module.extend({
 	every: function(object, test, context) {
@@ -408,12 +422,12 @@ var Enumerable = Module.extend({
 	},
 	
 	filter: function(object, test, context) {
-		return this.reduce(object, new Array2, function(result, value, key) {
+		return this.reduce(object, function(result, value, key) {
 			if (test.call(context, value, key, object)) {
 				result[result.length] = value;
 			}
 			return result;
-		});
+		}, new Array2);
 	},
 
 	invoke: function(object, method) {
@@ -440,7 +454,7 @@ var Enumerable = Module.extend({
 		});
 	},
 	
-	reduce: function(object, result, block, context) {
+	reduce: function(object, block, result, context) {
 		this.forEach (object, function(value, key) {
 			result = block.call(context, result, value, key, object);
 		});
@@ -456,21 +470,21 @@ var Enumerable = Module.extend({
 	forEach: forEach
 });
 
-// ========================================================================
+// =========================================================================
 // base2/Array2.js
-// ========================================================================
+// =========================================================================
 
-// This module implements all Array methods.
+// The IArray module implements all Array methods.
 // This module is not public but its methods are accessible through the Array2 object (below). 
 
 var IArray = Module.extend({
 	combine: function(keys, values) {
 		// combine two arrays to make a hash
 		if (!values) values = keys;
-		return this.reduce(keys, {}, function(object, key, index) {
+		return this.reduce(keys, function(object, key, index) {
 			object[key] = values[index];
 			return object;
-		});
+		}, {});
 	},
 	
 	copy: function(array) {
@@ -543,7 +557,7 @@ IArray.implement(Enumerable);
 forEach ("concat,join,pop,push,reverse,shift,slice,sort,splice,unshift".split(","), function(name) {
 	IArray[name] = function(array) {
 		return Array.prototype[name].apply(array, slice(arguments, 1));
-	}
+	};
 });
 
 // create a faux constructor that augments the built-in Array object
@@ -561,9 +575,9 @@ forEach (IArray, function(method, name, proto) {
 	Array2[name] = IArray[name];
 });
 
-// ========================================================================
+// =========================================================================
 // base2/Hash.js
-// ========================================================================
+// =========================================================================
 
 var HASH = "#" + Number(new Date);
 var KEYS = HASH + "keys";
@@ -577,12 +591,18 @@ var Hash = Base.extend({
 	},
 
 	copy: function() {
-		return new this.constructor(this);
+		var copy = new this.constructor(this);
+		Base.forEach (this, function(property, name) {
+			if (typeof property != "function" && name.charAt(0) != "#") {
+				copy[name] = property;
+			}
+		});
+		return copy;
 	},
 
-	// ancient browsers they throw an error when we use "in" as an operator 
+	// ancient browsers throw an error when we use "in" as an operator 
 	//  so we must create the function dynamically
-	exists: $Legacy.exists || new Function("k", format("return('%1'+k)in this['%2']", HASH, VALUES)),
+	exists: Legacy.exists || new Function("k", format("return('%1'+k)in this['%2']", HASH, VALUES)),
 
 	fetch: function(key) {
 		return this[VALUES][HASH + key];
@@ -595,10 +615,11 @@ var Hash = Base.extend({
 	},
 
 	keys: function(index, length) {
+		var keys = this[KEYS] || new Array2;
 		switch (arguments.length) {
-			case 0: return this[KEYS].copy();
-			case 1: return this[KEYS][index];
-			default: return this[KEYS].slice(index, length);
+			case 0: return keys.copy();
+			case 1: return keys[index];
+			default: return keys.slice(index, length);
 		}
 	},
 
@@ -649,9 +670,9 @@ var Hash = Base.extend({
 
 Hash.implement(Enumerable);
 
-// ========================================================================
+// =========================================================================
 // base2/Collection.js
-// ========================================================================
+// =========================================================================
 
 // A Hash that is more array-like (accessible by index).
 
@@ -722,6 +743,7 @@ var Collection = Hash.extend({
 	},
 
 	storeAt: function(index, item) {
+		//-dean: get rid of this?
 		assert(index < this.count(), "Index out of bounds.");
 		arguments[0] = this[KEYS][index];
 		return this.store.apply(this, arguments);
@@ -750,9 +772,9 @@ var Collection = Hash.extend({
 	}
 });
 
-// ========================================================================
+// =========================================================================
 // base2/RegGrp.js
-// ========================================================================
+// =========================================================================
 
 var RegGrp = Collection.extend({
 	constructor: function(values, flags) {
@@ -800,13 +822,21 @@ var RegGrp = Collection.extend({
 	},
 	
 	toString: function() {
-		return "(" + this.keys().join(")|(") + ")";
+		var length = 0;
+		return "(" + this.map(function(item) {
+			// fix back references
+			var expression = String(item).replace(/\\(\d+)/g, function($, index) {
+				return "\\" + (1 + Number(index) + length);
+			});
+			length += item.length + 1;
+			return expression;
+		}).join(")|(") + ")";
 	}
 }, {
 	IGNORE: "$0",
 	
 	init: function() {
-		forEach ("add,exists,fetch,remove".split(","), function(name) {
+		forEach ("add,exists,fetch,remove,store".split(","), function(name) {
 			extend(this, name, function(expression) {
 				if (instanceOf(expression, RegExp)) {
 					expression = expression.source;
@@ -817,24 +847,23 @@ var RegGrp = Collection.extend({
 	}
 });
 
-// ========================================================================
+// =========================================================================
 // base2/RegGrp/Item.js
-// ========================================================================
+// =========================================================================
 
 RegGrp.Item = Base.extend({
 	constructor: function(expression, replacement) {
-		var ESCAPE = /\\./g, STRING = /(['"])\1\+(.*)\+\1\1$/;
+		var ESCAPE = /\\./g;
+		var STRING = /(['"])\1\+(.*)\+\1\1$/;
 	
 		expression = instanceOf(expression, RegExp) ? expression.source : String(expression);
-		
-		if (/\\(\d+)/.test(expression)) throw new Error("Back references not supported (yet).");
 		
 		if (typeof replacement == "number") replacement = String(replacement);
 		else if (replacement == null) replacement = "";
 		
 		// count the number of sub-expressions
 		//  - add one because each pattern is itself a sub-expression
-		this.length = match(expression.replace(/\\\(/g, ""), /\(/g).length;
+		this.length = match(expression.replace(ESCAPE, "").replace(/\[[^\]]+\]/g, ""), /\(/g).length;
 		
 		// does the pattern use sub-expressions?
 		if (typeof replacement == "string" && /\$(\d+)/.test(replacement)) {
@@ -846,7 +875,8 @@ RegGrp.Item = Base.extend({
 				// build a function to do the lookup
 				var i = this.length + 1;
 				var Q = /'/.test(replacement.replace(ESCAPE, "")) ? '"' : "'";
-				replacement = replacement.replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\$(\d+)/g, Q + "+arguments[$1]+" + Q);
+				replacement = replacement.replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\$(\d+)/g, Q +
+					"+(arguments[$1]||" + Q+Q + ")+" + Q);
 				replacement = new Function("return " + Q + replacement.replace(STRING, "$1") + Q);
 			}
 		}
@@ -860,13 +890,13 @@ RegGrp.Item = Base.extend({
 	replacement: ""
 });
 
-// ========================================================================
+// =========================================================================
 // base2/Namespace.js
-// ========================================================================
+// =========================================================================
 
 var Namespace = Base.extend({
 	constructor: function(_private, _public) {
-		this.base(_public);
+		this.extend(_public);
 		this.toString = function() {
 			return format("[base2.%1]", this.name);
 		};
@@ -880,20 +910,24 @@ var Namespace = Base.extend({
 		
 		var namespace = "var base=" + base + ";";
 		var imports = ("base2,lang," + this.imports).split(",");
-		_private.imports = Enumerable.reduce(imports, namespace, function(namespace, name) {
+		_private.imports = Enumerable.reduce(imports, function(namespace, name) {
 			if (base2[name]) namespace += base2[name].namespace;
 			return namespace;
-		});
+		}, namespace);
 		
 		var namespace = format("base2.%1=%1;", this.name);
 		var exports = this.exports.split(",");
-		_private.exports = Enumerable.reduce(exports, namespace, function(namespace, name) {
+		_private.exports = Enumerable.reduce(exports, function(namespace, name) {
 			if (name) {
 				this.namespace += format("var %2=%1.%2;", this.name, name);
 				namespace += format("if(!%1.%2)%1.%2=%2;base2.%2=%1.%2;", this.name, name);
 			}
 			return namespace;
-		}, this);
+		}, namespace, this);
+		
+		if (this.name != "base2") {
+			base2.namespace += format("var %1=base2.%1;", this.name);
+		}
 	},
 
 	exports: "",
@@ -903,9 +937,9 @@ var Namespace = Base.extend({
 });
 
 base2 = new Namespace(this, {
-	exports: "Base,Abstract,Module,Enumerable,Array2,Hash,Collection,RegGrp,Namespace",
-	name: "base2",
-	version: "0.7 (alpha)"
+	name:    "base2",
+	version: "0.8 (alpha)",
+	exports: "Base,Abstract,Module,Enumerable,Array2,Hash,Collection,RegGrp,Namespace"
 });
 
 base2.toString = function() {
@@ -914,14 +948,14 @@ base2.toString = function() {
 
 eval(this.exports);
 
-// ========================================================================
+// =========================================================================
 // base2/lang/namespace.js
-// ========================================================================
+// =========================================================================
 
 var lang = new Namespace(this, {
 	name:    "lang",
 	version: base2.version,
-	exports: "K,assert,assertType,assignID,instanceOf,extend,format,forEach,match,rescape,slice,trim",
+	exports: "K,assert,assertType,assignID,copy,instanceOf,extend,format,forEach,match,rescape,slice,trim",
 	
 	init: function() {
 		this.extend = extend;
@@ -941,4 +975,4 @@ eval(this.exports);
 
 base2.namespace += lang.namespace;
 
-}; ////////////////////  END: CLOSURE  ////////////////////////////////////
+}; ////////////////////  END: CLOSURE  /////////////////////////////////////

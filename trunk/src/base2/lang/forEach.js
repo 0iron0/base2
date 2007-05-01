@@ -36,8 +36,8 @@ forEach.Array = function(array, block, context) {
 	}
 };
 
-forEach.Function = function(fn, object, block, context) {
-	// enumerate object and compare its keys with fn's prototype
+forEach.Function = Legacy.forEach || function(fn, object, block, context) {
+	// enumerate an object and compare its keys with fn's prototype
 	for (var key in object) {
 		if (fn.prototype[key] === undefined) {
 			block.call(context, object[key], key, object);

@@ -1,0 +1,46 @@
+<job>
+
+<!-- Windows Scripting Host command line wrapper for Packer  -->
+<!-- Run as CScript //nologo infile > outfile                 -->
+
+<script type="text/javascript" src="http://dean.edwards.test/base2/trunk/src/base2/package.php?full"></script>
+<script type="text/javascript" src="../Packer.js"></script>
+<script type="text/javascript" src="../Words.js"></script>
+<script type="text/javascript">
+
+function readFile(fileName) {
+  var READ = 1;
+  var fso = new ActiveXObject("Scripting.FileSystemObject");
+  var stream = fso.OpenTextFile(fileName, READ);
+  var text = stream.ReadAll();
+  stream.Close();
+  return text;
+}
+
+// arguments
+if (WScript.Arguments.length > 0) {
+	var inFile = WScript.Arguments(0);
+	var options = WScript.Arguments.length > 1 ? WScript.Arguments(1) : "";
+	
+	// options
+	var base62 = /^\-es?$/.test(options);
+	var shrink = /^\-e?s$/.test(options);
+	
+	var script = readFile(inFile);
+	var packer = new Packer;
+	var packedScript = packer.pack(script, base62, shrink);
+	
+	WScript.Echo(packedScript);
+} else {
+	WScript.Echo();
+	WScript.Echo('Compress a JavaScript source file using Dean Edwards\' "Packer".');
+	WScript.Echo('  Version : 3.0');
+	WScript.Echo('  Syntax  : program sourcefile -es');
+	WScript.Echo('  Options :');
+	WScript.Echo('    e: base62 encode');
+	WScript.Echo('    s: shrink variables');
+}
+
+</script>
+
+</job>

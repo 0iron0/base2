@@ -1,20 +1,21 @@
-// timestamp: Sun, 01 Apr 2007 05:39:42
+// timestamp: Tue, 01 May 2007 19:13:00
 
-new function() { ////////////////////  BEGIN: CLOSURE  ////////////////////
+new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
-// ========================================================================
+// =========================================================================
 // BOM/object.js
-// ========================================================================
+// =========================================================================
 
 // browser specific code
 
-var MSIE = /*@cc_on!@*/false;
 var element = document.createElement("span");
+var jscript/*@cc_on=@_jscript_version@*/; // http://dean.edwards.name/weblog/2007/03/sniff/#comment85164
 
 var BOM = {
 	userAgent: "",
 
 	init: function() {
+		var MSIE/*@cc_on=true@*/;
 		// initialise the user agent string
 		var userAgent = navigator.userAgent;
 		// fix opera's (and others) user agent string
@@ -30,7 +31,7 @@ var BOM = {
 		var not = test.charAt(0) == "!";
 		test = test
 			.replace(/^\!?(if\s*|platform\s+)?/, "")
-			.replace(/^(["']?)([^\(].*)(\1)$/, "/$2/i.test(BOM.userAgent)");
+			.replace(/^(["']?)([^\(].*)(\1)$/, "/($2)/i.test(BOM.userAgent)");
 		try {
 			eval("r=!!" + test);
 		} catch (error) {
@@ -40,24 +41,23 @@ var BOM = {
 	}
 };
 
-// ========================================================================
+// =========================================================================
 // BOM/namespace.js
-// ========================================================================
+// =========================================================================
 
 // browser specific code
 base2.extend(BOM, {
-	exports: "detect,Window",
-	name: "BOM",
-	version: "0.9"
+	name:    "BOM",
+	version: "0.9",
+	exports: "detect,Window"
 });
 BOM = new base2.Namespace(this, BOM);
 
 eval(this.imports);
 
-
-// ========================================================================
+// =========================================================================
 // BOM/Base.js
-// ========================================================================
+// =========================================================================
 
 var _extend = Base.prototype.extend;
 Base.prototype.extend = function(source, value) {
@@ -67,13 +67,13 @@ Base.prototype.extend = function(source, value) {
 	return _extend.apply(this, arguments);
 };
 
-// ========================================================================
+// =========================================================================
 // BOM/MSIE.js
-// ========================================================================
+// =========================================================================
 
 // avoid memory leaks
 
-if (MSIE && window.attachEvent) {
+if (BOM.detect("MSIE.+win")) {
 	var $closures = {}; // all closures stored here
 	
 	BOM.$bind = function(method, element) {
@@ -110,9 +110,9 @@ if (MSIE && window.attachEvent) {
 	});
 }
 
-// ========================================================================
+// =========================================================================
 // BOM/Window.js
-// ========================================================================
+// =========================================================================
 
 var Window = Module.extend(null, {
 	verify: function(window) {
@@ -129,4 +129,4 @@ var Window = Module.extend(null, {
 
 eval(this.exports);
 
-}; ////////////////////  END: CLOSURE  ////////////////////////////////////
+}; ////////////////////  END: CLOSURE  /////////////////////////////////////

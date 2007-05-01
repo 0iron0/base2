@@ -14,12 +14,12 @@ var Enumerable = Module.extend({
 	},
 	
 	filter: function(object, test, context) {
-		return this.reduce(object, new Array2, function(result, value, key) {
+		return this.reduce(object, function(result, value, key) {
 			if (test.call(context, value, key, object)) {
 				result[result.length] = value;
 			}
 			return result;
-		});
+		}, new Array2);
 	},
 
 	invoke: function(object, method) {
@@ -46,7 +46,7 @@ var Enumerable = Module.extend({
 		});
 	},
 	
-	reduce: function(object, result, block, context) {
+	reduce: function(object, block, result, context) {
 		this.forEach (object, function(value, key) {
 			result = block.call(context, result, value, key, object);
 		});

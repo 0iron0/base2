@@ -1,15 +1,15 @@
 
-// This module implements all Array methods.
+// The IArray module implements all Array methods.
 // This module is not public but its methods are accessible through the Array2 object (below). 
 
 var IArray = Module.extend({
 	combine: function(keys, values) {
 		// combine two arrays to make a hash
 		if (!values) values = keys;
-		return this.reduce(keys, {}, function(object, key, index) {
+		return this.reduce(keys, function(object, key, index) {
 			object[key] = values[index];
 			return object;
-		});
+		}, {});
 	},
 	
 	copy: function(array) {
@@ -82,7 +82,7 @@ IArray.implement(Enumerable);
 forEach ("concat,join,pop,push,reverse,shift,slice,sort,splice,unshift".split(","), function(name) {
 	IArray[name] = function(array) {
 		return Array.prototype[name].apply(array, slice(arguments, 1));
-	}
+	};
 });
 
 // create a faux constructor that augments the built-in Array object

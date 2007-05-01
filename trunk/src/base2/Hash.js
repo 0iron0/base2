@@ -11,12 +11,18 @@ var Hash = Base.extend({
 	},
 
 	copy: function() {
-		return new this.constructor(this);
+		var copy = new this.constructor(this);
+		Base.forEach (this, function(property, name) {
+			if (typeof property != "function" && name.charAt(0) != "#") {
+				copy[name] = property;
+			}
+		});
+		return copy;
 	},
 
-	// ancient browsers they throw an error when we use "in" as an operator 
+	// ancient browsers throw an error when we use "in" as an operator 
 	//  so we must create the function dynamically
-	exists: $Legacy.exists || new Function("k", format("return('%1'+k)in this['%2']", HASH, VALUES)),
+	exists: Legacy.exists || new Function("k", format("return('%1'+k)in this['%2']", HASH, VALUES)),
 
 	fetch: function(key) {
 		return this[VALUES][HASH + key];
@@ -29,10 +35,11 @@ var Hash = Base.extend({
 	},
 
 	keys: function(index, length) {
+		var keys = this[KEYS] || new Array2;
 		switch (arguments.length) {
-			case 0: return this[KEYS].copy();
-			case 1: return this[KEYS][index];
-			default: return this[KEYS].slice(index, length);
+			case 0: return keys.copy();
+			case 1: return keys[index];
+			default: return keys.slice(index, length);
 		}
 	},
 

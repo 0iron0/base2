@@ -1,7 +1,7 @@
 
 // avoid memory leaks
 
-if (MSIE && window.attachEvent) {
+if (BOM.detect("MSIE.+win")) {
 	var $closures = {}; // all closures stored here
 	
 	BOM.$bind = function(method, element) {

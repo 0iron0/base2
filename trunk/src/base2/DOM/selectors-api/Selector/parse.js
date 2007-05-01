@@ -7,7 +7,7 @@
 // TO DO:
 // * sort nodes into document order (comma separated queries only)
 
-new function() {	
+new function(_) {	
 	// some constants
 	var MSIE = BOM.detect("MSIE");
 	var MSIE5 = BOM.detect("MSIE5");
@@ -172,7 +172,7 @@ new function() {
 		if (!cache[selector]) {
 			reg = []; // store for RegExp objects
 			fn = "";
-			var selectors = parser.escape(selector).split(",");			
+			var selectors = parser.escape(selector).split(",");
 			forEach(selectors, function(selector, label) {
 				index = list = dup = 0; // reset
 				var block = parser.exec(selector);
@@ -185,7 +185,7 @@ new function() {
 				while (braces--) block += "}";
 				fn += block;
 			});
-			eval(format(FN, reg) + parser.unescape(fn) + "return r}");
+			eval(format(FN, reg) + parser.unescape(fn) + "return s?null:r}");
 			cache[selector] = fn;
 		}
 		return cache[selector];
