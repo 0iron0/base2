@@ -195,7 +195,7 @@ var LocalFile = Base.extend({
 	opened: {},
 	
 	backup: function(fileName, backupName) {
-		var text = this.read(fileName)
+		var text = this.read(fileName);
 		this.write(backupName || (fileName + ".backup"), text);
 		return text;
 	},
