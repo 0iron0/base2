@@ -58,34 +58,43 @@ MiniWeb = new base2.Namespace(this, {
 	},
 	
 	save: function(name) {
-		// update the revision number of the document
-		var REVISION = "/system/About/revision";
-		var io = this.server.io;
-		var revision = parseInt(io.read(REVISION));
-		io.write(REVISION, String(++revision));
+		if (this.readOnly) {
+			alert(
+				"You cannot save your changes over HTTP.\n" +
+				"Instead, save this page to your hard disk.\n" +
+				"If you edit the local version you will then\n" +
+				"be able to save your changes."
+			);
+		} else {
+			// update the revision number of the document
+			var REVISION = "/system/About/revision";
+			var io = this.server.io;
+			var revision = parseInt(io.read(REVISION));
+			io.write(REVISION, String(++revision));
+			
+			// save the state of the terminal
+			if (!name) Terminal.save(this.terminal);
 		
-		// save the state of the terminal
-		if (!name) Terminal.save(this.terminal);
-	
-		// stringify JSON data
-		var json = "MiniWeb.data=" + JSON.toString(this.data).replace(/<\//g, "<\\/");
-		
-		// the source of the MiniWeb engine
-		var src = document.getElementsByTagName("script")[0].src;
-		
-		// it's mostly script :-)
-		var html = [
-			this.DOCTYPE,
-			"<head>",
-			"<title>" + document.title + "<\/title>",
-			format('<script type="text/javascript" src="%1"><\/script>', src),
-			format(this.SCRIPT, json),
-			"<body>"
-		].join("\n");
-		
-		if (!name) LocalFile.backup(location.pathname);
-		LocalFile.write(name || location.pathname, html);
-		if (!name) location.reload();
+			// stringify JSON data
+			var json = "MiniWeb.data=" + JSON.toString(this.data).replace(/<\//g, "<\\/");
+			
+			// the source of the MiniWeb engine
+			var src = document.getElementsByTagName("script")[0].src;
+			
+			// it's mostly script :-)
+			var html = [
+				this.DOCTYPE,
+				"<head>",
+				"<title>" + document.title + "<\/title>",
+				format('<script type="text/javascript" src="%1"><\/script>', src),
+				format(this.SCRIPT, json),
+				"<body>"
+			].join("\n");
+			
+			if (!name) LocalFile.backup(location.pathname);
+			LocalFile.write(name || location.pathname, html);
+			if (!name) location.reload();
+		}
 	},
 	
 	send: function(request, data) {
