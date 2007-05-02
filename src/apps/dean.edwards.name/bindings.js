@@ -1,16 +1,18 @@
-eval(base2.DOM.namespace);
-eval(base2.JSB.namespace);
+
+eval(base2.namespace);
+eval(DOM.namespace);
+eval(JSB.namespace);
 
 var ATTRIBUTE = /(\w+)=([^"'\s]+)/g;
 var QUOTE = '<blockquote cite="#%1">\n%3\n<address>' +
 	'<a href="#%1" rel="bookmark">%2</a></address>\n</blockquote>';
 var TIDY = new RegGrp({
-    "(<\\/?)(\\w+)([^>]*)": function($, lt, tagName, attributes) {
-    	return lt + tagName.toLowerCase() + attributes.replace(ATTRIBUTE, function($, attribute, value) {
+	"(<\\/?)(\\w+)([^>]*)": function($, lt, tagName, attributes) {
+		return lt + tagName.toLowerCase() + attributes.replace(ATTRIBUTE, function($, attribute, value) {
 			return attribute.toLowerCase() + '"' + value + '"';
 		});
 	},
-    "&nbsp;": " "
+	"&nbsp;": " "
 });
 
 Colorizer.javascript.store("\\b(assignID|base|base2|base2ID|every|extend|filter|forEach|" +
@@ -71,7 +73,7 @@ new RuleList({
 				}
 				if (selectedText) {
 					// use the selected text
-			    	var quote = "<p>" + trim(selectedText) + "</p>";
+					var quote = "<p>" + trim(selectedText) + "</p>";
 				} else {
 					// grab the entire comment's html
 					var text = comment.matchSingle("div.comment-text").cloneNode(true);
@@ -87,7 +89,7 @@ new RuleList({
 						img.parentNode.replaceChild(document.createTextNode(img.alt), img);
 					});
 					// tidy the html
-			    	quote = trim(TIDY.exec(text.innerHTML));
+					quote = trim(TIDY.exec(text.innerHTML));
 				}
 				// create <blockquote> html
 				var html = format(QUOTE, id, author, quote);

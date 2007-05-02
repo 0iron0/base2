@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="my" publish="false" requires="BOM,DOM,JSB">
+<package publish="false" closure="false" requires="BOM,DOM,JSB">
 	<include src="../colorizer/package.xml"/>
 	<include src="bindings.js"/>
 </package>
