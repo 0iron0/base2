@@ -14,7 +14,7 @@ var LocalFileSystem = FileSystem.extend({
 		},
 		
 		copy: function(path1, path2) {
-			var method = this.isDirectory(path1) ? "CopyFolder" : "CopyFile"
+			var method = this.isDirectory(path1) ? "CopyFolder" : "CopyFile";
 			this.$fso[method](path1, path2, true);
 		},
 		
@@ -31,7 +31,7 @@ var LocalFileSystem = FileSystem.extend({
 		},
 		
 		move: function(path1, path2) {
-			var method = this.isDirectory(path1) ? "MoveFolder" : "MoveFile"
+			var method = this.isDirectory(path1) ? "MoveFolder" : "MoveFile";
 			this.$fso[method](path1, path2);
 		},
 		
