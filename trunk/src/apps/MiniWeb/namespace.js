@@ -94,6 +94,7 @@ MiniWeb = new base2.Namespace(this, {
 			if (!name) LocalFile.backup(location.pathname);
 			LocalFile.write(name || location.pathname, html);
 			if (!name) location.reload();
+			return true;
 		}
 	},
 	
