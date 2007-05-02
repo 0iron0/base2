@@ -1,4 +1,4 @@
-// timestamp: Wed, 02 May 2007 04:28:53
+// timestamp: Wed, 02 May 2007 04:37:08
 /*
 	base2.js - copyright 2007, Dean Edwards
 	http://www.opensource.org/licenses/mit-license
@@ -2485,10 +2485,10 @@ var Server = Base.extend({
 	
 	respond: function(request, data) {
 		// repsond to a client request
-	//	try {
+		try {
 			request.status = 202; // Accepted
 			request.readyState = 3; // Receiving
-	    	request.headers["Server"] = String(MiniWeb);
+			request.headers["Server"] = String(MiniWeb);
 			request.post = {};
 			if (typeof Server[request.method] == "function") {
 				// use static methods to resolve the request method
@@ -2496,15 +2496,15 @@ var Server = Base.extend({
 			} else {
 				request.status = 405; // Method Not Allowed
 			}
-	//	} catch (error) {
-	//		request.error = error;
-	//		request.status = 500; // Internal Server Error
-	//	} finally {
+		} catch (error) {
+			request.error = error;
+			request.status = 500; // Internal Server Error
+		} finally {
 			if (request.method != "HEAD" && request.status > 299) { // return an error page
 				request.responseText = this.interpret(request);
 			}
 			request.readyState = 4; // Loaded
-	//	}
+		}
 	}
 }, {
 	GET: function(server, request) {
@@ -2532,7 +2532,7 @@ var Server = Base.extend({
 				request.status = 200; // OK
 			}
 		} else {
-	    	request.status = 404; // Not Found
+			request.status = 404; // Not Found
 		}
 	},
 	
@@ -2542,19 +2542,19 @@ var Server = Base.extend({
 		if (!/^file:/.test(location.protocol)) {
 			options = options.slice(0, -2);
 		}
-	    request.headers["Allow"] = options.join(",");
-	    request.status = 200; // OK
+		request.headers["Allow"] = options.join(",");
+		request.status = 200; // OK
 	},
 	
 	PUT: function(server, request, data) {
-    	request.responseText = server.io.write(request.url, data);
-    	// not sure what to return here
-    	request.status = 200; // OK
+		request.responseText = server.io.write(request.url, data);
+		// not sure what to return here
+		request.status = 200; // OK
 	},
 	
 	DELETE: function(server, request) {
 		this.HEAD(server, request);
-    	// not sure what to return here
+		// not sure what to return here
 		if (request.status == 200) {
 			request.reponseText = server.io.remove(request.url);
 		}
