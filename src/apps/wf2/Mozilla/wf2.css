@@ -1,0 +1,5 @@
+/* Bindings for Web Forms 2,0 */
+form {-moz-binding: url(wf2.xml#form);}
+input {-moz-binding: url(wf2.xml#input);}
+input[type=range] {-moz-binding: url(wf2.xml#input-range);}
+div.slider {-moz-binding: url(wf2.xml#slider);}
