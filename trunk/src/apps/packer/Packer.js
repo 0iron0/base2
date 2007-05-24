@@ -1,5 +1,5 @@
 /*
-	Packer version 3.0 (beta 8) - copyright 2004-2007, Dean Edwards
+	Packer version 3.0 (beta 9) - copyright 2004-2007, Dean Edwards
 	http://www.opensource.org/licenses/mit-license
 */
 
@@ -107,7 +107,7 @@ var Packer = Base.extend({
 						// replace the long name with the short name
 						var reg = new RegExp("([^\\w$.])" + id + "([^\\w$:])");
 						while (reg.test(block)) block = block.replace(global(reg), "$1" + shortId + "$2");
-						var reg = new RegExp("([^{,])" + id + ":", "g");
+						var reg = new RegExp("([^{,\\w$.])" + id + ":", "g");
 						block = block.replace(reg, "$1" + shortId + ":");
 					}
 				});
