@@ -8,25 +8,52 @@ header('Cache-Control: no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 print("// timestamp: ".gmdate('D, d M Y H:i:s')."\r\n");
 $REG_XML = '/\\w+\\.xml$/';
-$BASE = $_SERVER['DOCUMENT_ROOT'].'/base2/trunk/src';
+
+$PACKAGE = $_GET["package"];
+$PBASE = dirname($PACKAGE);
+$HBASE = dirname(realpath("build.php"));
+
+if(!file_exists($PACKAGE)) {
+	print("Package '".$PACKAGE."' does not exist, or is not even supplied. Add following the querystring:\n");
+	print("   build.php?package=path\\to\\package.xml\n");
+	print("\n");
+	print("Path is relative to build.php. Path's within the package.xml file, are relative to the package.xml");
+	print("file itself. To make a path relative to the build.php file, user ~/ syntax.\n");
+	print("\n");
+	print("To include base2 itself, add the 'full' querystring parameter:\n");
+	print("   build.php?package=path\\to\\package.xml&full\n");
+	exit;
+}
 
 $dom = new DomDocument;
-$dom->load('package.xml');
+$p = path_resolve($PACKAGE, $HBASE);
+$dom->load($p);
 $package =  $dom->documentElement;
 $loaded = Array();
 
-if (substr($_SERVER['QUERY_STRING'], 0, 4) == 'full') {
-	readfile($BASE.'/base2.js');
+if (preg_match('/(^|\&)full($|\=|\&)/i',$_SERVER['QUERY_STRING'])) {
+	readfile(path_resolve('~/base2.js',$PBASE));
 	
 	if ($package->getAttribute('name') != 'base2') {
-		load_package($BASE.'/base2/package.xml');
+		load_package(path_resolve('~/base2/package.xml',$PBASE));
 	}
 	$requires = explode(',', $package->getAttribute('requires'));
 	foreach ($requires as $name) {
-		if ($name) load_package($BASE.'/base2/'.$name.'/package.xml');
+		if ($name) load_package(path_resolve('~/base2/'.$name.'/package.xml',$PBASE));
 	}
 }
-print_package($package);
+print_package($package, $PBASE);
+
+// Paths are resolved relative to the current package.xml,
+// bootstrapped with path of build.php
+// Home directory notation (~/) is relative to build.php
+// Absolute path's are relative to the root
+function path_resolve($path,$package) {
+	global $HBASE;
+	if(substr($path,0,2) == '~/') return $HBASE.substr($path,1);
+	if(substr($path,0,1) != '/') return $package."/".$path;
+	return $path;
+}
 
 function load_package($path) {
 	global $REG_XML, $loaded;
@@ -36,10 +63,10 @@ function load_package($path) {
 	
 	$dom = new DomDocument;
 	$dom->load($path);
-	print_package($dom->documentElement, preg_replace($REG_XML, '', $path));
+	print_package($dom->documentElement, dirname($path));
 }
 
-function print_package($package, $path = '') {
+function print_package($package, $pbase) {
 	global $REG_XML, $BASE;
 	
 	$name = $package->getAttribute('name');
@@ -49,12 +76,7 @@ function print_package($package, $path = '') {
 	if ($closure) print("\r\nnew function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////\r\n");
 	$includes = $package->getElementsByTagName('include');
 	foreach ($includes as $include) {
-		$src = $include->getAttribute('src');
-		if (preg_match('/^\\//', $src)) {
-			$src = $BASE.$src;
-		} else {
-			$src = $path.$src;
-		}
+		$src = path_resolve($include->getAttribute('src'), $pbase);
 		if (preg_match($REG_XML, $src)) {
 			load_package($src);
 		} else {
