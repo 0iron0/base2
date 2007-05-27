@@ -1,1 +1,1 @@
-Hallo, {{{dit is}}} een test.
+[http://code.google.com/ http://code.google.com/images/code_sm.png]
