@@ -1,1 +1,32 @@
-[http://code.google.com/ http://code.google.com/images/code_sm.png]
+# testing
+
+= image =
+
+image: [http://code.google.com/images/code_sm.png]
+
+image image: [http://code.google.com/images/code_sm.png http://code.google.com/images/code_sm.png]
+
+image link [http://code.google.com/images/code_sm.png http://www.google.com]
+
+image word [http://code.google.com/images/code_sm.png Doeke]
+
+= link =
+
+link  [http://www.google.com]
+
+link image [http://www.google.com http://code.google.com/images/code_sm.png]
+
+link link [http://www.google.com http://www.google.com]
+
+link word [http://www.google.com Doeke]
+
+= word =
+
+word [Doeke]
+
+word image [Doeke http://code.google.com/images/code_sm.png]
+
+word link [Doeke http://www.google.com]
+
+word word [Doeke Zanstra]
+
