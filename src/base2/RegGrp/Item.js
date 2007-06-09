@@ -11,7 +11,7 @@ RegGrp.Item = Base.extend({
 		
 		// count the number of sub-expressions
 		//  - add one because each pattern is itself a sub-expression
-		this.length = match(expression.replace(ESCAPE, "").replace(/\[[^\]]+\]/g, ""), /\(/g).length;
+		this.length = match(expression.replace(ESCAPE, "").replace(/\[[^\]]+\]/g, ""), /\((?!\?)/g).length;
 		
 		// does the pattern use sub-expressions?
 		if (typeof replacement == "string" && /\$(\d+)/.test(replacement)) {
