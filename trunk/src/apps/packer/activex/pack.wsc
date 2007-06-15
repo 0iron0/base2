@@ -2,7 +2,10 @@
 <component>
 
 <?component error="true" debug="true"?>
-
+<!--
+Made with Windows Script Component Wizard. Since the download is hard to find, hereby the URL:
+http://www.microsoft.com/downloads/details.aspx?FamilyID=408024ed-faad-4835-8e68-773ccc951a6b&displaylang=en&Hash=A%2byhEDW6ZDJaPw66fLjDxyJgmfpKBwTdEs1kUodNXr2iiwRdGjAvSZinuuJ5Qr%2bA5lVSXWqdh1T4R6XluKDYpA%3d%3d
+-->
 <registration
 	description="Base2Packer"
 	progid="base2.Packer"
