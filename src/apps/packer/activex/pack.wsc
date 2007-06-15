@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<component>
+
+<?component error="true" debug="true"?>
+
+<registration
+	description="Base2Packer"
+	progid="base2.Packer"
+	version="0.1"
+	classid="{24fe43bc-9fdd-439c-a69d-97fe14ea5dea}"
+>
+</registration>
+
+<public>
+	<method name="pack">
+		<PARAMETER name="script"/>
+		<PARAMETER name="base62"/>
+		<PARAMETER name="shrink"/>
+	</method>
+	<method name="packFile">
+		<PARAMETER name="fileName"/>
+		<PARAMETER name="base62"/>
+		<PARAMETER name="shrink"/>
+	</method>
+</public>
+<script language="JScript" src="http://base2.googlecode.com/svn/trunk/lib/base2-p.js"></script>
+<script language="JScript" src="../Packer.js"></script>
+<script language="JScript" src="../Words.js"></script>
+<script language="JScript">
+<![CDATA[
+
+var description = new Base2Packer;
+
+function Base2Packer()
+{
+	this.pack = pack;
+	this.packFile = packFile;
+}
+function readFile(fileName) {
+  var READ = 1;
+  var fso = new ActiveXObject("Scripting.FileSystemObject");
+  var stream = fso.OpenTextFile(fileName, READ);
+  var text = stream.ReadAll();
+  stream.Close();
+  return text;
+}
+function packFile(fileName, base62Encode, shrinkVariables)
+{
+  return pack(readFile(fileName), base62Encode, shrinkVariables);
+}
+
+function pack(script, base62Encode, shrinkVariables)
+{
+	var packer = new Packer;
+	var packedScript = packer.pack(script, base62Encode, shrinkVariables);
+	return packedScript;
+}
+
+]]>
+</script>
+
+</component>
