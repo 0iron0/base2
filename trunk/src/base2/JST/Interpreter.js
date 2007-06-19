@@ -13,7 +13,7 @@ var Interpreter = Base.extend({
 		var code = base2.namespace + "with(arguments[0]){" +
 			this.parser.parse(template) + 
 		"}return arguments[0][1].join('')";
-		// use new Function() instead of eval() so that the script is evaluated in the global scope		
+		// use new Function() instead of eval() so that the script is evaluated in the global scope
 		return new Function(code)(command);
 	}
 });

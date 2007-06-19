@@ -45,14 +45,15 @@ var RegGrp = Collection.extend({
 	},
 	
 	toString: function() {
+		var BACK_REF = /\\(\d+)/g;
 		var length = 0;
 		return "(" + this.map(function(item) {
 			// fix back references
-			var expression = String(item).replace(/\\(\d+)/g, function($, index) {
+			var ref = String(item).replace(BACK_REF, function(match, index) {
 				return "\\" + (1 + Number(index) + length);
 			});
 			length += item.length + 1;
-			return expression;
+			return ref;
 		}).join(")|(") + ")";
 	}
 }, {

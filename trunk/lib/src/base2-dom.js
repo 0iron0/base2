@@ -1,4 +1,4 @@
-// timestamp: Tue, 01 May 2007 19:13:00
+// timestamp: Tue, 19 Jun 2007 19:03:42
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -396,7 +396,7 @@ var Event = Binding.extend({
 			return this.base(event);
 		}, */
 		
-		"Mac": {
+		"@Mac": {
 			bind: function(event) {
 				// Mac IE5 does not allow expando properties on the event object so
 				//  we copy the object instead.
@@ -410,7 +410,7 @@ var Event = Binding.extend({
 			}
 		},
 		
-		"Windows": {
+		"@Windows": {
 			bind: function(event) {
 				this.base(event);
 				event.target = event.srcElement;
@@ -518,7 +518,7 @@ var EventTarget = Interface.extend({
 				return this.base(event);
 			},
 			
-			"Windows": {
+			"@Windows": {
 				_bind: function(listener, context) {
 					return BOM.$bind(listener, context);
 				}

@@ -1,4 +1,4 @@
-// timestamp: Tue, 01 May 2007 19:13:00
+// timestamp: Tue, 19 Jun 2007 19:03:42
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -86,14 +86,15 @@ if (BOM.detect("MSIE.+win")) {
 		var $method = assignID(method);
 		
 		// store the closure in a manageable scope
-		$closures[$method] = method;			
-		if (!$closures[$element]) $closures[$element] = {};		
-		var closure = $closures[$element][$method];
-		if (closure) return closure; // already stored
+		$closures[$method] = method;
 		
 		// reset pointers
 		element = null;
 		method = null;
+		
+		if (!$closures[$element]) $closures[$element] = {};		
+		var closure = $closures[$element][$method];
+		if (closure) return closure; // already stored
 		
 		// return a new closure with a manageable scope 
 		var bound = function() {

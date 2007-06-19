@@ -5,7 +5,7 @@ var Base = function() {
 	// call this method from any other method to invoke that method's ancestor
 };
 
-Base.prototype = {	
+Base.prototype = {
 	extend: function(source) {
 		if (arguments.length > 1) { // extending with a name/value pair
 			var ancestor = this[source];
@@ -31,7 +31,7 @@ Base.prototype = {
 					extend.call(this, key, source[key]);
 				}
 			} else if (typeof this != "function") {
-				// if the object has a customised extend() method then use it
+				// if this object has a customised extend() method then use it
 				extend = this.extend || extend;
 			}			
 			// copy each of the source object's properties to this object

@@ -36,7 +36,7 @@ forEach.Array = function(array, block, context) {
 	}
 };
 
-forEach.Function = Legacy.forEach || function(fn, object, block, context) {
+forEach.Function = function(fn, object, block, context) {
 	// enumerate an object and compare its keys with fn's prototype
 	for (var key in object) {
 		if (fn.prototype[key] === undefined) {
@@ -44,3 +44,20 @@ forEach.Function = Legacy.forEach || function(fn, object, block, context) {
 		}
 	}
 };
+
+// fix enumeration for Safari 1.2/3 (grrr)
+var Temp = function(){this.i=1};
+Temp.prototype = {i:1};
+var count = 0;
+for (var property in new Temp) count++;
+if (count > 1) {
+	forEach.Function = function(fn, object, block, context) {
+		var processed = {};
+		for (var key in object) {
+			if (!processed[key] && fn.prototype[key] === undefined) {
+				processed[key] = true;
+				block.call(context, object[key], key, object);
+			}
+		}
+	};
+}

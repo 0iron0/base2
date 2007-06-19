@@ -2,24 +2,24 @@
 var HTMLFormItem = HTMLElement.extend(null, {
 	tags: "BUTTON,INPUT,SELECT,TEXTAREA",
 	
-	isSuccessful: function(element) {
-		if (!element.name || element.disabled) return false;
-		switch (element.type) {
+	isSuccessful: function(item) {
+		if (!item.name || item.disabled) return false;
+		switch (item.type) {
 			case "button":
 			case "reset":
 				return false;
 			case "radio":
 			case "checkbox":
-				return element.checked;
+				return item.checked;
 			case "image":
 			case "submit":
-				return element == document.activeElement;
+				return item == document.activeElement;
 			default:
 				return true;
 		}
 	},
 	
-	serialize: function(element) {
-		return element.name + "=" + encodeURIComponent(element.value);
+	serialize: function(item) {
+		return item.name + "=" + encodeURIComponent(item.value);
 	}
 });

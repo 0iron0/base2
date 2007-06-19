@@ -20,7 +20,7 @@ var Collection = Hash.extend({
 	add: function(key, item) {
 		// Duplicates not allowed using add().
 		//  - but you can still overwrite entries using store()
-		assert(!this.exists(key), "Duplicate key.");
+		assert(!this.exists(key), "Duplicate key '" + key + "'.");
 		return this.store.apply(this, arguments);
 	},
 
@@ -33,7 +33,7 @@ var Collection = Hash.extend({
 	},
 
 	insertAt: function(index, key, item) {
-		assert(!this.exists(key), "Duplicate key.");
+		assert(!this.exists(key), "Duplicate key '" + key + "'.");
 		this[KEYS].insertAt(index, String(key));
 		return this.store.apply(this, slice(arguments, 1));
 	},

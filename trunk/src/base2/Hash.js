@@ -1,6 +1,6 @@
 
-var HASH = "#" + Number(new Date);
-var KEYS = HASH + "keys";
+var HASH   = "#" + Number(new Date); // prevent direct access to keys and values
+var KEYS   = HASH + "keys";
 var VALUES = HASH + "values";
 
 var Hash = Base.extend({

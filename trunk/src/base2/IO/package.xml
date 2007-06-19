@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="IO" requires="BOM,JSON">
 	<include src="namespace.js"/>
-	<include src="/base2/BOM/XPCOM.js"/>
+	<include src="../BOM/XPCOM.js"/>
 	<include src="FileSystem.js"/>
 	<include src="Directory.js"/>
 	<include src="LocalFileSystem.js"/>
