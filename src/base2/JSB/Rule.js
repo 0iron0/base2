@@ -8,7 +8,6 @@ var Rule = Base.extend({
 		if (typeof binding != "function") {
 			binding = Binding.extend(binding);
 		}
-		this.binding = binding;
 		// create the bind method
 		var bound = {}; // don't bind more than once
 		this.bind = function(element) {
@@ -21,7 +20,6 @@ var Rule = Base.extend({
 		this.apply();
 	},
 	
-	binding: null,
 	selector: null,
 	
 	apply: System.defer(function() {

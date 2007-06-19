@@ -13,7 +13,7 @@ $PACKAGE = $_GET["package"];
 $PBASE = dirname($PACKAGE);
 $HBASE = dirname(realpath("build.php"));
 
-if(!file_exists($PACKAGE)) {
+if (!file_exists($PACKAGE)) {
 	print("Package '".$PACKAGE."' does not exist, or is not even supplied. Add following the querystring:\n");
 	print("   build.php?package=path\\to\\package.xml\n");
 	print("\n");
@@ -48,10 +48,10 @@ print_package($package, $PBASE);
 // bootstrapped with path of build.php
 // Home directory notation (~/) is relative to build.php
 // Absolute path's are relative to the root
-function path_resolve($path,$package) {
+function path_resolve($path, $package) {
 	global $HBASE;
-	if(substr($path,0,2) == '~/') return $HBASE.substr($path,1);
-	if(substr($path,0,1) != '/') return $package."/".$path;
+	if (substr($path, 0, 2) == '~/') return $HBASE.substr($path, 1);
+	if (substr($path, 0, 1) != '/') return $package."/".$path;
 	return $path;
 }
 

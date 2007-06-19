@@ -80,8 +80,9 @@ IArray.prototype.forEach = function(block, context) {
 IArray.implement(Enumerable);
 
 forEach ("concat,join,pop,push,reverse,shift,slice,sort,splice,unshift".split(","), function(name) {
+	var method = Array.prototype[name];
 	IArray[name] = function(array) {
-		return Array.prototype[name].apply(array, slice(arguments, 1));
+		return method.apply(array, slice(arguments, 1));
 	};
 });
 

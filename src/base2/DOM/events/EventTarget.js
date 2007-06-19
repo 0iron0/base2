@@ -93,7 +93,7 @@ var EventTarget = Interface.extend({
 				return this.base(event);
 			},
 			
-			"Windows": {
+			"@Windows": {
 				_bind: function(listener, context) {
 					return BOM.$bind(listener, context);
 				}

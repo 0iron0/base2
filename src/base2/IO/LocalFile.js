@@ -102,7 +102,6 @@ var LocalFile = Base.extend({
 		},
 
 		exists: function() {
-			// why does this 'enablePrivilege' have to be here?
 			return this.$init().exists();
 		},
 
@@ -122,7 +121,7 @@ var LocalFile = Base.extend({
 						this.$stream.init($stream);
 						break;
 					case LocalFile.WRITE:
-						if (!file.exists()) file.create(0, 0664);				
+						if (!file.exists()) file.create(0, 0664);
 						this.$stream = XPCOM.createObject("network/file-output-stream;1", "nsIFileOutputStream");
 						this.$stream.init(file, 0x20 | 0x02, 00004, null);
 						break;
@@ -174,13 +173,12 @@ var LocalFile = Base.extend({
 		},
 
 		read: function() {
-			var CRLF = "\r\n";
-			var text = "";
-			var line;
+			var lines = [];
+			var line, i = 0;
 			while ((line = this.$stream.readLine()) != null) {
-				text += (line + CRLF);
+				lines[i++] = line;
 			}
-			return text;
+			return lines.join("\r\n");
 		},
 
 		write: function(text) {
