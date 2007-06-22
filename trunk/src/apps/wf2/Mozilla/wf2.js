@@ -55,7 +55,7 @@ var WF2Binding = {
 				return element;
 			}
 		}
-		return null
+		return null;
 	}
 };
 
@@ -161,7 +161,8 @@ var WF2Control = WF2Binding.extend({
 				}
 				return "[object ValidityState]";
 			}
-		}
+		};
+		// prevent the validityState object from being recreated
 		element.__defineGetter__("validity", function() {
 			return validityState;
 		});
@@ -387,18 +388,6 @@ WF2Input.number = WF2Data.extend({
 		//element._setRawValue(this._getValidValue(element, value));
 	},
 	
-	_get_validity_typeMismatch: function(element) {
-		return isNaN(element.value);
-	},
-	_get_validity_stepMismatch: function(element) {
-		if (!this._noValueSelected(element) && element.hasAttribute("step")) {
-			var step = element.getAttribute("step");
-			if (step != "any") {
-				return true; // TO DO
-			}
-		}
-		return false;
-	},
 	_get_validity_rangeUnderflow: function(element) {
 		if (!this._noValueSelected(element) && element.hasAttribute("min")) {
 			var min = element.getAttribute("min");
@@ -412,6 +401,18 @@ WF2Input.number = WF2Data.extend({
 			return !isNaN(element.max) && Number(element.value) < Number(element.max);
 		}
 		return false;
+	},
+	_get_validity_stepMismatch: function(element) {
+		if (!this._noValueSelected(element) && element.hasAttribute("step")) {
+			var step = element.getAttribute("step");
+			if (step != "any") {
+				return true; // TO DO
+			}
+		}
+		return false;
+	},
+	_get_validity_typeMismatch: function(element) {
+		return isNaN(element.value);
 	},
 	
 	_validate: function(element) {
@@ -448,7 +449,7 @@ WF2Input.range = WF2Input.number.extend({
 });
 
 WF2Input.text = WF2Data.extend({
-	_get_validity_patternMismatch: function() {
+	_get_validity_patternMismatch: function(element) {
 		if (element.hasAttribute("pattern")) {
 			var pattern = element.getAttribute("pattern");
 			var patternRegExp = new RegExp("^(" + pattern.replace(/\//g, "\\/") + ")$");
@@ -459,8 +460,8 @@ WF2Input.text = WF2Data.extend({
 });
 
 WF2Input.email = WF2Input.text.extend({
-	_get_validity_patternMismatch: function() {
-		return EMAIL.test() && this.base._get_validity_patternMismatch(element);
+	_get_validity_patternMismatch: function(element) {
+		return EMAIL.test(element.value) && this.base._get_validity_patternMismatch(element);
 	}
 });
 
