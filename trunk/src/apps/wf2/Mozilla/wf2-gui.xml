@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<bindings id="wf2-bindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:html="http://www.w3.org/1999/xhtml"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+<binding id="spinner">
+ <implementation>
+  <constructor>alert(99)</constructor>
+ </implementation>
+ <content>
+  <html:div style="display:none"><children /></html:div>
+  <xul:box style="height:10px">
+   <html:input style="height:10px; font-size:6px"/>
+   <xul:scrollbar orient="vertical">
+    <xul:scrollbarbutton type="decrement" style="height:5px"/>
+    <xul:scrollbarbutton type="increment" style="height:5px"/>
+   </xul:scrollbar>
+  </xul:box>
+ </content>
+</binding>
+
+<binding id="slider">
+ <content>
+  <xul:slider flex="1">
+   <xul:thumb />
+  </xul:slider>
+ </content>
+</binding>
+
+<binding id="dropdown">
+ <content>
+  <html:div style="display:none"><children /></html:div>
+  <xul:slider flex="1">
+   <xul:thumb />
+  </xul:slider>
+ </content>
+</binding>
+
+<binding id="date" extends="#dropdown">
+</binding>
+
+<binding id="week" extends="#date">
+</binding>
+
+<binding id="number" extends="#spinner">
+</binding>
+
+<binding id="range" extends="#slider">
+</binding>
+
+</bindings>
