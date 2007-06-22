@@ -39,8 +39,12 @@
   <property name="list" readonly="true">
    <getter>return WF2Input[this.type].get_list(this)</getter>
   </property>
-  <property name="max"/>
-  <property name="min"/>
+  <property name="max">
+   <getter>return WF2Input[this.type].get_max(this)</getter>
+  </property>
+  <property name="min">
+   <getter>return WF2Input[this.type].get_min(this)</getter>
+  </property>
   <property name="pattern"/>
   <property name="required">
    <getter>return WF2Input[this.type].get_required(this)</getter>
@@ -96,24 +100,6 @@
    <parameter name="n"/>
    <body>return WF2Input[this.type].stepUp(this, n)</body>
   </method> 
- </implementation>
-</binding>
-
-<binding id="input-range" extends="#input">
- <content>
-  <xul:slider flex="1">
-   <xul:thumb />
-  </xul:slider>
- </content>
-</binding>
-
-<binding id="slider">
- <content>
-  <html:input type="text"/>
-  <html:input type="button"/>
- </content>
- <implementation>
-  <constructor>alert(99)</constructor>
  </implementation>
 </binding>
 
