@@ -8,8 +8,10 @@ const False = function(){return false};
 
 const SECRET = {};
 
-const LIST = /^(DATALIST|SELECT)$/;
-const TYPE = /^(button|checkbox|date|datetime|datetime-local|email|file|hidden|image|month|number|password|radio|range|reset|submit|time|url|week)$/;
+const EMAIL = /^("[^"]*"|[^\s\.]\S*[^\s\.])@[^\s\.]+(\.[^\s\.]+)*$/;
+const URL   = /^[a-zA-Z][a-zA-Z0-9+-.]*:[^\s]+$/;
+const LIST  = /^(DATALIST|SELECT)$/;
+const TYPE  = /^(button|checkbox|date|datetime|datetime-local|email|file|hidden|image|month|number|password|radio|range|reset|submit|time|url|week)$/;
 
 var WF2NodeList = Array;
 
@@ -132,8 +134,8 @@ var WF2Control = WF2Binding.extend({
 					this.customError
 				);
 			},
-			toString: function(password) {
-				if (password == SECRET) {
+			toString: function() {
+				if (arguments[0] == SECRET) {
 					if (customError) {
 						return customError;
 					}
@@ -186,35 +188,23 @@ var WF2Control = WF2Binding.extend({
 		return this._getParentByTagName(element, "FIELDSET");
 	},
 	
-	_get_validity_typeMismatch: function(element) {
-		return false;
-	},
-	_get_validity_stepMismatch: function(element) {
-		return false;
-	},
-	_get_validity_typeMismatch: function(element) {
-		return false;
-	},
-	_get_validity_rangeUnderflow: function(element) {
-		return false;
-	},
-	_get_validity_rangeOverflow: function(element) {
-		return false;
-	},
+	_get_validity_typeMismatch: False,
+	
+	_get_validity_stepMismatch: False,
+	
+	_get_validity_typeMismatch: False,
+	
+	_get_validity_rangeUnderflow: False,
+	
+	_get_validity_rangeOverflow: False,
+	
 	_get_validity_tooLong: function(element) {
 		return element.value.length > element.maxLength;
 	},
-	_get_validity_patternMismatch: function(element) {
-		if (element.hasAttribute("pattern")) {
-			var pattern = element.getAttribute("pattern");
-			var patternRegExp = new RegExp("^(" + pattern + ")$");
-			return !patternRegExp.test(element.value);
-		}
-		return false;
-	},
-	_get_validity_valueMissing: function(element) {
-		return false;
-	}
+	
+	_get_validity_patternMismatch: False,
+	
+	_get_validity_valueMissing: False,
 	
 	_isDisabled: function(element) {
 		if (element.disabled) return true;
@@ -240,6 +230,8 @@ var WF2Input = WF2Control.extend({
 		}
 	},
 	
+	defaultMax:  "",
+	defaultMin:  "",
 	defaultStep: "",
 	
 	get_autofocus: function(element) {
@@ -258,6 +250,22 @@ var WF2Input = WF2Control.extend({
 			}
 		}
 		return null;
+	},
+	
+	get_max: function(element) {
+		if (element.hasAttribute("max")) {
+			return element.getAttribute("max"); 
+		} else {
+			return this.defaultMax;
+		}
+	},
+	
+	get_min: function(element) {
+		if (element.hasAttribute("min")) {
+			return element.getAttribute("min"); 
+		} else {
+			return this.defaultMin;
+		}
 	},
 	
 	get_required: function(element) {
@@ -360,12 +368,15 @@ WF2Input.radio = WF2Boolean.extend({
 	}
 });
 
-WF2Input.file = WF2Data.extend();
+WF2Input.file = WF2Data.extend({
+	defaultMax:  "1",
+	defaultMin:  "0"
+});
 
 WF2Input.hidden = WF2Data.extend();
 
 WF2Input.number = WF2Data.extend({
-	defaultStep: 1,
+	defaultStep: "1",
 	
 	_blockIncrement: function(element, n) {
 		this._increment(element, n * 10);
@@ -415,11 +426,11 @@ WF2Input.number = WF2Data.extend({
 });
 
 WF2Input.datetime = WF2Input.number.extend({
-	defaultStep: 60
+	defaultStep: "60"
 });
 
 WF2Input.date = WF2Input.datetime.extend({
-	defaultStep: 1
+	defaultStep: "1"
 });
 
 WF2Input.month = WF2Input.date.extend();
@@ -431,14 +442,27 @@ WF2Input["datetime-local"] = WF2Input.datetime.extend();
 WF2Input.time = WF2Input.datetime.extend();
 
 WF2Input.range = WF2Input.number.extend({
-	defaultMax:  100,
-	defaultMin:  0,
-	defaultStep: 1
+	defaultMax:  "100",
+	defaultMin:  "0",
+	defaultStep: "1"
 });
 
-WF2Input.text = WF2Data.extend();
+WF2Input.text = WF2Data.extend({
+	_get_validity_patternMismatch: function() {
+		if (element.hasAttribute("pattern")) {
+			var pattern = element.getAttribute("pattern");
+			var patternRegExp = new RegExp("^(" + pattern.replace(/\//g, "\\/") + ")$");
+			return !patternRegExp.test(element.value);
+		}
+		return false;
+	}
+});
 
-WF2Input.email = WF2Input.text.extend();
+WF2Input.email = WF2Input.text.extend({
+	_get_validity_patternMismatch: function() {
+		return EMAIL.test() && this.base._get_validity_patternMismatch(element);
+	}
+});
 
 WF2Input.password = WF2Input.text.extend();
 

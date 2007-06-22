@@ -1,28 +1,12 @@
-<!DOCTYPE html>
 <html>
  <head>
   <title>WF2 Test Page</title>
-  <meta name="author" content="Dean Edwards">
-  <!-- keeping code tidy!! -->
   <style type="text/css">
-   input {-moz-binding: url(test.xml#spinner);}
-   div.spinner {-moz-binding: url(test.xml#spinner);}
+   *.test {-moz-binding: url(test.xml#test);}
   </style>
-  <script type="text/javascript">
-  onload=function() {
-	  var txt = document.getElementsByTagName("INPUT")[0];
-	  try {
-	  	throw new TypeError("setting a property that has only a getter");
-	 } catch(e) {
-	 	alert(e.name);
-	 	alert(e.message);
-	 	alert(e.constructor);
-	 }
-  }
-  </script>
  </head>
  <body>
-  <input>
-  <div class="spinner" type="text">ZZZ</div>
+  <div class="test">text</div>
+  <input class="test" type="text" value="text">
  </body>
 </html>
