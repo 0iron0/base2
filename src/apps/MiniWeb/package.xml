@@ -10,6 +10,6 @@
 	<include src="Interpreter.js"/>
 	<include src="Terminal.js"/>
 	<include src="HTMLElement.js"/>
-	<include src="/base2/DOM/html/HTMLFormElement.js"/>
-	<include src="/base2/DOM/html/HTMLFormItem.js"/>
+	<include src="../../base2/DOM/html/HTMLFormElement.js"/>
+	<include src="../../base2/DOM/html/HTMLFormItem.js"/>
 </package>

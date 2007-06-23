@@ -1,9 +1,10 @@
 
 // This object gets between the server and the file system to manage the
 //  returned content.
+// The interpreter also provides access to to a copy of the request object 
+//  and its post data.
 
-// The interpreter provides access to the request object and its post data.
-// It also has access to a copy of the client's request object.
+// this is still in a state of flux until I can finalise the templating system.
 
 var Interpreter = Command.extend({
 	constructor: function(request) {
