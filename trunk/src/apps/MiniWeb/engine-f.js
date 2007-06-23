@@ -1,4 +1,4 @@
-// timestamp: Wed, 02 May 2007 04:37:08
+// timestamp: Sat, 23 Jun 2007 04:12:34
 /*
 	base2.js - copyright 2007, Dean Edwards
 	http://www.opensource.org/licenses/mit-license
@@ -20,11 +20,11 @@ var Base = function() {
 	// call this method from any other method to invoke that method's ancestor
 };
 
-Base.prototype = {	
+Base.prototype = {
 	extend: function(source) {
 		if (arguments.length > 1) { // extending with a name/value pair
-			var ancestor = this[source];
 			var value = arguments[1];
+			var ancestor = this[source];
 			if (typeof value == "function" && ancestor && /\bbase\b/.test(value)) {
 				var method = value;				
 				value = function() { // override
@@ -41,12 +41,13 @@ Base.prototype = {
 		} else if (source) { // extending with an object literal
 			var extend = Base.prototype.extend;
 			if (Base._prototyping) {
-				var key, i = 0, members = ["constructor", "toString", "valueOf"];
+				var members = ["constructor", "toString", "valueOf"];
+				var key, i = 0;
 				while (key = members[i++]) if (source[key] != Object.prototype[key]) {
 					extend.call(this, key, source[key]);
 				}
 			} else if (typeof this != "function") {
-				// if the object has a customised extend() method then use it
+				// if this object has a customised extend() method then use it
 				extend = this.extend || extend;
 			}			
 			// copy each of the source object's properties to this object
@@ -272,7 +273,7 @@ forEach.Array = function(array, block, context) {
 	}
 };
 
-forEach.Function = Legacy.forEach || function(fn, object, block, context) {
+forEach.Function = function(fn, object, block, context) {
 	// enumerate an object and compare its keys with fn's prototype
 	for (var key in object) {
 		if (fn.prototype[key] === undefined) {
@@ -280,6 +281,23 @@ forEach.Function = Legacy.forEach || function(fn, object, block, context) {
 		}
 	}
 };
+
+// fix enumeration for Safari 1.2/3 (grrr)
+var Temp = function(){this.i=1};
+Temp.prototype = {i:1};
+var count = 0;
+for (var property in new Temp) count++;
+if (count > 1) {
+	forEach.Function = function(fn, object, block, context) {
+		var processed = {};
+		for (var key in object) {
+			if (!processed[key] && fn.prototype[key] === undefined) {
+				processed[key] = true;
+				block.call(context, object[key], key, object);
+			}
+		}
+	};
+}
 
 // =========================================================================
 // base2/Base/forEach.js
@@ -555,8 +573,9 @@ IArray.prototype.forEach = function(block, context) {
 IArray.implement(Enumerable);
 
 forEach ("concat,join,pop,push,reverse,shift,slice,sort,splice,unshift".split(","), function(name) {
+	var method = Array.prototype[name];
 	IArray[name] = function(array) {
-		return Array.prototype[name].apply(array, slice(arguments, 1));
+		return method.apply(array, slice(arguments, 1));
 	};
 });
 
@@ -579,8 +598,8 @@ forEach (IArray, function(method, name, proto) {
 // base2/Hash.js
 // =========================================================================
 
-var HASH = "#" + Number(new Date);
-var KEYS = HASH + "keys";
+var HASH   = "#" + Number(new Date); // prevent direct access to keys and values
+var KEYS   = HASH + "keys";
 var VALUES = HASH + "values";
 
 var Hash = Base.extend({
@@ -695,7 +714,7 @@ var Collection = Hash.extend({
 	add: function(key, item) {
 		// Duplicates not allowed using add().
 		//  - but you can still overwrite entries using store()
-		assert(!this.exists(key), "Duplicate key.");
+		assert(!this.exists(key), "Duplicate key '" + key + "'.");
 		return this.store.apply(this, arguments);
 	},
 
@@ -708,7 +727,7 @@ var Collection = Hash.extend({
 	},
 
 	insertAt: function(index, key, item) {
-		assert(!this.exists(key), "Duplicate key.");
+		assert(!this.exists(key), "Duplicate key '" + key + "'.");
 		this[KEYS].insertAt(index, String(key));
 		return this.store.apply(this, slice(arguments, 1));
 	},
@@ -822,14 +841,15 @@ var RegGrp = Collection.extend({
 	},
 	
 	toString: function() {
+		var BACK_REF = /\\(\d+)/g;
 		var length = 0;
 		return "(" + this.map(function(item) {
 			// fix back references
-			var expression = String(item).replace(/\\(\d+)/g, function($, index) {
+			var ref = String(item).replace(BACK_REF, function(match, index) {
 				return "\\" + (1 + Number(index) + length);
 			});
 			length += item.length + 1;
-			return expression;
+			return ref;
 		}).join(")|(") + ")";
 	}
 }, {
@@ -863,7 +883,7 @@ RegGrp.Item = Base.extend({
 		
 		// count the number of sub-expressions
 		//  - add one because each pattern is itself a sub-expression
-		this.length = match(expression.replace(ESCAPE, "").replace(/\[[^\]]+\]/g, ""), /\(/g).length;
+		this.length = match(expression.replace(ESCAPE, "").replace(/\[[^\]]+\]/g, ""), /\((?!\?)/g).length;
 		
 		// does the pattern use sub-expressions?
 		if (typeof replacement == "string" && /\$(\d+)/.test(replacement)) {
@@ -1063,14 +1083,15 @@ if (BOM.detect("MSIE.+win")) {
 		var $method = assignID(method);
 		
 		// store the closure in a manageable scope
-		$closures[$method] = method;			
-		if (!$closures[$element]) $closures[$element] = {};		
-		var closure = $closures[$element][$method];
-		if (closure) return closure; // already stored
+		$closures[$method] = method;
 		
 		// reset pointers
 		element = null;
 		method = null;
+		
+		if (!$closures[$element]) $closures[$element] = {};		
+		var closure = $closures[$element][$method];
+		if (closure) return closure; // already stored
 		
 		// return a new closure with a manageable scope 
 		var bound = function() {
@@ -1164,7 +1185,7 @@ var Interpreter = Base.extend({
 		var code = base2.namespace + "with(arguments[0]){" +
 			this.parser.parse(template) + 
 		"}return arguments[0][1].join('')";
-		// use new Function() instead of eval() so that the script is evaluated in the global scope		
+		// use new Function() instead of eval() so that the script is evaluated in the global scope
 		return new Function(code)(command);
 	}
 });
@@ -1398,7 +1419,10 @@ JSON.Number = JSON.Object.extend({
 JSON.String = JSON.Object.extend({
 	parseJSON: function(string) {
 		try {
-			if (JSON.VALID.test(string)) {
+			if (JSON.VALID.test(string
+			//	.replace(/\\./g, '@')
+			//	.replace(/"[^"\\\n\r]*"/g, '')
+			)) {
 				return eval("(" + string + ")");
 			}
 		} catch (error) {
@@ -1455,7 +1479,7 @@ var IO = new base2.Namespace(this, {
 eval(this.imports);
 
 // =========================================================================
-// IO//base2/BOM/XPCOM.js
+// IO/../BOM/XPCOM.js
 // =========================================================================
 
 // some useful methods for dealing with XPCOM
@@ -1860,7 +1884,6 @@ var LocalFile = Base.extend({
 		},
 
 		exists: function() {
-			// why does this 'enablePrivilege' have to be here?
 			return this.$init().exists();
 		},
 
@@ -1880,7 +1903,7 @@ var LocalFile = Base.extend({
 						this.$stream.init($stream);
 						break;
 					case LocalFile.WRITE:
-						if (!file.exists()) file.create(0, 0664);				
+						if (!file.exists()) file.create(0, 0664);
 						this.$stream = XPCOM.createObject("network/file-output-stream;1", "nsIFileOutputStream");
 						this.$stream.init(file, 0x20 | 0x02, 00004, null);
 						break;
@@ -1932,13 +1955,12 @@ var LocalFile = Base.extend({
 		},
 
 		read: function() {
-			var CRLF = "\r\n";
-			var text = "";
-			var line;
+			var lines = [];
+			var line, i = 0;
 			while ((line = this.$stream.readLine()) != null) {
-				text += (line + CRLF);
+				lines[i++] = line;
 			}
-			return text;
+			return lines.join("\r\n");
 		},
 
 		write: function(text) {
@@ -2789,9 +2811,10 @@ var Command = FileSystem.extend({
 
 // This object gets between the server and the file system to manage the
 //  returned content.
+// The interpreter also provides access to to a copy of the request object 
+//  and its post data.
 
-// The interpreter provides access to the request object and its post data.
-// It also has access to a copy of the client's request object.
+// this is still in a state of flux until I can finalise the templating system.
 
 var Interpreter = Command.extend({
 	constructor: function(request) {
@@ -2942,7 +2965,7 @@ var Terminal = Command.extend({
 var HTMLElement = Module.extend();
 
 // =========================================================================
-// MiniWeb//base2/DOM/html/HTMLFormElement.js
+// MiniWeb/../../base2/DOM/html/HTMLFormElement.js
 // =========================================================================
 
 var HTMLFormElement = HTMLElement.extend({
@@ -2954,31 +2977,31 @@ var HTMLFormElement = HTMLElement.extend({
 });
 
 // =========================================================================
-// MiniWeb//base2/DOM/html/HTMLFormItem.js
+// MiniWeb/../../base2/DOM/html/HTMLFormItem.js
 // =========================================================================
 
 var HTMLFormItem = HTMLElement.extend(null, {
 	tags: "BUTTON,INPUT,SELECT,TEXTAREA",
 	
-	isSuccessful: function(element) {
-		if (!element.name || element.disabled) return false;
-		switch (element.type) {
+	isSuccessful: function(item) {
+		if (!item.name || item.disabled) return false;
+		switch (item.type) {
 			case "button":
 			case "reset":
 				return false;
 			case "radio":
 			case "checkbox":
-				return element.checked;
+				return item.checked;
 			case "image":
 			case "submit":
-				return element == document.activeElement;
+				return item == document.activeElement;
 			default:
 				return true;
 		}
 	},
 	
-	serialize: function(element) {
-		return element.name + "=" + encodeURIComponent(element.value);
+	serialize: function(item) {
+		return item.name + "=" + encodeURIComponent(item.value);
 	}
 });
 
