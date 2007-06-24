@@ -1,7 +1,7 @@
 
 // avoid memory leaks
 
-if (BOM.detect("MSIE.+win")) {
+if (BOM.detect("MSIE5.+win|MSIE6.+SV1")) {
 	var $closures = {}; // all closures stored here
 	
 	BOM.$bind = function(method, element) {
@@ -37,4 +37,6 @@ if (BOM.detect("MSIE.+win")) {
 	attachEvent("onunload", function() {
 		$closures = null; // closures are destroyed when the page is unloaded
 	});
+} else {
+	BOM.$bind = K;
 }
