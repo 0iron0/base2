@@ -1,7 +1,17 @@
 
 // http://www.w3.org/TR/selectors-api/
+// http://www.whatwg.org/specs/web-apps/current-work/#getelementsbyclassname
 
-var NodeSelector = Interface.extend({
+var NodeSelector = Interface.extend({	
+	"@!(element.getElementsByClassName)": { // firefox3?
+		getElementsByClassName: function(node, className) {
+			if (instanceOf(className, Array)) {
+				className = className.join(".");
+			}
+			return this.matchAll(node, "." + className);
+		}
+	},
+	
 	"@!(element.matchSingle)": { // future-proof
 		matchAll: function(node, selector) {
 			return new Selector(selector).exec(node);

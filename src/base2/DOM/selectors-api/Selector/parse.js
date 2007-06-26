@@ -173,7 +173,7 @@ new function(_) {
 			reg = []; // store for RegExp objects
 			fn = "";
 			var selectors = parser.escape(selector).split(",");
-			forEach(selectors, function(selector, label) {
+			forEach (selectors, function(selector, label) {
 				index = list = dup = 0; // reset
 				var block = parser.exec(selector);
 				if (wild && MSIE) { // IE's pesky comment nodes
