@@ -1,0 +1,23 @@
+body, th, td {
+	font: 13px sans-serif;
+	text-align: left;
+	vertical-align: top;
+}
+th { font-weight: bold; }
+.block { float: left; width: 49%; }
+div.block { margin-left: 1%;} 	
+h2 { 
+	font: bold 18px sans-serif;
+	margin: 0;
+}
+label.top {
+	display: block;
+	margin: 0.5em 0 0 0;
+}	
+label, th { color: slateblue; }
+table { margin: 0.5em 0; }
+#uri, #uritext, #uris, #code { width:100%;}
+#error { color: red; font-weight: bold; }
+em { color: gray; }
+#code { font-family: monospace;}
+.disabled { color: gray;}
