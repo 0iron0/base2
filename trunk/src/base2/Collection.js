@@ -39,11 +39,11 @@ var Collection = Hash.extend({
 	},
 
 	item: function(index) {
-		return this.fetch(this[KEYS][index]);
+		return this.fetch(this[KEYS].item(index));
 	},
 
 	removeAt: function(index) {
-		return this.remove(this[KEYS][index]);
+		return this.remove(this[KEYS].item(index));
 	},
 
 	reverse: function() {
@@ -70,7 +70,7 @@ var Collection = Hash.extend({
 	storeAt: function(index, item) {
 		//-dean: get rid of this?
 		assert(index < this.count(), "Index out of bounds.");
-		arguments[0] = this[KEYS][index];
+		arguments[0] = this[KEYS].item(index);
 		return this.store.apply(this, arguments);
 	}
 }, {

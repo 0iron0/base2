@@ -1,5 +1,5 @@
 
-var HASH   = "#" + Number(new Date); // prevent direct access to keys and values
+var HASH   = "#";
 var KEYS   = HASH + "keys";
 var VALUES = HASH + "values";
 
@@ -38,7 +38,7 @@ var Hash = Base.extend({
 		var keys = this[KEYS] || new Array2;
 		switch (arguments.length) {
 			case 0: return keys.copy();
-			case 1: return keys[index];
+			case 1: return keys.item(index);
 			default: return keys.slice(index, length);
 		}
 	},
@@ -82,7 +82,7 @@ var Hash = Base.extend({
 		var values = this.map(K);
 		switch (arguments.length) {
 			case 0: return values;
-			case 1: return values[index];
+			case 1: return values.item(index);
 			default: return values.slice(index, length);
 		}
 	}
