@@ -2,7 +2,7 @@
 var Binding = Interface.extend(null, {
 	extend: function(_interface, _static) {
 		// convoluted code here because some libraries add bind()
-		//  to the Prototype and base2 can't tell the difference
+		//  to Function.prototype and base2 can't tell the difference
 		var bind = this.bind;
 		if (_static) {
 			bind = _static.bind || bind;
