@@ -1,0 +1,361 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Google Wiki parser</title>
+		<link rel="stylesheet" href="GWParser.css" type="text/css" media="screen" charset="utf-8">
+		<link rel="stylesheet" href="../GWParser.css" type="text/css" media="screen" charset="utf-8">
+<!--
+		<script src="../../../build.php?package=base2/DOM/package.xml&amp;full" type="text/javascript" charset="utf-8"></script>  
+		<script src="../../../build.php?package=utils/Parsers/package.xml" type="text/javascript" charset="utf-8"></script>
+-->
+		<script src="../../../../lib/base2-dom-fp.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../../../lib/src/base2utils-parsers.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript" charset="utf-8">
+eval(base2.namespace);		
+eval(base2.DOM.namespace);		
+eval(base2.Parsers.namespace);		
+function $(id) {
+  return document.getElementById(id);
+}
+	
+function setOutput(x, contentType,selectOutput) {
+	var y, output_html=$("output_html"), output_wysiwyg=$("output_wysiwyg");
+	if(contentType=="text/plain") y="<pre>"+x+"</pre>";
+	else y=x
+	output_html.value=x;
+	output_wysiwyg.innerHTML=y;
+	if(selectOutput) {
+		if($("html").checked) $("output_html").select();
+	}
+}
+function showHide(show,hide) {
+	$(show).style.display="block";
+	$(hide).style.display="none";
+}
+function base2wikiLinkResolve(word) {
+	return "http://code.google.com/p/support/wiki/"+word;
+}
+var gwp=new GWParser();
+gwp.overrideWikiWordHandling(base2wikiLinkResolve);
+var gwip=new GWInlineParser();
+gwip.wikiLinkResolve=base2wikiLinkResolve;
+function go(e) {
+	//press ctrl/shift/alt for testing the inline parser
+	var p = e.ctrlKey||e.shiftKey||e.altKey ? [gwip,'exec'] : [gwp,'parse'];
+
+	var input=$("input"), output_html=$("output_html"), output_wysiwyg=$("output_wysiwyg");
+	//clear
+	setOutput("", "text/html");
+	//init
+	setOutput(p[0][p[1]](input.value), "text/html");
+}
+
+function go2() {
+	setOutput(gwp.toDotString("GWParser"), "text/plain",true);
+}
+function swapClass(elements, removeClass, addClass) {
+	forEach(elements, function(element) {
+		if(typeof element=="string") element=$(element);
+		HTMLElement.removeClass(element,removeClass);
+		HTMLElement.addClass(element,addClass);
+	});
+}
+function zoem(o) {
+	var left=$("input");
+	if(HTMLElement.hasClass(left, "w50")) {
+		swapClass([left], 'w50', 'w25');
+		swapClass(['output_html','output_wysiwyg'], 'w50', 'w75');
+		o.value="zoom wiki";
+	}
+	else if(HTMLElement.hasClass(left,"w25")) {
+		swapClass([left], 'w25', 'w75');
+		swapClass(['output_html','output_wysiwyg'], 'w75', 'w25');
+		o.value="unzoom";
+	}
+	else {
+		swapClass([left], 'w75', 'w50');
+		swapClass(['output_html','output_wysiwyg'], 'w25', 'w50');
+		o.value="zoom output";
+	}
+}
+function swap(o) {
+  var viewer=$('viewer');
+	var currentLayoutVertical=HTMLElement.hasClass(viewer,"vertical");
+	if(currentLayoutVertical) {
+		swapClass([viewer], 'vertical', 'horizontal');
+		o.value="vertical"
+	}
+	else {
+		swapClass([viewer], 'horizontal', 'vertical');
+		o.value="horizontal"
+	}
+}
+window.onload=function() {
+	function showHtml() { showHide('output_html', 'output_wysiwyg'); }
+	function showWysisyg() { showHide('output_wysiwyg', 'output_html'); }
+	$("html").onclick=showHtml;
+	$("wysiwyg").onclick=showWysisyg;
+	if($("html").checked) showHtml(); else showWysisyg();
+	setOutput("","text/html");
+}
+		</script>  
+	</head>
+	<body>
+		<form onsubmit="return false">
+			<h1 class="title">
+				<span>
+					<input type="button" onclick="go(event);" value="parse">
+					<input type="button" onclick="go2();" value="dot graph">
+					<input type="radio" name="viewtype" id="html"><label for="html">Source</label>
+					<input type="radio" name="viewtype" id="wysiwyg" checked><label for="wysiwyg">Wysiwyg</label>
+					<input type="button" onclick="zoem(this);" value="zoom output">
+					<input type="button" onclick="swap(this);" value="horizontal">
+				</span>
+				Javascript Google wiki markup parser.
+			</h1>
+			<div class="vertical" id="viewer">
+				<textarea id="input" class="viewbox w50">
+#summary The reference to the wiki syntax for Google Code projects
+#labels Featured
+
+== Paragraphs ==
+
+Use one or more blank lines to separate paragraphs.
+
+== Typeface ==
+
+||* Name/Sample*   || * Markup *       ||
+||  _italic_       || `_italic_`       ||
+||  *bold*         || `*bold*`         ||
+||  `code`         || {{{`code`}}}     ||
+||  {{{code}}}     || `{{{code}}}`     ||
+||  ^super^script  || `^super^script`  ||
+||  ,,sub,,script  || `,,sub,,script`  ||
+|| ~~strikeout~~   || `~~strikeout~~`  ||
+
+You can mix these typefaces in some ways:
+
+||       *Markup*                    ||        *Result*                 ||
+|| `_*bold* in italics_`             || _*bold* in italics_             ||
+|| `*_italics_ in bold*`             || *_italics_ in bold*             ||
+|| `*~~strike~~ works too*`          || *~~strike~~ works too*          ||
+|| `~~as well as _this_ way round~~` || ~~as well as _this_ way round~~ ||
+
+== Code ==
+
+If you have a multiline code block that you want to display verbatim,
+use the multiline code delimiter:
+
+{{{
+{{{
+def fib(n):
+  if n == 0 or n == 1:
+    return n
+  else:
+    # This recursion is not good for large numbers.
+    return fib(n-1) + fib(n-2)
+}}}
+}}}
+
+Which results in:
+
+{{{
+def fib(n):
+  if n == 0 or n == 1:
+    return n
+  else:
+    # This recursion is not good for large numbers.
+    return fib(n-1) + fib(n-2)
+}}}
+
+== Headings ==
+
+{{{
+= Heading =
+== Subheading ==
+=== Level 3 ===
+==== Level 4 ====
+===== Level 5 =====
+====== Level 6 ======
+}}}
+
+= Heading =
+== Subheading ==
+=== Level 3 ===
+==== Level 4 ====
+===== Level 5 =====
+====== Level 6 ======
+
+== Lists ==
+
+Google Code wikis support both bulleted and numbered lists. A list
+must be indented at least one space to be recognized as such. You can
+also nest lists one within the other by appropriate use of indenting:
+
+{{{
+The following is:
+  * A list
+  * Of bulleted items
+    # This is a numbered sublist
+    # Which is done by indenting further
+  * And back to the main bulleted list
+
+ * This is also a list
+ * With a single leading space
+ * Notice that it is rendered
+  # At the same levels
+  # As the above lists.
+ * Despite the different indentation levels.
+}}}
+
+The following is:
+  * A list
+  * Of bulleted items
+    # This is a numbered sublist
+    # Which is done by indenting further
+  * And back to the main bulleted list
+
+ * This is also a list
+ * With a single leading space
+ * Notice that it is rendered
+  # At the same levels
+  # As the above lists.
+ * Despite the different indentation levels.
+
+== Quoting ==
+
+Block quotes place emphasis on a particular extract of text in your
+page. Block quotes are created by indenting a paragraph by at least
+one space:
+
+{{{
+Someone once said:
+
+  This sentence will be quoted in the future as the canonical example
+  of a quote that is so important that it should be visually separate
+  from the rest of the text in which it appears.
+}}}
+
+Someone once said:
+
+  This sentence will be quoted in the future as the canonical example
+  of a quote that is so important that it should be visually separate
+  from the rest of the text in which it appears.
+
+== Links ==
+
+Links are central to the wiki principle, as they create the web of
+content. Google Code wiki permits both internal (within the wiki) and
+external links, and in some cases automatically creates a link when it
+recognizes either a !WikiWord or an URL.
+
+=== Internal wiki links ===
+
+Internal links within a wiki are created using the syntax below. If
+you add a wiki link to a page that does not exist, the link will
+appear with a !LittleLink[WikiSyntax ?] to all project members and
+owners. Clicking that link will take you to the page creation form
+where you can enter content for that page.
+
+If you are not logged in, wiki links that point to non-existent pages
+will appear as plain text, without the link to the page creation
+form. When you create the target page as a project member or owner,
+the link will switch to being an actual hyperlink for all viewers of
+the page.
+
+{{{
+WikiSyntax is identified and linked automatically
+
+Wikipage is not identified, so if you have a page named [Wikipage] you
+need to link it explicitly.
+
+If the WikiSyntax page is actually about reindeers, you can provide a
+description, so that people know you're actually linking to a page on
+[WikiSyntax reindeer flotillas].
+
+If you want to mention !WikiSyntax without it being autolinked, use an
+exclamation mark to prevent linking.
+}}}
+
+WikiSyntax is identified and linked automatically
+
+Wikipage is not identified, so if you have a page named [Wikipage] you
+need to link it explicitly.
+
+If the WikiSyntax page is actually about reindeers, you can provide a
+description, so that people know you're actually linking to a page on
+[WikiSyntax reindeer flotillas].
+
+If you want to mention !WikiSyntax without it being autolinked, use an
+exclamation mark to prevent linking.
+
+=== Links to external pages ===
+
+You can of course link to external pages from your own wiki pages,
+using a syntax similar to that for internal links:
+
+{{{
+Plain URLs such as http://www.google.com/ or ftp://ftp.kernel.org/ are
+automatically made into links.
+
+You can also provide some descriptive text. For example, the following
+link points to the [http://www.google.com Google home page].
+
+If your link points to an image, it will get inserted as an image tag
+into the page:
+
+http://code.google.com/images/code_sm.png
+
+You can also make the image into a link, by setting the image URL as
+the description of the URL you want to link:
+
+[http://code.google.com/ http://code.google.com/images/code_sm.png]
+}}}
+
+Plain URLs such as http://www.google.com/ or ftp://ftp.kernel.org/ are
+automatically made into links.
+
+You can also provide some descriptive text. For example, the following
+link points to the [http://www.google.com Google home page].
+
+If your link points to an image (that is, if it ends in `.png`,
+`.gif`, `.jpg` or `.jpeg`), it will get inserted as an image into the
+page:
+
+http://code.google.com/images/code_sm.png
+
+You can also make the image into a link, by setting the image URL as
+the description of the URL you want to link:
+
+[http://code.google.com/ http://code.google.com/images/code_sm.png]
+
+== Tables ==
+
+Tables are created by entering the content of each cell separated by
+{{{||}}} delimiters. You can insert other inline wiki syntax in table
+cells, including typeface formatting and links. With empty cell syntax
+({{{||||}}}), you can let a cell span multiple columns.
+
+{{{
+|| *Year* || *Temperature (low)* || *Temperature (high)* ||
+|| 1900 || -10 || 25 ||
+|| 1910 || -15 || 30 ||
+|| 1920 || -10 || 32 ||
+|| 1930 |||| _N/A_ ||
+|| 1940 || -2 || 40 ||
+}}}
+
+|| *Year* || *Temperature (low)* || *Temperature (high)* ||
+|| 1900 || -10 || 25 ||
+|| 1910 || -15 || 30 ||
+|| 1920 || -10 || 32 ||
+|| 1930 |||| _N/A_ ||
+|| 1940 || -2 || 40 ||
+									</textarea>
+				<textarea id="output_html" style="display:none" class="viewbox last w50"></textarea>
+				<div id="output_wysiwyg" style="display:none" class="gwp viewbox last w50"></div>
+			</div>
+		</form>
+<!--#include file="g.html"-->		
+	</body>
+</html>

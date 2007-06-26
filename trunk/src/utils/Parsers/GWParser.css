@@ -1,0 +1,34 @@
+.gwp {
+  font-family:arial,sans-serif;
+  font-size: 83%;
+}
+.gwp h1 {
+  font-size:x-large;
+  margin-top:0px;
+}
+.gwp h2 {
+  font-size:large;
+}
+.gwp pre,
+.gwp code {
+  font-size: 110%;
+}
+.gwp pre {
+  border-left: 3px solid #CCCCCC; 
+  padding: 0.5em; 
+  margin-left: 2em;
+}
+.gwp a:link {
+  color:#0000CC;
+}
+.gwp img {
+  border: 0 none;
+}
+.gwp table {
+  border-collapse:collapse;
+}
+.gwp td {
+  border: 1px solid rgb(170, 170, 170); 
+  padding: 5px;
+  font-size: 83%;
+}
