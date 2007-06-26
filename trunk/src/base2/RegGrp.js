@@ -13,6 +13,7 @@ var RegGrp = Collection.extend({
 
 	exec: function(string, replacement) {
 		if (arguments.length == 1) {
+			var self = this;
 			var keys = this[KEYS];
 			var values = this[VALUES];
 			replacement = function(match) {
@@ -25,7 +26,7 @@ var RegGrp = Collection.extend({
 						var replacement = match.replacement;
 						switch (typeof replacement) {
 							case "function":
-								return replacement.apply(null, slice(arguments, offset));
+								return replacement.apply(self, slice(arguments, offset));
 							case "number":
 								return arguments[offset + replacement];
 							default:
