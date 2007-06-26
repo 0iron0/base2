@@ -1,4 +1,4 @@
-// timestamp: Tue, 19 Jun 2007 19:03:41
+// timestamp: Tue, 26 Jun 2007 15:37:27
 /*
 	base2.js - copyright 2007, Dean Edwards
 	http://www.opensource.org/licenses/mit-license
@@ -23,8 +23,8 @@ var Base = function() {
 Base.prototype = {
 	extend: function(source) {
 		if (arguments.length > 1) { // extending with a name/value pair
-			var ancestor = this[source];
 			var value = arguments[1];
+			var ancestor = this[source];
 			if (typeof value == "function" && ancestor && /\bbase\b/.test(value)) {
 				var method = value;				
 				value = function() { // override
@@ -41,7 +41,8 @@ Base.prototype = {
 		} else if (source) { // extending with an object literal
 			var extend = Base.prototype.extend;
 			if (Base._prototyping) {
-				var key, i = 0, members = ["constructor", "toString", "valueOf"];
+				var members = ["constructor", "toString", "valueOf"];
+				var key, i = 0;
 				while (key = members[i++]) if (source[key] != Object.prototype[key]) {
 					extend.call(this, key, source[key]);
 				}
@@ -357,7 +358,7 @@ var Abstract = Base.extend({
 });
 
 // =========================================================================
-// base2/Module.js
+// base2/Module.txt
 // =========================================================================
 
 // based on ruby's Module class and Mozilla's Array generics:
@@ -370,6 +371,70 @@ var Abstract = Base.extend({
 // the instance interface become instance methods of the target object.
 
 // Modules cannot be instantiated. Static properties and methods are inherited.
+
+/*  -------
+    EXAMPLE
+    -------
+  
+  // create a module
+  
+  var Circle = Module.extend({
+    // instance AND static
+    
+    getArea: function(circle) {
+      return this.PI * Math.pow(circle.radius, 2);
+    },
+    
+    getCircumference: function(circle) {
+      return 2 * this.PI * circle.radius; 
+    }
+  }, {
+    // static only
+    
+    PI: 3.14
+  });
+  
+  // you cannot instantiate a module:
+  
+  var wheel = new Circle(50); // => ERROR!
+  
+  // apply the Circle interface to an object instead:
+  
+  var wheel = Circle({radius:50});
+  
+  // call getCircumference() like an instance method on the object:
+  
+  print(wheel.getCircumference()); //=> 314
+  
+  // call getCircumference() like a static method:
+  
+  print(Circle.getCircumference({radius:10})); //=> 62.8
+  print(Circle.getCircumference(wheel));       //=> 314
+  
+  // Circle.PI is static only:
+  
+  print(Circle.PI); // => 3.14
+  print(wheel.PI);  // => undefined
+  
+  // Apply the Circle interface to another class:
+  
+  var Wheel = CarPart.extend({
+    constructor: function(radius) {
+      this.base();
+      this.radius = radius;
+    }
+  });
+  Wheel.implement(Circle);  
+  
+  var wheel = new Wheel(10);
+  print(wheel.getCircumference());       // => 62.8
+  print(Circle.getCircumference(wheel)); // => 62.8
+
+-------- */
+
+// =========================================================================
+// base2/Module.js
+// =========================================================================
 
 var Module = Abstract.extend(null, {
 	extend: function(_interface, _static) {
@@ -539,6 +604,11 @@ var IArray = Module.extend({
 		return item;
 	},
 	
+	item: function(array, index) {
+		if (index < 0) index += array.length; // starting from the end
+		return array[index];
+	},
+	
 	lastIndexOf: function(array, item, fromIndex) {
 		var length = array.length;
 		if (fromIndex == null) {
@@ -559,9 +629,7 @@ var IArray = Module.extend({
 	},
 	
 	removeAt: function(array, index) {
-		var item = array[index];
-		this.splice(array, index, 1);
-		return item;
+		return this.splice(array, index, 1);
 	}
 });
 
@@ -582,10 +650,11 @@ forEach ("concat,join,pop,push,reverse,shift,slice,sort,splice,unshift".split(",
 var Array2 = function() {
 	return IArray(this.constructor == IArray ? Array.apply(null, arguments) : arguments[0]);
 };
+
 // expose IArray.prototype so that it can be extended
 Array2.prototype = IArray.prototype;
 
-forEach (IArray, function(method, name, proto) {
+forEach (IArray, function(method, name) {
 	if (Array[name]) {
 		IArray[name] = Array[name];
 		delete IArray.prototype[name];
@@ -597,7 +666,7 @@ forEach (IArray, function(method, name, proto) {
 // base2/Hash.js
 // =========================================================================
 
-var HASH   = "#" + Number(new Date); // prevent direct access to keys and values
+var HASH   = "#";
 var KEYS   = HASH + "keys";
 var VALUES = HASH + "values";
 
@@ -636,7 +705,7 @@ var Hash = Base.extend({
 		var keys = this[KEYS] || new Array2;
 		switch (arguments.length) {
 			case 0: return keys.copy();
-			case 1: return keys[index];
+			case 1: return keys.item(index);
 			default: return keys.slice(index, length);
 		}
 	},
@@ -680,7 +749,7 @@ var Hash = Base.extend({
 		var values = this.map(K);
 		switch (arguments.length) {
 			case 0: return values;
-			case 1: return values[index];
+			case 1: return values.item(index);
 			default: return values.slice(index, length);
 		}
 	}
@@ -732,11 +801,11 @@ var Collection = Hash.extend({
 	},
 
 	item: function(index) {
-		return this.fetch(this[KEYS][index]);
+		return this.fetch(this[KEYS].item(index));
 	},
 
 	removeAt: function(index) {
-		return this.remove(this[KEYS][index]);
+		return this.remove(this[KEYS].item(index));
 	},
 
 	reverse: function() {
@@ -763,7 +832,7 @@ var Collection = Hash.extend({
 	storeAt: function(index, item) {
 		//-dean: get rid of this?
 		assert(index < this.count(), "Index out of bounds.");
-		arguments[0] = this[KEYS][index];
+		arguments[0] = this[KEYS].item(index);
 		return this.store.apply(this, arguments);
 	}
 }, {
@@ -808,6 +877,7 @@ var RegGrp = Collection.extend({
 
 	exec: function(string, replacement) {
 		if (arguments.length == 1) {
+			var self = this;
 			var keys = this[KEYS];
 			var values = this[VALUES];
 			replacement = function(match) {
@@ -820,7 +890,7 @@ var RegGrp = Collection.extend({
 						var replacement = match.replacement;
 						switch (typeof replacement) {
 							case "function":
-								return replacement.apply(null, slice(arguments, offset));
+								return replacement.apply(self, slice(arguments, offset));
 							case "number":
 								return arguments[offset + replacement];
 							default:

@@ -1,4 +1,4 @@
-// timestamp: Tue, 19 Jun 2007 19:03:43
+// timestamp: Tue, 26 Jun 2007 15:37:28
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -128,7 +128,10 @@ JSON.Number = JSON.Object.extend({
 JSON.String = JSON.Object.extend({
 	parseJSON: function(string) {
 		try {
-			if (JSON.VALID.test(string)) {
+			if (JSON.VALID.test(string
+			//	.replace(/\\./g, '@')
+			//	.replace(/"[^"\\\n\r]*"/g, '')
+			)) {
 				return eval("(" + string + ")");
 			}
 		} catch (error) {

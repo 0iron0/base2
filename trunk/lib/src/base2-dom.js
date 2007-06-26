@@ -1,4 +1,4 @@
-// timestamp: Tue, 19 Jun 2007 19:03:42
+// timestamp: Tue, 26 Jun 2007 15:37:27
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -86,7 +86,7 @@ var Interface = Module.extend(null, {
 var Binding = Interface.extend(null, {
 	extend: function(_interface, _static) {
 		// convoluted code here because some libraries add bind()
-		//  to the Prototype and base2 can't tell the difference
+		//  to Function.prototype and base2 can't tell the difference
 		var bind = this.bind;
 		if (_static) {
 			bind = _static.bind || bind;
@@ -693,8 +693,18 @@ extend(Document, {
 // =========================================================================
 
 // http://www.w3.org/TR/selectors-api/
+// http://www.whatwg.org/specs/web-apps/current-work/#getelementsbyclassname
 
-var NodeSelector = Interface.extend({
+var NodeSelector = Interface.extend({	
+	"@!(element.getElementsByClassName)": { // firefox3?
+		getElementsByClassName: function(node, className) {
+			if (instanceOf(className, Array)) {
+				className = className.join(".");
+			}
+			return this.matchAll(node, "." + className);
+		}
+	},
+	
 	"@!(element.matchSingle)": { // future-proof
 		matchAll: function(node, selector) {
 			return new Selector(selector).exec(node);
@@ -1119,7 +1129,7 @@ new function(_) {
 			reg = []; // store for RegExp objects
 			fn = "";
 			var selectors = parser.escape(selector).split(",");
-			forEach(selectors, function(selector, label) {
+			forEach (selectors, function(selector, label) {
 				index = list = dup = 0; // reset
 				var block = parser.exec(selector);
 				if (wild && MSIE) { // IE's pesky comment nodes
@@ -1161,12 +1171,6 @@ Element.implement(EventTarget);
 var HTMLDocument = Document.extend({
 	"@!(document.nodeType)": {
 		nodeType: 9
-	},
-	
-	"@!(document.getElementsByClassName)": { // firefox3?
-		getElementsByClassName: function(document, classNames) {
-			return this.matchAll(document, "." + classNames.join("."));
-		}
 	}
 }, {
 	// http://www.whatwg.org/specs/web-apps/current-work/#activeelement	
@@ -1205,12 +1209,6 @@ var HTMLElement = Element.extend({
 		var regexp = new RegExp("(^|\\s)" + className + "(\\s|$)");
 		element.className = element.className.replace(regexp, "$2");
 		return className;
-	},
-	
-	"@!(element.getElementsByClassName)": { // firefox3?
-		getElementsByClassName: function(element, classNames) {
-			return this.matchAll(element, "." + classNames.join("."));
-		}
 	}	
 }, {
 	bindings: {},
