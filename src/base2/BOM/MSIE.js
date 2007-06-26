@@ -1,7 +1,7 @@
 
 // avoid memory leaks
 
-if (BOM.detect("MSIE5.+win|MSIE6.+SV1")) {
+if (BOM.detect("MSIE[56].+win") && !BOM.detect("SV1")) {
 	var $closures = {}; // all closures stored here
 	
 	BOM.$bind = function(method, element) {
