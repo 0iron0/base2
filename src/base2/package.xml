@@ -6,6 +6,7 @@
 	<include src="../Function.js"/>
 	<include src="../String.js"/>
 	<include src="Abstract.js"/>
+	<include src="Module.txt"/>
 	<include src="Module.js"/>
 	<include src="Enumerable.js"/>
 	<include src="Array2.js"/>

@@ -1,15 +1,4 @@
 
-// based on ruby's Module class and Mozilla's Array generics:
-//   http://www.ruby-doc.org/core/classes/Module.html
-//   http://developer.mozilla.org/en/docs/New_in_JavaScript_1.6#Array_and_String_generics
-
-// A Module is used as the basis for creating interfaces that can be
-// applied to other classes. *All* properties and methods are static.
-// When a module is used as a mixin, methods defined on what would normally be
-// the instance interface become instance methods of the target object.
-
-// Modules cannot be instantiated. Static properties and methods are inherited.
-
 var Module = Abstract.extend(null, {
 	extend: function(_interface, _static) {
 		// extend a module to create a new module
