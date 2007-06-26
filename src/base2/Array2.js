@@ -47,6 +47,11 @@ var IArray = Module.extend({
 		return item;
 	},
 	
+	item: function(array, index) {
+		if (index < 0) index += array.length; // starting from the end
+		return array[index];
+	},
+	
 	lastIndexOf: function(array, item, fromIndex) {
 		var length = array.length;
 		if (fromIndex == null) {
@@ -67,9 +72,7 @@ var IArray = Module.extend({
 	},
 	
 	removeAt: function(array, index) {
-		var item = array[index];
-		this.splice(array, index, 1);
-		return item;
+		return this.splice(array, index, 1);
 	}
 });
 
@@ -90,10 +93,11 @@ forEach ("concat,join,pop,push,reverse,shift,slice,sort,splice,unshift".split(",
 var Array2 = function() {
 	return IArray(this.constructor == IArray ? Array.apply(null, arguments) : arguments[0]);
 };
+
 // expose IArray.prototype so that it can be extended
 Array2.prototype = IArray.prototype;
 
-forEach (IArray, function(method, name, proto) {
+forEach (IArray, function(method, name) {
 	if (Array[name]) {
 		IArray[name] = Array[name];
 		delete IArray.prototype[name];
