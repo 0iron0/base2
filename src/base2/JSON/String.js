@@ -2,7 +2,10 @@
 JSON.String = JSON.Object.extend({
 	parseJSON: function(string) {
 		try {
-			if (JSON.VALID.test(string)) {
+			if (JSON.VALID.test(string
+			//	.replace(/\\./g, '@')
+			//	.replace(/"[^"\\\n\r]*"/g, '')
+			)) {
 				return eval("(" + string + ")");
 			}
 		} catch (error) {
