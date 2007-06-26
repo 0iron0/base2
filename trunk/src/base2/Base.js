@@ -8,8 +8,8 @@ var Base = function() {
 Base.prototype = {
 	extend: function(source) {
 		if (arguments.length > 1) { // extending with a name/value pair
-			var ancestor = this[source];
 			var value = arguments[1];
+			var ancestor = this[source];
 			if (typeof value == "function" && ancestor && /\bbase\b/.test(value)) {
 				var method = value;				
 				value = function() { // override
@@ -26,7 +26,8 @@ Base.prototype = {
 		} else if (source) { // extending with an object literal
 			var extend = Base.prototype.extend;
 			if (Base._prototyping) {
-				var key, i = 0, members = ["constructor", "toString", "valueOf"];
+				var members = ["constructor", "toString", "valueOf"];
+				var key, i = 0;
 				while (key = members[i++]) if (source[key] != Object.prototype[key]) {
 					extend.call(this, key, source[key]);
 				}
