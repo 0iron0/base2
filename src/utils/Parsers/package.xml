@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="base2">
+<package name="Parsers">
 	<include src="namespace.js"/>
 	<include src="../langcontrib.js"/>
 	<include src="uri.js"/>
