@@ -85,16 +85,16 @@ var FsmParser=Base.extend({
   },
   toDotString: function(name) {
     var graph=["/* Visit http://www.graphviz.org/ to create a chart of this text */",format("digraph %1 {",name)];
-    var drawn=new Hash
+    var drawn=new Hash;
     //Visualize start state
-    graph.push(format('\t%1[style=filled,color="#B7D5F6"];',this.startState.name))
+    graph.push(format('\t%1[style=filled,color="#B7D5F6"];',this.startState.name));
     this.states.forEach(function(state, stateName) {
       state.stateExits.forEach(function(transition) {
         //visualize accepting state
         var nextStateName=transition.getNextStateName();
         if(this.states.fetch(nextStateName).isAcceptState&&!drawn.exists(nextStateName)) {
           graph.push(format("\t%1[style=bold]",nextStateName));
-          drawn.store(nextStateName)
+          drawn.store(nextStateName);
         }
         //add transition
         graph.push(format("\t%1 -> %2;", stateName, nextStateName));

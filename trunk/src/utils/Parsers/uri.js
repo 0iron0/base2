@@ -26,7 +26,7 @@ var csMacro=function(s) {
 		// "OCHAR<xyz>" -> charSets._OCHAR + "xyz" + pct-encoded
 		return "(?:["+charSets["_"+ch+"CHAR"]+args+"]|%[0-9a-zA-Z]{2,2})";
 	});
-}
+};
 //All identifyable parts of an uri we might want to know (items starting with _ have no submatches)
 //TODO: think of semantics vs grammar (the ip-address "400.10.0.1" will get matched as reg_name
 //      instead of IPv4address, since 400 is not a byte/octet0).
@@ -36,7 +36,7 @@ uriParts.SCHEME=         "([a-zA-Z][-+.a-zA-Z0-9]*):";
 uriParts.USERINFO=       csMacro("(?:(OCHAR<:>*)@)?");
 uriParts._dec_octet=     "(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])";
 uriParts._IPv4address=   csMacro("{_dec_octet}\\.{_dec_octet}\\.{_dec_octet}\\.{_dec_octet}");
-uriParts._reg_name=      csMacro("OCHAR<>+")
+uriParts._reg_name=      csMacro("OCHAR<>+");
 uriParts.HOST=           csMacro("({_IPv4address}|{_reg_name})");
 uriParts.PORT=           "(?::(\\d{1,5}))?"; //spec says zero digits, browser says at least one
 uriParts._PATH_ABEMPTY=  csMacro("(?:/PCHAR<>*)*");
