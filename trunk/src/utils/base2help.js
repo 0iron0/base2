@@ -44,7 +44,7 @@ var help = function(o, m) {
     var f;
     if(typeof m=='string') f=o[m];
     else if(typeof m=='function') forEach(o,function(item, key) { if(m==item) { f=m; m=key; } });
-    else throw new Error("2nd argument should be a string or function")
+    else throw new Error("2nd argument should be a string or function");
     if(f) return format("%1: %2", m, f.$help?f.$help:"");
     else throw new Error("2nd argument should be a function on the 1st argument");
   }
@@ -53,11 +53,11 @@ var help = function(o, m) {
     //of the object, or parent of the object is not known.
     var a=['','--------------'];
     forEach(o, function(item, key) {
-      a.push(key)
+      a.push(key);
     });
     return o.$help?o.$help:""+a.join('\n');
   }
   else { //value type
-    return format("%1 (%2)", o, typeof o)
+    return format("%1 (%2)", o, typeof o);
   }
 }
