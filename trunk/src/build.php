@@ -77,13 +77,20 @@ function print_package($package, $pbase) {
 	$includes = $package->getElementsByTagName('include');
 	foreach ($includes as $include) {
 		$src = path_resolve($include->getAttribute('src'), $pbase);
+		$var = $include->getAttribute('var');
+
 		if (preg_match($REG_XML, $src)) {
 			load_package($src);
 		} else {
 			print("\r\n// =========================================================================\r\n");
 			print('// '.$name.'/'.$include->getAttribute('src'));
 			print("\r\n// =========================================================================\r\n");
-			readfile($src);
+			if ($var) {
+				print("var ".$var."=".json_encode(file_get_contents($src)).";\r\n");
+			}
+			else if(!readfile($src)) {
+				print("alert('BOO! The file \"".$src."\" from your package was not found.');");
+			}
 		}
 	}	
 	if ($publish) print("\r\neval(this.exports);\r\n");
