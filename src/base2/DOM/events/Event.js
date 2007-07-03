@@ -27,12 +27,7 @@ var Event = Binding.extend({
 		}
 	}
 }, {
-	"@MSIE": {
-/*		bind: function(event) {
-			//-dean: put more fixes here
-			return this.base(event);
-		}, */
-		
+	"@MSIE": {		
 		"@Mac": {
 			bind: function(event) {
 				// Mac IE5 does not allow expando properties on the event object so
@@ -50,7 +45,9 @@ var Event = Binding.extend({
 		"@Windows": {
 			bind: function(event) {
 				this.base(event);
-				event.target = event.srcElement;
+				if (!event.target) {
+					event.target = event.srcElement;
+				}
 				return event;
 			}
 		}
