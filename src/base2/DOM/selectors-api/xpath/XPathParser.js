@@ -6,7 +6,7 @@
 
 var XPathParser = Parser.extend({
 	constructor: function() {
-		this.base(this.constructor.rules);
+		this.base(XPathParser.rules);
 		// the sorter sorts child selectors to the end because they are slow
 		// for XPath we need the child selectors to be sorted to the beginning
 		// so we reverse the sort order. That's what this line does:
@@ -35,7 +35,6 @@ var XPathParser = Parser.extend({
 	init: function() {
 		// build the prototype
 		this.values.attributes[""] = "[@$1]";
-	//-	this.sorter = new RegGrp(_XPATH_SORTER);
 		this.rules = copy(this.optimised.values);
 		forEach (this.types, function(add, type) {
 			forEach (this.values[type], add, this.rules);
