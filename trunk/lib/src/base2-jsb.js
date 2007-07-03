@@ -1,4 +1,4 @@
-// timestamp: Tue, 26 Jun 2007 15:37:27
+// timestamp: Tue, 03 Jul 2007 20:32:36
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -107,7 +107,7 @@ extend(EventTarget, {
 		if (type.indexOf("document") == 0) {
 			type = type.slice(8);
 			context = target;
-			target = Traversal.getOwnerDocument(target);
+			target = Traversal.getDocument(target);
 		}
 		// call the default method
 		this.base(target, type, listener, context);
@@ -116,12 +116,11 @@ extend(EventTarget, {
 	removeEventListener: function(target, type, listener) {
 		if (type.indexOf("document") == 0) {
 			type = type.slice(8);
-			target = Traversal.getOwnerDocument(target);
+			target = Traversal.getDocument(target);
 		}
 		this.base(target, type, listener);
 	}
 });
-
 
 // =========================================================================
 // JSB/Binding.js
@@ -130,7 +129,6 @@ extend(EventTarget, {
 // Remember: a binding is a function
 
 var Binding = Abstract.extend();
-
 
 // =========================================================================
 // JSB/Rule.js

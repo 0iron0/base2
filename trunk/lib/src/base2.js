@@ -1,4 +1,4 @@
-// timestamp: Tue, 26 Jun 2007 15:37:27
+// timestamp: Tue, 03 Jul 2007 20:32:36
 /*
 	base2.js - copyright 2007, Dean Edwards
 	http://www.opensource.org/licenses/mit-license
@@ -142,6 +142,21 @@ var assertType = function(object, type, message) {
 	}
 };
 
+var $id = 1;
+var assignID = function(object) {
+	// assign a unique id
+	if (!object.base2ID) object.base2ID = "b2_" + $id++;
+	return object.base2ID;
+};
+
+var bind = function(method, context) {
+	var bound = function() {
+		return method.apply(context, arguments);
+	};
+	bound.cloneID = assignID(method);
+	return bound;
+};
+
 var copy = function(object) {
 	var fn = new Function;
 	fn.prototype = object;
@@ -175,7 +190,7 @@ var instanceOf = function(object, klass) {
 			return typeof object == typeof klass.prototype.valueOf();
 		case Array:
 			// this is the only troublesome one
-			return !!(object.join && object.splice && !arguments.callee(object, Function));
+			return object.join && object.splice && typeof object == "object";
 		case Date:
 			return !!object.getTimezoneOffset;
 		case RegExp:
@@ -202,9 +217,10 @@ var slice = function(object) {
 	return $slice.apply(object, $slice.call(arguments, 1));
 };
 
-var TRIM = /^\s+|\s+$/g;
+var LTRIM = /^\s\s*/;
+var RTRIM = /\s\s*$/; // http://blog.stevenlevithan.com/archives/faster-trim-javascript
 var trim = function(string) {
-	return String(string).replace(TRIM, "");	
+	return String(string).replace(LTRIM, "").replace(RTRIM, "");
 };
 
 // =========================================================================
@@ -219,17 +235,6 @@ var base = function(object, args) {
 var extend = function(object) {
 	assert(object != Object.prototype, "Object.prototype is verboten!");
 	return Base.prototype.extend.apply(object, slice(arguments, 1));
-};
-
-// =========================================================================
-// lang/assignID.js
-// =========================================================================
-
-var $ID = 1;
-var assignID = function(object) {
-	// assign a unique id
-	if (!object.base2ID) object.base2ID = "b2_" + $ID++;
-	return object.base2ID;
 };
 
 // =========================================================================
@@ -940,10 +945,16 @@ var RegGrp = Collection.extend({
 // base2/RegGrp/Item.js
 // =========================================================================
 
+
 RegGrp.Item = Base.extend({
 	constructor: function(expression, replacement) {
 		var ESCAPE = /\\./g;
 		var STRING = /(['"])\1\+(.*)\+\1\1$/;
+		try {
+			var BRACKETS = new RegExp("\\((?!\\?)", "g"); // this breaks IE5.0
+		} catch (ignore) {
+			BRACKETS = /\(/g;
+		}
 	
 		expression = instanceOf(expression, RegExp) ? expression.source : String(expression);
 		
@@ -952,7 +963,7 @@ RegGrp.Item = Base.extend({
 		
 		// count the number of sub-expressions
 		//  - add one because each pattern is itself a sub-expression
-		this.length = match(expression.replace(ESCAPE, "").replace(/\[[^\]]+\]/g, ""), /\((?!\?)/g).length;
+		this.length = match(expression.replace(ESCAPE, "").replace(/\[[^\]]+\]/g, ""), BRACKETS).length;
 		
 		// does the pattern use sub-expressions?
 		if (typeof replacement == "string" && /\$(\d+)/.test(replacement)) {
@@ -1044,7 +1055,7 @@ eval(this.exports);
 var lang = new Namespace(this, {
 	name:    "lang",
 	version: base2.version,
-	exports: "K,assert,assertType,assignID,copy,instanceOf,extend,format,forEach,match,rescape,slice,trim",
+	exports: "K,assert,assertType,assignID,bind,copy,extend,format,forEach,instanceOf,match,rescape,slice,trim",
 	
 	init: function() {
 		this.extend = extend;
