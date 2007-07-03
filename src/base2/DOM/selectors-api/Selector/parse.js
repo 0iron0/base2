@@ -73,7 +73,7 @@ new function(_) {
 		},
 		" (\\*|[\\w-]+)#([\\w-]+)": function(match, tagName, id) {
 			wild = false;
-			var replacement = "var e%2=getElementById(d,'%4');if(";
+			var replacement = "var e%2=getElementById(d,'%4');if(e%2&&";
 			if (tagName != "*") replacement += "e%2.nodeName=='%3'[c]()&&";
 			replacement += "Traversal.contains(e%1,e%2)){";
 			if (list) replacement += format("i%1=n%1.length;", list);
