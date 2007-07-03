@@ -2,6 +2,5 @@
 <package name="lang" closure="false" publish="false">
 	<include src="main.js"/>
 	<include src="extend.js"/>
-	<include src="assignID.js"/>
 	<include src="forEach.js"/>
 </package>
