@@ -49,7 +49,7 @@ var instanceOf = function(object, klass) {
 			return typeof object == typeof klass.prototype.valueOf();
 		case Array:
 			// this is the only troublesome one
-			return !!(object.join && object.splice && !arguments.callee(object, Function));
+			return object.join && object.splice && typeof object == "object";
 		case Date:
 			return !!object.getTimezoneOffset;
 		case RegExp:
@@ -76,7 +76,8 @@ var slice = function(object) {
 	return $slice.apply(object, $slice.call(arguments, 1));
 };
 
-var TRIM = /^\s+|\s+$/g;
+var LTRIM = /^\s\s*/;
+var RTRIM = /\s\s*$/; // http://blog.stevenlevithan.com/archives/faster-trim-javascript
 var trim = function(string) {
-	return String(string).replace(TRIM, "");	
+	return String(string).replace(LTRIM, "").replace(RTRIM, "");
 };
