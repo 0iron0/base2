@@ -2,7 +2,7 @@
 var lang = new Namespace(this, {
 	name:    "lang",
 	version: base2.version,
-	exports: "K,assert,assertType,assignID,copy,instanceOf,extend,format,forEach,match,rescape,slice,trim",
+	exports: "K,assert,assertType,assignID,bind,copy,extend,format,forEach,instanceOf,match,rescape,slice,trim",
 	
 	init: function() {
 		this.extend = extend;

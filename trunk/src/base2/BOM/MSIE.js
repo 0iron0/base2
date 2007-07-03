@@ -4,9 +4,9 @@
 if (BOM.detect("MSIE[56].+win") && !BOM.detect("SV1")) {
 	var $closures = {}; // all closures stored here
 	
-	BOM.$bind = function(method, element) {
+	extend(lang.bind, function(method, element) {
 		if (!element || element.nodeType != 1) {
-			return method;
+			return this.base(method, element);
 		}
 		
 		// unique id's for element and function
@@ -20,7 +20,7 @@ if (BOM.detect("MSIE[56].+win") && !BOM.detect("SV1")) {
 		element = null;
 		method = null;
 		
-		if (!$closures[$element]) $closures[$element] = {};		
+		if (!$closures[$element]) $closures[$element] = {};
 		var closure = $closures[$element][$method];
 		if (closure) return closure; // already stored
 		
@@ -32,11 +32,9 @@ if (BOM.detect("MSIE[56].+win") && !BOM.detect("SV1")) {
 		bound.cloneID = $method;
 		$closures[$element][$method] = bound;
 		return bound;
-	};
+	});
 	
 	attachEvent("onunload", function() {
 		$closures = null; // closures are destroyed when the page is unloaded
 	});
-} else {
-	BOM.$bind = K;
 }

@@ -16,6 +16,21 @@ var assertType = function(object, type, message) {
 	}
 };
 
+var $id = 1;
+var assignID = function(object) {
+	// assign a unique id
+	if (!object.base2ID) object.base2ID = "b2_" + $id++;
+	return object.base2ID;
+};
+
+var bind = function(method, context) {
+	var bound = function() {
+		return method.apply(context, arguments);
+	};
+	bound.cloneID = assignID(method);
+	return bound;
+};
+
 var copy = function(object) {
 	var fn = new Function;
 	fn.prototype = object;
