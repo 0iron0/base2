@@ -5,7 +5,7 @@ extend(EventTarget, {
 		if (type.indexOf("document") == 0) {
 			type = type.slice(8);
 			context = target;
-			target = Traversal.getOwnerDocument(target);
+			target = Traversal.getDocument(target);
 		}
 		// call the default method
 		this.base(target, type, listener, context);
@@ -14,9 +14,8 @@ extend(EventTarget, {
 	removeEventListener: function(target, type, listener) {
 		if (type.indexOf("document") == 0) {
 			type = type.slice(8);
-			target = Traversal.getOwnerDocument(target);
+			target = Traversal.getDocument(target);
 		}
 		this.base(target, type, listener);
 	}
 });
-

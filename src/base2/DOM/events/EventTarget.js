@@ -40,7 +40,7 @@ var EventTarget = Interface.extend({
 		"@MSIE.+win": {
 			addEventListener: function(target, type, listener) {
 				// avoid memory leaks
-				this.base(target, type, this._bind(listener, target));
+				this.base(target, type, bind(listener, target));
 			},
 			
 			dispatchEvent: function(target, event) {
@@ -55,14 +55,6 @@ var EventTarget = Interface.extend({
 		}
 	}
 }, {
-	_bind: function(listener, context) {
-		var bound = function() {
-			return listener.apply(context, arguments);
-		};
-		bound.cloneID = assignID(listener);
-		return bound;
-	},
-	
 	// support event dispatch	
 	"@!(element.addEventListener)": {
 		$all : {},
@@ -91,12 +83,6 @@ var EventTarget = Interface.extend({
 					event = window.event;
 				}
 				return this.base(event);
-			},
-			
-			"@Windows": {
-				_bind: function(listener, context) {
-					return BOM.$bind(listener, context);
-				}
 			}
 		}
 	}
@@ -110,7 +96,7 @@ extend(EventTarget, {
 		//  (although there may be a way to mimic it for IE)
 		
 		// allow a different execution context for the event listener
-		if (context) listener = this._bind(listener, context);
+		if (context) listener = bind(listener, context);
 		// call the default method
 		this.base(target, type, listener, false);
 	},
