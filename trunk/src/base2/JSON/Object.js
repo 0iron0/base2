@@ -1,7 +1,7 @@
 
 JSON.Object = Module.extend({
 	toJSONString: function(object) {
-		return "{" + reduce(object, function(properties, property, name) {
+		return object===null ? "null" : "{" + reduce(object, function(properties, property, name) {
 			if (JSON.Object.isValid(property)) {
 				properties.push(JSON.String.toJSONString(name) + ":" + JSON.toString(property));
 			}
