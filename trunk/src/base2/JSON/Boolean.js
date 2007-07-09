@@ -1,6 +1,6 @@
 
 JSON.Boolean = JSON.Object.extend({
-	toJSONString: function(boolean) {
-		return String(boolean);
+	toJSONString: function(bool) {
+		return String(bool);
 	}
 });
