@@ -1,4 +1,4 @@
-// timestamp: Tue, 03 Jul 2007 20:32:36
+// timestamp: Tue, 10 Jul 2007 20:39:38
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -789,11 +789,11 @@ var Selector = Base.extend({
 	},
 	
 	exec: function(context, single) {
-	//	try {
+		try {
 			var result = this.$evaluate(context || document, single);
-	//	} catch (error) { // probably an invalid selector =)
-	//		throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
-	//	}
+		} catch (error) { // probably an invalid selector =)
+			throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
+		}
 		return single ? result : new StaticNodeList(result);
 	},
 	
@@ -829,9 +829,10 @@ var Parser = RegGrp.extend({
 	
 	escape: function(selector) {
 		// remove strings
+		var QUOTE = /'/g;
 		var strings = this._strings = [];
 		return this.optimise(this.format(String(selector).replace(Parser.ESCAPE, function(string) {
-			strings.push(string.slice(1, -1));
+			strings.push(string.slice(1, -1).replace(QUOTE, "\\'"));
 			return "%" + strings.length;
 		})));
 	},

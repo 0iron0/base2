@@ -13,9 +13,10 @@ var Parser = RegGrp.extend({
 	
 	escape: function(selector) {
 		// remove strings
+		var QUOTE = /'/g;
 		var strings = this._strings = [];
 		return this.optimise(this.format(String(selector).replace(Parser.ESCAPE, function(string) {
-			strings.push(string.slice(1, -1));
+			strings.push(string.slice(1, -1).replace(QUOTE, "\\'"));
 			return "%" + strings.length;
 		})));
 	},
