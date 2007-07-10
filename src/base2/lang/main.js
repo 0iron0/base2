@@ -49,6 +49,7 @@ var format = function(string) {
 };
 
 var $instanceOf = Legacy.instanceOf || new Function("o,k", "return o instanceof k");
+var $RegExp = String(new RegExp);
 var instanceOf = function(object, klass) {
 	assertType(klass, "function", "Invalid 'instanceOf' operand.");
 	if ($instanceOf(object, klass)) return true;
@@ -59,16 +60,17 @@ var instanceOf = function(object, klass) {
 			return true;
 		case Number:
 		case Boolean:
-		case Function:
 		case String:
 			return typeof object == typeof klass.prototype.valueOf();
+		case Function:
+			return !!(typeof object == "function" && object.call);
 		case Array:
 			// this is the only troublesome one
-			return object.join && object.splice && typeof object == "object";
+			return !!(object.join && object.splice && typeof object == "object");
 		case Date:
 			return !!object.getTimezoneOffset;
 		case RegExp:
-			return String(object.constructor.prototype) == String(new RegExp);
+			return String(object.constructor.prototype) == $RegExp;
 	}
 	return false;
 };
