@@ -1,4 +1,4 @@
-// timestamp: Sat, 23 Jun 2007 04:12:34
+// timestamp: Tue, 10 Jul 2007 20:49:26
 /*
 	base2.js - copyright 2007, Dean Edwards
 	http://www.opensource.org/licenses/mit-license
@@ -142,6 +142,21 @@ var assertType = function(object, type, message) {
 	}
 };
 
+var $id = 1;
+var assignID = function(object) {
+	// assign a unique id
+	if (!object.base2ID) object.base2ID = "b2_" + $id++;
+	return object.base2ID;
+};
+
+var bind = function(method, context) {
+	var bound = function() {
+		return method.apply(context, arguments);
+	};
+	bound.cloneID = assignID(method);
+	return bound;
+};
+
 var copy = function(object) {
 	var fn = new Function;
 	fn.prototype = object;
@@ -160,6 +175,7 @@ var format = function(string) {
 };
 
 var $instanceOf = Legacy.instanceOf || new Function("o,k", "return o instanceof k");
+var $RegExp = String(new RegExp);
 var instanceOf = function(object, klass) {
 	assertType(klass, "function", "Invalid 'instanceOf' operand.");
 	if ($instanceOf(object, klass)) return true;
@@ -170,16 +186,17 @@ var instanceOf = function(object, klass) {
 			return true;
 		case Number:
 		case Boolean:
-		case Function:
 		case String:
 			return typeof object == typeof klass.prototype.valueOf();
+		case Function:
+			return !!(typeof object == "function" && object.call);
 		case Array:
 			// this is the only troublesome one
-			return !!(object.join && object.splice && !arguments.callee(object, Function));
+			return !!(object.join && object.splice && typeof object == "object");
 		case Date:
 			return !!object.getTimezoneOffset;
 		case RegExp:
-			return String(object.constructor.prototype) == String(new RegExp);
+			return String(object.constructor.prototype) == $RegExp;
 	}
 	return false;
 };
@@ -202,9 +219,10 @@ var slice = function(object) {
 	return $slice.apply(object, $slice.call(arguments, 1));
 };
 
-var TRIM = /^\s+|\s+$/g;
+var LTRIM = /^\s\s*/;
+var RTRIM = /\s\s*$/; // http://blog.stevenlevithan.com/archives/faster-trim-javascript
 var trim = function(string) {
-	return String(string).replace(TRIM, "");	
+	return String(string).replace(LTRIM, "").replace(RTRIM, "");
 };
 
 // =========================================================================
@@ -222,17 +240,6 @@ var extend = function(object) {
 };
 
 // =========================================================================
-// lang/assignID.js
-// =========================================================================
-
-var $ID = 1;
-var assignID = function(object) {
-	// assign a unique id
-	if (!object.base2ID) object.base2ID = "b2_" + $ID++;
-	return object.base2ID;
-};
-
-// =========================================================================
 // lang/forEach.js
 // =========================================================================
 
@@ -242,7 +249,7 @@ if (typeof StopIteration == "undefined") {
 
 var forEach = function(object, block, context) {
 	if (object == null) return;
-	if (typeof object == "function") {
+	if (instanceOf(object, Function)) {
 		// functions are a special case
 		var fn = Function;
 	} else if (typeof object.forEach == "function" && object.forEach != arguments.callee) {
@@ -260,12 +267,16 @@ var forEach = function(object, block, context) {
 // these are the two core enumeration methods. all other forEach methods
 //  eventually call one of these two.
 
+var $forEach = Legacy.forEach || new Function("a,b,c", "var i,d=a.length;for(i=0;i<d;i++)if(i in a)b.call(c,a[i],i,a)");
 forEach.Array = function(array, block, context) {
 	var i, length = array.length; // preserve
 	if (typeof array == "string") {
 		for (i = 0; i < length; i++) {
 			block.call(context, array.charAt(i), i, array);
 		}
+	} else if (instanceOf(array, Array)) {
+		// cater for sparse arrays
+		$forEach(array, block, context);
 	} else {
 		for (i = 0; i < length; i++) {
 			block.call(context, array[i], i, array);
@@ -282,7 +293,7 @@ forEach.Function = function(fn, object, block, context) {
 	}
 };
 
-// fix enumeration for Safari 1.2/3 (grrr)
+// fix enumeration for Safari (grr)
 var Temp = function(){this.i=1};
 Temp.prototype = {i:1};
 var count = 0;
@@ -358,7 +369,7 @@ var Abstract = Base.extend({
 });
 
 // =========================================================================
-// base2/Module.js
+// base2/Module.txt
 // =========================================================================
 
 // based on ruby's Module class and Mozilla's Array generics:
@@ -371,6 +382,70 @@ var Abstract = Base.extend({
 // the instance interface become instance methods of the target object.
 
 // Modules cannot be instantiated. Static properties and methods are inherited.
+
+/*  -------
+    EXAMPLE
+    -------
+  
+  // create a module
+  
+  var Circle = Module.extend({
+    // instance AND static
+    
+    getArea: function(circle) {
+      return this.PI * Math.pow(circle.radius, 2);
+    },
+    
+    getCircumference: function(circle) {
+      return 2 * this.PI * circle.radius; 
+    }
+  }, {
+    // static only
+    
+    PI: 3.14
+  });
+  
+  // you cannot instantiate a module:
+  
+  var wheel = new Circle(50); // => ERROR!
+  
+  // apply the Circle interface to an object instead:
+  
+  var wheel = Circle({radius:50});
+  
+  // call getCircumference() like an instance method on the object:
+  
+  print(wheel.getCircumference()); //=> 314
+  
+  // call getCircumference() like a static method:
+  
+  print(Circle.getCircumference({radius:10})); //=> 62.8
+  print(Circle.getCircumference(wheel));       //=> 314
+  
+  // Circle.PI is static only:
+  
+  print(Circle.PI); // => 3.14
+  print(wheel.PI);  // => undefined
+  
+  // Apply the Circle interface to another class:
+  
+  var Wheel = CarPart.extend({
+    constructor: function(radius) {
+      this.base();
+      this.radius = radius;
+    }
+  });
+  Wheel.implement(Circle);  
+  
+  var wheel = new Wheel(10);
+  print(wheel.getCircumference());       // => 62.8
+  print(Circle.getCircumference(wheel)); // => 62.8
+
+-------- */
+
+// =========================================================================
+// base2/Module.js
+// =========================================================================
 
 var Module = Abstract.extend(null, {
 	extend: function(_interface, _static) {
@@ -419,7 +494,6 @@ var Module = Abstract.extend(null, {
 		return module;
 	}
 });
-
 
 // =========================================================================
 // base2/Enumerable.js
@@ -540,6 +614,11 @@ var IArray = Module.extend({
 		return item;
 	},
 	
+	item: function(array, index) {
+		if (index < 0) index += array.length; // starting from the end
+		return array[index];
+	},
+	
 	lastIndexOf: function(array, item, fromIndex) {
 		var length = array.length;
 		if (fromIndex == null) {
@@ -560,9 +639,7 @@ var IArray = Module.extend({
 	},
 	
 	removeAt: function(array, index) {
-		var item = array[index];
-		this.splice(array, index, 1);
-		return item;
+		return this.splice(array, index, 1);
 	}
 });
 
@@ -583,10 +660,11 @@ forEach ("concat,join,pop,push,reverse,shift,slice,sort,splice,unshift".split(",
 var Array2 = function() {
 	return IArray(this.constructor == IArray ? Array.apply(null, arguments) : arguments[0]);
 };
+
 // expose IArray.prototype so that it can be extended
 Array2.prototype = IArray.prototype;
 
-forEach (IArray, function(method, name, proto) {
+forEach (IArray, function(method, name) {
 	if (Array[name]) {
 		IArray[name] = Array[name];
 		delete IArray.prototype[name];
@@ -598,7 +676,7 @@ forEach (IArray, function(method, name, proto) {
 // base2/Hash.js
 // =========================================================================
 
-var HASH   = "#" + Number(new Date); // prevent direct access to keys and values
+var HASH   = "#";
 var KEYS   = HASH + "keys";
 var VALUES = HASH + "values";
 
@@ -637,7 +715,7 @@ var Hash = Base.extend({
 		var keys = this[KEYS] || new Array2;
 		switch (arguments.length) {
 			case 0: return keys.copy();
-			case 1: return keys[index];
+			case 1: return keys.item(index);
 			default: return keys.slice(index, length);
 		}
 	},
@@ -681,7 +759,7 @@ var Hash = Base.extend({
 		var values = this.map(K);
 		switch (arguments.length) {
 			case 0: return values;
-			case 1: return values[index];
+			case 1: return values.item(index);
 			default: return values.slice(index, length);
 		}
 	}
@@ -733,11 +811,11 @@ var Collection = Hash.extend({
 	},
 
 	item: function(index) {
-		return this.fetch(this[KEYS][index]);
+		return this.fetch(this[KEYS].item(index));
 	},
 
 	removeAt: function(index) {
-		return this.remove(this[KEYS][index]);
+		return this.remove(this[KEYS].item(index));
 	},
 
 	reverse: function() {
@@ -764,7 +842,7 @@ var Collection = Hash.extend({
 	storeAt: function(index, item) {
 		//-dean: get rid of this?
 		assert(index < this.count(), "Index out of bounds.");
-		arguments[0] = this[KEYS][index];
+		arguments[0] = this[KEYS].item(index);
 		return this.store.apply(this, arguments);
 	}
 }, {
@@ -809,6 +887,7 @@ var RegGrp = Collection.extend({
 
 	exec: function(string, replacement) {
 		if (arguments.length == 1) {
+			var self = this;
 			var keys = this[KEYS];
 			var values = this[VALUES];
 			replacement = function(match) {
@@ -821,7 +900,7 @@ var RegGrp = Collection.extend({
 						var replacement = match.replacement;
 						switch (typeof replacement) {
 							case "function":
-								return replacement.apply(null, slice(arguments, offset));
+								return replacement.apply(self, slice(arguments, offset));
 							case "number":
 								return arguments[offset + replacement];
 							default:
@@ -871,10 +950,16 @@ var RegGrp = Collection.extend({
 // base2/RegGrp/Item.js
 // =========================================================================
 
+
 RegGrp.Item = Base.extend({
 	constructor: function(expression, replacement) {
 		var ESCAPE = /\\./g;
 		var STRING = /(['"])\1\+(.*)\+\1\1$/;
+		try {
+			var BRACKETS = new RegExp("\\((?!\\?)", "g"); // this breaks IE5.0
+		} catch (ignore) {
+			BRACKETS = /\(/g;
+		}
 	
 		expression = instanceOf(expression, RegExp) ? expression.source : String(expression);
 		
@@ -883,7 +968,7 @@ RegGrp.Item = Base.extend({
 		
 		// count the number of sub-expressions
 		//  - add one because each pattern is itself a sub-expression
-		this.length = match(expression.replace(ESCAPE, "").replace(/\[[^\]]+\]/g, ""), /\((?!\?)/g).length;
+		this.length = match(expression.replace(ESCAPE, "").replace(/\[[^\]]+\]/g, ""), BRACKETS).length;
 		
 		// does the pattern use sub-expressions?
 		if (typeof replacement == "string" && /\$(\d+)/.test(replacement)) {
@@ -975,7 +1060,7 @@ eval(this.exports);
 var lang = new Namespace(this, {
 	name:    "lang",
 	version: base2.version,
-	exports: "K,assert,assertType,assignID,copy,instanceOf,extend,format,forEach,match,rescape,slice,trim",
+	exports: "K,assert,assertType,assignID,bind,copy,extend,format,forEach,instanceOf,match,rescape,slice,trim",
 	
 	init: function() {
 		this.extend = extend;
@@ -1070,12 +1155,12 @@ Base.prototype.extend = function(source, value) {
 
 // avoid memory leaks
 
-if (BOM.detect("MSIE.+win")) {
+if (BOM.detect("MSIE[56].+win") && !BOM.detect("SV1")) {
 	var $closures = {}; // all closures stored here
 	
-	BOM.$bind = function(method, element) {
+	extend(lang, "bind", function(method, element) {
 		if (!element || element.nodeType != 1) {
-			return method;
+			return this.base(method, element);
 		}
 		
 		// unique id's for element and function
@@ -1089,7 +1174,7 @@ if (BOM.detect("MSIE.+win")) {
 		element = null;
 		method = null;
 		
-		if (!$closures[$element]) $closures[$element] = {};		
+		if (!$closures[$element]) $closures[$element] = {};
 		var closure = $closures[$element][$method];
 		if (closure) return closure; // already stored
 		
@@ -1101,7 +1186,7 @@ if (BOM.detect("MSIE.+win")) {
 		bound.cloneID = $method;
 		$closures[$element][$method] = bound;
 		return bound;
-	};
+	});
 	
 	attachEvent("onunload", function() {
 		$closures = null; // closures are destroyed when the page is unloaded
@@ -1344,7 +1429,7 @@ extend(JSON, "toString", function(object) {
 
 JSON.Object = Module.extend({
 	toJSONString: function(object) {
-		return "{" + reduce(object, function(properties, property, name) {
+		return object === null ? "null" : "{" + reduce(object, function(properties, property, name) {
 			if (JSON.Object.isValid(property)) {
 				properties.push(JSON.String.toJSONString(name) + ":" + JSON.toString(property));
 			}
@@ -1379,8 +1464,8 @@ JSON.Array = JSON.Object.extend({
 // =========================================================================
 
 JSON.Boolean = JSON.Object.extend({
-	toJSONString: function(boolean) {
-		return String(boolean);
+	toJSONString: function(bool) {
+		return String(bool);
 	}
 });
 
