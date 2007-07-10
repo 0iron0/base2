@@ -5,7 +5,7 @@ if (typeof StopIteration == "undefined") {
 
 var forEach = function(object, block, context) {
 	if (object == null) return;
-	if (instanceOf(object, Function)) { // test object.call because of a Safari bug
+	if (instanceOf(object, Function)) {
 		// functions are a special case
 		var fn = Function;
 	} else if (typeof object.forEach == "function" && object.forEach != arguments.callee) {

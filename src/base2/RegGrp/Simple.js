@@ -14,6 +14,11 @@ var RegGrp = Base.extend({
 	ignoreCase: false,
 	keys: null,
 	values: null,
+	
+	add: function(expression, replacement) {
+		if (!this.values["#" + expression]) this.keys.push(String(expression));
+		this.values["#" + expression] = new RegGrp.Item(expression, replacement);
+	},
 
 	exec: function(string, replacement) {
 		if (arguments.length == 1) {
@@ -50,8 +55,7 @@ var RegGrp = Base.extend({
 	merge: function(values) {
 		forEach (arguments, function(values) {
 			forEach (values, function(replacement, expression) {
-				if (!this.values["#" + expression]) this.keys.push(String(expression));
-				this.values["#" + expression] = new RegGrp.Item(expression, replacement);
+				this.add(expression, replacement);
 			}, this);
 		}, this);
 		return this;

@@ -13,11 +13,11 @@ var Selector = Base.extend({
 	},
 	
 	exec: function(context, single) {
-	//	try {
+		try {
 			var result = this.$evaluate(context || document, single);
-	//	} catch (error) { // probably an invalid selector =)
-	//		throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
-	//	}
+		} catch (error) { // probably an invalid selector =)
+			throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
+		}
 		return single ? result : new StaticNodeList(result);
 	},
 	
