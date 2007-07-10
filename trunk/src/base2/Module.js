@@ -46,4 +46,3 @@ var Module = Abstract.extend(null, {
 		return module;
 	}
 });
-

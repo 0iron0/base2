@@ -1,4 +1,4 @@
-// timestamp: Tue, 03 Jul 2007 20:32:36
+// timestamp: Tue, 10 Jul 2007 18:26:32
 /*
 	base2.js - copyright 2007, Dean Edwards
 	http://www.opensource.org/licenses/mit-license
@@ -175,6 +175,7 @@ var format = function(string) {
 };
 
 var $instanceOf = Legacy.instanceOf || new Function("o,k", "return o instanceof k");
+var $RegExp = String(new RegExp);
 var instanceOf = function(object, klass) {
 	assertType(klass, "function", "Invalid 'instanceOf' operand.");
 	if ($instanceOf(object, klass)) return true;
@@ -185,16 +186,17 @@ var instanceOf = function(object, klass) {
 			return true;
 		case Number:
 		case Boolean:
-		case Function:
 		case String:
 			return typeof object == typeof klass.prototype.valueOf();
+		case Function:
+			return !!(typeof object == "function" && object.call);
 		case Array:
 			// this is the only troublesome one
-			return object.join && object.splice && typeof object == "object";
+			return !!(object.join && object.splice && typeof object == "object");
 		case Date:
 			return !!object.getTimezoneOffset;
 		case RegExp:
-			return String(object.constructor.prototype) == String(new RegExp);
+			return String(object.constructor.prototype) == $RegExp;
 	}
 	return false;
 };
@@ -247,7 +249,7 @@ if (typeof StopIteration == "undefined") {
 
 var forEach = function(object, block, context) {
 	if (object == null) return;
-	if (typeof object == "function") {
+	if (instanceOf(object, Function)) { // test object.call because of a Safari bug
 		// functions are a special case
 		var fn = Function;
 	} else if (typeof object.forEach == "function" && object.forEach != arguments.callee) {
@@ -265,12 +267,16 @@ var forEach = function(object, block, context) {
 // these are the two core enumeration methods. all other forEach methods
 //  eventually call one of these two.
 
+var $forEach = Legacy.forEach || new Function("a,b,c", "var i,d=a.length;for(i=0;i<d;i++)if(i in a)b.call(c,a[i],i,a)");
 forEach.Array = function(array, block, context) {
 	var i, length = array.length; // preserve
 	if (typeof array == "string") {
 		for (i = 0; i < length; i++) {
 			block.call(context, array.charAt(i), i, array);
 		}
+	} else if (instanceOf(array, Array)) {
+		// cater for sparse arrays
+		$forEach(array, block, context);
 	} else {
 		for (i = 0; i < length; i++) {
 			block.call(context, array[i], i, array);
@@ -287,7 +293,7 @@ forEach.Function = function(fn, object, block, context) {
 	}
 };
 
-// fix enumeration for Safari 1.2/3 (grrr)
+// fix enumeration for Safari (grr)
 var Temp = function(){this.i=1};
 Temp.prototype = {i:1};
 var count = 0;
@@ -488,7 +494,6 @@ var Module = Abstract.extend(null, {
 		return module;
 	}
 });
-
 
 // =========================================================================
 // base2/Enumerable.js
