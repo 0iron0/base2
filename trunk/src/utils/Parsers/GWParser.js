@@ -22,7 +22,7 @@ var GWParser=FsmParser.extend({
 		this.addTransitions(G.RX_EMPTY_LINE, "",             [[start],[list,start],[quote,start],[paragraph,start],[table,start]]);
 		this.addTransitions(G.RX_CODE_END,   "</pre>\n",     [[code,start]]);
 		this.addTransitions(G.RX_CODE_END,   "$1",           [[code2,code],[code3,code2]]);
-		this.addTransitions(G.RX_INCODE,     "$1",           [[code],[code2],[code3]]);
+		this.addTransitions(G.RX_INCODE,     this.htmlEncode,[[code],[code2],[code3]]);
     //for graceful closing of incorrect/unclosed markup.
 		this.setAllAsAcceptState();
 		//
@@ -36,6 +36,9 @@ var GWParser=FsmParser.extend({
 		//remove meta-data, normalize linebreaks and add a newline
 		return this.base(s.replace(/^(#.*\n+)*/,'').replace(/\r\n|\r|\n/g,"\n")+"\n");
 	},
+	htmlEncode: function($,match) {
+	  return htmlEncode(match);
+	},
 	//state for lists
 	listLevel: [], //an array of nesting levels, each entry stating the length of the indentation
 	listTypes: [],
@@ -47,7 +50,7 @@ var GWParser=FsmParser.extend({
 	  //TODO: speedup: without the inline parser, the google syntax page takes
 	  //      300ms, and with it 1150ms (including rendering) on my (now stolen)
 	  //      iBook G4 1200MHz 1GB.
-	  return this.inlineParser.exec(text||this.inlineBuffer.join("\n"));
+	  return this.inlineParser.exec(htmlEncode(text||this.inlineBuffer.join("\n")));
 	},
 	pCollect: function($,text) {
 	  this.inlineBuffer.push(text);

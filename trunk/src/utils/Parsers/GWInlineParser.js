@@ -39,7 +39,7 @@ var GWInlineParser=RegGrp.extend({
     return result+closed;
   },
   handleCode: function($,code) {
-    return "<code>"+code+"</code>";
+    return "<code>"+htmlEncode(code)+"</code>";
   },
   handleToken: function(token) {
     switch(token) {
