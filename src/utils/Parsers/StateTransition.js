@@ -1,7 +1,7 @@
 var StateTransition=Base.extend({
   constructor: function(pattern, replacement, nextState, currentState, context) {
     this.pattern=instanceOf(pattern,RegExp)?pattern:new RegExp(pattern,"");
-    this.replacement=typeof replacement=="function" ? fnbind(context, replacement) : replacement;
+    this.replacement=typeof replacement=="function" ? bind(replacement, context) : replacement;
     this.nextState=nextState; //undefined (no transition), null (transition to currentState) or State-object
     this.currentState=currentState;
   },
