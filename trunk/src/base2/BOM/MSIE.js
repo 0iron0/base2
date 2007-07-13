@@ -4,7 +4,7 @@
 if (BOM.detect("MSIE[56].+win") && !BOM.detect("SV1")) {
 	var $closures = {}; // all closures stored here
 	
-	extend(lang, "bind", function(method, element) {
+	extend(base2, "bind", function(method, element) {
 		if (!element || element.nodeType != 1) {
 			return this.base(method, element);
 		}

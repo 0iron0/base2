@@ -1,4 +1,4 @@
-// timestamp: Tue, 03 Jul 2007 21:17:24
+// timestamp: Fri, 13 Jul 2007 15:04:41
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -76,7 +76,7 @@ Base.prototype.extend = function(source, value) {
 if (BOM.detect("MSIE[56].+win") && !BOM.detect("SV1")) {
 	var $closures = {}; // all closures stored here
 	
-	extend(lang, "bind", function(method, element) {
+	extend(base2, "bind", function(method, element) {
 		if (!element || element.nodeType != 1) {
 			return this.base(method, element);
 		}
