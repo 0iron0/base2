@@ -10,7 +10,7 @@ var DOMContentLoaded = new Base({
 			// this function might be called from another event handler so we'll user a timer
 			//  to drop out of any current event.
 			// eval a string for ancient browsers
-			setTimeout("base2.EventTarget.dispatchEvent(document,'DOMContentLoaded')", 0);
+			setTimeout("base2.DOM.EventTarget.dispatchEvent(document,'DOMContentLoaded')", 0);
 		}
 	},
 	

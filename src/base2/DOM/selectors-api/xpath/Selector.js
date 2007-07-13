@@ -13,15 +13,17 @@ Selector.implement({
 				return base(this, arguments);
 			}
 			var document = Traversal.getDocument(context);
-			var type = single ? 9 /* FIRST_ORDERED_NODE_TYPE */ : 7 /* ORDERED_NODE_SNAPSHOT_TYPE */;
+			var type = single
+				? 9 /* FIRST_ORDERED_NODE_TYPE */
+				: 7 /* ORDERED_NODE_SNAPSHOT_TYPE */;
 			var result = document.evaluate(this.toXPath(), context, null, type, null);
 			return single ? result.singleNodeValue : result;
 		}
-	},	
+	},
 	
 	"@MSIE": {
 		$evaluate: function(context, single) {
-			if (context.selectNodes && !Selector.$NOT_XPATH.test(this)) { // xml
+			if (typeof context.selectNodes != "undefined" && !Selector.$NOT_XPATH.test(this)) { // xml
 				var method = single ? "selectSingleNode" : "selectNodes";
 				return context[method](this.toXPath());
 			}
@@ -40,7 +42,9 @@ extend(Selector, {
 	
 	$NOT_XPATH: /:(checked|disabled|enabled|contains)|^(#[\w-]+\s*)?\w+$/,
 	
-	"@KHTML": { // XPath is just too buggy on Safari at the moment
-		$NOT_XPATH: /./
+	"@KHTML": { // XPath is just too buggy on earlier versions of Safari
+		"@!WebKit5": {
+			$NOT_XPATH: /./
+		}
 	}
 });

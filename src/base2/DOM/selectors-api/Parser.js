@@ -17,7 +17,7 @@ var Parser = RegGrp.extend({
 		var strings = this._strings = [];
 		return this.optimise(this.format(String(selector).replace(Parser.ESCAPE, function(string) {
 			strings.push(string.slice(1, -1).replace(QUOTE, "\\'"));
-			return "%" + strings.length;
+			return "\x01" + strings.length;
 		})));
 	},
 	
@@ -40,7 +40,10 @@ var Parser = RegGrp.extend({
 	
 	unescape: function(selector) {
 		// put string values back
-		return format(selector, this._strings);
+		var strings = this._strings;
+		return selector.replace(/\x01(\d+)/g, function(match, index) {
+			return strings[index - 1];
+		});
 	}
 }, {
 	ESCAPE:           /(["'])[^\1]*\1/g,
@@ -50,13 +53,13 @@ var Parser = RegGrp.extend({
 	WILD_CARD:        /\s\*\s/g,
 	
 	_nthChild: function(match, args, position, last, not, and, mod, equals) {
-		// ugly but it works
+		// ugly but it works for both CSS and XPath
 		last = /last/i.test(match) ? last + "+1-" : "";
 		if (!isNaN(args)) args = "0n+" + args;
 		else if (args == "even") args = "2n";
 		else if (args == "odd") args = "2n+1";
 		args = args.split(/n\+?/);
-		var a = (args[0] == "") ? 1 : (args[0] == "-") ? -1 : parseInt(args[0]);
+		var a = args[0] ? (args[0] == "-") ? -1 : parseInt(args[0]) : 1;
 		var b = parseInt(args[1]) || 0;
 		var not = a < 0;
 		if (not) {

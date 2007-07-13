@@ -2,12 +2,12 @@
 extend(DOM, {
 	bind: function(node) {
 		// apply a base2 DOM Binding to a native DOM node
-		switch (node.nodeType) {
+		if (node) switch (node.nodeType) {
+			case undefined: return node;
 			case 1: return Element.bind(node);
 			case 9: return Document.bind(node);
 			default: return Node.bind(node);
 		}
-		return node;
 	}
 });
 
