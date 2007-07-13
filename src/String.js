@@ -1,7 +1,7 @@
 
 // fix String.replace (Safari/IE5.0)
-var GLOBAL = /(g|gi)$/;
 if ("".replace(/^/, String)) {
+	var GLOBAL = /(g|gi)$/;
 	extend(String.prototype, "replace", function(expression, replacement) {
 		if (typeof replacement == "function") { // Safari doesn't like functions
 			if (instanceOf(expression, RegExp)) {
