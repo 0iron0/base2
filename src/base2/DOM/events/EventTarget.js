@@ -1,9 +1,11 @@
 
 // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-Registration-interfaces
 
+// TO DO: event capture
+
 var EventTarget = Interface.extend({
 	"@!(element.addEventListener)": {
-		addEventListener: function(target, type, listener) {
+		addEventListener: function(target, type, listener, useCapture) {
 			// assign a unique id to both objects
 			var $target = assignID(target);
 			var $listener = listener.cloneID || assignID(listener);
@@ -29,7 +31,7 @@ var EventTarget = Interface.extend({
 			this.$dispatch.call(target, event);
 		},
 	
-		removeEventListener: function(target, type, listener) {
+		removeEventListener: function(target, type, listener, useCapture) {
 			// delete the event listener from the hash table
 			var events = this.$all[target.base2ID];
 			if (events && events[type]) {
@@ -38,9 +40,12 @@ var EventTarget = Interface.extend({
 		},
 		
 		"@MSIE.+win": {
-			addEventListener: function(target, type, listener) {
+			addEventListener: function(target, type, listener, useCapture) {
 				// avoid memory leaks
-				this.base(target, type, bind(listener, target));
+				if (typeof listener == "function") {
+					listener = bind(listener, target)
+				}
+				this.base(target, type, listener, useCapture);
 			},
 			
 			dispatchEvent: function(target, event) {
@@ -68,7 +73,13 @@ var EventTarget = Interface.extend({
 				var listeners = events[event.type];
 				// execute each event listener
 				for (var i in listeners) {
-					returnValue = listeners[i].call(this, event);
+					var listener = listeners[i];
+					// support the EventListener interface
+					if (listener.handleEvent) {
+						returnValue = listener.handleEvent(event);
+					} else {
+						returnValue = listener.call(this, event);
+					}
 					if (event.returnValue === false) returnValue = false;
 					if (returnValue === false) break;
 				}
@@ -79,39 +90,10 @@ var EventTarget = Interface.extend({
 		"@MSIE": {
 			$dispatch: function(event) {
 				if (!event) {
-					var window = Window.verify(this) || Traversal.getDefaultView(this);
-					event = window.event;
+					event = (this.Infinity ? window : Traversal.getDefaultView(this)).event;
 				}
 				return this.base(event);
 			}
 		}
-	}
-});
-
-// sprinkle some sugar on the static methods
-
-extend(EventTarget, {
-	addEventListener: function(target, type, listener, context) {
-		// useCapture is not allowed as it not cross-platform
-		//  (although there may be a way to mimic it for IE)
-		
-		// allow a different execution context for the event listener
-		if (context) listener = bind(listener, context);
-		// call the default method
-		this.base(target, type, listener, false);
-	},
-
-	dispatchEvent: function(target, event) {
-		// allow the second argument to be a string identifying the type of
-		//  event and construct an event object automatically, this is handy for
-		//  custom events
-		if (typeof event == "string") {
-			var type = event;
-			var document = Traversal.getDocument(target);
-			event = DocumentEvent.createEvent(document, "Events");
-			Event.initEvent(event, type, false, false);
-		}
-		// call the default method
-		this.base(target, event);
 	}
 });

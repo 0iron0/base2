@@ -8,9 +8,12 @@ var DOMContentLoaded = new Base({
 		if (!DOMContentLoaded.fired) {
 			DOMContentLoaded.fired = true;
 			// this function might be called from another event handler so we'll user a timer
-			//  to drop out of any current event.
-			// eval a string for ancient browsers
-			setTimeout("base2.DOM.EventTarget.dispatchEvent(document,'DOMContentLoaded')", 0);
+			//  to drop out of any current event
+			setTimeout(function() {
+				var event = DocumentEvent.createEvent(document, "Events");
+				Event.initEvent(event, "DOMContentLoaded", false, false);
+				EventTarget.dispatchEvent(document, event);
+			}, 0);
 		}
 	},
 	
@@ -18,9 +21,9 @@ var DOMContentLoaded = new Base({
 		// use the real event for browsers that support it (opera & firefox)
 		EventTarget.addEventListener(document, "DOMContentLoaded", function() {
 			DOMContentLoaded.fired = true;
-		});
+		}, false);
 		// if all else fails fall back on window.onload
-		EventTarget.addEventListener(window, "load", DOMContentLoaded.fire);
+		EventTarget.addEventListener(window, "load", DOMContentLoaded.fire, false);
 	},
 
 	"@(addEventListener)": {
