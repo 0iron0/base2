@@ -5,10 +5,17 @@
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
           xmlns:xbl="http://www.mozilla.org/xbl">
 
-<binding id="spinner">
+<binding id="control">
  <implementation>
-  <constructor>alert(99)</constructor>
- </implementation>
+  <constructor>
+	if (this.hasAttribute("autofocus")) {
+		this.focus();
+	}
+  </constructor>
+ <implementation>
+</binding>
+
+<binding id="spinner" extends="#control">
  <content>
   <html:div style="display:none"><children /></html:div>
   <xul:box style="height:10px">
@@ -21,21 +28,30 @@
  </content>
 </binding>
 
-<binding id="slider">
+<binding id="slider" extends="#control">
  <content>
-  <xul:slider flex="1">
-   <xul:thumb />
-  </xul:slider>
+  <children />
+  <xul:textbox type="number" />
+  <html:br />
+  <xul:scale min="1" max="10" />
+  <html:br />
+  <xul:scale min="1" max="10" orient="vertical" />
+  <html:br />
+  <xul:timepicker />
+  <html:br />
+  <xul:datepicker value="2008/08/24"/>
+  <html:br />
+  <xul:datepicker type="grid" value="2008/08/24"/>
+  <html:br />
+  <xul:datepicker type="popup" value="2008/08/24"/>
+  <html:br />
+  <xul:progressmeter min="1" max="10" />
+  <html:br />
+  <xul:progressmeter min="1" max="10" orient="vertical" />
  </content>
 </binding>
 
-<binding id="dropdown">
- <content>
-  <html:div style="display:none"><children /></html:div>
-  <xul:slider flex="1">
-   <xul:thumb />
-  </xul:slider>
- </content>
+<binding id="dropdown" extends="#control">
 </binding>
 
 <binding id="date" extends="#dropdown">
@@ -44,7 +60,11 @@
 <binding id="week" extends="#date">
 </binding>
 
-<binding id="number" extends="#spinner">
+<binding id="number">
+ <content>
+  <html:div style="display:none"><children /></html:div>
+  <xul:textbox type="number" />
+ </content>
 </binding>
 
 <binding id="range" extends="#slider">

@@ -1,10 +1,11 @@
 
-const NotSupported = function() {
-	throw new Error("Not supported.");
+function NOT_SUPPORTED() {
+	throw DOMException.NOT_SUPPORTED_ERR;
 };
-const Empty = function(){};
-const True  = function(){return true};
-const False = function(){return false};
+
+function Empty(){};
+function True() {return true};
+function False(){return false};
 
 const SECRET = {};
 
@@ -15,14 +16,11 @@ const TYPE  = /^(button|checkbox|date|datetime|datetime-local|email|file|hidden|
 
 var WF2NodeList = Array;
 
-function CustomError(text) {
+function WF2CustomError(text) {
 	this.text = String(text);
 };
 
 var WF2Binding = {
-	constructor: Empty,
-	destructor:  Empty,
-	
 	extend: function(definition) {
 		var fn = new Function;
 		fn.prototype = this;
@@ -115,7 +113,7 @@ var WF2Control = WF2Binding.extend({
 				return !!customError;
 			},
 			set customError(error) {
-				if (error instanceof CustomError) {
+				if (error instanceof WF2CustomError) {
 					customError = error.text;
 				} else {
 					throw new TypeError("setting a property that has only a getter");
@@ -180,7 +178,7 @@ var WF2Control = WF2Binding.extend({
 	checkValidity: False,
 	
 	setCustomValidity: function(element, error) {
-		element.validity.customError = new CustomError(error);
+		element.validity.customError = new WF2CustomError(error);
 	},
 	
 	/* private */
@@ -224,13 +222,7 @@ var WF2Control = WF2Binding.extend({
 	_validate: Empty
 });
 
-var WF2Input = WF2Control.extend({
-	constructor: function(element) {
-		if (element.hasAttribute("autofocus")) {
-			element.focus();
-		}
-	},
-	
+var WF2InputElement = WF2Control.extend({
 	defaultMax:  "",
 	defaultMin:  "",
 	defaultStep: "",
@@ -309,43 +301,43 @@ var WF2Input = WF2Control.extend({
 	}
 });
 
-WF2Input.button = WF2Input.extend({	
+WF2InputElement["button"] = WF2InputElement.extend({	
 	get_validationMessage: String,
 	get_willValidate:      False,
 	checkValidity:         True,
-	setCustomValidity:     NotSupported,
+	setCustomValidity:     NOT_SUPPORTED,
 	_isSuccessful:         False
 });
 
-WF2Input.reset = WF2Input.button.extend();
+WF2InputElement["reset"] = WF2InputElement["button"].extend();
 
-WF2Input.submit = WF2Input.button.extend({
+WF2InputElement["submit"] = WF2InputElement["button"].extend({
 	_isSuccessful: function(element) {
 		return element.name //&& this._isActive(element);
 	}
 });
 
-WF2Input.image = WF2Input.submit.extend();
+WF2InputElement["image"] = WF2InputElement["submit"].extend();
 
-WF2Data = WF2Input.extend({
+WF2DataControl = WF2InputElement.extend({
 	_get_validity_valueMissing: function(element) {
 		return element.required && this._noValueSelected(element);
 	}
 });
 
-WF2Boolean = WF2Data.extend({
+WF2BooleanControl = WF2DataControl.extend({
 	_isSuccessful: function(element) {
 		return element.checked && this.base._isSuccessful(element);
 	}
 });
 
-WF2Input.checkbox = WF2Boolean.extend({	
+WF2InputElement["checkbox"] = WF2BooleanControl.extend({	
 	_noValueSelected: function(element) {
 		return !element.checked;
 	}
 });
 
-WF2Input.radio = WF2Boolean.extend({	
+WF2InputElement["radio"] = WF2BooleanControl.extend({	
 	_noValueSelected: function(element) {
 		var checked = true;
 		if (element.name) {			
@@ -369,24 +361,15 @@ WF2Input.radio = WF2Boolean.extend({
 	}
 });
 
-WF2Input.file = WF2Data.extend({
+WF2InputElement["file"] = WF2DataControl.extend({
 	defaultMax:  "1",
 	defaultMin:  "0"
 });
 
-WF2Input.hidden = WF2Data.extend();
+WF2InputElement["hidden"] = WF2DataControl.extend();
 
-WF2Input.number = WF2Data.extend({
+WF2InputElement["number"] = WF2DataControl.extend({
 	defaultStep: "1",
-	
-	_blockIncrement: function(element, n) {
-		this._increment(element, n * 10);
-	},
-	
-	_increment: function(element, n) {
-		//var value = this.get_valueAsNumber(element) + this._getStepValue(element) * (n || 1);
-		//element._setRawValue(this._getValidValue(element, value));
-	},
 	
 	_get_validity_rangeUnderflow: function(element) {
 		if (!this._noValueSelected(element) && element.hasAttribute("min")) {
@@ -426,29 +409,29 @@ WF2Input.number = WF2Data.extend({
 	}
 });
 
-WF2Input.datetime = WF2Input.number.extend({
+WF2InputElement["datetime"] = WF2InputElement["number"].extend({
 	defaultStep: "60"
 });
 
-WF2Input.date = WF2Input.datetime.extend({
+WF2InputElement["date"] = WF2InputElement["datetime"].extend({
 	defaultStep: "1"
 });
 
-WF2Input.month = WF2Input.date.extend();
+WF2InputElement["month"] = WF2InputElement["date"].extend();
 
-WF2Input.week = WF2Input.date.extend();
+WF2InputElement["week"] = WF2InputElement["date"].extend();
 
-WF2Input["datetime-local"] = WF2Input.datetime.extend();
+WF2InputElement["datetime-local"] = WF2InputElement["datetime"].extend();
 
-WF2Input.time = WF2Input.datetime.extend();
+WF2InputElement["time"] = WF2InputElement["datetime"].extend();
 
-WF2Input.range = WF2Input.number.extend({
+WF2InputElement["range"] = WF2InputElement["number"].extend({
 	defaultMax:  "100",
 	defaultMin:  "0",
 	defaultStep: "1"
 });
 
-WF2Input.text = WF2Data.extend({
+WF2InputElement["text"] = WF2DataControl.extend({
 	_get_validity_patternMismatch: function(element) {
 		if (element.hasAttribute("pattern")) {
 			var pattern = element.getAttribute("pattern");
@@ -459,16 +442,21 @@ WF2Input.text = WF2Data.extend({
 	}
 });
 
-WF2Input.email = WF2Input.text.extend({
+WF2InputElement["email"] = WF2InputElement["text"].extend({
 	_get_validity_patternMismatch: function(element) {
 		return EMAIL.test(element.value) && this.base._get_validity_patternMismatch(element);
 	}
 });
 
-WF2Input.password = WF2Input.text.extend();
+WF2InputElement["password"] = WF2InputElement["text"].extend();
 
-WF2Input.url = WF2Input.text.extend();
+WF2InputElement["url"] = WF2InputElement["text"].extend();
 
-WF2TextArea = WF2Input.text.extend();
+WF2TextAreaElement = WF2InputElement["text"].extend();
 
-WF2Output = WF2Control.extend();
+WF2OutputElement = WF2Control.extend({
+	get_validationMessage: String,
+	get_willValidate: False,
+	checkValidity: False,
+	setCustomValidity: NOT_SUPPORTED
+});
