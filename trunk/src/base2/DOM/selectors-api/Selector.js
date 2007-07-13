@@ -25,7 +25,7 @@ var Selector = Base.extend({
 		//-dean: improve this for simple selectors
 		element.setAttribute("b2_test", true);
 		var selector = new Selector(this + "[b2_test]");
-		var result = selector.exec(Traversal.getOwnerDocument(element), 1);
+		var result = selector.exec(Traversal.getOwnerDocument(element), true);
 		element.removeAttribute("b2_test");
 		return result == element;
 	},

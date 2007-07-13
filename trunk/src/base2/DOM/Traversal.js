@@ -63,7 +63,8 @@ var Traversal = Module.extend({
 	$TEXT: "textContent",
 	
 	contains: function(node, target) {
-		return this.isDocument(node) ? node == this.getOwnerDocument(target) : node != target && node.contains(target);
+		while (target && (target = target.parentNode) && node != target) continue;
+		return !!target;
 	},
 	
 	getDocument: function(node) {
@@ -72,17 +73,16 @@ var Traversal = Module.extend({
 	},
 	
 	isDocument: function(node) {
-		return Boolean(node && node.documentElement);
+		return !!(node && node.documentElement);
 	},
 	
 	isElement: function(node) {
-		return Boolean(node && node.attributes);
+		return !!(node && node.nodeType == 1);
 	},
 	
-	"@!(element.contains)": {
+	"@(element.contains)": {	
 		contains: function(node, target) {
-			while (target && (target = target.parentNode) && node != target) continue;
-			return !!target;
+			return node != target && this.isDocument(node) ? node == this.getOwnerDocument(target) : node.contains(target);
 		}
 	},
 	
@@ -92,7 +92,7 @@ var Traversal = Module.extend({
 	
 	"@MSIE5": {
 		isElement: function(node) {
-			return this.base(node) && node.tagName != "!";
+			return !!(node && node.nodeType == 1 && node.tagName != "!");
 		}
 	}
 });

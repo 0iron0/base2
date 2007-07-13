@@ -7,20 +7,20 @@
 var XPathParser = Parser.extend({
 	constructor: function() {
 		this.base(XPathParser.rules);
-		// the sorter sorts child selectors to the end because they are slow
-		// for XPath we need the child selectors to be sorted to the beginning
+		// The sorter sorts child selectors to the end because they are slow.
+		// For XPath we need the child selectors to be sorted to the beginning,
 		// so we reverse the sort order. That's what this line does:
 		this.sorter.storeAt(1, "$1$4$3$6");
 	},
 	
 	escape: function(selector) {
-		return this.base(selector).replace(/,/g, "\x01");
+		return this.base(selector).replace(/,/g, "\x02");
 	},
 	
 	unescape: function(selector) {
 		return this.base(selector
 			.replace(/\[self::\*\]/g, "") // remove redundant wild cards
-			.replace(/\x01/g, " | ")
+			.replace(/\x02/g, " | ")
 		);
 	},
 	
@@ -35,16 +35,23 @@ var XPathParser = Parser.extend({
 	init: function() {
 		// build the prototype
 		this.values.attributes[""] = "[@$1]";
-		this.rules = copy(this.optimised.values);
 		forEach (this.types, function(add, type) {
 			forEach (this.values[type], add, this.rules);
 		}, this);
 	},
 	
-	optimised: {
-		values: {
+	optimised: {		
+		pseudoClasses: {
+			"first-child": "[1]",
+			"last-child":  "[last()]",
+			"only-child":  "[last()=1]"
+		}
+	},
+	
+	rules: extend({}, {
+		"@!KHTML": { // these optimisations do not work on Safari
 			// fast id() search
-			"(^|\\x01) (\\*|[\\w-]+)#([\\w-]+)": "$1id('$3')[self::$2]",
+			"(^|\\x02) (\\*|[\\w-]+)#([\\w-]+)": "$1id('$3')[self::$2]",
 			// optimise positional searches
 			"([ >])(\\*|[\\w-]+):([\\w-]+-child(\\(([^)]+)\\))?)": function(match, token, tagName, pseudoClass, $4, args) {
 				var replacement = (token == " ") ? "//*" : "/*";
@@ -55,14 +62,8 @@ var XPathParser = Parser.extend({
 				}
 				return replacement + "[self::" + tagName + "]";
 			}
-		},
-		
-		pseudoClasses: {
-			"first-child": "[1]",
-			"last-child":  "[last()]",
-			"only-child":  "[last()=1]"
 		}
-	},
+	}),
 	
 	types: {
 		identifiers: function(replacement, token) {
@@ -101,10 +102,11 @@ var XPathParser = Parser.extend({
 			"$=": "[substring(@$1,string-length(@$1)-string-length('$2')+1)='$2']",
 			"~=": "[contains(concat(' ',@$1,' '),' $2 ')]",
 			"|=": "[contains(concat('-',@$1,'-'),'-$2-')]",
+			"!=": "[not(@$1='$2')]",
 			"=":  "[@$1='$2']"
 		},
 		
-		pseudoClasses: {
+		pseudoClasses: { // pseudo class selectors
 			"empty":            "[not(child::*) and not(text())]",
 //			"lang()":           "[boolean(lang('$1') or boolean(ancestor-or-self::*[@lang][1][starts-with(@lang,'$1')]))]",
 			"first-child":      "[not(preceding-sibling::*)]",

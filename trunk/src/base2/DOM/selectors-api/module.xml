@@ -9,4 +9,7 @@
 	<include src="Selector/operators.js"/>
 	<include src="Selector/pseudoClasses.js"/>
 	<include src="Selector/parse.js"/>
+	<include src="xpath/extension.xml"/>
+	<include src="$.js"/>
+	<include src="init.js"/>
 </package>
