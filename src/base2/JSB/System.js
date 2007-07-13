@@ -33,4 +33,4 @@ var System = new Base({
 });
 
 // initialise the system
-EventTarget.addEventListener(document, "DOMContentLoaded", System.onload);
+EventTarget.addEventListener(document, "DOMContentLoaded", System.onload, false);
