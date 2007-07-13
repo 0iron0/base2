@@ -1,4 +1,4 @@
-// timestamp: Tue, 03 Jul 2007 20:32:36
+// timestamp: Fri, 13 Jul 2007 17:39:34
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -64,7 +64,7 @@ var System = new Base({
 });
 
 // initialise the system
-EventTarget.addEventListener(document, "DOMContentLoaded", System.onload);
+EventTarget.addEventListener(document, "DOMContentLoaded", System.onload, false);
 
 // =========================================================================
 // JSB/Event.js
@@ -87,7 +87,7 @@ extend(Event, {
 extend(HTMLElement.prototype, "extend", function(name, value) {
 	// automatically attach event handlers when extending
 	if (!Base._prototyping && Event.PATTERN.test(name) && typeof value == "function") {
-		EventTarget.addEventListener(this, name.slice(2), value);
+		EventTarget.addEventListener(this, name.slice(2), value, false);
 		return this;
 	}
 	if (arguments.length == 2 && name == "style") {
@@ -102,23 +102,23 @@ extend(HTMLElement.prototype, "extend", function(name, value) {
 // =========================================================================
 
 extend(EventTarget, {	
-	addEventListener: function(target, type, listener, context) {
+	addEventListener: function(target, type, listener, useCapture) {
 		// allow elements to pick up document events (e.g. ondocumentclick)
 		if (type.indexOf("document") == 0) {
 			type = type.slice(8);
-			context = target;
+			listener = bind(listener, target);
 			target = Traversal.getDocument(target);
 		}
 		// call the default method
-		this.base(target, type, listener, context);
+		this.base(target, type, listener, useCapture);
 	},
 
-	removeEventListener: function(target, type, listener) {
+	removeEventListener: function(target, type, listener, useCapture) {
 		if (type.indexOf("document") == 0) {
 			type = type.slice(8);
 			target = Traversal.getDocument(target);
 		}
-		this.base(target, type, listener);
+		this.base(target, type, listener, useCapture);
 	}
 });
 
