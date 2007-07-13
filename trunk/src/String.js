@@ -1,13 +1,13 @@
 
 // fix String.replace (Safari/IE5.0)
-
+var GLOBAL = /(g|gi)$/;
 if ("".replace(/^/, String)) {
 	extend(String.prototype, "replace", function(expression, replacement) {
 		if (typeof replacement == "function") { // Safari doesn't like functions
 			if (instanceOf(expression, RegExp)) {
 				var regexp = expression;
 				var global = regexp.global;
-				if (global == null) global = /(g|gi)$/.test(regexp);
+				if (global == null) global = GLOBAL.test(regexp);
 				// we have to convert global RexpExps for exec() to work consistently
 				if (global) regexp = new RegExp(regexp.source); // non-global
 			} else {
@@ -20,8 +20,7 @@ if ("".replace(/^/, String)) {
 				if (!global) break;
 			}
 			return result + string;
-		} else {
-			return base(this, arguments);
 		}
+		return this.base(expression, replacement);
 	});
 }
