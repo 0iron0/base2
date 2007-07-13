@@ -15,5 +15,5 @@
 	<include src="RegGrp.js"/>
 	<include src="RegGrp/Item.js"/>
 	<include src="Namespace.js"/>
-	<include src="lang/namespace.js"/>
+	<include src="init.js"/>
 </package>

@@ -78,7 +78,6 @@ Base.extend = function(_instance, _static) { // subclass
 	klass.ancestor = this;
 	klass.base = Base.base;
 	klass.prototype = proto;
-	klass.toString = this.toString;
 	extend.call(klass, _static);
 	// class initialisation
 	if (typeof klass.init == "function") klass.init();
