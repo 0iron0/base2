@@ -3,7 +3,7 @@ var Enumerable = Module.extend({
 	every: function(object, test, context) {
 		var result = true;
 		try {
-			this.forEach (object, function(value, key) {
+			forEach (object, function(value, key) {
 				result = test.call(context, value, key, object);
 				if (!result) throw StopIteration;
 			});
@@ -34,7 +34,7 @@ var Enumerable = Module.extend({
 	
 	map: function(object, block, context) {
 		var result = new Array2;
-		this.forEach (object, function(value, key) {
+		forEach (object, function(value, key) {
 			result[result.length] = block.call(context, value, key, object);
 		});
 		return result;
@@ -47,7 +47,7 @@ var Enumerable = Module.extend({
 	},
 	
 	reduce: function(object, block, result, context) {
-		this.forEach (object, function(value, key) {
+		forEach (object, function(value, key) {
 			result = block.call(context, result, value, key, object);
 		});
 		return result;
@@ -58,6 +58,4 @@ var Enumerable = Module.extend({
 			return !test.call(context, value, key, object);
 		});
 	}
-}, {
-	forEach: forEach
 });

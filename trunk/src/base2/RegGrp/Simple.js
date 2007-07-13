@@ -1,8 +1,12 @@
 
+var HASH   = "#";
+var KEYS   = HASH + "keys";
+var VALUES = HASH + "values";
+
 var RegGrp = Base.extend({
 	constructor: function(values, flags) {
-		this.keys = [];
-		this.values = {};
+		this[KEYS] = [];
+		this[VALUES] = {};
 		this.merge(values);
 		if (typeof flags == "string") {
 			this.global = /g/.test(flags);
@@ -12,28 +16,28 @@ var RegGrp = Base.extend({
 
 	global: true, // global is the default setting
 	ignoreCase: false,
-	keys: null,
-	values: null,
 	
 	add: function(expression, replacement) {
-		if (!this.values["#" + expression]) this.keys.push(String(expression));
-		this.values["#" + expression] = new RegGrp.Item(expression, replacement);
+		if (!this[VALUES][HASH + expression]) this[KEYS].push(String(expression));
+		this[VALUES][HASH + expression] = new RegGrp.Item(expression, replacement);
 	},
 
 	exec: function(string, replacement) {
 		if (arguments.length == 1) {
 			var self = this;
+			var keys = this[KEYS];
+			var values = this[VALUES];
 			replacement = function(match) {
 				if (!match) return "";
 				var offset = 1, i = 0;
 				// loop through the values
-				while (match = self.item(i++)) {
+				while (match = values[HASH + keys[i++]]) {
 					// do we have a result?
 					if (arguments[offset]) {
 						var replacement = match.replacement;
 						switch (typeof replacement) {
 							case "function":
-								return replacement.apply(null, slice(arguments, offset));
+								return replacement.apply(self, slice(arguments, offset));
 							case "number":
 								return arguments[offset + replacement];
 							default:
@@ -49,24 +53,16 @@ var RegGrp = Base.extend({
 	},
 
 	item: function(index) {
-		return this.values["#" + this.keys[index]];
+		return this[VALUES][HASH + this[KEYS][index]];
 	},
 	
 	merge: function(values) {
-		forEach (arguments, function(values) {
-			forEach (values, function(replacement, expression) {
-				this.add(expression, replacement);
-			}, this);
-		}, this);
+		for (var i in values) this.add(i, values[i]);
 		return this;
-	},
-
-	test: function(string) {
-		return this.exec(string) != string;
 	},
 	
 	toString: function() {
-		return "(" + this.keys.join(")|(") + ")";
+		return "(" + this[KEYS].join(")|(") + ")";
 	}
 }, {
 	IGNORE: "$0"
