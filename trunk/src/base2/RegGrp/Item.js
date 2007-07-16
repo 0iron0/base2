@@ -4,11 +4,8 @@ RegGrp.Item = Base.extend({
 	constructor: function(expression, replacement) {
 		var ESCAPE = /\\./g;
 		var STRING = /(['"])\1\+(.*)\+\1\1$/;
-		try {
-			var BRACKETS = new RegExp("\\((?!\\?)", "g"); // this breaks IE5.0
-		} catch (ignore) {
-			BRACKETS = /\(/g;
-		}
+		var MATCH_BRACKETS = /\(/g;
+		var NONMATCH_BRACKETS = /\(\?[:=!]|\[[^\]]+\]/g;
 	
 		expression = instanceOf(expression, RegExp) ? expression.source : String(expression);
 		
@@ -17,7 +14,7 @@ RegGrp.Item = Base.extend({
 		
 		// count the number of sub-expressions
 		//  - add one because each pattern is itself a sub-expression
-		this.length = match(expression.replace(ESCAPE, "").replace(/\[[^\]]+\]/g, ""), BRACKETS).length;
+		this.length = match(expression.replace(ESCAPE, "").replace(NONMATCH_BRACKETS, ""), MATCH_BRACKETS).length;
 		
 		// does the pattern use sub-expressions?
 		if (typeof replacement == "string" && /\$(\d+)/.test(replacement)) {
