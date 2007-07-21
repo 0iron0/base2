@@ -91,7 +91,7 @@ var GWParser=FsmParser.extend({
 		if(this.listLevel.length==0||indent.length>this.listLevel.item(-1)) {
 			this.listTypes.push(bullet=="*"?"ul":"ol");
 			this.listLevel.push(indent.length);
-			res+=format("<%1>\n", this.listTypes.item(-1))
+			res+=format("<%1>\n", this.listTypes.item(-1));
 		}
 		else if(indent.length<this.listLevel.item(-1)) { //collapse
 			res+=this.pCloseLists(indent, 1);

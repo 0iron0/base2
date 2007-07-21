@@ -23,8 +23,7 @@ var State=Base.extend({
         replacement, //replacement
         arguments[2], //nextState
         this, //current state
-        this.context
-      );    
+        this.context);    
     }
     this.stateExits.push(transition);
   },

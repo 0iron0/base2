@@ -12,7 +12,7 @@ var StateTransition=Base.extend({
     return this.nextState!==undefined&&this.nextState!==null;
   },
   performActions: function() { /*this is a question, not a verb*/
-    return this.nextState===null
-        || (this.nextState!==undefined&&this.currentState.name!=this.nextState.name);
+    return this.nextState===null ||
+           (this.nextState!==undefined&&this.currentState.name!=this.nextState.name);
   }
 });
