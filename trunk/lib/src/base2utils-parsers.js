@@ -1,4 +1,4 @@
-// timestamp: Sat, 21 Jul 2007 12:29:40
+// timestamp: Sat, 21 Jul 2007 12:52:56
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -47,7 +47,7 @@ function toDutchDate(dt,format,bRelative,bCapital,sFirstWord)
 {
   var date=fix(dt.getDate())+'-'+fix(dt.getMonth()+1)+'-'+dt.getFullYear();
   var time=dt.getHours()+':'+fix(dt.getMinutes());
-  var seconds=':'+fix(dt.getSeconds())
+  var seconds=':'+fix(dt.getSeconds());
   if(bRelative) {
     var nDaysFromNow=Date_valueInDays(dt) - Date_valueInDays(new Date());
     var objRelative={'-1':'gisteren','0':'vandaag','1':'morgen'};
@@ -80,7 +80,7 @@ function toDutchDate(dt,format,bRelative,bCapital,sFirstWord)
 function Date_valueInDays(dt)
 //--#Results in #days since 1970; handy to compares dates without time
 {	
-	return parseInt( new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() ).valueOf() / (24*60*60*1000) );
+	return parseInt( new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() ).valueOf() / (24*60*60*1000), 10);
 }
 
 function fix(n)
