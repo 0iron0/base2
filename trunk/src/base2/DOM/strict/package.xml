@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package publish="false">
 	<include src="namespace.js"/>
+	<include src="DocumentSelector.js"/>
 	<include src="EventTarget.js"/>
 </package>
