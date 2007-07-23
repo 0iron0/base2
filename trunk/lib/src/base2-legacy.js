@@ -1,38 +1,31 @@
 
 // fix JavaScript for IE5.0 (and others)
-window.$Legacy = window.$Legacy || {};
+window.$Legacy = window.$Legacy || {namespace:""};
 window.undefined = window.undefined;
+
 new function() {
 	var MSIE = /*@cc_on!@*/false;
-	var E = window.Error, A = Array.prototype, slice = A.slice;
-		
-	try {
-		new Function("return o in k"); // oink!
-	} catch (e) {
-		$Legacy.hasProperty = function hasProperty(o, k) {
-			if (typeof o[k] != "undefined") return true;
-			for (var i in o) if (i == k) return true;
-			return false;
-		};
-		$Legacy.exists = function(k) {
-			return hasProperty(this["#keys"], k);
-		};
-		$Legacy.forEach = function(a, b, c) {
-			var i, l = a.length;
-			for (i = 0; i < l; i++) {
-				if (a[i] || hasProperty(a, i)) b.call(c, a[i], i, a);
-			}
-		};
-	}
+	var E = window.Error, slice = Array.prototype.slice;	
 	
-	try {
-		new Function("o,k", "return o instanceof k");
-	} catch (e) {
-		$Legacy.instanceOf = function(o, k) {
-			while (k && o.constructor != k) k = k.ancestor;
-			return !!k;
-		};
-	}
+	if (!document.nodeType) document.nodeType = 9; // IE5.0
+	
+	$Legacy.exists = function e(o,k) {
+		if (o[k] !== undefined) return true;
+		for (var i in o) if (i == k) return true;
+		return false;
+	};
+	
+	$Legacy.forEach = function(a, b, c) {
+		var i, l = a.length;
+		for (i = 0; i < l; i++) {
+			if (a[i] !== undefined || e(a, i)) b.call(c, a[i], i, a);
+		}
+	};
+	
+	$Legacy.instanceOf = function(o, k) {
+		// only works properly with base2 objects
+		return o && (k == Object || o.constructor == k || (k.ancestorOf && k.ancestorOf(o.constructor)));
+	};
 	
 	if (typeof encodeURIComponent == "undefined") {
 		encodeURIComponent = function(s) {
@@ -41,17 +34,6 @@ new function() {
 			});
 		};
 		decodeURIComponent = unescape;
-	}
-	
-	if (MSIE && /mac/i.test(navigator.platform)) {
-		var setTimeout = window.setTimeout;
-		window.setTimeout = function(func, delay) {
-			setTimeout(typeof func == "function" ?  "func()" : func, delay);
-		};
-		var setInterval = window.setInterval;
-		window.setInterval = function(func, delay) {
-			setInterval(typeof func == "function" ?  "func()" : func, delay);
-		};
 	}
 	
 	if (!E) Error = function(m) {
@@ -63,22 +45,20 @@ new function() {
 		TypeError = SyntaxError = Error;
 	}
 	
-	var $extend = function(N, n, p) {
-		var c = window[N];
-		if (!c.prototype[n]) {
-			if (!$Legacy[N]) $Legacy[N] = {};
-			$Legacy[N][n] = c.prototype[n] = p;
+	function extend(klass, name, method) {
+		if (!klass.prototype[name]) {
+			klass.prototype[name] = method;
 		}
 	};
 	
-	$extend("Array", "push", function() {
+	extend(Array, "push", function() {
 		for (var i = 0; i < arguments.length; i++) {
 			this[this.length] = arguments[i];
 		}
 		return this.length;
 	});
 	
-	$extend("Array", "pop", function() {
+	extend(Array, "pop", function() {
 		if (this.length) {
 			var i = this[this.length - 1];
 			this.length--;
@@ -86,7 +66,7 @@ new function() {
 		}
 	});
 	
-	$extend("Array", "shift", function() {
+	extend(Array, "shift", function() {
 		var r = this[0];
 		if (this.length) {
 			var a = this.slice(1), i = a.length;
@@ -96,13 +76,13 @@ new function() {
 		return r;
 	});
 	
-	$extend("Array", "unshift", function() {
+	extend(Array, "unshift", function() {
 		var a = A.concat.call(slice.apply(arguments, [0]), this), i = a.length;
 		while (i--) this[i] = a[i];
 		return this.length;
 	});
 	
-	$extend("Array", "splice", function(i, c) {
+	extend(Array, "splice", function(i, c) {
 		var r = c ? this.slice(i, i + c) : [];
 		var a = this.slice(0, i).concat(slice.apply(arguments, [2])).concat(this.slice(i + c)), i = a.length;
 		this.length = i;
@@ -110,7 +90,7 @@ new function() {
 		return r;
 	});
 	
-	function fix(o) {
+	function fix(o) { // fix
 		if (o && o.documentElement) {
 			o = o.documentElement.document || o;
 		}
@@ -118,14 +98,15 @@ new function() {
 	};
 	
 	var ns = this; // this is a frig :-(
-	$extend("Function", "apply", function(o, a) {
+	extend(Function, "apply", function(o, a) {
 		if (o === undefined) o = ns;
 		else if (o == null) o = window;
 		else if (typeof o == "string") o = new String(o);
 		else if (typeof o == "number") o = new Number(o);
+		else if (typeof o == "boolean") o = new Boolean(o);
 		if (arguments.length == 1) a = [];
-		else if (a[0]) a[0] = fix(a[0]);
-		var $ = "#base_apply", r;
+		else if (a[0]) a[0] = fix(a[0]); // fix
+		var $ = "#b2_apply", r;
 		o[$] = this;
 		switch (a.length) { // unroll for speed
 			case 0: r = o[$](); break;
@@ -144,14 +125,14 @@ new function() {
 		} catch (e) {
 			o[$] = undefined;
 		}
-		return fix(r);
+		return fix(r); // fix
 	});
 	
-	$extend("Function", "call", function(o) {
+	extend(Function, "call", function(o) {
 		return this.apply(o, slice.apply(arguments, [1]));
 	});
 	
-	$extend("Number", "toFixed", function(n) {
+	extend(Number, "toFixed", function(n) {
 		var e = Math.pow(10, n);
 		var r = String(Math.round(this * e));
 		if (r == 0) for (var i = 0; i < n; i++) r += "0";

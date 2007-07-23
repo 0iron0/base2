@@ -1,4 +1,4 @@
-// timestamp: Tue, 26 Jun 2007 15:37:28
+// timestamp: Mon, 23 Jul 2007 07:37:57
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -9,17 +9,17 @@ new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 var IO = new base2.Namespace(this, {
 	name:    "IO",
 	version: "0.3",
-	exports: "FileSystem,Directory,LocalFileSystem,LocalDirectory,LocalFile,JSONFileSystem,JSONDirectory",
-	
-	NOT_SUPPORTED: function() {
-		throw new Error("Not supported.");
-	}
+	exports: "FileSystem,Directory,LocalFileSystem,LocalDirectory,LocalFile,JSONFileSystem,JSONDirectory"
 });
 
 eval(this.imports);
 
+function NOT_SUPPORTED() {
+	throw new Error("Not supported.");
+}
+
 // =========================================================================
-// IO/../BOM/XPCOM.js
+// utils/XPCOM.js
 // =========================================================================
 
 // some useful methods for dealing with XPCOM
@@ -28,7 +28,7 @@ var XPCOM = new Base({
 	privelegedMethod: K, // no such thing as priveleged for non-Mozilla browsers
 	privelegedObject: K,
 	
-	"@(Components)": {
+	"@(XPCOM)": {
 		createObject: function(classPath, interfaceId) {
 			try {
 				var _class = Components.classes["@mozilla.org/" + classPath];
@@ -89,15 +89,15 @@ var FileSystem = Base.extend({
 		return FileSystem.resolve(path1, path2);
 	}, 
 		
-	copy: IO.NOT_SUPPORTED,
-	exists: IO.NOT_SUPPORTED,
-	isDirectory: IO.NOT_SUPPORTED,
-	isFile: IO.NOT_SUPPORTED,
-	mkdir: IO.NOT_SUPPORTED,
-	move: IO.NOT_SUPPORTED,
-	read: IO.NOT_SUPPORTED,
-	remove: IO.NOT_SUPPORTED,
-	write: IO.NOT_SUPPORTED
+	copy: NOT_SUPPORTED,
+	exists: NOT_SUPPORTED,
+	isDirectory: NOT_SUPPORTED,
+	isFile: NOT_SUPPORTED,
+	mkdir: NOT_SUPPORTED,
+	move: NOT_SUPPORTED,
+	read: NOT_SUPPORTED,
+	remove: NOT_SUPPORTED,
+	write: NOT_SUPPORTED
 }, {
 	resolve: function(path1, path2) {
 		var FILENAME = /[^\/]+$/;
@@ -164,7 +164,7 @@ var LocalFileSystem = FileSystem.extend({
 		return LocalFile.write(path, text);
 	},
 
-	"@(ActiveXObject)": { // ActiveX
+	"@(ActiveXObject)": {
 		constructor: function() {
 			this.$fso = new ActiveXObject("Scripting.FileSystemObject");
 		},
@@ -248,7 +248,7 @@ var LocalFileSystem = FileSystem.extend({
 		}
 	},
 
-	"@(java && navigator.javaEnabled() && !window.Components)": { // java
+	"@(java && !global.Components)": {
 		exists: function(path) {
 			return new java.io.File(path).exists();
 		}
@@ -264,7 +264,7 @@ var LocalFileSystem = FileSystem.extend({
 		}, this.prototype);
 	}, */
 	
-	"@(Components)": { // XPCOM	
+	"@(Components)": { // XPCOM
 		init: function() {
 			XPCOM.privelegedObject(this.prototype);
 		//-	this.base();
@@ -277,7 +277,7 @@ var LocalFileSystem = FileSystem.extend({
 // =========================================================================
 
 var LocalDirectory = Directory.extend({
-	"@(ActiveXObject)": { // ActiveX
+	"@(ActiveXObject)": {
 		constructor: function(directory) {
 			this.base();
 			var files = directory.files;
@@ -300,19 +300,13 @@ var LocalDirectory = Directory.extend({
 }, {
 	"@(ActiveXObject)": {	
 		create: function(name, file) {
-			if (!instanceOf(file, this.Item)) {
-				file = new this.Item(file.Name, file.Type | 16, file.Size);
-			}
-			return file;
+			return new this.Item(file.Name, file.Type | 16, file.Size);
 		}
 	},
 
 	"@(Components)": {
 		create: function(name, file) {
-			if (!instanceOf(file, this.Item)) {
-				file = new this.Item(file.leafName, file.isDirectory(), file.fileSize);
-			}
-			return file;
+			return new this.Item(file.leafName, file.isDirectory(), file.fileSize);
 		}
 	}
 });
@@ -345,12 +339,12 @@ var LocalFile = Base.extend({
 		LocalFile.opened[this.base2ID] = this;
 	},
 
-	exists: IO.NOT_SUPPORTED,
-	read: IO.NOT_SUPPORTED,
-	remove: IO.NOT_SUPPORTED,
-	write: IO.NOT_SUPPORTED,
+	exists: NOT_SUPPORTED,
+	read: NOT_SUPPORTED,
+	remove: NOT_SUPPORTED,
+	write: NOT_SUPPORTED,
 
-	"@(ActiveXObject)": { // ActiveX
+	"@(ActiveXObject)": {
 		constructor: function(path, mode) {
 			this.$fso = new ActiveXObject("Scripting.FileSystemObject");
 			this.base(path, mode);
@@ -465,7 +459,7 @@ var LocalFile = Base.extend({
 		}
 	},
 
-	"@(java && navigator.javaEnabled() && !window.Components)": { // Java
+	"@(java && !global.Components)": {
 		close: function() {
 			if (this.$stream) {
 				this.$stream.close();
@@ -622,16 +616,16 @@ var JSONFileSystem = FileSystem.extend({
 	
 	remove: function(path) {
 		// remove data from the JSON object
-		path = Array2(path.replace(/\/$/, "").split("/"));
-		var filename = path.removeAt(path.length - 1);
+		path = path.replace(/\/$/, "").split("/");
+		var filename = path.splice(path.length - 1, 1);
 		var directory = this[FETCH](path.join("/"));
 		if (directory) delete directory[filename];
 	},
 
 	write: function(path, data) {
 		// write data to the JSON object
-		path = Array2(path.split("/"));
-		var filename = path.removeAt(path.length - 1);
+		path = path.split("/");
+		var filename = path.splice(path.length - 1, 1);
 		var directory = this[FETCH](path.join("/"));
 		assert(directory, "Directory not found."); 
 		return directory[filename] = data || "";
