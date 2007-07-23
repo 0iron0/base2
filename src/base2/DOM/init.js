@@ -2,9 +2,9 @@
 // all other libraries allow this handy shortcut so base2 will too :-)
 
 DOM.$ = function(selector, context) {
-	return new Selector(selector).exec(context || document, 1);
+	return new Selector(selector).exec(context, 1);
 };
 
 DOM.$$ = function(selector, context) {
-	return new Selector(selector).exec(context || document);
+	return new Selector(selector).exec(context);
 };

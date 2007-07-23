@@ -19,8 +19,9 @@ var XPathParser = Parser.extend({
 	
 	unescape: function(selector) {
 		return this.base(selector
-			.replace(/\[self::\*\]/g, "") // remove redundant wild cards
-			.replace(/\x02/g, " | ")
+			.replace(/\[self::\*\]/g, "")   // remove redundant wild cards
+			.replace(/(^|\x02)\//g, "$1./") // context
+			.replace(/\x02/g, " | ")        // put commas back
 		);
 	},
 	

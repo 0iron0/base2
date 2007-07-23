@@ -2,9 +2,8 @@
 // If the browser supports XPath then the CSS selector is converted to an XPath query instead.
 
 Selector.implement({
-	toXPath: function(context) {
-		context = !context || Traversal.isDocument(context) ? "" : ".";
-		return context + Selector.toXPath(this);
+	toXPath: function() {
+		return Selector.toXPath(this);
 	},
 	
 	"@(XPathResult)": {
@@ -17,7 +16,7 @@ Selector.implement({
 			var type = single
 				? 9 /* FIRST_ORDERED_NODE_TYPE */
 				: 7 /* ORDERED_NODE_SNAPSHOT_TYPE */;
-			var result = document.evaluate(this.toXPath(context), context, null, type, null);
+			var result = document.evaluate(this.toXPath(), context, null, type, null);
 			return single ? result.singleNodeValue : result;
 		}
 	},
@@ -26,7 +25,7 @@ Selector.implement({
 		$evaluate: function(context, single) {
 			if (typeof context.selectNodes != "undefined" && !Selector.$NOT_XPATH.test(this)) { // xml
 				var method = single ? "selectSingleNode" : "selectNodes";
-				return context[method](this.toXPath(context));
+				return context[method](this.toXPath());
 			}
 			return this.base(context, single);
 		}
