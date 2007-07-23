@@ -1,4 +1,4 @@
-// timestamp: Mon, 23 Jul 2007 07:37:56
+// timestamp: Mon, 23 Jul 2007 11:49:58
 /*
 	base2 - copyright 2007, Dean Edwards
 	http://code.google.com/p/base2/
@@ -539,6 +539,10 @@ var Collection = Hash.extend({
 }, {
 	Item: null, // If specified, all members of the collection must be instances of Item.
 	
+	init: function() {
+		this.prototype.item = this.prototype.fetchAt;
+	},
+	
 	create: function(key, item) {
 		if (this.Item) return new this.Item(key, item);
 	},
@@ -554,10 +558,6 @@ var Collection = Hash.extend({
 		}
 		klass.init();
 		return klass;
-	},
-	
-	init: function() {
-		this.prototype.item = this.prototype.fetchAt;
 	}
 });
 
@@ -790,10 +790,10 @@ var Array2 = _createObject2(
 			return -1;
 		},
 	
-		map: function(object, block, context) {
+		map: function(array, block, context) {
 			var result = [];
-			this.forEach (object, function(value, item) {
-				result[index] = block.call(context, item, index, object);
+			this.forEach (array, function(item, index) {
+				result[index] = block.call(context, item, index, array);
 			});
 			return result;
 		},
@@ -1016,10 +1016,12 @@ function _get_Function_forEach() {
 // lang/instanceOf.js
 // =========================================================================
 
-function instanceOf(object, klass) {
+function instanceOf(object, klass) {	
+	// Handle exceptions where the target object originates from another frame.
+	// This is handy for JSON parsing (amongst other things).
+	
 	assertType(klass, "function", "Invalid 'instanceOf' operand.");
 	
-	// Ancient browsers throw an error when we use "instanceof" as an operator.
 	/*@cc_on @*/
 	/*@if (@_jscript_version < 5.1)
 		if ($Legacy.instanceOf(object, klass)) return true;
@@ -1027,25 +1029,35 @@ function instanceOf(object, klass) {
 		if (object instanceof klass) return true;
 	/*@end @*/
 	
-	// Handle exceptions where the target object originates from another frame
-	// this is handy for JSON parsing (amongst other things).
+	// If the class is a Base class then it would have passed the test above.
+	if (_isBaseClass(klass)) return false;
+	
+	// Base objects can only be instances of Object.
+	if (_isBaseClass(object.constructor)) return klass == Object;
+	
 	if (object != null) switch (klass) {
-		case Array: // this is the only troublesome one
-			return !!(object.join && object.splice && typeof object == "object");
-		case RegExp:
-			return typeof object.source == "string" && typeof object.ignoreCase == "boolean";
+		case Array: // This is the only troublesome one.
+			return !!(typeof object == "object" && object.join && object.splice);
 		case Function:
 			return !!(typeof object == "function" && object.call);
+		case RegExp:
+			return object.constructor.prototype.toString() == _REGEXP_STRING;
 		case Date:
 			return !!object.getTimezoneOffset;
 		case String:
-		case Number:
+		case Number:  // These are bullet-proof.
 		case Boolean:
 			return typeof object == typeof klass.prototype.valueOf();
 		case Object:
-			return true;
+			// Only JavaScript objects allowed.
+			// COM objects do not have a constructor.
+			return typeof object == "object" && typeof object.constructor == "function";
 	}
 	return false;
+};
+
+function _isBaseClass(klass) {
+	return klass == Base || Base.ancestorOf(klass);
 };
 
 // =========================================================================

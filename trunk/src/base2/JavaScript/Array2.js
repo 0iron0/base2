@@ -59,10 +59,10 @@ var Array2 = _createObject2(
 			return -1;
 		},
 	
-		map: function(object, block, context) {
+		map: function(array, block, context) {
 			var result = [];
-			this.forEach (object, function(value, item) {
-				result[index] = block.call(context, item, index, object);
+			this.forEach (array, function(item, index) {
+				result[index] = block.call(context, item, index, array);
 			});
 			return result;
 		},
