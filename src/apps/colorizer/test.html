@@ -8,14 +8,38 @@ header('Cache-Control: no-cache, must-revalidate, max-age=0');
  <title>Colorizer - Test Page</title>
  <meta name="author" content="Dean Edwards"/>
  <meta name="copyright" content="&copy; copyright 2006, Dean Edwards"/>
- <link rel="stylesheet" type="text/css" href="default.css"/>
+ <link rel="stylesheet" type="text/css" href="colorizer.css"/>
  <script src="../../../lib/base2-jsb-fp.js" type="text/javascript"></script>
- <script src="../colorizer-p.js" type="text/javascript"></script>
+ <script src="Colorizer.js" type="text/javascript"></script>
+ <script src="schemes/xml.js" type="text/javascript"></script>
+ <script src="schemes/html.js" type="text/javascript"></script>
+ <script src="schemes/css.js" type="text/javascript"></script>
+ <script src="schemes/javascript.js" type="text/javascript"></script>
+ <script src="schemes/html-multi.js" type="text/javascript"></script>
+ <script src="schemes/haskell.js" type="text/javascript"></script>
+ <style type="text/css">
+pre {
+	font-size: 14px;
+	font-family: "Consolas", "Bitstream Vera Sans Mono", "Lucida Console", "Courier New", courier, monospace;
+	font-style: normal;
+}
+</style>
  <script src="bindings.js" type="text/javascript"></script>
 </head>
 <body>
 <h2>Colorizer - Test Page</h2>
 <p>A configurable syntax-highlighter.</p>
+
+<h2>Haskell</h2>
+<pre class="haskell">
+import Data.List as L
+
+{- My prime number test -}
+primes       = sieve [2..] -- here they are
+sieve (x:xs) = x : sieve [y | y <- xs, y `mod` x /= 0]
+foo = "hello world"
+p x = do print x
+</pre>
 
 <h2>HTML</h2>
 <pre class="html">&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -57,19 +81,38 @@ header('Cache-Control: no-cache, must-revalidate, max-age=0');
 
 <h2>JavaScript</h2>
 <pre class="javascript">
-// this is a "comment"
-/* so is this */
-var string = "/* string */";
-alert('Hello \'Dean\'!');
-function getText(a, b, c) {
-	if (a &amp;&amp; b) return a + b + c.toString();
-};
-/*@cc_on @*/
-/*@if (@_jscript_version >= 4)
-	alert("JScript version 4 or better");
-@else @*/
-	alert("You need a more recent script engine.");
-/*@end @*/
+function getCookie( name ) {
+	var start = document.cookie.indexOf( name + "=" );
+	var len = start + name.length + 1;
+	if ( ( !start ) && ( name != document.cookie.substring( 0, name.length ) ) ) {
+		return null;
+	}
+	if ( start == -1 ) return null;
+	var end = document.cookie.indexOf( ';', len );
+	if ( end == -1 ) end = document.cookie.length;
+	return unescape( document.cookie.substring( len, end ) );
+}
+
+function setCookie( name, value, expires, path, domain, secure ) {
+	var today = new Date();
+	today.setTime( today.getTime() );
+	if ( expires ) {
+		expires = expires * 1000 * 60 * 60 * 24;
+	}
+	var expires_date = new Date( today.getTime() + (expires) );
+	document.cookie = name+'='+escape( value ) +
+		( ( expires ) ? ';expires='+expires_date.toGMTString() : '' ) + //expires.toGMTString()
+		( ( path ) ? ';path=' + path : '' ) +
+		( ( domain ) ? ';domain=' + domain : '' ) +
+		( ( secure ) ? ';secure' : '' );
+}
+
+function deleteCookie( name, path, domain ) {
+	if ( getCookie( name ) ) document.cookie = name + '=' +
+			( ( path ) ? ';path=' + path : '') +
+			( ( domain ) ? ';domain=' + domain : '' ) +
+			';expires=Thu, 01-Jan-1970 00:00:01 GMT';
+}
 </pre>
 
 <h2>HTML-MULTI</h2>

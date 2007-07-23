@@ -7,7 +7,7 @@ new base2.JSB.Rule("pre", {
 			var engine = names[i];
 			var colorizer = Colorizer[engine];
 			if (colorizer instanceof Colorizer) {
-				var textContent = base2.Traversal.getTextContent(this);
+				var textContent = base2.DOM.Traversal.getTextContent(this);
 				this.innerHTML = colorizer.exec(textContent);
 				this.addClass("highlight");
 				if (engine == "html-multi") this.addClass("html");

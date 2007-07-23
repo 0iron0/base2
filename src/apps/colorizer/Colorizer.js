@@ -5,9 +5,16 @@ var DEFAULT = "@0";
 var IGNORE  = RegGrp.IGNORE;
 
 Colorizer = RegGrp.extend({
-	constructor: function(values, patterns, properties) {
-		this.patterns = patterns || {};
+	constructor: function(patterns, replacements, properties) {
 		this.extend(properties);
+		this.patterns = patterns || {};
+		var values = {}, i;
+		forEach (patterns, function(pattern, className) {
+			values[className] = replacements[className] || DEFAULT;
+		});
+		forEach (replacements, function(replacement, className) {
+			values[className] = replacements[className];
+		});
 		this.base(values);
 	},
 	
@@ -21,9 +28,9 @@ Colorizer = RegGrp.extend({
 		return colorizer;
 	},
 	
-	exec: function(text) {
+	exec: function(text, secondary) {
 		text = this.base(this.escape(text));
-		if (!arguments[1]) {
+		if (!secondary) { // Not a secondary parse of the text (e.g. CSS within an HTML sample)
 			text = this._parseWhiteSpace(text);
 			if (this.urls) text = Colorizer.urls.exec(text);
 		}
@@ -35,10 +42,11 @@ Colorizer = RegGrp.extend({
 	},
 
 	store: function(pattern, replacement) {
+		// This is a bit complicated and is therefore probably wrong.
 		if (!instanceOf(pattern, RegGrp.Item)) {
 			if (typeof replacement == "string") {
 				replacement = replacement.replace(/@(\d)/, function(match, index) {
-					return format(Colorizer.$FORMAT, pattern, index);
+					return format(Colorizer.FORMAT, pattern, index);
 				});
 			}
 			pattern = this.patterns[pattern] || Colorizer.patterns[pattern] || pattern;
@@ -53,7 +61,7 @@ Colorizer = RegGrp.extend({
 	},
 
 	_parseWhiteSpace: function(text) {
-		// fix tabs and spaces
+		// Convert tabs to spaces and then convert spaces to "&nbsp;".
 		var tabStop = this.tabStop;
 		if (tabStop > 0) {
 			var tab = Array(tabStop + 1).join(" ");
@@ -66,6 +74,7 @@ Colorizer = RegGrp.extend({
 				return match.replace(/ /g, "&nbsp;");
 			});
 		}
+		return text;
 	},
 
 	"@MSIE": {
@@ -74,15 +83,15 @@ Colorizer = RegGrp.extend({
 		}
 	}
 }, {
-	$FORMAT: '<span class="%1">$%2</span>',
+	FORMAT: '<span class="%1">$%2</span>',
 	DEFAULT: DEFAULT,
 	IGNORE:  IGNORE,	
 	TAB:     /\t/g,
 	TABS:    /\n([\t \xa0]+)/g,
 	
 	init: function() {
-		// patterns that are defined as Arrays represent
-		//  groups of other patterns. Build those groups.
+		// Patterns that are defined as Arrays represent
+		// groups of other patterns. Build those groups.
 		forEach (this.patterns, function(pattern, name, patterns) {
 			if (instanceOf(pattern, Array)) {
 				patterns[name] = reduce(pattern, function(group, name) {
@@ -96,15 +105,16 @@ Colorizer = RegGrp.extend({
 		this.urls.storeAt(1, '<a href="$0">$0</a>');
 	},
 	
+	// Pre-defined regular expressions.
 	patterns: {
 		block_comment: /\/\*[^*]*\*+([^\/][^*]*\*+)*\//,
 		email:         /([\w.+-]+@[\w.-]+\.\w+)/,
 		line_comment:  /\/\/[^\r\n]*/,
-		number:        /\b[+-]?(\d*\.?\d+|\d+\.?\d*)([eE][+-]?\d+)?\b/,
+		number:        /\b\-?(0|[1-9]\d*)(\.\d+)?([eE][-+]?\d+)?\b/,
 		string1:       /'(\\.|[^'\\])*'/,
 		string2:       /"(\\.|[^"\\])*"/,
 		url:           /(http:\/\/+[\w\/\-%&#=.,?+$]+)/,
-		
+		// groups
 		comment:       ["block_comment", "line_comment"],
 		string:        ["string1", "string2"],
 		urls:          ["email", "url"]
@@ -113,6 +123,6 @@ Colorizer = RegGrp.extend({
 	urls: null,
 	
 	"@KHTML": {
-		$FORMAT: '<span class="%1">$$%2</span>'
+		FORMAT: '<span class="%1">$$%2</span>'
 	}
 });

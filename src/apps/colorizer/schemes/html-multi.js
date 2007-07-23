@@ -5,6 +5,6 @@ Colorizer["html-multi"] = Colorizer.html.union({
 		var engine = tagName == "style" ? "css" : "javascript";
 		cdata = Colorizer[engine].exec(cdata, true);
 		cdata = format('<span class="%1">%2</span>', engine, cdata);
-		return Colorizer.html.processCDATA(tagName, attributes, cdata);
+		return format(this.INLINE, tagName, this.exec(attributes, true), cdata);
 	}
 });
