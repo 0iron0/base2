@@ -12,8 +12,8 @@ var Node = Binding.extend({
 				return 2|8; // preceding|contains
 			}
 			
-			var nodeIndex = this.$getSourceIndex(node);
-			var otherIndex = this.$getSourceIndex(other);
+			var nodeIndex = Node._getSourceIndex(node);
+			var otherIndex = Node._getSourceIndex(other);
 			
 			if (nodeIndex < otherIndex) {
 				return 4; // following

@@ -1,4 +1,4 @@
-// timestamp: Mon, 23 Jul 2007 08:18:16
+// timestamp: Mon, 23 Jul 2007 13:59:43
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -784,15 +784,15 @@ Selector.operators[""] = "%1!=null";
 // =========================================================================
 
 Selector.pseudoClasses = { //-dean: lang()
-	"checked":     "e%1.checked",	
-	"contains":    "Traversal.getTextContent(e%1).indexOf('%2')!=-1",	
-	"disabled":    "e%1.disabled",	
-	"empty":       "Traversal.isEmpty(e%1)",	
-	"enabled":     "e%1.disabled===false",	
+	"checked":     "e%1.checked",
+	"contains":    "e%1[Traversal.$TEXT].indexOf('%2')!=-1",
+	"disabled":    "e%1.disabled",
+	"empty":       "Traversal.isEmpty(e%1)",
+	"enabled":     "e%1.disabled===false",
 	"first-child": "!Traversal.getPreviousElementSibling(e%1)",
-	"last-child":  "!Traversal.getNextElementSibling(e%1)",	
-	"only-child":  "!Traversal.getPreviousElementSibling(e%1)&&!Traversal.getNextElementSibling(e%1)",	
-	"root":        "e%1==Traversal.getDocument(e%1).documentElement"	
+	"last-child":  "!Traversal.getNextElementSibling(e%1)",
+	"only-child":  "!Traversal.getPreviousElementSibling(e%1)&&!Traversal.getNextElementSibling(e%1)",
+	"root":        "e%1==Traversal.getDocument(e%1).documentElement"
 /*	"lang": function(element, lang) {
 		while (element && !element.getAttribute("lang")) {
 			element = element.parentNode;
@@ -1028,8 +1028,9 @@ var XPathParser = Parser.extend({
 	
 	unescape: function(selector) {
 		return this.base(selector
-			.replace(/\[self::\*\]/g, "") // remove redundant wild cards
-			.replace(/\x02/g, " | ")
+			.replace(/\[self::\*\]/g, "")   // remove redundant wild cards
+			.replace(/(^|\x02)\//g, "$1./") // context
+			.replace(/\x02/g, " | ")        // put commas back
 		);
 	},
 	
@@ -1160,9 +1161,8 @@ function _nthChild(match, args, position) {
 // If the browser supports XPath then the CSS selector is converted to an XPath query instead.
 
 Selector.implement({
-	toXPath: function(context) {
-		context = !context || Traversal.isDocument(context) ? "" : ".";
-		return context + Selector.toXPath(this);
+	toXPath: function() {
+		return Selector.toXPath(this);
 	},
 	
 	"@(XPathResult)": {
@@ -1175,7 +1175,7 @@ Selector.implement({
 			var type = single
 				? 9 /* FIRST_ORDERED_NODE_TYPE */
 				: 7 /* ORDERED_NODE_SNAPSHOT_TYPE */;
-			var result = document.evaluate(this.toXPath(context), context, null, type, null);
+			var result = document.evaluate(this.toXPath(), context, null, type, null);
 			return single ? result.singleNodeValue : result;
 		}
 	},
@@ -1184,7 +1184,7 @@ Selector.implement({
 		$evaluate: function(context, single) {
 			if (typeof context.selectNodes != "undefined" && !Selector.$NOT_XPATH.test(this)) { // xml
 				var method = single ? "selectSingleNode" : "selectNodes";
-				return context[method](this.toXPath(context));
+				return context[method](this.toXPath());
 			}
 			return this.base(context, single);
 		}
@@ -1227,8 +1227,8 @@ var Node = Binding.extend({
 				return 2|8; // preceding|contains
 			}
 			
-			var nodeIndex = this.$getSourceIndex(node);
-			var otherIndex = this.$getSourceIndex(other);
+			var nodeIndex = Node._getSourceIndex(node);
+			var otherIndex = Node._getSourceIndex(other);
 			
 			if (nodeIndex < otherIndex) {
 				return 4; // following
@@ -1367,7 +1367,7 @@ var HTMLDocument = Document.extend(null, {
 // DOM/html/HTMLElement.js
 // =========================================================================
 
-// http://www.whatwg.org/specs/web-apps/current-work/#getelementsbyclassname
+// The className methods are not standard but are extremely handy. :-)
 
 var HTMLElement = Element.extend({
 	addClass: function(element, className) {
@@ -1392,8 +1392,8 @@ var HTMLElement = Element.extend({
 	tags: "*",
 	
 	extend: function() {
-		// maintain HTML element bindings.
-		// this allows us to map specific interfaces to elements by reference
+		// Maintain HTML element bindings.
+		// This allows us to map specific interfaces to elements by reference
 		// to tag name.
 		var binding = base(this, arguments);
 		var tags = (binding.tags || "").toUpperCase().split(",");
@@ -1419,11 +1419,11 @@ var HTMLElement = Element.extend({
 // all other libraries allow this handy shortcut so base2 will too :-)
 
 DOM.$ = function(selector, context) {
-	return new Selector(selector).exec(context || document, 1);
+	return new Selector(selector).exec(context, 1);
 };
 
 DOM.$$ = function(selector, context) {
-	return new Selector(selector).exec(context || document);
+	return new Selector(selector).exec(context);
 };
 
 eval(this.exports);

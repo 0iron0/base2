@@ -1,5 +1,5 @@
 
-// http://www.whatwg.org/specs/web-apps/current-work/#getelementsbyclassname
+// The className methods are not standard but are extremely handy. :-)
 
 var HTMLElement = Element.extend({
 	addClass: function(element, className) {
@@ -24,8 +24,8 @@ var HTMLElement = Element.extend({
 	tags: "*",
 	
 	extend: function() {
-		// maintain HTML element bindings.
-		// this allows us to map specific interfaces to elements by reference
+		// Maintain HTML element bindings.
+		// This allows us to map specific interfaces to elements by reference
 		// to tag name.
 		var binding = base(this, arguments);
 		var tags = (binding.tags || "").toUpperCase().split(",");
