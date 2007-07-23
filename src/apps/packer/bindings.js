@@ -9,6 +9,14 @@ new base2.JSB.RuleList({
 			this.ready();
 		},
 		
+		onclick: function() {
+			if (this.hasClass("disabled")) {
+				this.removeClass("disabled");
+				output.value = "";
+				this.ready();
+			}
+		},
+		
 		ready: function() {
 			message.write("ready");
 			input.focus();
@@ -40,7 +48,7 @@ new base2.JSB.RuleList({
 			try {
 				output.value = "";
 				if (input.value) {
-					var value = packer.pack(input.value, base62.checked, shrink.checked);
+					var value = packer.pack(input.value, base62.checked, shrink.checked, privates.checked);
 					output.value = value;
 					message.update();
 				}
@@ -91,7 +99,7 @@ new base2.JSB.RuleList({
 			form.submit();
 		}
 	},
-	"#base62,#shrink": {
+	"#base62,#shrink,#privates": {
 		disabled: false
 	},
 	"#message": {
