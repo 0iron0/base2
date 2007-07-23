@@ -1,12 +1,10 @@
 
-var HASH   = "#";
-var KEYS   = HASH + "keys";
-var VALUES = HASH + "values";
+var _HASH   = "#";
+var _KEYS   = "~";
 
 var RegGrp = Base.extend({
 	constructor: function(values, flags) {
-		this[KEYS] = [];
-		this[VALUES] = {};
+		this[_KEYS] = [];
 		this.merge(values);
 		if (typeof flags == "string") {
 			this.global = /g/.test(flags);
@@ -18,42 +16,45 @@ var RegGrp = Base.extend({
 	ignoreCase: false,
 	
 	add: function(expression, replacement) {
-		if (!this[VALUES][HASH + expression]) this[KEYS].push(String(expression));
-		this[VALUES][HASH + expression] = new RegGrp.Item(expression, replacement);
+		if (!this[_HASH + expression]) this[_KEYS].push(String(expression));
+		this[_HASH + expression] = new RegGrp.Item(expression, replacement);
 	},
 
 	exec: function(string, replacement) {
+		string = String(string); // type safe
 		if (arguments.length == 1) {
-			var self = this;
-			var keys = this[KEYS];
-			var values = this[VALUES];
+			var keys = this[__KEYS];
+			var items = this;
 			replacement = function(match) {
 				if (!match) return "";
+				var item;
 				var offset = 1, i = 0;
-				// loop through the values
-				while (match = values[HASH + keys[i++]]) {
-					// do we have a result?
-					if (arguments[offset]) {
-						var replacement = match.replacement;
+				// Loop through the RegGrp items.
+				while (item = items[_HASH + keys[i++]]) {
+					var next = offset + item.length + 1;
+					if (arguments[offset]) { // do we have a result?
+						var replacement = item.replacement;
 						switch (typeof replacement) {
 							case "function":
-								return replacement.apply(self, slice(arguments, offset));
+								var args = slice(arguments, offset, next);
+								var index = arguments[arguments.length - 2];
+								return replacement.apply(self, args.concat(index, string));
 							case "number":
 								return arguments[offset + replacement];
 							default:
 								return replacement;
 						}
-					// no? then skip over references to sub-expressions
-					} else offset += match.length + 1;
+					}
+					offset = next;
 				}
 			};
 		}
 		var flags = (this.global ? "g" : "") + (this.ignoreCase ? "i" : "");
-		return String(string).replace(new RegExp(this, flags), replacement);
+		return string.replace(new RegExp(this, flags), replacement);
 	},
 
 	item: function(index) {
-		return this[VALUES][HASH + this[KEYS][index]];
+		return this[_HASH + this[_KEYS][index]];
 	},
 	
 	merge: function(values) {
@@ -62,8 +63,14 @@ var RegGrp = Base.extend({
 	},
 	
 	toString: function() {
-		return "(" + this[KEYS].join(")|(") + ")";
+		// back references not supported in simple RegGrp
+		return "(" + this[_KEYS].join(")|(") + ")";
 	}
 }, {
-	IGNORE: "$0"
+	IGNORE: "$0",
+	
+	count: function(expression) {
+		// Count the number of sub-expressions in a RegExp/RegGrp.Item.
+		return (String(expression).replace(/\\./g, "").replace(/\(\?[:=!]|\[[^\]]+\]/g, "").match(/\(/g) || "").length;
+	}
 });

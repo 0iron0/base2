@@ -23,9 +23,7 @@ var StaticNodeList = Base.extend({
 		}
 	},
 	
-	item: function(index) {
-		// defined in the constructor function
-	},
+	item: Undefined, // defined in the constructor function
 	
 	"@(XPathResult)": {
 		constructor: function(nodes) {

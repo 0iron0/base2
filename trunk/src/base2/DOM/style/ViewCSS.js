@@ -3,7 +3,7 @@
 
 var ViewCSS = Interface.extend({
 	"@!(document.defaultView.getComputedStyle)": {
-		getComputedStyle: function(view, element) {
+		getComputedStyle: function(view, element, pseudoElement) {
 			// pseudoElement parameter is not supported
 			return element.currentStyle; //-dean - fix this object too
 		}

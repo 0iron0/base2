@@ -1,20 +1,10 @@
 
-
 RegGrp.Item = Base.extend({
 	constructor: function(expression, replacement) {
-		var ESCAPE = /\\./g;
-		var STRING = /(['"])\1\+(.*)\+\1\1$/;
-		var MATCH_BRACKETS = /\(/g;
-		var NONMATCH_BRACKETS = /\(\?[:=!]|\[[^\]]+\]/g;
-	
 		expression = instanceOf(expression, RegExp) ? expression.source : String(expression);
 		
 		if (typeof replacement == "number") replacement = String(replacement);
-		else if (replacement == null) replacement = "";
-		
-		// count the number of sub-expressions
-		//  - add one because each pattern is itself a sub-expression
-		this.length = match(expression.replace(ESCAPE, "").replace(NONMATCH_BRACKETS, ""), MATCH_BRACKETS).length;
+		else if (replacement == null) replacement = "";		
 		
 		// does the pattern use sub-expressions?
 		if (typeof replacement == "string" && /\$(\d+)/.test(replacement)) {
@@ -24,17 +14,16 @@ RegGrp.Item = Base.extend({
 				replacement = parseInt(replacement.slice(1));
 			} else { // a complicated lookup (e.g. "Hello $2 $1")
 				// build a function to do the lookup
-				var i = this.length + 1;
-				var Q = /'/.test(replacement.replace(ESCAPE, "")) ? '"' : "'";
+				var Q = /'/.test(replacement.replace(/\\./g, "")) ? '"' : "'";
 				replacement = replacement.replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\$(\d+)/g, Q +
 					"+(arguments[$1]||" + Q+Q + ")+" + Q);
-				replacement = new Function("return " + Q + replacement.replace(STRING, "$1") + Q);
+				replacement = new Function("return " + Q + replacement.replace(/(['"])\1\+(.*)\+\1\1$/, "$1") + Q);
 			}
 		}
+		
+		this.length = RegGrp.count(expression);
 		this.replacement = replacement;
-		this.toString = function() {
-			return expression || "";
-		};
+		this.toString = partial(String, expression);
 	},
 	
 	length: 0,

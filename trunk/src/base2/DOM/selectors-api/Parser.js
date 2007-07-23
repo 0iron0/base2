@@ -1,7 +1,7 @@
 	
 var Parser = RegGrp.extend({
-	constructor: function() {
-		base(this, arguments);
+	constructor: function(items) {
+		this.base(items);
 		this.cache = {};
 		this.sorter = new RegGrp;
 		this.sorter.add(/:not\([^)]*\)/, RegGrp.IGNORE);

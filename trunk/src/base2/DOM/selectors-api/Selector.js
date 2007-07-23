@@ -7,9 +7,7 @@
 
 var Selector = Base.extend({
 	constructor: function(selector) {
-		this.toString = function() {
-			return trim(selector);
-		};
+		this.toString = partial(String, trim(selector));
 	},
 	
 	exec: function(context, single) {

@@ -7,7 +7,7 @@ var RuleList = Collection.extend({
 		this.globalize(); //-dean: make this optional
 	},
 	
-	globalize: System.defer(function() {
+	globalize: Call.defer(function() {
 		var COMMA = /\s*,\s*/;
 		var ID = /^#[\w-]+$/;
 		// execution of this method is deferred until the DOMContentLoaded event

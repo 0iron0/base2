@@ -22,7 +22,7 @@ var _PARTS = { // indexes to the sub-expressions of the RegExp above
 var Date2 = _createObject2(
 	Date, "", [{
 		toISOString: function(date) {
-			date = Date2(date);
+			date = Date(date);
 			var string = "####-##-##T##:##:##.###";
 			for (var part in _PARTS) {
 				string = string.replace(/#+/, function(digits) {
@@ -37,13 +37,13 @@ var Date2 = _createObject2(
 );
 
 Date2.now = function() {
-	return (new this).valueOf(); // milliseconds since the epoch
+	return (new Date).valueOf(); // milliseconds since the epoch
 };
 
 Date2.parse = function(string, defaultDate) {
 	// parse ISO date
 	var match = String(string).match(_PATTERN);
-	assert (match, format(_ERROR_INVALID, string), SyntaxError);
+	assert(match, format(_ERROR_INVALID, string), SyntaxError);
 	match[_PARTS.Month]--; // js months start at zero
 	var last = ""; // the last date part set
 	var date = new Date2(defaultDate || 0);

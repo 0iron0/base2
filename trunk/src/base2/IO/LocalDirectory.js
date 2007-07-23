@@ -1,6 +1,6 @@
 
 var LocalDirectory = Directory.extend({
-	"@(ActiveXObject)": { // ActiveX
+	"@(ActiveXObject)": {
 		constructor: function(directory) {
 			this.base();
 			var files = directory.files;
@@ -23,19 +23,13 @@ var LocalDirectory = Directory.extend({
 }, {
 	"@(ActiveXObject)": {	
 		create: function(name, file) {
-			if (!instanceOf(file, this.Item)) {
-				file = new this.Item(file.Name, file.Type | 16, file.Size);
-			}
-			return file;
+			return new this.Item(file.Name, file.Type | 16, file.Size);
 		}
 	},
 
 	"@(Components)": {
 		create: function(name, file) {
-			if (!instanceOf(file, this.Item)) {
-				file = new this.Item(file.leafName, file.isDirectory(), file.fileSize);
-			}
-			return file;
+			return new this.Item(file.leafName, file.isDirectory(), file.fileSize);
 		}
 	}
 });

@@ -8,7 +8,7 @@ var LocalFileSystem = FileSystem.extend({
 		return LocalFile.write(path, text);
 	},
 
-	"@(ActiveXObject)": { // ActiveX
+	"@(ActiveXObject)": {
 		constructor: function() {
 			this.$fso = new ActiveXObject("Scripting.FileSystemObject");
 		},
@@ -92,7 +92,7 @@ var LocalFileSystem = FileSystem.extend({
 		}
 	},
 
-	"@(java && navigator.javaEnabled() && !window.Components)": { // java
+	"@(java && !global.Components)": {
 		exists: function(path) {
 			return new java.io.File(path).exists();
 		}
@@ -108,7 +108,7 @@ var LocalFileSystem = FileSystem.extend({
 		}, this.prototype);
 	}, */
 	
-	"@(Components)": { // XPCOM	
+	"@(Components)": { // XPCOM
 		init: function() {
 			XPCOM.privelegedObject(this.prototype);
 		//-	this.base();

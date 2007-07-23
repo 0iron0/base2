@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="style" publish="false" closure="false">
+<package name="DOM/style" publish="false" closure="false">
 	<include src="ViewCSS.js"/>
-	<include src="bind.js"/>
 </package>

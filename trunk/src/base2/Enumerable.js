@@ -3,7 +3,7 @@ var Enumerable = Module.extend({
 	every: function(object, test, context) {
 		var result = true;
 		try {
-			forEach (object, function(value, key) {
+			this.forEach (object, function(value, key) {
 				result = test.call(context, value, key, object);
 				if (!result) throw StopIteration;
 			});
@@ -14,16 +14,17 @@ var Enumerable = Module.extend({
 	},
 	
 	filter: function(object, test, context) {
+		var i = 0;
 		return this.reduce(object, function(result, value, key) {
 			if (test.call(context, value, key, object)) {
-				result[result.length] = value;
+				result[i++] = value;
 			}
 			return result;
-		}, new Array2);
+		}, []);
 	},
-
+	
 	invoke: function(object, method) {
-		// apply a method to each item in the enumerated object
+		// Apply a method to each item in the enumerated object.
 		var args = slice(arguments, 2);
 		return this.map(object, (typeof method == "function") ? function(item) {
 			if (item != null) return method.apply(item, args);
@@ -33,9 +34,9 @@ var Enumerable = Module.extend({
 	},
 	
 	map: function(object, block, context) {
-		var result = new Array2;
-		forEach (object, function(value, key) {
-			result[result.length] = block.call(context, value, key, object);
+		var result = [], i = 0;
+		this.forEach (object, function(value, key) {
+			result[i++] = block.call(context, value, key, object);
 		});
 		return result;
 	},
@@ -47,15 +48,25 @@ var Enumerable = Module.extend({
 	},
 	
 	reduce: function(object, block, result, context) {
-		forEach (object, function(value, key) {
-			result = block.call(context, result, value, key, object);
+		//-dean: test Mozilla's implementation with undefined values
+		var initialised = arguments.length > 2;
+		this.forEach (object, function(value, key) {
+			if (initialised) { 
+				result = block.call(context, result, value, key, object);
+			} else { 
+				result = value;
+				initialised = true;
+			}
 		});
 		return result;
 	},
 	
 	some: function(object, test, context) {
+		//return !this.every(object, not(test), context);
 		return !this.every(object, function(value, key) {
 			return !test.call(context, value, key, object);
 		});
 	}
+}, {
+	forEach: forEach
 });

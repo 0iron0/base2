@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="lang" closure="false" publish="false">
-	<include src="main1.js"/>
-	<include src="main2.js"/>
 	<include src="extend.js"/>
 	<include src="forEach.js"/>
+	<include src="instanceOf.js"/>
+	<include src="assert.js"/>
+	<include src="core.js"/>
+	<include src="functional.js"/>
 </package>

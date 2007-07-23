@@ -1,4 +1,6 @@
 
+// A collection of regular expressions and their associated replacement values.
+
 var RegGrp = Collection.extend({
 	constructor: function(values, flags) {
 		this.base(values);
@@ -11,34 +13,35 @@ var RegGrp = Collection.extend({
 	global: true, // global is the default setting
 	ignoreCase: false,
 
-	exec: function(string, replacement) {
+	exec: function(string, replacement) { // optimised (refers to _HASH)
+		string = String(string); // type-safe
 		if (arguments.length == 1) {
 			var self = this;
-			var keys = this[KEYS];
-			var values = this[VALUES];
+			var keys = this[_KEYS];
 			replacement = function(match) {
 				if (!match) return "";
-				var offset = 1, i = 0;
-				// loop through the values
-				while (match = values[HASH + keys[i++]]) {
-					// do we have a result?
-					if (arguments[offset]) {
-						var replacement = match.replacement;
+				var item, offset = 1, i = 0;
+				// Loop through the RegGrp items.
+				while (item = self[_HASH + keys[i++]]) {
+					var next = offset + item.length + 1;
+					if (arguments[offset]) { // do we have a result?
+						var replacement = item.replacement;
 						switch (typeof replacement) {
 							case "function":
-								return replacement.apply(self, slice(arguments, offset));
+								var args = slice(arguments, offset, next);
+								var index = arguments[arguments.length - 2];
+								return replacement.apply(self, args.concat(index, string));
 							case "number":
 								return arguments[offset + replacement];
 							default:
 								return replacement;
 						}
-					// no? then skip over references to sub-expressions
-					} else offset += match.length + 1;
+					}
+					offset = next;
 				}
 			};
 		}
-		var flags = (this.global ? "g" : "") + (this.ignoreCase ? "i" : "");
-		return String(string).replace(new RegExp(this, flags), replacement);
+		return string.replace(this.valueOf(), replacement);
 	},
 
 	test: function(string) {
@@ -49,16 +52,27 @@ var RegGrp = Collection.extend({
 		var BACK_REF = /\\(\d+)/g;
 		var length = 0;
 		return "(" + this.map(function(item) {
-			// fix back references
+			// Fix back references.
 			var ref = String(item).replace(BACK_REF, function(match, index) {
 				return "\\" + (1 + Number(index) + length);
 			});
 			length += item.length + 1;
 			return ref;
 		}).join(")|(") + ")";
+	},
+	
+	valueOf: function(type) {
+		if (type == "object") return this;
+		var flags = (this.global ? "g" : "") + (this.ignoreCase ? "i" : "");
+		return new RegExp(this, flags);
 	}
 }, {
 	IGNORE: "$0",
+	
+	count: function(expression) {
+		// Count the number of sub-expressions in a RegExp/RegGrp.Item.
+		return match(String(expression).replace(/\\./g, "").replace(/\(\?[:=!]|\[[^\]]+\]/g, ""), /\(/g).length;
+	},
 	
 	init: function() {
 		forEach ("add,exists,fetch,remove,store".split(","), function(name) {
