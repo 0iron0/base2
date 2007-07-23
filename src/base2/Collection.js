@@ -125,6 +125,10 @@ var Collection = Hash.extend({
 }, {
 	Item: null, // If specified, all members of the collection must be instances of Item.
 	
+	init: function() {
+		this.prototype.item = this.prototype.fetchAt;
+	},
+	
 	create: function(key, item) {
 		if (this.Item) return new this.Item(key, item);
 	},
@@ -140,9 +144,5 @@ var Collection = Hash.extend({
 		}
 		klass.init();
 		return klass;
-	},
-	
-	init: function() {
-		this.prototype.item = this.prototype.fetchAt;
 	}
 });
