@@ -1,12 +1,7 @@
 
 // http://www.whatwg.org/specs/web-apps/current-work/#htmldocument
-// http://www.whatwg.org/specs/web-apps/current-work/#getelementsbyclassname
 
-var HTMLDocument = Document.extend({
-	"@!(document.nodeType)": {
-		nodeType: 9
-	}
-}, {
+var HTMLDocument = Document.extend(null, {
 	// http://www.whatwg.org/specs/web-apps/current-work/#activeelement	
 	"@(document.activeElement===undefined)": {
 		bind: function(document) {

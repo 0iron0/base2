@@ -6,9 +6,10 @@ header('Content-Type: application/x-javascript');
 header('Expires: ' . gmdate('D, d M Y H:i:s') . ' GMT');
 header('Cache-Control: no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
-print("// timestamp: ".gmdate('D, d M Y H:i:s')."\r\n");
-$REG_XML = '/\\w+\\.xml$/';
 
+print("// timestamp: ".gmdate('D, d M Y H:i:s')."\r\n");
+
+$REG_XML = '/\\w+\\.xml$/';
 $PACKAGE = $_GET["package"];
 $PBASE = dirname($PACKAGE);
 $HBASE = dirname(realpath("build.php"));
@@ -17,8 +18,8 @@ if (!file_exists($PACKAGE)) {
 	print("Package '".$PACKAGE."' does not exist, or is not even supplied. Add following the querystring:\n");
 	print("   build.php?package=path\\to\\package.xml\n");
 	print("\n");
-	print("Path is relative to build.php. Path's within the package.xml file, are relative to the package.xml");
-	print("file itself. To make a path relative to the build.php file, user ~/ syntax.\n");
+	print("Path is relative to build.php. Paths within the package.xml file are relative to package.xml.");
+	print("To make a path relative to the build.php file, user ~/ syntax.\n");
 	print("\n");
 	print("To include base2 itself, add the 'full' querystring parameter:\n");
 	print("   build.php?package=path\\to\\package.xml&full\n");
@@ -83,12 +84,12 @@ function print_package($package, $pbase) {
 			load_package($src);
 		} else {
 			print("\r\n// =========================================================================\r\n");
-			print('// '.$name.'/'.$include->getAttribute('src'));
+			print('// '.preg_replace('/^\//', '', preg_replace('/[\w\-]+\/\.\./', '', $name.'/'.$include->getAttribute('src'))));
 			print("\r\n// =========================================================================\r\n");
 			if ($var) {
 				print("var ".$var."=".json_encode(file_get_contents($src)).";\r\n");
 			}
-			else if(!readfile($src)) {
+			else if (!readfile($src)) {
 				print("alert('BOO! The file \"".$src."\" from your package was not found.');");
 			}
 		}

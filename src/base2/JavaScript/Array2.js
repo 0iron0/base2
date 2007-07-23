@@ -14,7 +14,7 @@ var Array2 = _createObject2(
 		},
 		
 		copy: function(array) {
-			return this.concat(array);
+			return this(this.concat(array)); // and cast to Array2
 		},
 		
 		contains: function(array, item) {
@@ -58,6 +58,14 @@ var Array2 = _createObject2(
 			}
 			return -1;
 		},
+	
+		map: function(object, block, context) {
+			var result = [];
+			this.forEach (object, function(value, item) {
+				result[index] = block.call(context, item, index, object);
+			});
+			return result;
+		},
 		
 		remove: function(array, item) {
 			var index = this.indexOf(array, item);
@@ -71,6 +79,4 @@ var Array2 = _createObject2(
 	}]
 );
 
-Array2.prototype.forEach = function(block, context) {
-	_Array_forEach(this, block, context);
-};
+Array2.prototype.forEach = delegate(_Array_forEach);

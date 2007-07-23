@@ -50,16 +50,16 @@ var JSONFileSystem = FileSystem.extend({
 	
 	remove: function(path) {
 		// remove data from the JSON object
-		path = Array2(path.replace(/\/$/, "").split("/"));
-		var filename = path.removeAt(path.length - 1);
+		path = path.replace(/\/$/, "").split("/");
+		var filename = path.splice(path.length - 1, 1);
 		var directory = this[FETCH](path.join("/"));
 		if (directory) delete directory[filename];
 	},
 
 	write: function(path, data) {
 		// write data to the JSON object
-		path = Array2(path.split("/"));
-		var filename = path.removeAt(path.length - 1);
+		path = path.split("/");
+		var filename = path.splice(path.length - 1, 1);
 		var directory = this[FETCH](path.join("/"));
 		assert(directory, "Directory not found."); 
 		return directory[filename] = data || "";

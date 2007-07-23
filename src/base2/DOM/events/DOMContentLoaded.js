@@ -1,19 +1,16 @@
 
 // http://dean.edwards.name/weblog/2006/06/again
 
-var DOMContentLoaded = new Base({
+var DOMContentLoaded = Module.extend(null, {
 	fired: false,
 	
 	fire: function() {
 		if (!DOMContentLoaded.fired) {
 			DOMContentLoaded.fired = true;
-			// this function might be called from another event handler so we'll user a timer
+			// this function will be called from another event handler so we'll user a timer
 			//  to drop out of any current event
-			setTimeout(function() {
-				var event = DocumentEvent.createEvent(document, "Events");
-				Event.initEvent(event, "DOMContentLoaded", false, false);
-				EventTarget.dispatchEvent(document, event);
-			}, 0);
+			// use a string for old browsers
+			setTimeout("base2.DOM.EventTarget.dispatchEvent(document,'DOMContentLoaded')", 0);
 		}
 	},
 	
@@ -23,20 +20,20 @@ var DOMContentLoaded = new Base({
 			DOMContentLoaded.fired = true;
 		}, false);
 		// if all else fails fall back on window.onload
-		EventTarget.addEventListener(window, "load", DOMContentLoaded.fire, false);
+		EventTarget.addEventListener(window, "load", this.fire, false);
 	},
 
 	"@(addEventListener)": {
 		init: function() {
 			this.base();
-			addEventListener("load", DOMContentLoaded.fire, false);
+			addEventListener("load", this.fire, false);
 		}
 	},
 
 	"@(attachEvent)": {
 		init: function() {
 			this.base();
-			attachEvent("onload", DOMContentLoaded.fire);
+			attachEvent("onload", this.fire);
 		}
 	},
 
@@ -67,5 +64,3 @@ var DOMContentLoaded = new Base({
 		}
 	}
 });
-
-DOMContentLoaded.init();

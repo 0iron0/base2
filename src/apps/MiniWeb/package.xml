@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="MiniWeb" requires="BOM,JST,JSON,IO">
+<package name="MiniWeb" requires="JST,JSON,IO">
 	<include src="namespace.js"/>
 	<include src="Client.js"/>
 	<include src="History.js"/>
@@ -10,6 +10,6 @@
 	<include src="Interpreter.js"/>
 	<include src="Terminal.js"/>
 	<include src="HTMLElement.js"/>
-	<include src="../../base2/DOM/html/HTMLFormElement.js"/>
-	<include src="../../base2/DOM/html/HTMLFormItem.js"/>
+	<include src="~/base2/DOM/html/HTMLFormElement.js"/>
+	<include src="~/base2/DOM/html/HTMLFormItem.js"/>
 </package>

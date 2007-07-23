@@ -1,0 +1,14 @@
+Object
+.Array2
+.Base
+..Abstract
+...Module
+....Enumerable
+...Sorted
+..Hash
+...Collection
+....SortedCollection
+...RegGrp
+..Namespace
+.RegGrp.Item
+.String2

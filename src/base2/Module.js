@@ -1,46 +1,52 @@
 
 var Module = Abstract.extend(null, {
 	extend: function(_interface, _static) {
-		// extend a module to create a new module
+		// Extend a module to create a new module.
 		var module = this.base();
-		// inherit static methods
-		forEach (this, function(property, name) {
-			if (!Module[name] && name != "init") {
-				extend(module, name, property);
+		// Inherit module methods.
+		forEach (this, function(method, name) {
+			if (!Module[name] && typeof method == "function" && !_PRIVATE.test(name)) {
+				extend(module, name, method);
 			}
 		});
-		// implement module (instance AND static) methods
+		// Iplement module (instance AND static) methods.
 		module.implement(_interface);
-		// implement static properties and methods
+		// Implement static properties and methods.
 		extend(module, _static);
 		// Make the submarine noises Larry!
-		if (typeof module.init == "function") module.init();
+		module.init();
 		return module;
 	},
 	
 	implement: function(_interface) {
-		// implement an interface on BOTH the instance and static interfaces
+		// Implement an interface on BOTH the instance and static interfaces.
 		var module = this;
 		if (typeof _interface == "function") {
 			module.base(_interface);
-			forEach (_interface, function(property, name) {
-				if (!Module[name] && name != "init") {
-					extend(module, name, property);
-				}
-			});
+			// If we are implementing another Module then add its static methods.
+			if (Module.ancestorOf(_interface)) {
+				forEach (_interface, function(method, name) {
+					if (!Module[name] && typeof method == "function" && !_PRIVATE.test(name)) {
+						extend(module, name, method);
+					}
+				});
+			}
 		} else {
-			// create the instance interface
-			Base.forEach (extend({}, _interface), function(property, name) {
-				// instance methods call the equivalent static method
-				if (typeof property == "function") {
-					property = function() {
-						base; // force inheritance
+			// Create the instance interface.
+			_Function_forEach (Object, _interface, function(source, name) {
+				if (name.charAt(0) == "@") { // object detection
+					if (detect(name.slice(1))) {
+						forEach (source, arguments.callee);
+					}
+				} else if (!Module[name] && typeof source == "function") {
+					function _module() { // Late binding.
 						return module[name].apply(module, [this].concat(slice(arguments)));
 					};
+					_module._base = _BASE.test(source);
+					extend(module.prototype, name, _module);
 				}
-				if (!Module[name]) extend(this, name, property);
-			}, module.prototype);
-			// add the static interface
+			});
+			// Add the static interface.
 			extend(module, _interface);
 		}
 		return module;

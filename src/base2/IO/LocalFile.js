@@ -23,12 +23,12 @@ var LocalFile = Base.extend({
 		LocalFile.opened[this.base2ID] = this;
 	},
 
-	exists: IO.NOT_SUPPORTED,
-	read: IO.NOT_SUPPORTED,
-	remove: IO.NOT_SUPPORTED,
-	write: IO.NOT_SUPPORTED,
+	exists: NOT_SUPPORTED,
+	read: NOT_SUPPORTED,
+	remove: NOT_SUPPORTED,
+	write: NOT_SUPPORTED,
 
-	"@(ActiveXObject)": { // ActiveX
+	"@(ActiveXObject)": {
 		constructor: function(path, mode) {
 			this.$fso = new ActiveXObject("Scripting.FileSystemObject");
 			this.base(path, mode);
@@ -143,7 +143,7 @@ var LocalFile = Base.extend({
 		}
 	},
 
-	"@(java && navigator.javaEnabled() && !window.Components)": { // Java
+	"@(java && !global.Components)": {
 		close: function() {
 			if (this.$stream) {
 				this.$stream.close();

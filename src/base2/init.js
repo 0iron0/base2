@@ -1,15 +1,13 @@
 
-base2 = new Namespace(this, {
-	name:    "base2",
-	version: "0.9 (alpha)",
-	exports: "Base,Abstract,Module,Enumerable,Array2,Hash,Collection,RegGrp,Namespace," +
-		"K,assert,assertType,assignID,bind,copy,extend,format,forEach,instanceOf,match,rescape,slice,trim"
-});
+base2.exports = "Base,Abstract,Module,Enumerable,Array2,Hash,Collection,RegGrp,Namespace," +
+	"K,Undefined,assert,assertArity,assertType,assignID,base,bind,copy,delegate,detect,extend,forEach,format,instanceOf,match,partial,rescape,slice,trim,unbind";
 
-// add the Enumerable methods to the base2 object
-forEach (Enumerable, function(method, name) {
-	if (!Module[name]) base2.addName(name, method);
-});
+base2 = new Namespace(this, base2);
+eval(this.exports);
+
+base2.base = base;
 base2.extend = extend;
 
-eval(this.exports);
+forEach (Enumerable, function(method, name) {
+	if (!Module[name]) base2.addName(name, bind(method, Enumerable));
+});

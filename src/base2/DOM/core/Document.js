@@ -1,15 +1,21 @@
 
 var Document = Node.extend(null, {
-	bind: function(document) { //-dean
+	bind: function(document) {
 		this.base(document);
-//-		// automatically bind elements that are created using createElement()
-//-		extend(document, "createElement", function(tagName) {
-//-			return _bind(this.base(tagName));
-//-		});
+		extend(document, "createElement", function(tagName) { //-dean- test this!
+			return DOM.bind(this.base(tagName));
+		});
 		AbstractView.bind(document.defaultView);
 		return document;
+	},
+	
+	"@!(document.defaultView)": {
+		bind: function(document) {
+			document.defaultView = Traversal.getDefaultView(document);
+			return this.base(document);
+		}
 	}
 });
 
 // provide these as pass-through methods
-Document.createDelegate("createElement");
+Document.createDelegate("createElement", 2);

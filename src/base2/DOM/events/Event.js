@@ -10,8 +10,8 @@ var Event = Binding.extend({
 		},
 		
 		"@MSIE": {
-			initEvent: function(event) {
-				base(this, arguments);
+			initEvent: function(event, type, bubbles, cancelable) {
+				this.base(event, type, bubbles, cancelable);
 				event.cancelBubble = !event.bubbles;
 			},
 			

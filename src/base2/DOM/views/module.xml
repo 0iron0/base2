@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="views" publish="false" closure="false">
+<package name="DOM/views" publish="false" closure="false">
 	<include src="AbstractView.js"/>
 </package>

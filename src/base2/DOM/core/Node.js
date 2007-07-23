@@ -24,7 +24,7 @@ var Node = Binding.extend({
 		}
 	}
 }, {
-	$getSourceIndex: function(node) {
+	_getSourceIndex: function(node) {
 		// return a key suitable for comparing nodes
 		var key = 0;
 		while (node) {
@@ -35,10 +35,8 @@ var Node = Binding.extend({
 	},
 	
 	"@(element.sourceIndex)": {	
-		$getSourceIndex: function(node) {
+		_getSourceIndex: function(node) {
 			return node.sourceIndex;
 		}
 	}
 });
-
-	

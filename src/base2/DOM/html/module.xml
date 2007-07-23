@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="html" publish="false" closure="false">
+<package name="DOM/html" publish="false" closure="false">
 	<include src="HTMLDocument.js"/>
 	<include src="HTMLElement.js"/>
-	<include src="bind.js"/>
 </package>

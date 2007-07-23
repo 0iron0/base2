@@ -5,13 +5,13 @@
 
 var EventTarget = Interface.extend({
 	"@!(element.addEventListener)": {
-		addEventListener: function(target, type, listener, useCapture) {
+		addEventListener: function(target, type, listener, capture) {
 			// assign a unique id to both objects
-			var $target = assignID(target);
-			var $listener = listener.cloneID || assignID(listener);
+			var targetID = assignID(target);
+			var listenerID = listener._cloneID || assignID(listener);
 			// create a hash table of event types for the target object
-			var events = this.$all[$target];
-			if (!events) events = this.$all[$target] = {};
+			var events = EventTarget.$all[targetID];
+			if (!events) events = EventTarget.$all[targetID] = {};
 			// create a hash table of event listeners for each object/event pair
 			var listeners = events[type];
 			var current = target["on" + type];
@@ -21,53 +21,62 @@ var EventTarget = Interface.extend({
 				if (current) listeners[0] = current;
 			}
 			// store the event listener in the hash table
-			listeners[$listener] = listener;
+			listeners[listenerID] = listener;
 			if (current !== undefined) {
-				target["on" + type] = this.$dispatch;
+				target["on" + type] = delegate(EventTarget.$handleEvent);
 			}
 		},
 	
 		dispatchEvent: function(target, event) {
-			this.$dispatch.call(target, event);
+			return EventTarget.$handleEvent(target, event);
 		},
 	
-		removeEventListener: function(target, type, listener, useCapture) {
+		removeEventListener: function(target, type, listener, capture) {
 			// delete the event listener from the hash table
-			var events = this.$all[target.base2ID];
+			var events = EventTarget.$all[target.base2ID];
 			if (events && events[type]) {
 				delete events[type][listener.base2ID];
 			}
 		},
 		
 		"@MSIE.+win": {
-			addEventListener: function(target, type, listener, useCapture) {
+			addEventListener: function(target, type, listener, capture) {
 				// avoid memory leaks
 				if (typeof listener == "function") {
-					listener = bind(listener, target)
+					listener = bind(listener, target);
 				}
-				this.base(target, type, listener, useCapture);
+				this.base(target, type, listener, capture);
 			},
 			
 			dispatchEvent: function(target, event) {
 				event.target = target;
 				try {
-					target.fireEvent(event.type, event);
+					return target.fireEvent(event.type, event);
 				} catch (error) {
 					// the event type is not supported
-					this.base(target, event);
+					return this.base(target, event);
 				}
 			}
 		}
 	}
-}, {
-	// support event dispatch	
+}, {	
+	dispatchEvent: function(target, event) {
+		// a little sugar
+		if (typeof event == "string") {
+			var type = event;
+			event = DocumentEvent.createEvent(target, "Events");
+			Event.initEvent(event, type, false, false);
+		}
+		this.base(target, event);
+	},
+	
 	"@!(element.addEventListener)": {
 		$all : {},
-		
-		$dispatch: function(event) {
+	
+		$handleEvent: function(target, event) {
 			var returnValue = true;
 			// get a reference to the hash table of event listeners
-			var events = EventTarget.$all[this.base2ID];
+			var events = EventTarget.$all[target.base2ID];
 			if (events) {
 				event = Event.bind(event); // fix the event object
 				var listeners = events[event.type];
@@ -78,7 +87,7 @@ var EventTarget = Interface.extend({
 					if (listener.handleEvent) {
 						returnValue = listener.handleEvent(event);
 					} else {
-						returnValue = listener.call(this, event);
+						returnValue = listener.call(target, event);
 					}
 					if (event.returnValue === false) returnValue = false;
 					if (returnValue === false) break;
@@ -86,13 +95,14 @@ var EventTarget = Interface.extend({
 			}
 			return returnValue;
 		},
-	
-		"@MSIE": {
-			$dispatch: function(event) {
-				if (!event) {
-					event = (this.Infinity ? window : Traversal.getDefaultView(this)).event;
+		
+		"@MSIE": {	
+			$handleEvent: function(target, event) {
+				if (target.Infinity) {
+					target = target.document.parentWindow;
+					if (!event) event = target.event;
 				}
-				return this.base(event);
+				return this.base(target, event || Traversal.getDefaultView(target).event);
 			}
 		}
 	}

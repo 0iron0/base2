@@ -23,14 +23,14 @@ var Parser = Base.extend({
 		var TRIM = /^=|;+$/g;
 		var BLOCK = /<%[^%]*%([^>][^%]*%)*>/g;
 		var evaluated = this._evaluated = [];
-		var evaluate = function(match) {
-			match = match.replace(Parser.TRIM, "");
-			if (!match) return "";
-			if (match.charAt(0) == "=") {
-				match = "\necho(" + match.replace(TRIM, "") + ");";
+		var evaluate = function(block) {
+			block = block.replace(Parser.TRIM, "");
+			if (!block) return "";
+			if (block.charAt(0) == "=") {
+				block = "\necho(" + block.replace(TRIM, "") + ");";
 			}
 			var replacement = "\x01" + evaluated.length;
-			evaluated.push(match);
+			evaluated.push(block);
 			return replacement;
 		};
 		return Parser.TEXT.exec(this.escape(string).replace(BLOCK, evaluate));

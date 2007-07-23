@@ -28,11 +28,11 @@ var NodeSelector = Interface.extend({
 extend(NodeSelector.prototype, {
 	matchAll: function(selector) {
 		return extend(this.base(selector), "item", function(index) {
-			return _bind(this.base(index));
+			return DOM.bind(this.base(index));
 		});
 	},
 	
 	matchSingle: function(selector) {
-		return _bind(this.base(selector));
+		return DOM.bind(this.base(selector));
 	}
 });

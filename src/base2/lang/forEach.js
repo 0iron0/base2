@@ -1,61 +1,65 @@
 
+// http://dean.edwards.name/weblog/2006/07/enum/
+
 if (typeof StopIteration == "undefined") {
 	StopIteration = new Error("StopIteration");
 }
 
-var forEach = function(object, block, context) {
+function forEach(object, block, context, fn) {
 	if (object == null) return;
-	if (instanceOf(object, Function)) {
-		// functions are a special case
-		var fn = Function;
-	} else if (typeof object.forEach == "function" && object.forEach != arguments.callee) {
-		// the object implements a custom forEach method
-		object.forEach(block, context);
-		return;
-	} else if (typeof object.length == "number") {
-		// the object is array-like
-		forEach.Array(object, block, context);
-		return;
+	if (!fn) {
+		if (instanceOf(object, Function)) {
+			// Functions are a special case.
+			fn = Function;
+		} else if (typeof object.forEach == "function" && object.forEach != arguments.callee) {
+			// The object implements a custom forEach method.
+			object.forEach(block, context);
+			return;
+		} else if (typeof object.length == "number") {
+			// The object is array-like.
+			_Array_forEach(object, block, context);
+			return;
+		}
 	}
-	forEach.Function(fn || Object, object, block, context);
+	_Function_forEach(fn || Object, object, block, context);
 };
 
-// these are the two core enumeration methods. all other forEach methods
+// These are the two core enumeration methods. All other forEach methods
 //  eventually call one of these two.
 
-var $forEach = Legacy.forEach || new Function("a,b,c", "var i,d=a.length;for(i=0;i<d;i++)if(i in a)b.call(c,a[i],i,a)");
-forEach.Array = function(array, block, context) {
-	var i, length = array.length; // preserve
+function _Array_forEach(array, block, context) {
+	if (array == null) return;
+	var length = array.length, i; // preserve length
 	if (typeof array == "string") {
 		for (i = 0; i < length; i++) {
 			block.call(context, array.charAt(i), i, array);
 		}
-	} else if (instanceOf(array, Array)) {
-		// cater for sparse arrays
-		$forEach(array, block, context);
 	} else {
-		for (i = 0; i < length; i++) {
-			block.call(context, array[i], i, array);
+		// Cater for sparse arrays.
+		for (i = 0; i < length; i++) {		
+			// Ignore undefined values. This is contrary to standard behaviour
+			//  but it's what Internet Explorer does. We want consistent behaviour
+			//  so we do this on all platforms.
+			if (array[i] !== undefined) {
+				block.call(context, array[i], i, array);
+			}
 		}
 	}
 };
 
-forEach.Function = function(fn, object, block, context) {
-	// enumerate an object and compare its keys with fn's prototype
-	for (var key in object) {
-		if (fn.prototype[key] === undefined) {
-			block.call(context, object[key], key, object);
-		}
-	}
-};
-
-// fix enumeration for Safari (grr)
-var Temp = function(){this.i=1};
-Temp.prototype = {i:1};
-var count = 0;
-for (var property in new Temp) count++;
-if (count > 1) {
-	forEach.Function = function(fn, object, block, context) {
+function _get_Function_forEach() {
+	// http://code.google.com/p/base2/issues/detail?id=10
+	
+	// run the test for Safari's buggy enumeration
+	var Temp = function(){this.i=1};
+	Temp.prototype = {i:1};
+	var count = 0;
+	for (var i in new Temp) count++;
+	
+	return (count > 1) ? function(fn, object, block, context) {
+		///////////////////////////////////////
+		//    Safari fix (pre version 3)     //
+		///////////////////////////////////////		
 		var processed = {};
 		for (var key in object) {
 			if (!processed[key] && fn.prototype[key] === undefined) {
@@ -63,5 +67,12 @@ if (count > 1) {
 				block.call(context, object[key], key, object);
 			}
 		}
+	} : function(fn, object, block, context) {
+		// Enumerate an object and compare its keys with fn's prototype.
+		for (var key in object) {
+			if (fn.prototype[key] === undefined) {
+				block.call(context, object[key], key, object);
+			}
+		}
 	};
-}
+};

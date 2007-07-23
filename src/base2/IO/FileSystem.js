@@ -28,15 +28,15 @@ var FileSystem = Base.extend({
 		return FileSystem.resolve(path1, path2);
 	}, 
 		
-	copy: IO.NOT_SUPPORTED,
-	exists: IO.NOT_SUPPORTED,
-	isDirectory: IO.NOT_SUPPORTED,
-	isFile: IO.NOT_SUPPORTED,
-	mkdir: IO.NOT_SUPPORTED,
-	move: IO.NOT_SUPPORTED,
-	read: IO.NOT_SUPPORTED,
-	remove: IO.NOT_SUPPORTED,
-	write: IO.NOT_SUPPORTED
+	copy: NOT_SUPPORTED,
+	exists: NOT_SUPPORTED,
+	isDirectory: NOT_SUPPORTED,
+	isFile: NOT_SUPPORTED,
+	mkdir: NOT_SUPPORTED,
+	move: NOT_SUPPORTED,
+	read: NOT_SUPPORTED,
+	remove: NOT_SUPPORTED,
+	write: NOT_SUPPORTED
 }, {
 	resolve: function(path1, path2) {
 		var FILENAME = /[^\/]+$/;

@@ -23,44 +23,37 @@ new JSB.RuleList({
 				this.filename.value = "";
 				input.value = "";
 			}
-			output.value = ""; //-dean
-			this.state();
+			output.value = "";
 			input.focus();
 			message.ready();
 		},
 		
 		parse: function() {
-		//	try {
+			try {
 				if (input.value) {
 					var start = new Date;
 					var value = parser.parse(input.value);
 					var time = (new Date) - start;
 					output.value = value;
 					message.time(time);
-					this.state();
 				}
-		//	} catch (error) {
-		//		message.error("error parsing script", error);
-		//	}
+			} catch (error) {
+				message.error("error parsing script", error);
+			}
 		},
 		
 		interpret: function() {
-		//	try {
+			try {
 				if (input.value) {
 					var start = new Date;
 					var value = interpreter.interpret(input.value);
 					var time = (new Date) - start;
 					output.value = value;
 					message.time(time);
-					this.state();
 				}
-		//	} catch (error) {
-		//		message.error("error parsing script", error);
-		//	}
-		},
-		
-		state: function() {
-			saveScript.disabled = !output.value;
+			} catch (error) {
+				message.error("error interpreting script", error);
+			}
 		},
 		
 		"@!MSIE 5|opera": { // tweak the layout for MSIE5/opera
@@ -86,27 +79,6 @@ new JSB.RuleList({
 		
 		onclick: function() {
 			script.interpret();
-		}
-	},
-	"#load-script": {
-		disabled: false,
-		
-		onclick: function() {
-			uploadScript.style.display = "inline";
-			uploadScript.disabled = false;
-			this.style.display = "none";
-		}
-	},
-	"#save-script": {
-		onclick: function() {
-			script.command.value = "save";
-		}
-	},
-	"#upload-script": {
-		onchange: function() {
-			script.encoding = "multipart/form-data";
-			script.command.value = "load";
-			script.submit();
 		}
 	},
 	"#message": {
