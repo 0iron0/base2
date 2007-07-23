@@ -1,0 +1,45 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Date2 tests</title>
+	<style type="text/css" media="screen">
+.error { color: red;}
+.ok { color: green;}
+.info { color: blue;}
+	</style>
+	<!-- script src="../../lib/base2-p.js" type="text/javascript" charset="utf-8"></script -->
+	<script src="../../src/build.php?package=base2/package.xml&amp;full" type="text/javascript" charset="utf-8"></script>
+  <script src="tester.js" type="text/javascript" charset="utf-8"></script>
+  <script type="text/javascript" charset="utf-8">
+eval(base2.namespace);    
+  </script>
+  <!-- Date2 + tester -->
+  <script src="../../src/base2/JavaScript/functions.js" type="text/javascript" charset="utf-8"></script>
+  <script src="../../src/base2/JavaScript/Date2.js" type="text/javascript" charset="utf-8"></script>
+  <script src="JavaScript/Date2.js" type="text/javascript" charset="utf-8"></script>
+  <script type="text/javascript" charset="utf-8">
+var runner = new TestRunner();
+function runTests(tests) {
+  runner.runTests(tests);
+}  
+function rerunTests(tests) {
+  runner.clearLog();
+  runner.runTests(tests);
+}  
+window.onload=function() {
+  //logGroupStart("Date2");
+  runner.runTests(date2tests);
+}
+  </script>
+</head>
+<body>
+  <h1>Date2 tests</h1>
+  <p>
+    <input type="button" value="rerun" onclick="rerunTests(date2tests);" title="So you can run the debugger">
+  </p>
+  <ul id="log">
+  </ul>
+</body>
+</html>
