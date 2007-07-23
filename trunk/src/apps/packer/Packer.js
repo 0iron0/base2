@@ -1,5 +1,5 @@
 /*
-	Packer version 3.0 (beta 9) - copyright 2004-2007, Dean Edwards
+	Packer version 3.0 (final) - copyright 2004-2007, Dean Edwards
 	http://www.opensource.org/licenses/mit-license
 */
 
