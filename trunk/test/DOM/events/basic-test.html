@@ -2,13 +2,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
  <title>base2: Event Handling Test</title>
- <meta name="author" content="Dean Edwards"/>
- <!-- keeping code tidy!! -->
- <meta name="copyright" content="&copy; copyright 2007, Dean Edwards"/>
  <style type="text/css">
- #clickable {background-color: yellow; text-align: center;}
- #clickable.active {background-color: lime;}
- button {margin-right: 1em;}
+  #clickable {background-color: yellow; text-align: center;}
+  #clickable.active {background-color: lime;}
+  button {margin-right: 1em;}
  </style>
  <script src="../../../lib/base2-legacy-p.js" type="text/javascript"></script>
  <script src="../../../lib/base2-dom-fp.js" type="text/javascript"></script>
@@ -32,12 +29,12 @@
 		clickable.dispatchEvent(event);
 	};
 	function youClickedMe() {
-		alert("click");
+		alert("You clicked me!");
 	};
  </script>
 </head>
 <body>
- <h1>base2: Event Handling Test</h1>
+ <h1>Event Handling Test</h1>
  <p id="clickable">Click me.</p>
  <p><button onclick="addListener()">addEventListener()</button><!--
  --><button onclick="removeListener()">removeEventListener()</button><!--

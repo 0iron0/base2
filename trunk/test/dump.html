@@ -1,61 +1,13 @@
-<?php
-header('Expires: ' . gmdate('D, d M Y H:i:s') . ' GMT');
-header('Cache-Control: no-cache, must-revalidate, max-age=0');
-?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
  <head>
-  <title>base2: Simple Test</title>
-  <meta name="author" content="Dean Edwards"/>
-  <meta name="copyright" content="&copy; copyright 2007, Dean Edwards"/>
+  <title>base2: Dump Properties</title>
   <script src="../lib/base2-legacy-p.js" type="text/javascript"></script>
   <script src="../lib/base2-p.js" type="text/javascript"></script>
  </head>
  <body>
   <script type="text/javascript">
 	eval(base2.namespace);
-	
-	var Animal = Base.extend({
-		constructor: function(name) {
-			this.name = name;
-		},
-		
-		name: "",
-		
-		eat: function() {
-			this.say("Yum!");
-		},
-		
-		say: function(message) {
-			document.write("<p><b>" + this.name + "</b>: " + message + "</p>");
-		}
-	});
-	
-	var Cat = Animal.extend({
-		eat: function(food) {
-			if (food.constructor == Mouse) this.base();
-			else this.say("Yuk! I only eat mice.");
-		}
-	});
-	
-	var Mouse = Animal.extend();
-	
-	// test
-	var tom = new Cat("Tom");
-	var jerry = new Mouse("Jerry");
-	jerry.eat("cheese");
-	// ==> Jerry: Yum!
-	tom.eat("cheese");
-	// ==> Tom: Yuk! I only eat mice.
-	tom.eat(jerry);
-	// ==> Tom: Yum!
-  </script>
-  <hr />
-  <script type="text/javascript">
-	document.write("<p>I am <b>" + base2 + "</b>.</p>");
-  </script>
-  <hr />
-  <script type="text/javascript">
 	forEach (base2, function(value, key) {
 		document.write("<p><b>" + key + "</b>: " + value + "</p>");
 	});
