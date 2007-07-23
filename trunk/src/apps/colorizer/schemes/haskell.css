@@ -1,0 +1,33 @@
+
+/* syntax highlighitng for Haskell */
+
+/* defaults */
+
+.haskell .string,
+.haskell .char,
+.haskell .int,
+.haskell .float {
+	color: maroon;
+}
+
+.haskell .prelude {
+	color: teal;
+}
+
+.haskell .special,
+.haskell .reserved-symbol {
+	color: fuchsia;
+	font-weight: bold;
+}
+
+.haskell .symbol {
+	color: red;
+}
+
+.haskell .type {
+	color: #00008B;
+}
+
+.haskell .var {
+	color: black;
+}
