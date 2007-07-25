@@ -1,6 +1,11 @@
 // http://www.w3.org/html/wg/html5/#scrollintoview
 // initial code: http://www.xs4all.nl/~zanstra/logs/jsLog.htm
 // not fixing IE's horizontal scrolling issues at the moment.
+// bug: doesn't work on overflow+fixed-height elements; change to something like:
+//      while(element && element.offsetHeight > element.parentNode.offsetTop) {
+//        element.offsetTop = element.parentNode.offsetTop;
+//        element = element.offsetParent;
+//      }
 
 HTMLElement.implement({
   "@!(element.scrollIntoView)": {
