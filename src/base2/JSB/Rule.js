@@ -18,7 +18,13 @@ var Rule = Base.extend({
 		};
 		// execution of this method is deferred until the DOMContentLoaded event
 		this.apply = Call.defer(function() {
-			forEach (selector.exec(document), bind);
+		  try {
+		    var foundNodes = selector.exec(document);
+		  } catch (ex) {
+		    if (!instanceOf(ex, SyntaxError)) throw ex;
+		    throw new SyntaxError(format("Selector is not supported by JSB (%1)",ex.message));
+		  }
+		  forEach (foundNodes, bind);
 		});
 		this.toString = partial(String, selector);
 		this.apply();
