@@ -2,27 +2,36 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
  <head>
   <title>dean.edwards.name/something</title>
-  <meta name="author" content="Dean Edwards"/>
-  <!-- keeping code tidy!! -->
-  <meta name="copyright" content="&copy; copyright 2007, Dean Edwards"/>
   <style type="text/css">
-   div.number {-moz-binding: url(wf2-gui.xml#number);}
-   div.date {-moz-binding: url(wf2-gui.xml#date);}
-   div.week {-moz-binding: url(wf2-gui.xml#week);}
-   div.range {-moz-binding: url(wf2-gui.xml#range);}
+   iframe {width: 100%;}
+  </style>
+  <style type="text/css">
+   input[type=number] {-moz-construct-using-display: 1; -moz-binding: url(wf2-gui.xml#number);}
+   input[type=date] {-moz-construct-using-display: 1; -moz-binding: url(wf2-gui.xml#date);}
+   input[type=week] {-moz-construct-using-display: 1; -moz-binding: url(wf2-gui.xml#week);}
+   input[type=range] {-moz-construct-using-display: 1; -moz-binding: url(wf2-gui.xml#range);}
+   input[type=time] {-moz-construct-using-display: 1; -moz-binding: url(wf2-gui.xml#time);}
   </style>
   <script type="text/javascript">
    onload = function() {
-   	//var i = document.getElementsByTagName("input")[0];
-   	//alert(getComputedStyle(i, null).borderColor);
+   	console.log("HELLO!");
    };
   </script>
  </head>
  <body>
-  <p><input type="text"></p>
-  <p><div class="input number">&nbsp;</div></p>
-  <p><div class="input date">&nbsp;</div></p>
-  <p><div class="input week">&nbsp;</div></p>
-  <p><div class="input range">&nbsp;</div></p>
+  <form enctype="multipart/form-data" method="post" action="http://software.hixie.ch/utilities/cgi/test-tools/echo" target="iframe">
+   <fieldset>
+    <input type="text">
+   </fieldset>
+   <fieldset>
+    <input name="number1" type="number" min="0" max="10" value="4" step="2">
+    <input name="date1"  type="date" value="2002-07-25">
+    <input name="week1"  type="week" value="2002-W32">
+    <input name="range1" type="range" value="42">
+    <input name="time1" type="time" value="12:40">
+   </fieldset>
+   <p><button name="submit1" type="submit">Submit</button></p>
+  </form>
+  <!--iframe name="iframe" src="http://software.hixie.ch/utilities/cgi/test-tools/echo" height="320px"></iframe-->
  </body>
 </html>

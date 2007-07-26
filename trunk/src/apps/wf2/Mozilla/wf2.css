@@ -1,11 +1,7 @@
 /* Bindings for Web Forms 2,0 */
 datalist {display: none;}
-input[type=number] {-moz-binding: url(wf2.xml#input-number);}
-input[type=date] {-moz-binding: url(wf2.xml#input-date);}
-input[type=datetime] {-moz-binding: url(wf2.xml#input-datetime);}
-input[type=time] {-moz-binding: url(wf2.xml#input-time);}
-input[type=datetime-local] {-moz-binding: url(wf2.xml#input-datetime-local);}
-input[type=week] {-moz-binding: url(wf2.xml#input-week);}
-input[type=month] {-moz-binding: url(wf2.xml#input-month);}
-input[type=range] {-moz-binding: url(wf2.xml#input-range);}
-input[type=range][readonly] {-moz-binding: url(wf2.xml#input-range-readonly);}
+input[type=number] {-moz-construct-using-display: 1; -moz-binding: url(wf2-gui.xml#number);}
+input[type=date] {-moz-construct-using-display: 1; -moz-binding: url(wf2-gui.xml#date);}
+input[type=time] {-moz-construct-using-display: 1; -moz-binding: url(wf2-gui.xml#time);}
+input[type=week] {-moz-construct-using-display: 1; -moz-binding: url(wf2-gui.xml#week);}
+input[type=range] {-moz-construct-using-display: 1; -moz-binding: url(wf2-gui.xml#range);}

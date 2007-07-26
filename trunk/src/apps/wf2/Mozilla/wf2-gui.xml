@@ -5,69 +5,50 @@
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
           xmlns:xbl="http://www.mozilla.org/xbl">
 
-<binding id="control">
+<binding id="default">
  <implementation>
   <constructor>
 	if (this.hasAttribute("autofocus")) {
 		this.focus();
 	}
   </constructor>
- <implementation>
+ </implementation>
 </binding>
 
-<binding id="spinner" extends="#control">
+<binding id="number" extends="#default">
  <content>
-  <html:div style="display:none"><children /></html:div>
-  <xul:box style="height:10px">
-   <html:input style="height:10px; font-size:6px"/>
-   <xul:scrollbar orient="vertical">
-    <xul:scrollbarbutton type="decrement" style="height:5px"/>
-    <xul:scrollbarbutton type="increment" style="height:5px"/>
-   </xul:scrollbar>
-  </xul:box>
+  <html:span html:style="display:none"><children /></html:span>
+  <xul:textbox type="number" xbl:inherits="onfocus,onblur,min,max,increment=step,value,disabled,readonly,tabindex,accesskey" />
+      <!--xul:hbox class="textbox-input-box numberbox-input-box" flex="1" xbl:inherits="context" width="80">
+        <children />
+       <xul:spinbuttons anonid="buttons" xbl:inherits="disabled,hidden=hidespinbuttons"/>
+      </xul:hbox-->
  </content>
 </binding>
 
-<binding id="slider" extends="#control">
+<binding id="range" extends="#default">
  <content>
-  <children />
-  <xul:textbox type="number" />
-  <html:br />
-  <xul:scale min="1" max="10" />
-  <html:br />
-  <xul:scale min="1" max="10" orient="vertical" />
-  <html:br />
-  <xul:timepicker />
-  <html:br />
-  <xul:datepicker value="2008/08/24"/>
-  <html:br />
-  <xul:datepicker type="grid" value="2008/08/24"/>
-  <html:br />
-  <xul:datepicker type="popup" value="2008/08/24"/>
-  <html:br />
-  <xul:progressmeter min="1" max="10" />
-  <html:br />
-  <xul:progressmeter min="1" max="10" orient="vertical" />
+  <html:span html:style="display:none"><children /></html:span>
+  <xul:scale orient="horizontal" style="cursor:default"
+   xbl:inherits="onfocus,onblur,value,disabled,readonly,tabindex,accesskey,min,max" />
  </content>
 </binding>
 
-<binding id="dropdown" extends="#control">
-</binding>
-
-<binding id="date" extends="#dropdown">
+<binding id="date" extends="#default">
+ <content>
+  <html:span html:style="display:none"><children /></html:span>
+  <xul:datepicker type="popup" xbl:inherits="onfocus,onblur,value,disabled,readonly,tabindex,accesskey"/>
+ </content>
 </binding>
 
 <binding id="week" extends="#date">
 </binding>
 
-<binding id="number">
+<binding id="time" extends="#default">
  <content>
-  <html:div style="display:none"><children /></html:div>
-  <xul:textbox type="number" />
+  <html:span html:style="display:none"><children /></html:span>
+  <xul:timepicker type="number" xbl:inherits="onfocus,onblur,increment=step,value,disabled,readonly,tabindex,accesskey" />
  </content>
-</binding>
-
-<binding id="range" extends="#slider">
 </binding>
 
 </bindings>

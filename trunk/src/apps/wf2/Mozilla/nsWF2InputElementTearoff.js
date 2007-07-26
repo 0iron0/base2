@@ -1,8 +1,11 @@
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
-const nsIDOMWF2Inner               = Components.interfaces.nsIDOMWF2Inner;
-const nsIDOMWF2InputElementTearoff = Components.interfaces.nsIDOMWF2InputElementTearoff;
+const nsISupports                   = Components.interfaces.nsISupports;
+const nsIDOMWF2Inner                = Components.interfaces.nsIDOMWF2Inner;
+const nsIDOMWF2InputElementTearoff  = Components.interfaces.nsIDOMWF2InputElementTearoff;
+const nsIDOMWF2OutputElementTearoff = Components.interfaces.nsIDOMWF2OutputElementTearoff;
+const nsIDOMWF2ValidityState        = Components.interfaces.nsIDOMWF2ValidityState;
 
 const ESCAPE_CHARS     = /\//g;
 const SPACE_SEPARATED  = /[^\S]+/;
@@ -94,7 +97,7 @@ WF2FormControl.prototype = {
     if (!this._validity) {
       this._validity = new WF2ValidityState(this);
     }
-    return this._validity;
+    return this._validity.QueryInterface(nsIDOMWF2ValidityState);
   },
   
   // http://www.whatwg.org/specs/web-forms/current-work/#validationmessage
@@ -388,7 +391,7 @@ WF2InputElementInner.prototype = extend(new WF2FormControl, {
     &&  this.form
     && !this._isDisabled
     && !this.outerElement.readOnly
-    && !this._getAncestorsByTagName("DATALIST").length)) {
+    && !this._getAncestorsByTagName("DATALIST").length) {
       return true;
     }
     return false;
@@ -470,6 +473,30 @@ WF2InputElementInner.prototype = extend(new WF2FormControl, {
         return true;
     }
   },
+
+  get _isTypeButton() {
+    return BUTTON_TYPE.test(this.type);
+  },
+
+  get _isTypeDate() {
+    return DATE_TYPE.test(this.type);
+  },
+
+  get _isTypeNumber() {
+    return NUMBER_TYPE.test(this.type);
+  },
+
+  get _isTypeText() {
+    return TEXT_TYPE.test(this.type);
+  },
+
+  get _maxAsNumber() {
+    return Number(this.max);
+  },
+
+  get _minAsNumber() {
+    return Number(this.min);
+  },
   
   // http://www.whatwg.org/specs/web-forms/current-work/#no-value
   get _noValueSelected() {
@@ -499,30 +526,6 @@ WF2InputElementInner.prototype = extend(new WF2FormControl, {
     }
   },
 
-  get _isTypeButton() {
-    return BUTTON_TYPE.test(this.type);
-  },
-
-  get _isTypeDate() {
-    return DATE_TYPE.test(this.type);
-  },
-
-  get _isTypeNumber() {
-    return NUMBER_TYPE.test(this.type);
-  },
-
-  get _isTypeText() {
-    return TEXT_TYPE.test(this.type);
-  },
-
-  get _maxAsNumber() {
-    return Number(this.max);
-  },
-
-  get _minAsNumber() {
-    return Number(this.min);
-  },
-
   get _pattern() {
     var pattern = this.outerElement.getAttribute("pattern");
     return new RegExp("^(?:" + pattern.replace(ESCAPE_CHARS, "\\/") + ")$");
@@ -530,11 +533,14 @@ WF2InputElementInner.prototype = extend(new WF2FormControl, {
 
   // http://www.whatwg.org/specs/web-forms/current-work/#patternmismatch
   get _patternMismatch() {
+    if (this.type != "email" && !VALID_EMAIL.test(this.outerElement.value)) {
+      return true;
+    } else if (this.type != "url" && !VALID_URL.test(this.outerElement.value)) {
+      return true;
+    }
     if (this.outerElement.hasAttribute("pattern")
     &&  this._isTypeText
     && !this._noValueSelected
-    && (this.type != "email" || PATTERN_EMAIL.test(this.outerElement.value))
-    && (this.type != "url" || PATTERN_URL.test(this.outerElement.value))
     && !this._pattern.test(this.outerElement.value)) {
       return true;
     }
@@ -571,11 +577,11 @@ WF2InputElementInner.prototype = extend(new WF2FormControl, {
 
   // http://www.whatwg.org/specs/web-forms/current-work/#stepmismatch
   get _stepMismatch() {
-    if (this.outerElement.hasAttribute("step"))
-    &&  this.step != "any")
-    &&  this._isTypeNumber)
-    && !this._noValueSelected) {
-    && !this._typeMismatch)
+    if (this.outerElement.hasAttribute("step")
+    &&  this.step != "any"
+    &&  this._isTypeNumber
+    && !this._noValueSelected
+    && !this._typeMismatch
     && this.valueAsNumber % this._stepAsNumber != 0) {
       return true;
     }
@@ -620,7 +626,7 @@ WF2InputElementInner.prototype = extend(new WF2FormControl, {
     throw Components.results.NS_ERROR_NO_INTERFACE;
   }
 
-};
+});
 
 
 // ==========================================================================
@@ -637,6 +643,10 @@ WF2OutputElementInner.prototype = extend(new WF2FormControl, {
   classID: Components.ID("{f600e9aa-3a89-11dc-8a43-e20956d89593}"),
   contractID: "@mozilla.org/wf2/output-element-tearoff;1",
   classDescription: "WF2 Output Element Tearoff",
+
+  init: function(outer) {
+    this.outerElement = outer;
+  },
 
   /* public properties */
 
@@ -672,6 +682,15 @@ WF2OutputElementInner.prototype = extend(new WF2FormControl, {
   
   get _isValid() {
     return true;
+  },
+
+  /* XPCOM stuff */
+
+  QueryInterface: function(iid) {
+    if (iid.equals(nsIDOMWF2InputElementTearoff) || iid.equals(nsIDOMWF2Inner)) {
+      return this;
+    }
+    throw Components.results.NS_ERROR_NO_INTERFACE;
   }
 
 });
@@ -683,22 +702,35 @@ WF2OutputElementInner.prototype = extend(new WF2FormControl, {
 
 
 function WF2ValidityState(inner) {
-  return {
-    get customError()     { return inner._customError;     },
-    get patternMismatch() { return inner._patternMismatch; },
-    get rangeOverflow()   { return inner._rangeOverflow;   },
-    get rangeUnderflow()  { return inner._rangeUnderflow;  },
-    get stepMismatch()    { return inner._stepMismatch;    },
-    get tooLong()         { return inner._tooLong;         },
-    get typeMismatch()    { return inner._typeMismatch;    },
-    get valid()           { return inner._valid;           },
-    get valueMissing()    { return inner._valueMissing;    }
-  };
+  this._inner = inner;
 };
 
-WF2ValidityState.prototype = {    
+WF2ValidityState.prototype = {
+  classID: Components.ID("{dab9e716-2b23-11dc-b418-5c5056d89593}"),
+  contractID: "@mozilla.org/wf2/validity-state;1",
+  classDescription: "WF2 Validity State",
+  
+  get customError()     { return this._inner._customError;     },
+  get patternMismatch() { return this._inner._patternMismatch; },
+  get rangeOverflow()   { return this._inner._rangeOverflow;   },
+  get rangeUnderflow()  { return this._inner._rangeUnderflow;  },
+  get stepMismatch()    { return this._inner._stepMismatch;    },
+  get tooLong()         { return this._inner._tooLong;         },
+  get typeMismatch()    { return this._inner._typeMismatch;    },
+  get valid()           { return this._inner._valid;           },
+  get valueMissing()    { return this._inner._valueMissing;    },
+  
   toString: function() {
     return "[object ValidityState]";
+  },
+
+  /* XPCOM stuff */
+
+  QueryInterface: function(iid) {
+    if (iid.equals(nsIDOMWF2ValidityState) || iid.equals(nsISupports)) {
+      return this;
+    }
+    throw Components.results.NS_ERROR_NO_INTERFACE;
   }
 };
 
@@ -723,5 +755,6 @@ function extend(target, source) {
 
 var NSGetModule = XPCOMUtils.generateNSGetModule([
   WF2InputElementInner,
-  WF2OutputElementInner
+  WF2OutputElementInner,
+  WF2ValidityState
 ]);

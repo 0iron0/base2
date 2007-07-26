@@ -3,9 +3,9 @@ function NOT_SUPPORTED() {
 	throw DOMException.NOT_SUPPORTED_ERR;
 };
 
-function Empty(){};
-function True() {return true};
-function False(){return false};
+function Null()  { return null;  };
+function True()  { return true;  };
+function False() { return false; };
 
 const SECRET = {};
 
@@ -43,7 +43,7 @@ var WF2Binding = {
 		} else {
 			element.removeAttribute(name);
 		}
-		return val;
+		return !!val;
 	},
 	
 	_getParentByTagName: function(element, tagName) {
@@ -65,7 +65,9 @@ var WF2Control = WF2Binding.extend({
 	get_forms: function(element) {
 		var forms = new WF2NodeList; // create a NodeList (how?)
 		if (element.hasAttribute("form")) {
-			element.getAttribute("form").split(/\s+/).forEach(function(id) {
+			var document = element.ownerDocument;
+			var formIds = element.getAttribute("form").match(/[^\S]+/); 
+			Array.forEach(formIds, function(id) {
 				var element = document.getElementById(id);
 				if (element && element.tagName == "FORM") {
 					forms.push(element);
@@ -82,7 +84,7 @@ var WF2Control = WF2Binding.extend({
 		return forms;
 	},
 	
-	get_labels: WF2NodeList,
+	get_labels: Null,
 	
 	get_validity: function(element, error) {
 		var binding = this;
@@ -172,7 +174,7 @@ var WF2Control = WF2Binding.extend({
 	},
 	
 	get_willValidate: function(element) {
-		return element.name && this.get_form(element) && !this._isDisabled(element);
+		return !!(element.name && this.get_form(element) && !this._isDisabled(element));
 	},
 	
 	checkValidity: False,
@@ -208,18 +210,16 @@ var WF2Control = WF2Binding.extend({
 	_isDisabled: function(element) {
 		if (element.disabled) return true;
 		var fieldset = this._get_fieldset(element);
-		return fieldset && fieldset.disabled;
+		return !!(fieldset && fieldset.disabled);
 	},
 	
 	_isSuccessful: function(element) {
-		return element.name && !this._isDisabled(element);
+		return !!(element.name && !this._isDisabled(element));
 	},
 	
 	_noValueSelected: function(element) {
 		return !element.value;
-	},
-	
-	_validate: Empty
+	}
 });
 
 var WF2InputElement = WF2Control.extend({
@@ -313,7 +313,7 @@ WF2InputElement["reset"] = WF2InputElement["button"].extend();
 
 WF2InputElement["submit"] = WF2InputElement["button"].extend({
 	_isSuccessful: function(element) {
-		return element.name //&& this._isActive(element);
+		return !!element.name; //&& this._isActive(element);
 	}
 });
 
@@ -396,16 +396,6 @@ WF2InputElement["number"] = WF2DataControl.extend({
 	},
 	_get_validity_typeMismatch: function(element) {
 		return isNaN(element.value);
-	},
-	
-	_validate: function(element) {
-	/*	var value = Number(element.value);
-		var empty = this._noValueSelected(element);
-		this.validity.typeMismatch = !empty && wf2.isNaN(value);
-		this.validity.stepMismatch = !empty && false;
-		this.validity.rangeOverflow = !empty && !wf2.isNaN(this.max) && value > this.max;
-		this.validity.rangeUnderflow = !empty && !wf2.isNaN(this.min) && value < this.min;
-		this.inherit(); */
 	}
 });
 
