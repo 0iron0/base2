@@ -22,9 +22,9 @@ var Rule = Base.extend({
 		    var foundNodes = selector.exec(document);
 		  } catch (ex) {
 		    if (!instanceOf(ex, SyntaxError)) throw ex;
-		    throw new SyntaxError(format("Selector is not supported by JSB (%1)",ex.message));
+		    throw new SyntaxError(format("Selector is not supported by JSB (%1)", ex.message));
 		  }
-		  forEach (foundNodes, bind);
+	    forEach (foundNodes, bind);
 		});
 		this.toString = partial(String, selector);
 		this.apply();
