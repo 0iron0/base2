@@ -1,3 +1,4 @@
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -39,6 +40,7 @@
 
 #include "domstubs.idl"
 #include "nsIXPConnect.idl"
+#include "nsIDOMWF2ValidityState.idl"
 
 [scriptable, uuid(5b01e95f-d87d-4763-89cc-560a91a5311f)]
 interface nsIDOMWF2InputElementTearoff : nsISupports
@@ -76,9 +78,9 @@ interface nsIDOMWF2InputElementTearoff : nsISupports
     void stepUp(in long n);
     void stepDown(in long n);
     
-    readonly attribute boolean         willValidate;
-    readonly attribute nsIVariant      validity;
-    readonly attribute DOMString       validationMessage;
+    readonly attribute boolean                 willValidate;
+    readonly attribute nsIDOMWF2ValidityState  validity;
+    readonly attribute DOMString               validationMessage;
     boolean            checkValidity();
     void               setCustomValidity(in DOMString error);
     void               dispatchChange();
