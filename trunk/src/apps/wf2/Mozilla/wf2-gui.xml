@@ -8,46 +8,84 @@
 <binding id="default">
  <implementation>
   <constructor>
-	if (this.hasAttribute("autofocus")) {
-		this.focus();
-	}
+   if (this.hasAttribute("autofocus")) {
+  	this.focus();
+   }
   </constructor>
  </implementation>
 </binding>
 
-<binding id="number" extends="#default">
+<binding id="-abstract-number" extends="#default">
+ <handlers>
+  <handler event="input">
+   var extended = document.getAnonymousElementByAttribute(this, "anonid", "extended-gui");
+   this.value = extended.value;
+  </handler>
+
+  <handler event="change">
+   var extended = document.getAnonymousElementByAttribute(this, "anonid", "extended-gui");
+   if (event.originalTarget == extended) {
+     this.value = extended.value;
+   }
+  </handler>
+ </handlers>
+</binding>
+
+<binding id="number" extends="#-abstract-number">
  <content>
   <html:span html:style="display:none"><children /></html:span>
-  <xul:textbox type="number" xbl:inherits="onfocus,onblur,min,max,increment=step,value,disabled,readonly,tabindex,accesskey" />
-      <!--xul:hbox class="textbox-input-box numberbox-input-box" flex="1" xbl:inherits="context" width="80">
-        <children />
-       <xul:spinbuttons anonid="buttons" xbl:inherits="disabled,hidden=hidespinbuttons"/>
-      </xul:hbox-->
+  <xul:textbox anonid="extended-gui" type="number"
+   xbl:inherits="onfocus,onblur,min,max,increment=step,value,disabled,readonly,tabindex,accesskey" />
  </content>
 </binding>
 
-<binding id="range" extends="#default">
+<binding id="range" extends="#-abstract-number">
  <content>
   <html:span html:style="display:none"><children /></html:span>
-  <xul:scale orient="horizontal" style="cursor:default"
-   xbl:inherits="onfocus,onblur,value,disabled,readonly,tabindex,accesskey,min,max" />
+  <xul:scale anonid="extended-gui" orient="horizontal" style="cursor:default"
+   xbl:inherits="onfocus,onblur,min,max,increment=step,value,disabled,readonly,tabindex,accesskey" />
  </content>
 </binding>
 
-<binding id="date" extends="#default">
+<binding id="-abstract-datetime" extends="#default">
+ <implementation>
+ </implementation>
+ <handlers>
+  <handler event="input">
+   var extended = document.getAnonymousElementByAttribute(this, "anonid", "extended-gui");
+   this.value = extended.dateValue;
+  </handler>
+
+  <handler event="change">
+   var extended = document.getAnonymousElementByAttribute(this, "anonid", "extended-gui");
+   if (event.originalTarget == extended) {
+     this.value = extended.dateValue;
+   }
+  </handler>
+ </handlers>
+</binding>
+
+<binding id="date" extends="#-abstract-datetime">
  <content>
   <html:span html:style="display:none"><children /></html:span>
-  <xul:datepicker type="popup" xbl:inherits="onfocus,onblur,value,disabled,readonly,tabindex,accesskey"/>
+  <xul:datepicker anonid="extended-gui" type="popup"
+   xbl:inherits="onfocus,onblur,value,disabled,readonly,tabindex,accesskey"/>
  </content>
 </binding>
 
-<binding id="week" extends="#date">
-</binding>
-
-<binding id="time" extends="#default">
+<binding id="week" extends="#-abstract-datetime">
  <content>
   <html:span html:style="display:none"><children /></html:span>
-  <xul:timepicker type="number" xbl:inherits="onfocus,onblur,increment=step,value,disabled,readonly,tabindex,accesskey" />
+  <xul:datepicker anonid="extended-gui" type="popup"
+   xbl:inherits="onfocus,onblur,dateValue=valueAsDate,disabled,readonly,tabindex,accesskey"/>
+ </content>
+</binding>
+
+<binding id="time" extends="#-abstract-datetime">
+ <content>
+  <html:span html:style="display:none"><children /></html:span>
+  <xul:timepicker anonid="extended-gui" type="number"
+   xbl:inherits="onfocus,onblur,increment=step,dateValue=valueAsDate,disabled,readonly,tabindex,accesskey" />
  </content>
 </binding>
 

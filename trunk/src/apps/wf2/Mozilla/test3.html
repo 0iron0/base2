@@ -5,16 +5,10 @@
   <style type="text/css">
    iframe {width: 100%;}
   </style>
-  <style type="text/css">
-   input[type=number] {-moz-construct-using-display: 1; -moz-binding: url(wf2-gui.xml#number);}
-   input[type=date] {-moz-construct-using-display: 1; -moz-binding: url(wf2-gui.xml#date);}
-   input[type=week] {-moz-construct-using-display: 1; -moz-binding: url(wf2-gui.xml#week);}
-   input[type=range] {-moz-construct-using-display: 1; -moz-binding: url(wf2-gui.xml#range);}
-   input[type=time] {-moz-construct-using-display: 1; -moz-binding: url(wf2-gui.xml#time);}
-  </style>
+  <link rel="stylesheet" href="wf2.css" type="text/css">
   <script type="text/javascript">
    onload = function() {
-   	console.log("HELLO!");
+    alert(Date.parse("T"));
    };
   </script>
  </head>
@@ -32,6 +26,6 @@
    </fieldset>
    <p><button name="submit1" type="submit">Submit</button></p>
   </form>
-  <!--iframe name="iframe" src="http://software.hixie.ch/utilities/cgi/test-tools/echo" height="320px"></iframe-->
+  <iframe name="iframe" src="http://software.hixie.ch/utilities/cgi/test-tools/echo" height="320px"></iframe>
  </body>
 </html>
