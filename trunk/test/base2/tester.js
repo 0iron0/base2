@@ -23,7 +23,7 @@ var TestRunner = base2.Base.extend({
   log: function(text, result) {
     var li = document.createElement("LI");
     li.className = result;
-    li.appendChild(document.createTextNode(text));
+    li.innerHTML = text;
     this.getLogger().appendChild(li);
   },
   
@@ -39,21 +39,8 @@ var TestRunner = base2.Base.extend({
     }
     return this.logger;
   },
+
   logger: null
 },{
   LOGID: 'log'  
 });
-
-/*
-var logGroupStart = function(name) {
-  var li = document.createElement("LI");
-  li.appendChild(document.createElement("UL"));
-  li = getLogger().appendChild(li);
-  logger = li.firstChild;
-  log("Group: <strong>"+name+"</strong>", "info");
-};
-
-var logGroupEnd = function() {
-  logger = logger.parentNode.parentNode;
-};
-*/
