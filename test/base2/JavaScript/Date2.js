@@ -18,7 +18,6 @@ date2tests.testToISOString = function() {
 };
 date2tests.testParseLocal = function() {
   var d = new Date(Date2.parse("1972-11-14T"));
-  console.info(d.getDate()+" "+d.toString());
   assertEqual(d.getFullYear(), 1972, "yyyy-MM-dd format; year");
   assertEqual(d.getMonth(), 11-1, "yyyy-MM-dd format; month");
   assertEqual(d.getDate(), 14, "yyyy-MM-dd format; date");
