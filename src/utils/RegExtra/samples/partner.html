@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>RegExtended</title>
+	<style type="text/css" media="screen">
+#source, #output { width:100%; font-family:monospace;}
+input[type="text"], textarea { border:1px solid gray }
+/* regex color syntax */
+code.regex { font:12px/200% Monaco, monospace; color:black; background-color:white;}
+.regex .set        { color:black; background-color:#FFC080;}
+.regex .range       {text-decoration:underline; color:#CD6400; }
+.regex .set .text,
+.regex .range .text { color:black; background-color:inherit;  }
+code.regex .group { background-color:#cfffd1; }
+code.regex .group .group { background-color:#97ff9c; }
+
+/*
+.regex .group,
+.regex .choice { color:white; background-color:#00C000;}
+.regex .group .text,
+.regex .choice .text { color:black; background-color:white;}
+.regex .quantifier { color:red; background-color:white; font-weight:bold;}
+.regex .set        { color:black; background-color:#FFC080;}
+.regex .range       {text-decoration:underline; color:#CD6400; }
+.regex .set .text,
+.regex .range .text { color:black; background-color:inherit;  }
+.regex .boundary   { color:blue; background-color:#80C0FF;}
+
+.regex .text { color:black; background-color:inherit; }
+.regex .backslash { color:gray; background-color:inherit; }
+*/
+	</style>
+	<script src="../../../build.php?package=base2/package.xml&amp;full" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../build.php?package=utils/RegExtra/package.xml" type="text/javascript" charset="utf-8"></script>
+  <script src="../../langcontrib.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript" charset="utf-8">
+eval(base2.namespace);
+eval(RegExtra.namespace);
+	
+function doParse() {
+  var r = new RegExHelper($('source').value);
+  $('output').value = r.getTreeAsString();
+  $('count').value = r.getMatchSymbolCount();
+}	 
+function doSyntaxHilite() {
+  var r = new RegExHelper($('source').value);
+  var html = r.getTreeAsHTML();
+  $('regex').innerHTML = html;
+  $('xxx').innerText = html;
+}	 
+	</script>
+</head>
+<body>
+  <h1>RegExtended</h1>
+  <form onsubmit="return false;">
+    <div><input type="text" id="source" value="^(doeke)$"></div>
+    <div>
+      <input type="button" value="parse" onclick="doParse()">
+      <input type="button" value="syntax" onclick="doSyntaxHilite()">
+      Regex: <code id="regex"></code>
+      <pre id="xxx"></pre>
+    </div>
+    <div><textarea id="output" rows="18"></textarea></div>
+    <div><input type="text" id="count" readonly> match-symbols</div>
+  </form>
+</body>
+</html>
