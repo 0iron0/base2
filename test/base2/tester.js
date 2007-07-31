@@ -12,7 +12,7 @@ var TestRunner = base2.Base.extend({
         this.log(base2.format("[%1] OK", name), "ok");
         stats[0]++;
       } catch(ex) {
-        this.log(base2.format("[%1]: %2", name, ex), "error");
+        this.log(base2.format("[%1]: %2", name, ex.message || ex.description), "error");
         stats[1]++;
       }
     }
