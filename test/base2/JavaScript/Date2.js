@@ -16,12 +16,70 @@ date2tests.testToISOString = function() {
   date.setUTCMilliseconds(999);
   assertEqual(date.toISOString(), "1972-11-14T05:12:59.999Z", "yyyy-MM-ddThh:mm:ss:milZ format");
 };
+date2tests.testParseDefaultDate = function() {
+  try {
+    Date2.parse("1972-11-14T", new Date());
+    assert(false, "TypeError (defaultDate should be number) expected");
+  }
+  catch(ex) {
+    assertType(ex, TypeError, "Aug 9, 1995 testing with defaultDate: "+(ex.message||ex.description));
+  }
+  try {
+    Date2.parse("Aug 9, 1995", new Date().valueOf());
+    assert(false, "SyntaxError (too many arguments) expected");
+  }
+  catch(ex) {
+    assertType(ex, SyntaxError, "Aug 9, 1995 testing with defaultDate: "+(ex.message||ex.description));
+  }
+
+};
 date2tests.testParseLocal = function() {
   var d = new Date(Date2.parse("1972-11-14T"));
   assertEqual(d.getFullYear(), 1972, "yyyy-MM-dd format; year");
   assertEqual(d.getMonth(), 11-1, "yyyy-MM-dd format; month");
   assertEqual(d.getDate(), 14, "yyyy-MM-dd format; date");
-  //TODO: also time
+  d = new Date(Date2.parse("1972-11-14T05"));
+  assertEqual(d.getFullYear(), 1972, "yyyy-MM-ddThh format; year");
+  assertEqual(d.getMonth(), 11-1, "yyyy-MM-ddThh format; month");
+  assertEqual(d.getDate(), 14, "yyyy-MM-ddThh format; date");
+  assertEqual(d.getHours(), 5, "yyyy-MM-ddThh format; hours");
+  d = new Date(Date2.parse("1972-11-14T05:12"));
+  assertEqual(d.getFullYear(), 1972, "yyyy-MM-ddThh:mm format; year");
+  assertEqual(d.getMonth(), 11-1, "yyyy-MM-ddThh:mm format; month");
+  assertEqual(d.getDate(), 14, "yyyy-MM-ddThh:mm format; date");
+  assertEqual(d.getHours(), 5, "yyyy-MM-ddThh:mm format; hours");
+  assertEqual(d.getMinutes(), 12, "yyyy-MM-ddThh:mm format; minutes");
+  d = new Date(Date2.parse("1972-11-14T05:12:59"));
+  assertEqual(d.getFullYear(), 1972, "yyyy-MM-ddThh:mm:ss format; year");
+  assertEqual(d.getMonth(), 11-1, "yyyy-MM-ddThh:mm:ss format; month");
+  assertEqual(d.getDate(), 14, "yyyy-MM-ddThh:mm:ss format; date");
+  assertEqual(d.getHours(), 5, "yyyy-MM-ddThh:mm:ss format; hours");
+  assertEqual(d.getMinutes(), 12, "yyyy-MM-ddThh:mm:ss format; minutes");
+  assertEqual(d.getSeconds(), 59, "yyyy-MM-ddThh:mm:ss format; seconds");
+  d = new Date(Date2.parse("1972-11-14T05:12:59.012"));
+  assertEqual(d.getFullYear(), 1972, "yyyy-MM-ddThh:mm:ss:mil format; year");
+  assertEqual(d.getMonth(), 11-1, "yyyy-MM-ddThh:mm:ss:mil format; month");
+  assertEqual(d.getDate(), 14, "yyyy-MM-ddThh:mm:ss:mil format; date");
+  assertEqual(d.getHours(), 5, "yyyy-MM-ddThh:mm:ss:mil format; hours");
+  assertEqual(d.getMinutes(), 12, "yyyy-MM-ddThh:mm:ss:mil format; minutes");
+  assertEqual(d.getSeconds(), 59, "yyyy-MM-ddThh:mm:ss:mil format; seconds");
+  assertEqual(d.getMilliseconds(), 12, "yyyy-MM-ddThh:mm:ss:mil format; milliseconds");
+  d = new Date(Date2.parse("1972-11-14T05:12:59.0123"));
+  assertEqual(d.getFullYear(), 1972, "yyyy-MM-ddThh:mm:ss:mil format; year (no overflow)");
+  assertEqual(d.getMonth(), 11-1, "yyyy-MM-ddThh:mm:ss:mil format; month (no overflow)");
+  assertEqual(d.getDate(), 14, "yyyy-MM-ddThh:mm:ss:mil format; date (no overflow)");
+  assertEqual(d.getHours(), 5, "yyyy-MM-ddThh:mm:ss:mil format; hours (no overflow)");
+  assertEqual(d.getMinutes(), 12, "yyyy-MM-ddThh:mm:ss:mil format; minutes (no overflow)");
+  assertEqual(d.getSeconds(), 59, "yyyy-MM-ddThh:mm:ss:mil format; seconds (no overflow)");
+  assertEqual(d.getMilliseconds(), 12, "yyyy-MM-ddThh:mm:ss:mil format; milliseconds (no overflow)");
+  d = new Date(Date2.parse("1972-11-14T05:12:59.0127"));
+  assertEqual(d.getFullYear(), 1972, "yyyy-MM-ddThh:mm:ss:mil format; year (overflow)");
+  assertEqual(d.getMonth(), 11-1, "yyyy-MM-ddThh:mm:ss:mil format; month (overflow)");
+  assertEqual(d.getDate(), 14, "yyyy-MM-ddThh:mm:ss:mil format; date (overflow)");
+  assertEqual(d.getHours(), 5, "yyyy-MM-ddThh:mm:ss:mil format; hours (overflow)");
+  assertEqual(d.getMinutes(), 12, "yyyy-MM-ddThh:mm:ss:mil format; minutes (overflow)");
+  assertEqual(d.getSeconds(), 59, "yyyy-MM-ddThh:mm:ss:mil format; seconds (overflow)");
+  assertEqual(d.getMilliseconds(), 13, "yyyy-MM-ddThh:mm:ss:mil format; milliseconds (overflow)");
 };
 date2tests.testParseUtc = function() {
   d = new Date(Date2.parse("1972-11-14T05Z"));
@@ -82,16 +140,9 @@ date2tests.testParseNative = function() { // Test delegate parsing to Date.parse
   assertEqual(d.getFullYear(), 1995, "Mmm dd, yyyy format; year");
   assertEqual(d.getMonth(), 8-1, "Mmm dd, yyyydd format; month");
   assertEqual(d.getDate(), 9, "Mmm dd, yyyy format; date");
-  try {
-    Date2.parse("Aug 9, 1995", new Date());
-    assert(false, "SyntaxError (too many arguments) expected");
-  }
-  catch(ex) {
-    assertType(ex, SyntaxError, "Aug 9, 1995 testing with defaultDate: "+ex.message);
-  }
 };
 date2tests.testParseDefaultDate = function() {
-  var defaultDate = new Date(1972, 11-1, 14, 1, 2, 3, 4);
+  var defaultDate = new Date(1972, 11-1, 14, 1, 2, 3, 4).valueOf();
   var d = new Date(Date2.parse("T", defaultDate));
   assertEqual(d.getFullYear(), 1972, "T format with default date; year");
   assertEqual(d.getMonth(), 11-1, "T format with default date; month");
