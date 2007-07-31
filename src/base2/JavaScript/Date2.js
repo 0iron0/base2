@@ -45,13 +45,16 @@ Date2.now = function() {
 };
 
 Date2.parse = function(string, defaultDate) {
+	if (arguments.length > 1) {
+		assertType(defaultDate, "number", "defaultDate should be of type 'number'.")
+	}
 	// parse ISO date
 	var match = String(string).match(_PATTERN);
 	if (match) {
   	if (match[_PARTS.Month]) match[_PARTS.Month]--; // js months start at zero
   	// round milliseconds on 3 digits
   	if (match[_OTHER_PARTS.Hectomicroseconds] >= 5) match[_PARTS.Milliseconds]++;
-  	var date = new Date(defaultDate ? defaultDate.valueOf() : 0);
+  	var date = new Date(defaultDate || 0);
   	var propertyInfix = match[_OTHER_PARTS.TzUtc] || match[_OTHER_PARTS.Hours] ? "UTC" : "";
   	for (var part in _PARTS) {
   		var value = match[_PARTS[part]];
