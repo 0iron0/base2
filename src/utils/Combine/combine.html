@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>base2combine</title>
+	<script src="http://base2.googlecode.com/svn/trunk/lib/base2-jsb-fp.js" type="text/javascript" charset="utf-8"></script>
+	<script src="http://base2.googlecode.com/svn/trunk/lib/base2-io-p.js" type="text/javascript" charset="utf-8"></script>
+  <script src="bindings.js" type="text/javascript" charset="utf-8"></script>
+  <link rel="stylesheet" href="combine.css" type="text/css" media="screen" charset="utf-8">
+</head>
+<body>
+  <h1>base2combine</h1>
+  <form onsubmit="return false;" id="form">
+    <div>
+      <label for="lib_dir">Lib directory</label>
+      <input type="text" id="lib_dir" name="lib_dir" value="../../../lib/src" readonly disabled style="width:400px">
+    </div>
+    <fieldset class="blok" style="width:200px">
+      <legend>include libs</legend>
+      <div id="libs">
+      </div>
+    </fieldset>
+    <fieldset class="blok" style="width:400px">
+      <legend>pack</legend>
+      <div>
+        <input type="checkbox" id="pack" disabled><label for="pack">Minify</label> (remove comments and whitespace)
+      </div>
+      <blockquote>
+        <div>
+          <input type="checkbox" id="base62" disabled><label for="base62">Base62 encode</label>
+        </div>
+        <div>
+          <input type="checkbox" id="shrink" disabled><label for="shrink">Shrink variables</label>
+        </div>
+        <div>
+          <input type="checkbox" id="privates" disabled><label for="privates">Encode privates</label>
+        </div>
+      </blockquote>
+    </fieldset>
+    <div class="vrot">
+      <label for="output_file">Output file</label>
+      <input type="text" id="output_file" name="output_file" value="combined.js" disabled>
+      <input type="button" id="do_combine" value="combine" disabled>
+    </div>
+  </form>
+</body>
+</html>
