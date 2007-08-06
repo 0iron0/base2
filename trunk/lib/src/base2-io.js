@@ -101,7 +101,7 @@ var FileSystem = Base.extend({
 }, {
 	resolve: function(path1, path2) {
 		var FILENAME = /[^\/]+$/;
-		var RELATIVE = /\/[^\/]+\/\.\./g;
+		var RELATIVE = /\/[^\/]+\/\.\./;
 		// stringify
 		path1 = String(path1 || "");
 		path2 = String(path2 || "");
