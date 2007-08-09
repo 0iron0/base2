@@ -1,3 +1,4 @@
+
 var RegExHelper = Base.extend({
   constructor: function(source, flags) {
     var parser = new RegExpParser();

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="DOM/selectors-api/xpath" publish="false" closure="false">
-	<include src="XPathParser.js"/>
-	<include src="Selector.js"/>
+  <include src="XPathParser.js"/>
+  <include src="Selector.js"/>
 </package>

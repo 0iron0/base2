@@ -1,3 +1,4 @@
+
 var NotImplementedYet = new Error("Not implemented yet");
 //TODO: rework to ErrorNode
 var parseError = function(position, string) {

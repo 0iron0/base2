@@ -1,3 +1,4 @@
+
 function ahref(url,innerHtml,cls) { 
   return format('<a href="%1" class="%2">%3</a>',url,cls,innerHtml); 
 }
@@ -78,41 +79,41 @@ var GWInlineParser=RegGrp.extend({
     var link=this.wikiLinkResolve(word);
     var text=title||word;
     if(this.wikiLinkExists(word)) {
-  	  return ahref(link, text, GWInlineParser.CLS_WIKI);
-  	}
-  	else {
-  	  return text+ahref(link, "?", GWInlineParser.CLS_WIKI);
-	  }
+      return ahref(link, text, GWInlineParser.CLS_WIKI);
+    }
+    else {
+      return text+ahref(link, "?", GWInlineParser.CLS_WIKI);
+    }
   },
   //matches an URL and converts to an ahref or an image
   urlLink: function($,url) {
-  	if(isImagePath(arguments,1)) return image(url)+" ";
-  	return ahref(url,url,GWInlineParser.CLS_EXTERN)+" ";
+    if(isImagePath(arguments,1)) return image(url)+" ";
+    return ahref(url,url,GWInlineParser.CLS_EXTERN)+" ";
   },
   //[inner]
   blockSyntax: function($,inner) {
-  	var i=inner.indexOf(" "), left, right;
-  	if(i==-1) left=right=inner;
-  	else {
-  		left=inner.slice(0,i);
-  		right=inner.slice(i+1);
-  	}
-  	//[left right]
-  	var a=RXURI.exec(left);
-  	if(a) { //link or image
-  		if(isImagePath(a)) { //left is image
-  			if(left==right) return image(left);
-  			return ahref(left, right, GWInlineParser.CLS_EXTERN);
-  		}
-  		else { //left is link
-  			a=RXURI.exec(right);
-  			if(a&&isImagePath(a)) return ahref(left, image(right), GWInlineParser.CLS_EXTERN);
-  			return ahref(left, right, GWInlineParser.CLS_EXTERN);
-  		}
-  	}
-  	else { //wiki word
-  		return this.wikiLink(left, right);
-  	}
+    var i=inner.indexOf(" "), left, right;
+    if(i==-1) left=right=inner;
+    else {
+      left=inner.slice(0,i);
+      right=inner.slice(i+1);
+    }
+    //[left right]
+    var a=RXURI.exec(left);
+    if(a) { //link or image
+      if(isImagePath(a)) { //left is image
+        if(left==right) return image(left);
+        return ahref(left, right, GWInlineParser.CLS_EXTERN);
+      }
+      else { //left is link
+        a=RXURI.exec(right);
+        if(a&&isImagePath(a)) return ahref(left, image(right), GWInlineParser.CLS_EXTERN);
+        return ahref(left, right, GWInlineParser.CLS_EXTERN);
+      }
+    }
+    else { //wiki word
+      return this.wikiLink(left, right);
+    }
   }
 }, { //static classnames for links (a[href])
   CLS_WIKI:"wiki",

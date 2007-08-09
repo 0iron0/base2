@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="DOM/style" publish="false" closure="false">
-	<include src="ViewCSS.js"/>
+  <include src="ViewCSS.js"/>
 </package>

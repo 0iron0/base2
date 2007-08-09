@@ -1,3 +1,4 @@
+
 var State=Base.extend({
   constructor: function(name,entryAction,exitAction,context) {
     this.name=name;

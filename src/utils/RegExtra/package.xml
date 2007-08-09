@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="XML">
-	<include src="namespace.js"/>
-	<include src="Tree/TreeNode.js"/>
-	<include src="Tree/BoundaryNode.js"/>
-	<include src="Tree/ChoiceNode.js"/>
-	<include src="Tree/GroupNode.js"/>
-	<include src="Tree/QuantifierNode.js"/>
-	<include src="Tree/SetNode.js"/>
-	<include src="Tree/RangeNode.js"/>
-	<include src="Tree/Tree.js"/>
-	<include src="RegExpParser.js"/>
-	<include src="RegExHelper.js"/>
+  <include src="namespace.js"/>
+  <include src="Tree/TreeNode.js"/>
+  <include src="Tree/BoundaryNode.js"/>
+  <include src="Tree/ChoiceNode.js"/>
+  <include src="Tree/GroupNode.js"/>
+  <include src="Tree/QuantifierNode.js"/>
+  <include src="Tree/SetNode.js"/>
+  <include src="Tree/RangeNode.js"/>
+  <include src="Tree/Tree.js"/>
+  <include src="RegExpParser.js"/>
+  <include src="RegExHelper.js"/>
 </package>

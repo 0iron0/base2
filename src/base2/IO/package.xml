@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="IO" requires="JSON">
-	<include src="namespace.js"/>
-	<include src="../utils/XPCOM.js"/>
-	<include src="FileSystem.js"/>
-	<include src="Directory.js"/>
-	<include src="LocalFileSystem.js"/>
-	<include src="LocalDirectory.js"/>
-	<include src="LocalFile.js"/>
-	<include src="JSONFileSystem.js"/>
-	<include src="JSONDirectory.js"/>
+  <include src="namespace.js"/>
+  <include src="../utils/XPCOM.js"/>
+  <include src="FileSystem.js"/>
+  <include src="Directory.js"/>
+  <include src="LocalFileSystem.js"/>
+  <include src="LocalDirectory.js"/>
+  <include src="LocalFile.js"/>
+  <include src="JSONFileSystem.js"/>
+  <include src="JSONDirectory.js"/>
 </package>

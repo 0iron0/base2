@@ -4,91 +4,91 @@
 /* defaults */
 
 .highlight span {
-	display: inline !important;
+  display: inline !important;
 }
 
 .highlight .comment {
-	color: green;
+  color: green;
 }
 
 .highlight .conditional {
-	background: #FFFFA0; /* pale yellow */
+  background: #FFFFA0; /* pale yellow */
 }
 
 .highlight .string,
 .highlight .regexp,
 .highlight .number {
-	color: darkred;
+  color: darkred;
 }
 
 .highlight .keyword {
-	color: blue;
+  color: blue;
 }
 
 .highlight .special {
-	color: red;
+  color: red;
 }
 
 .highlight .tag {
-	color: purple;
-	font-weight: bold;
+  color: purple;
+  font-weight: bold;
 }
 
 .highlight .attribute {
-	font-weight: bold;
+  font-weight: bold;
 }
 
 .highlight .attribute.value {
-	color: blue;
-	font-weight: normal;
+  color: blue;
+  font-weight: normal;
 }
 
 .highlight .entity {
-	color: orangered;
+  color: orangered;
 }
 
 .highlight .processing-instruction {
-	color: orchid;
-	font-style: italic;
+  color: orchid;
+  font-style: italic;
 }
 
 .highlight .cdata {
-	/* no styling */
+  /* no styling */
 }
 
 /* (X)HTML */
 
 .html .doctype {
-	color: steelblue;
-	font-style: italic;
+  color: steelblue;
+  font-style: italic;
 }
 
 /* CSS */
 
 .css .comment {
-	color: gray;
+  color: gray;
 }
 
 .css .selector {
-	color: darkred;
-	font-weight: bold;
+  color: darkred;
+  font-weight: bold;
 }
 
 .css .at_rule {
-	color: orangered;
+  color: orangered;
 }
 
 .css .property {
-	font-weight: bold;
+  font-weight: bold;
 }
 
 .css .property.value {
-	color: blue;
-	font-weight: normal;
+  color: blue;
+  font-weight: normal;
 }
 
 /* JavaScript */
 
 .javascript .global {
-	color: teal;
+  color: teal;
 }

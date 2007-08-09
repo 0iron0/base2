@@ -1,3 +1,4 @@
+
 var StateTransition=Base.extend({
   constructor: function(pattern, replacement, nextState, currentState, context) {
     this.pattern=instanceOf(pattern,RegExp)?pattern:new RegExp(pattern,"");

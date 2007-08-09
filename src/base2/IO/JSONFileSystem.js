@@ -1,67 +1,67 @@
 
-var FETCH = "#" + Number(new Date);
+var _FETCH = "#fetch";
 
 var JSONFileSystem = FileSystem.extend({
-	constructor: function(object) {
-		this[FETCH] = function(path) {
-			// fetch data from the JSON object, regardless of type
-			path = this.makepath(path);
-			return reduce(path.split("/"), function(file, name) {
-				if (file && name) file = file[name];
-				return file;
-			}, object);
-		};
-	},
-	
-	exists: function(path) {
-		return this[FETCH](path) !== undefined;
-	},
-	
-	isFile: function(path) {
-		return typeof this[FETCH](path) == "string";
-	},
-	
-	isDirectory: function(path) {
-		return typeof this[FETCH](path) == "object";
-	},
+  constructor: function(data) {
+    this[_FETCH] = function(path) {
+      // fetch data from the JSON object, regardless of type
+      path = this.makepath(path);
+      return reduce(path.split("/"), function(file, name) {
+        if (file && name) file = file[name];
+        return file;
+      }, data);
+    };
+  },
+  
+  exists: function(path) {
+    return this[_FETCH](path) !== undefined;
+  },
+  
+  isFile: function(path) {
+    return typeof this[_FETCH](path) == "string";
+  },
+  
+  isDirectory: function(path) {
+    return typeof this[_FETCH](path) == "object";
+  },
 
-	copy: function(path1, path2) {
-		var data = this[FETCH](path1);
-		this.write(path2, JSON.copy(data));
-	},
-	
-	mkdir: function(path) {
-		// create a directory
-		this.write(path, {});
-	},
-	
-	move: function(path1, path2) {
-		var data = this[FETCH](path1);
-		this.write(path2, data);
-		this.remove(path1);
-	},
+  copy: function(path1, path2) {
+    var data = this[_FETCH](path1);
+    this.write(path2, JSON.copy(data));
+  },
+  
+  mkdir: function(path) {
+    // create a directory
+    this.write(path, {});
+  },
+  
+  move: function(path1, path2) {
+    var data = this[_FETCH](path1);
+    this.write(path2, data);
+    this.remove(path1);
+  },
 
-	read: function(path) {		
-		// read text from the JSON object
-		var file = this[FETCH](path);
-		return typeof file == "object" ?
-			new JSONDirectory(file) : file || ""; // make read safe
-	},
-	
-	remove: function(path) {
-		// remove data from the JSON object
-		path = path.replace(/\/$/, "").split("/");
-		var filename = path.splice(path.length - 1, 1);
-		var directory = this[FETCH](path.join("/"));
-		if (directory) delete directory[filename];
-	},
+  read: function(path) {    
+    // read text from the JSON object
+    var file = this[_FETCH](path);
+    return typeof file == "object" ?
+      new JSONDirectory(file) : file || ""; // make read safe
+  },
+  
+  remove: function(path) {
+    // remove data from the JSON object
+    path = path.replace(/\/$/, "").split("/");
+    var filename = path.splice(path.length - 1, 1);
+    var directory = this[_FETCH](path.join("/"));
+    if (directory) delete directory[filename];
+  },
 
-	write: function(path, data) {
-		// write data to the JSON object
-		path = path.split("/");
-		var filename = path.splice(path.length - 1, 1);
-		var directory = this[FETCH](path.join("/"));
-		assert(directory, "Directory not found."); 
-		return directory[filename] = data || "";
-	}
+  write: function(path, data) {
+    // write data to the JSON object
+    path = path.split("/");
+    var filename = path.splice(path.length - 1, 1);
+    var directory = this[_FETCH](path.join("/"));
+    assert(directory, "Directory not found."); 
+    return directory[filename] = data || "";
+  }
 });

@@ -1,3 +1,4 @@
+
 var RangeNode = TreeNode.extend({
   constructor: function(token, data) {
     this.base.apply(this, arguments);

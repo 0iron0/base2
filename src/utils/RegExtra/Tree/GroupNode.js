@@ -1,3 +1,4 @@
+
 var GroupNode = TreeNode.extend({
   constructor: function(token, data) {
     this.base.apply(this, arguments);
