@@ -1,72 +1,68 @@
 
 var Enumerable = Module.extend({
-	every: function(object, test, context) {
-		var result = true;
-		try {
-			this.forEach (object, function(value, key) {
-				result = test.call(context, value, key, object);
-				if (!result) throw StopIteration;
-			});
-		} catch (error) {
-			if (error != StopIteration) throw error;
-		}
-		return !!result; // cast to boolean
-	},
-	
-	filter: function(object, test, context) {
-		var i = 0;
-		return this.reduce(object, function(result, value, key) {
-			if (test.call(context, value, key, object)) {
-				result[i++] = value;
-			}
-			return result;
-		}, []);
-	},
-	
-	invoke: function(object, method) {
-		// Apply a method to each item in the enumerated object.
-		var args = slice(arguments, 2);
-		return this.map(object, (typeof method == "function") ? function(item) {
-			if (item != null) return method.apply(item, args);
-		} : function(item) {
-			if (item != null) return item[method].apply(item, args);
-		});
-	},
-	
-	map: function(object, block, context) {
-		var result = [], i = 0;
-		this.forEach (object, function(value, key) {
-			result[i++] = block.call(context, value, key, object);
-		});
-		return result;
-	},
-	
-	pluck: function(object, key) {
-		return this.map(object, function(item) {
-			if (item != null) return item[key];
-		});
-	},
-	
-	reduce: function(object, block, result, context) {
-		//-dean: test Mozilla's implementation with undefined values
-		var initialised = arguments.length > 2;
-		this.forEach (object, function(value, key) {
-			if (initialised) { 
-				result = block.call(context, result, value, key, object);
-			} else { 
-				result = value;
-				initialised = true;
-			}
-		});
-		return result;
-	},
-	
-	some: function(object, test, context) {
-		//return !this.every(object, not(test), context);
-		return !this.every(object, function(value, key) {
-			return !test.call(context, value, key, object);
-		});
-	}
+  every: function(object, test, context) {
+    var result = true;
+    try {
+      this.forEach (object, function(value, key) {
+        result = test.call(context, value, key, object);
+        if (!result) throw StopIteration;
+      });
+    } catch (error) {
+      if (error != StopIteration) throw error;
+    }
+    return !!result; // cast to boolean
+  },
+  
+  filter: function(object, test, context) {
+    var i = 0;
+    return this.reduce(object, function(result, value, key) {
+      if (test.call(context, value, key, object)) {
+        result[i++] = value;
+      }
+      return result;
+    }, []);
+  },
+  
+  invoke: function(object, method) {
+    // Apply a method to each item in the enumerated object.
+    var args = slice(arguments, 2);
+    return this.map(object, (typeof method == "function") ? function(item) {
+      if (item != null) return method.apply(item, args);
+    } : function(item) {
+      if (item != null) return item[method].apply(item, args);
+    });
+  },
+  
+  map: function(object, block, context) {
+    var result = [], i = 0;
+    this.forEach (object, function(value, key) {
+      result[i++] = block.call(context, value, key, object);
+    });
+    return result;
+  },
+  
+  pluck: function(object, key) {
+    return this.map(object, function(item) {
+      if (item != null) return item[key];
+    });
+  },
+  
+  reduce: function(object, block, result, context) {
+    var initialised = arguments.length > 2;
+    this.forEach (object, function(value, key) {
+      if (initialised) { 
+        result = block.call(context, result, value, key, object);
+      } else { 
+        result = value;
+        initialised = true;
+      }
+    });
+    return result;
+  },
+  
+  some: function(object, test, context) {
+    return !this.every(object, not(test), context);
+  }
 }, {
-	forEach: forEach
+  forEach: forEach
 });

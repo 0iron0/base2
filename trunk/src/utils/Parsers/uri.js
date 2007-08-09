@@ -1,3 +1,4 @@
+
 //--| according to: http://gbiv.com/protocols/uri/rfc/rfc3986.html
 //
 //not implemented:
@@ -20,12 +21,12 @@ charSets._OCHAR=      charSets._UNRESERVED+charSets._SUBDELIMS;
 charSets._PCHAR=      charSets._OCHAR+":@";
 //character set macro. 
 var csMacro=function(s) { 
-	return s.replace(/\{([^}]+)\}/g, function($,name) {
-		return uriParts[name]; // "{NAME}" -> uriParts.NAME
-	}).replace(/([OP])CHAR<([^>]*)>/g,function($,ch,args) {
-		// "OCHAR<xyz>" -> charSets._OCHAR + "xyz" + pct-encoded
-		return "(?:["+charSets["_"+ch+"CHAR"]+args+"]|%[0-9a-zA-Z]{2,2})";
-	});
+  return s.replace(/\{([^}]+)\}/g, function($,name) {
+    return uriParts[name]; // "{NAME}" -> uriParts.NAME
+  }).replace(/([OP])CHAR<([^>]*)>/g,function($,ch,args) {
+    // "OCHAR<xyz>" -> charSets._OCHAR + "xyz" + pct-encoded
+    return "(?:["+charSets["_"+ch+"CHAR"]+args+"]|%[0-9a-zA-Z]{2,2})";
+  });
 };
 //All identifyable parts of an uri we might want to know (items starting with _ have no submatches)
 //TODO: think of semantics vs grammar (the ip-address "400.10.0.1" will get matched as reg_name
@@ -49,7 +50,7 @@ uriParts.PATH2=          csMacro("({_PATH_ABSOLUTE}|{_PATH_ROOTLESS})"); //|{_PA
 uriParts.QUERY=          csMacro("(?:\\?(PCHAR</?>+))?");
 uriParts.FRAGMENT=       csMacro("(?:#(PCHAR</?>+))?");
 //--| Now glueing it all together
-uriParts._AUTHORITY=	 csMacro("{USERINFO}{HOST}{PORT}");
+uriParts._AUTHORITY=   csMacro("{USERINFO}{HOST}{PORT}");
 uriParts._HIER_PART=     csMacro("(?://{_AUTHORITY}{PATH1}|{PATH2})");
 var URIRX=               csMacro("{SCHEME}{_HIER_PART}{QUERY}{FRAGMENT}");
 var RXURI=               new RegExp(URIRX);

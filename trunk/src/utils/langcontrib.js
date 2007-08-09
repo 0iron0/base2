@@ -1,3 +1,4 @@
+
 function $(id) {
   var res=document.getElementById(id);
   if(res==null) console.log("Element with id '%s' is not found",id);
@@ -62,8 +63,8 @@ function toDutchDate(dt,format,bRelative,bCapital,sFirstWord)
 }
 function Date_valueInDays(dt)
 //--#Results in #days since 1970; handy to compares dates without time
-{	
-	return parseInt( new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() ).valueOf() / (24*60*60*1000), 10);
+{  
+  return parseInt( new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() ).valueOf() / (24*60*60*1000), 10);
 }
 
 function fix(n)

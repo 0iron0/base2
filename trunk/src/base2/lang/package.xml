@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="lang" closure="false" publish="false">
-	<include src="extend.js"/>
-	<include src="forEach.js"/>
-	<include src="instanceOf.js"/>
-	<include src="assert.js"/>
-	<include src="core.js"/>
-	<include src="functional.js"/>
+  <include src="extend.js"/>
+  <include src="forEach.js"/>
+  <include src="instanceOf.js"/>
+  <include src="assert.js"/>
+  <include src="core.js"/>
+  <include src="functional.js"/>
 </package>

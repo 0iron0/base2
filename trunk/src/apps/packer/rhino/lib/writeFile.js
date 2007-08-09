@@ -12,8 +12,8 @@ function read( file ) {
 	var line = null;
 	var buffer = new java.lang.StringBuffer(jq.length());
 	while( (line = reader.readLine()) != null) {
-		buffer.append(line);
-		buffer.append("\n");
-	}
+  	buffer.append(line);
+  	buffer.append("\n");
+  }
 	return buffer.toString();
 }

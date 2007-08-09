@@ -1,3 +1,4 @@
+
 /*
  * base2help.js - (c) 2007 Doeke Zanstra
  *

@@ -1,3 +1,4 @@
+
 var Tree = TreeNode.extend({
   constructor: function() {
     this.base("_RegExp2_"); //sentinel

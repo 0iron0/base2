@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="DOM/core" publish="false" closure="false">
-	<include src="Node.js"/>
-	<include src="Document.js"/>
-	<include src="Element.js"/>
+  <include src="Node.js"/>
+  <include src="Document.js"/>
+  <include src="Element.js"/>
 </package>

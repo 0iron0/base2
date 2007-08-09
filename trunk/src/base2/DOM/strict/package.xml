@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="DOM/strict" publish="false">
-	<include src="namespace.js"/>
-	<include src="DocumentEvent.js"/>
-	<include src="EventTarget.js"/>
-	<include src="NodeSelector.js"/>
+  <include src="namespace.js"/>
+  <include src="DocumentEvent.js"/>
+  <include src="EventTarget.js"/>
+  <include src="NodeSelector.js"/>
 </package>

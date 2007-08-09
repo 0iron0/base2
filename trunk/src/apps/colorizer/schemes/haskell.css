@@ -7,27 +7,27 @@
 .haskell .char,
 .haskell .int,
 .haskell .float {
-	color: maroon;
+  color: maroon;
 }
 
 .haskell .prelude {
-	color: teal;
+  color: teal;
 }
 
 .haskell .special,
 .haskell .reserved-symbol {
-	color: fuchsia;
-	font-weight: bold;
+  color: fuchsia;
+  font-weight: bold;
 }
 
 .haskell .symbol {
-	color: red;
+  color: red;
 }
 
 .haskell .type {
-	color: #00008B;
+  color: #00008B;
 }
 
 .haskell .var {
-	color: black;
+  color: black;
 }

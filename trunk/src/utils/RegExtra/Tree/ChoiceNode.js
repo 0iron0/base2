@@ -1,3 +1,4 @@
+
 var ChoiceNode = TreeNode.extend({
   constructor: function(token, pos) {
     this.base.apply(this, arguments);

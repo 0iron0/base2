@@ -1,3 +1,4 @@
+
 //#requires Base2
 //#uses StateTransition, State
 
@@ -35,11 +36,11 @@ var FsmParser=Base.extend({
   setAllAsAcceptState: function() {
     this.states.forEach(function(state){state.setAcceptState();});
   },
-	addTransitions: function(pattern, replacement, transitions) {
-	  forEach(transitions, function(transition) {
-	    transition[0].addTransition(pattern, replacement, transition[1]);
-	  });
-	},
+  addTransitions: function(pattern, replacement, transitions) {
+    forEach(transitions, function(transition) {
+      transition[0].addTransition(pattern, replacement, transition[1]);
+    });
+  },
   getState: function(stateName) {
     if(this.states.exists(stateName)) {
       return this.states.fetch(stateName);
