@@ -43,3 +43,10 @@ var Element = Node.extend({
 });
 
 Element.createDelegate("setAttribute", 3);
+
+// remove the base2ID for clones
+extend(Element.prototype, "cloneNode", function(deep) {
+  var clone = this.base(deep || false);
+  clone.base2ID = undefined;
+  return clone;
+});

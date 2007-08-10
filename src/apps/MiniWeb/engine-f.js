@@ -1,4 +1,4 @@
-// timestamp: Thu, 09 Aug 2007 07:20:36
+// timestamp: Fri, 10 Aug 2007 19:40:56
 /*
   base2 - copyright 2007, Dean Edwards
   http://code.google.com/p/base2/
@@ -129,6 +129,11 @@ var _subclass = function(_instance, _static) {
   klass.prototype = _prototype;
   extend(klass, _static);
   klass.init();
+  
+  // reflection (removed when packed)
+  ;;; klass["#implements"] = [];
+  ;;; klass["#implemented_by"] = [];
+  
   return klass;
 };
 
@@ -157,6 +162,9 @@ var Base = _subclass.call(Object, {
       // casting to apply the interface.
       if (Base.ancestorOf(source)) {
         source(this.prototype); // cast
+        // reflection (removed when packed)
+        ;;; this["#implements"].push(source);
+        ;;; source["#implemented_by"].push(this);
       }
     } else {
       // Add the interface using the extend() function.
@@ -228,13 +236,13 @@ var Module = Abstract.extend(null, {
   extend: function(_interface, _static) {
     // Extend a module to create a new module.
     var module = this.base();
-    // Inherit module methods.
+    // Inherit class methods.
     forEach (this, function(method, name) {
       if (!Module[name] && instanceOf(method, Function) && !_PRIVATE.test(name)) {
         extend(module, name, method);
       }
     });
-    // Iplement module (instance AND static) methods.
+    // Implement module (instance AND static) methods.
     module.implement(_interface);
     // Implement static properties and methods.
     extend(module, _static);
@@ -588,7 +596,7 @@ var RegGrp = Collection.extend({
   ignoreCase: false,
 
   exec: function(string, replacement) { // optimised (refers to _HASH/_KEYS)
-    string = String(string); // type-safe
+    string += ''; // type-safe
     if (arguments.length == 1) {
       var self = this;
       var keys = this[_KEYS];
@@ -847,8 +855,6 @@ Array2.like = function(object) {
 
 // http://developer.mozilla.org/es4/proposals/date_and_time.html
 
-var _ERROR_OUT_OF_RANGE = "'%1' is not a valid ISO date. %2 out of range.";
-
 // big, ugly, regular expression
 var _DATE_PATTERN = /^((-\d+|\d{4,})(-(\d{2})(-(\d{2}))?)?)?T((\d{2})(:(\d{2})(:(\d{2})(\.(\d{1,3})(\d)?\d*)?)?)?)?(([+-])(\d{2})(:(\d{2}))?|Z)?$/;  
 var _DATE_PARTS = { // indexes to the sub-expressions of the RegExp above
@@ -910,8 +916,9 @@ Date2.parse = function(string, defaultDate) {
       // set a date part
       date["set" + prefix + part](value);
       // make sure that this setting does not overflow
-      assert(date["get" + prefix + part]() == match[_DATE_PARTS[part]],
-        format(_ERROR_OUT_OF_RANGE, string, part), SyntaxError);
+      if (date["get" + prefix + part]() != match[_DATE_PARTS[part]]) {
+        return NaN
+      }
     }
     // timezone can be set, without time being available
     // without a timezone, local timezone is respected
@@ -969,6 +976,7 @@ function _createObject2(Native, generics, extensions) {
     Native2[name] = INative[name];
   });
   Native2.ancestor = Object;
+  delete Native2.extend;
   
   return Native2;
 };
@@ -1449,7 +1457,7 @@ var Parser = Base.extend({
     	if (block.charAt(0) == "=") {
       	block = "\necho(" + block.replace(TRIM, "") + ");";
       }
-    	var replacement = "\x01" + evaluated.length;
+    	var replacement = "\x01" + evaluated.length + "\x01";
     	evaluated.push(block);
     	return replacement;
     };
@@ -1462,9 +1470,9 @@ var Parser = Base.extend({
   	'\\n':  '\\n',
   	'\\r':  '\\r'
   }),
-	EVALUATED: /\x01(\d+)/g,
+	EVALUATED: /\x01(\d+)\x01/g,
 	TEXT: new RegGrp({
-    "\\x01\\d+": RegGrp.IGNORE,
+    "\\x01\\d+\\x01": RegGrp.IGNORE,
     "[^\\x01]+": function(match) {
     	return '\necho("' + Parser.ESCAPE.exec(match) + '");';
     }

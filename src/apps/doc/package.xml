@@ -2,4 +2,5 @@
 <package name="doc">
   <include src="namespace.js"/>
   <include src="data.js"/>
+  <include src="init.js"/>
 </package>

@@ -1,8 +1,6 @@
 
 // http://developer.mozilla.org/es4/proposals/date_and_time.html
 
-var _ERROR_OUT_OF_RANGE = "'%1' is not a valid ISO date. %2 out of range.";
-
 // big, ugly, regular expression
 var _DATE_PATTERN = /^((-\d+|\d{4,})(-(\d{2})(-(\d{2}))?)?)?T((\d{2})(:(\d{2})(:(\d{2})(\.(\d{1,3})(\d)?\d*)?)?)?)?(([+-])(\d{2})(:(\d{2}))?|Z)?$/;  
 var _DATE_PARTS = { // indexes to the sub-expressions of the RegExp above
@@ -64,8 +62,9 @@ Date2.parse = function(string, defaultDate) {
       // set a date part
       date["set" + prefix + part](value);
       // make sure that this setting does not overflow
-      assert(date["get" + prefix + part]() == match[_DATE_PARTS[part]],
-        format(_ERROR_OUT_OF_RANGE, string, part), SyntaxError);
+      if (date["get" + prefix + part]() != match[_DATE_PARTS[part]]) {
+        return new Date(NaN)
+      }
     }
     // timezone can be set, without time being available
     // without a timezone, local timezone is respected

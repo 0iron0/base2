@@ -28,6 +28,7 @@ function _createObject2(Native, generics, extensions) {
     Native2[name] = INative[name];
   });
   Native2.ancestor = Object;
+  delete Native2.extend;
   
   return Native2;
 };

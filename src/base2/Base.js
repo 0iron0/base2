@@ -34,6 +34,11 @@ var _subclass = function(_instance, _static) {
   klass.prototype = _prototype;
   extend(klass, _static);
   klass.init();
+  
+  // reflection (removed when packed)
+  ;;; klass["#implements"] = [];
+  ;;; klass["#implemented_by"] = [];
+  
   return klass;
 };
 
@@ -62,6 +67,9 @@ var Base = _subclass.call(Object, {
       // casting to apply the interface.
       if (Base.ancestorOf(source)) {
         source(this.prototype); // cast
+        // reflection (removed when packed)
+        ;;; this["#implements"].push(source);
+        ;;; source["#implemented_by"].push(this);
       }
     } else {
       // Add the interface using the extend() function.
