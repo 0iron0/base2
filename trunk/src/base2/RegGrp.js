@@ -20,7 +20,7 @@ var RegGrp = Collection.extend({
   ignoreCase: false,
 
   exec: function(string, replacement) { // optimised (refers to _HASH/_KEYS)
-    string = String(string); // type-safe
+    string += ''; // type-safe
     if (arguments.length == 1) {
       var self = this;
       var keys = this[_KEYS];

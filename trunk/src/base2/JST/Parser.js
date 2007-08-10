@@ -29,7 +29,7 @@ var Parser = Base.extend({
     	if (block.charAt(0) == "=") {
       	block = "\necho(" + block.replace(TRIM, "") + ");";
       }
-    	var replacement = "\x01" + evaluated.length;
+    	var replacement = "\x01" + evaluated.length + "\x01";
     	evaluated.push(block);
     	return replacement;
     };
@@ -42,9 +42,9 @@ var Parser = Base.extend({
   	'\\n':  '\\n',
   	'\\r':  '\\r'
   }),
-	EVALUATED: /\x01(\d+)/g,
+	EVALUATED: /\x01(\d+)\x01/g,
 	TEXT: new RegGrp({
-    "\\x01\\d+": RegGrp.IGNORE,
+    "\\x01\\d+\\x01": RegGrp.IGNORE,
     "[^\\x01]+": function(match) {
     	return '\necho("' + Parser.ESCAPE.exec(match) + '");';
     }

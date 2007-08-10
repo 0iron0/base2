@@ -1,4 +1,4 @@
-// timestamp: Thu, 09 Aug 2007 07:35:10
+// timestamp: Fri, 10 Aug 2007 20:00:50
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -260,6 +260,7 @@ var AbstractView = Binding.extend();
 var Event = Binding.extend({  
   "@!(document.createEvent)": {
     initEvent: function(event, type, bubbles, cancelable) {
+      event.timeStamp = new Date().valueOf();
       event.type = type;
       event.bubbles = bubbles;
       event.cancelable = cancelable;
@@ -283,6 +284,14 @@ var Event = Binding.extend({
     }
   }
 }, {
+  BUBBLES: "abort,error,select,change,resize,scroll", // + Event.CANCELABLE
+  CANCELABLE: "click,mousedown,mouseup,mouseover,mousemove,mouseout,keydown,keyup,submit,reset",
+  
+  init: function() {
+    this.BUBBLES = Array2.combine((this.BUBBLES + "," + this.CANCELABLE).split(","));
+    this.CANCELABLE = Array2.combine(this.CANCELABLE.split(","));
+  },
+  
   "@MSIE": {
     "@Mac": {
       bind: function(event) {
@@ -301,9 +310,15 @@ var Event = Binding.extend({
     "@Windows": {
       bind: function(event) {
         this.base(event);
+        if (!event.timeStamp) {
+          event.bubbles = !!this.BUBBLES[event.type];
+          event.cancelable = !!this.CANCELABLE[event.type];
+          event.timeStamp = new Date().valueOf();
+        }
         if (!event.target) {
           event.target = event.srcElement;
         }
+        event.relatedTarget = event.fromElement || null;
         return event;
       }
     }
@@ -530,9 +545,24 @@ var DOMContentLoaded = Module.extend(null, {
 
 var ViewCSS = Interface.extend({
   "@!(document.defaultView.getComputedStyle)": {
-    getComputedStyle: function(view, element, pseudoElement) {
-      // pseudoElement parameter is not supported
-      return element.currentStyle; //-dean - fix this object too
+    "@MSIE": {
+      getComputedStyle: function(view, element, pseudoElement) {
+        var METRICS = /(width|height|top|bottom|left|right|fontSize)$/;
+        var COLOR = /^(color|backgroundColor)$/;
+        // pseudoElement parameter is not supported
+        var computedStyle = {};
+        var currentStyle = element.currentStyle;
+        for (var i in currentStyle) {
+          if (METRICS.test(i)) {
+            computedStyle[i] = this.$getPixelValue(element, computedStyle[i]) + "px";
+          } else if (COLOR.test(i)) {
+            computedStyle[i] = this.$getColorValue(element, i == "color" ? "ForeColor" : "BackColor");
+          } else {
+            computedStyle[i] = currentStyle[i];
+          }
+        }
+        return computedStyle;
+      }
     }
   }
 }, {
@@ -540,6 +570,28 @@ var ViewCSS = Interface.extend({
     return String(string).replace(/\-([a-z])/g, function(match, chr) {
       return chr.toUpperCase();
     });
+  },
+  
+  "@MSIE": {
+    $getPixelValue: function(element, value) {
+      var PIXEL = /^\d+(px)?$/i;
+      if (PIXEL.test(value)) return parseInt(value);
+      var styleLeft = element.style.left;
+      var runtimeStyleLeft = element.runtimeStyle.left;
+      element.runtimeStyle.left = element.currentStyle.left;
+      element.style.left = value || 0;
+      value = element.style.pixelLeft;
+      element.style.left = styleLeft;
+      element.runtimeStyle.left = runtimeStyleLeft;
+      return value;
+    },
+    
+    $getColorValue: function(element, value) {
+      var range = element.document.body.createTextRange();
+      range.moveToElementText(element);
+      var color = range.queryCommandValue(value);
+      return format("rgb(%1,%2,%3)", color & 0xff, (color & 0xff00) >> 8,  (color & 0xff0000) >> 16);
+    }
   }
 });
 
@@ -1333,6 +1385,13 @@ var Element = Node.extend({
 });
 
 Element.createDelegate("setAttribute", 3);
+
+// remove the base2ID for clones
+extend(Element.prototype, "cloneNode", function(deep) {
+  var clone = this.base(deep || false);
+  clone.base2ID = undefined;
+  return clone;
+});
 
 // =========================================================================
 // DOM/implementations.js

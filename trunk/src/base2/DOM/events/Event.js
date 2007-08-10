@@ -4,6 +4,7 @@
 var Event = Binding.extend({  
   "@!(document.createEvent)": {
     initEvent: function(event, type, bubbles, cancelable) {
+      event.timeStamp = new Date().valueOf();
       event.type = type;
       event.bubbles = bubbles;
       event.cancelable = cancelable;
@@ -27,6 +28,14 @@ var Event = Binding.extend({
     }
   }
 }, {
+  BUBBLES: "abort,error,select,change,resize,scroll", // + Event.CANCELABLE
+  CANCELABLE: "click,mousedown,mouseup,mouseover,mousemove,mouseout,keydown,keyup,submit,reset",
+  
+  init: function() {
+    this.BUBBLES = Array2.combine((this.BUBBLES + "," + this.CANCELABLE).split(","));
+    this.CANCELABLE = Array2.combine(this.CANCELABLE.split(","));
+  },
+  
   "@MSIE": {
     "@Mac": {
       bind: function(event) {
@@ -45,9 +54,15 @@ var Event = Binding.extend({
     "@Windows": {
       bind: function(event) {
         this.base(event);
+        if (!event.timeStamp) {
+          event.bubbles = !!this.BUBBLES[event.type];
+          event.cancelable = !!this.CANCELABLE[event.type];
+          event.timeStamp = new Date().valueOf();
+        }
         if (!event.target) {
           event.target = event.srcElement;
         }
+        event.relatedTarget = event.fromElement || null;
         return event;
       }
     }

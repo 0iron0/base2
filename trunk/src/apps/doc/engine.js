@@ -1,4 +1,4 @@
-// timestamp: Thu, 09 Aug 2007 07:19:19
+// timestamp: Fri, 10 Aug 2007 19:41:12
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -7,7 +7,8 @@ new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 // =========================================================================
 
 var doc = new base2.Namespace(this, {
-  name: "doc",
+  name:    "doc",
+  version: "0.5",
 
   colorize: function(text) {
     return Colorizer.javascript.exec(text);
@@ -15,19 +16,6 @@ var doc = new base2.Namespace(this, {
 });
 
 eval(this.imports);
-
-var LIST = /[^\s,]+/g;
-
-base2["#name"] = "base2";
-forEach (base2.exports.match(LIST), function(name) {
-  var property = this[name];
-  if (property instanceof Function || property instanceof Namespace) {
-    property["#name"] = this["#name"] + "." + name;
-    if (property instanceof Namespace) {
-      forEach (property.exports.match(LIST), arguments.callee, property);
-    }
-  }
-}, base2);
 
 // =========================================================================
 // doc/data.js
@@ -64,6 +52,36 @@ doc.data = new Base({
     io.write(path + '/#' + entry, value);
   }
 });
+
+// =========================================================================
+// doc/init.js
+// =========================================================================
+
+var LIST = /[^\s,]+/g;
+
+base2["#name"] = "base2";
+forEach (base2.exports.match(LIST), function(name) {
+  var property = this[name];
+  if (property instanceof Function || property instanceof Namespace) {
+    property["#name"] = this["#name"] + "." + name;
+    if (property instanceof Namespace) {
+      forEach (property.exports.match(LIST), arguments.callee, property);
+      forEach (property, function(klass, name) {
+        if (Base.ancestorOf(klass) && !klass['#name']) {
+          klass['#name'] = property['#name'] + "." + name;
+        }
+      });
+    } else if (Module.ancestorOf(property)) {
+      forEach(property["#implements"], function(module) {
+        forEach (module, function(method, name) {
+          if (!Module[name] && instanceOf(method, Function) && property[name]) {
+            property[name]._module = module;
+          }
+        });
+      });
+    }
+  }
+}, base2);
 
 eval(this.exports);
 

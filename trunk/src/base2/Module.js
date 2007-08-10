@@ -3,13 +3,13 @@ var Module = Abstract.extend(null, {
   extend: function(_interface, _static) {
     // Extend a module to create a new module.
     var module = this.base();
-    // Inherit module methods.
+    // Inherit class methods.
     forEach (this, function(method, name) {
       if (!Module[name] && instanceOf(method, Function) && !_PRIVATE.test(name)) {
         extend(module, name, method);
       }
     });
-    // Iplement module (instance AND static) methods.
+    // Implement module (instance AND static) methods.
     module.implement(_interface);
     // Implement static properties and methods.
     extend(module, _static);

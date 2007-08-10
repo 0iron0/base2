@@ -168,12 +168,6 @@ date2tests.testParseDefaultDate = function() {
   assertEqual(d.getSeconds(), 8, "yyyy-MM-ddT format with default date; seconds");
   assertEqual(d.getMilliseconds(), 12, "yyyy-MM-ddT format with default date; milliseconds");
 };
-date2tests.testParseSyntaxError = function() {
-  try {
-    Date2.parse("T60:70:80.900");
-    assert(false, "SyntaxError exception expected (T60:70:80.900 overflow testing)");
-  }
-  catch(ex) {
-    assertType(ex, SyntaxError, "T60:70:80.900 overflow testing");
-  }
+date2tests.testParseOverflow = function() {
+  assert(Date2.parse("T60:70:80.900"), "T60:70:80.900 overflow testing");
 };
