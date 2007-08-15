@@ -9,14 +9,6 @@ new base2.JSB.RuleList({
       this.ready();
     },
     
-    onclick: function() {
-      if (this.hasClass("disabled")) {
-        this.removeClass("disabled");
-        output.value = "";
-        this.ready();
-      }
-    },
-    
     ready: function() {
       message.write("ready");
       input.focus();
