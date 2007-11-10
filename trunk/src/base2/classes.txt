@@ -4,13 +4,9 @@ Object
 ..Abstract
 ...Module
 ....Enumerable
-...Trait
-....Sorted
-..Hash
+..Map
 ...Collection
-....SortedCollection
-...RegGrp
+....RegGrp
 ..Namespace
-..RegGrp.Item
 .Date2
 .String2

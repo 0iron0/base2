@@ -4,13 +4,13 @@
 
 // This code used to be quite readable until I added code to optimise *-child selectors. 
 
-var XPathParser = Parser.extend({
+var XPathParser = CSSParser.extend({
   constructor: function() {
     this.base(XPathParser.rules);
     // The sorter sorts child selectors to the end because they are slow.
     // For XPath we need the child selectors to be sorted to the beginning,
     // so we reverse the sort order. That's what this line does:
-    this.sorter.storeAt(1, "$1$4$3$6");
+    this.sorter.putAt(1, "$1$4$3$6");
   },
   
   escape: function(selector) {
@@ -141,5 +141,5 @@ function _not(match, args) {
 };
 
 function _nthChild(match, args, position) {
-  return "[" + Parser._nthChild(match, args, position || "count(preceding-sibling::*)+1", "last()", "not", " and ", " mod ", "=") + "]";
+  return "[" + CSSParser._nthChild(match, args, position || "count(preceding-sibling::*)+1", "last()", "not", " and ", " mod ", "=") + "]";
 };

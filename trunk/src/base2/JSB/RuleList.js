@@ -16,7 +16,7 @@ var RuleList = Collection.extend({
       forEach (match(selector, LIST), function(selector) {
         if (ID.test(selector)) {
           var name = ViewCSS.toCamelCase(selector.slice(1));
-          window[name] = Document.matchSingle(document, selector);
+          window[name] = Document.querySelector(document, selector);
         }
       });
     });

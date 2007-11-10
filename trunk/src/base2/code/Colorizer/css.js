@@ -1,8 +1,8 @@
 
-Colorizer.css = new Colorizer({
+with (base2.code.Colorizer) addScheme("css", {
   at_rule:   /@[\w\s]+/,
   bracketed: /\([^'\x22)]*\)/,
-  comment:   Colorizer.patterns.block_comment,
+  comment:   patterns.block_comment,
   property:  /(\w[\w-]*\s*):([^;}]+)/,
   special:   /(\-[\w-]*\s*):/,
   selector:  /([\w-:\[.#][^{};]*)\{/

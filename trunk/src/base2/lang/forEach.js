@@ -34,15 +34,15 @@ function _Array_forEach(array, block, context) {
     for (i = 0; i < length; i++) {
       block.call(context, array.charAt(i), i, array);
     }
-  } else {
-    // Cater for sparse arrays.
+  } else { // Cater for sparse arrays.
     for (i = 0; i < length; i++) {    
-      // Ignore undefined values. This is contrary to standard behaviour
-      //  but it's what Internet Explorer does. We want consistent behaviour
-      //  so we do this on all platforms.
-      if (array[i] !== undefined) {
+    /*@cc_on @*/
+    /*@if (@_jscript_version < 5.2)
+      if ($Legacy.has(array, i))
+    @else @*/
+      if (i in array)
+    /*@end @*/
         block.call(context, array[i], i, array);
-      }
     }
   }
 };

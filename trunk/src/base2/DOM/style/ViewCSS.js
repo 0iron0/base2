@@ -5,11 +5,15 @@ var ViewCSS = Interface.extend({
   "@!(document.defaultView.getComputedStyle)": {
     "@MSIE": {
       getComputedStyle: function(view, element, pseudoElement) {
+        // pseudoElement parameter is not supported
         var METRICS = /(width|height|top|bottom|left|right|fontSize)$/;
         var COLOR = /^(color|backgroundColor)$/;
-        // pseudoElement parameter is not supported
-        var computedStyle = {};
         var currentStyle = element.currentStyle;
+        var computedStyle = {
+          getPropertyValue: function(propertyName) {
+            return this[ViewCSS.toCamelCase(propertyName)];
+          }
+        };
         for (var i in currentStyle) {
           if (METRICS.test(i)) {
             computedStyle[i] = this.$getPixelValue(element, computedStyle[i]) + "px";
@@ -25,11 +29,11 @@ var ViewCSS = Interface.extend({
   }
 }, {
   toCamelCase: function(string) {
-    return String(string).replace(/\-([a-z])/g, function(match, chr) {
+    return string.replace(/\-([a-z])/g, function(match, chr) {
       return chr.toUpperCase();
     });
   },
-  
+
   "@MSIE": {
     $getPixelValue: function(element, value) {
       var PIXEL = /^\d+(px)?$/i;

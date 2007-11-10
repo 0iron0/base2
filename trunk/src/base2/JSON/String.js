@@ -8,6 +8,7 @@ JSON.String = JSON.Object.extend({
     } catch (error) {
       throw new SyntaxError("parseJSON");
     }
+    return "";
   },
 
   toJSONString: function(string) {

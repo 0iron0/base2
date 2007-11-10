@@ -26,7 +26,7 @@ http://www.microsoft.com/downloads/details.aspx?FamilyID=408024ed-faad-4835-8e68
 		<PARAMETER name="shrink"/>
 	</method>
 </public>
-<script language="JScript" src="http://base2.googlecode.com/svn/trunk/lib/base2-p.js"></script>
+<script language="JScript" src="../base2.js"></script>
 <script language="JScript" src="../Packer.js"></script>
 <script language="JScript" src="../Words.js"></script>
 <script language="JScript">

@@ -1,0 +1,2 @@
+
+AbstractView.implement(ViewCSS);

@@ -4,10 +4,8 @@
   <include src="DocumentSelector.js"/>
   <include src="ElementSelector.js"/>
   <include src="StaticNodeList.js"/>
+  <include src="CSSParser.js"/>
+  <include src="XPathParser.js"/>
   <include src="Selector.js"/>
-  <include src="Parser.js"/>
-  <include src="Selector/operators.js"/>
-  <include src="Selector/pseudoClasses.js"/>
-  <include src="Selector/parse.js"/>
-  <include src="xpath/extension.xml"/>
+  <include src="implementations.js"/>
 </package>

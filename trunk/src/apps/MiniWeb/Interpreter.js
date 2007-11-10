@@ -4,12 +4,10 @@
 // The interpreter also provides access to to a copy of the request object 
 //  and its post data.
 
-// this is still in a state of flux until I can finalise the templating system.
-
 var Interpreter = Command.extend({
   constructor: function(request) {
     this.base();
-    this.request = JSON.copy(request);
+    this.request = copy(request);
   },
   
   query: "",

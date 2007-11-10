@@ -35,7 +35,7 @@ var Node = Binding.extend({
   },
   
   "@(element.sourceIndex)": {  
-   $getSourceIndex: function(node) {
+    $getSourceIndex: function(node) {
       return node.sourceIndex;
     }
   }

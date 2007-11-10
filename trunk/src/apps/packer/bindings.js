@@ -22,14 +22,8 @@ new base2.JSB.RuleList({
     disabled: false,
     
     onclick: function() {
-      form.filetype.value = "";
-      form.filename.value = "";
       input.value = "";
       output.value = "";
-      uploadScript.style.display = "";
-      loadScript.style.display = "";
-      uploadScript.disabled = true;
-      saveScript.disabled = false;
       form.ready();
     }
   },
@@ -47,23 +41,8 @@ new base2.JSB.RuleList({
       } catch (error) {
         message.error("error packing script", error);
       } finally {
-        saveScript.disabled = !output.value;
         decodeScript.disabled = !output.value || !base62.checked;
       }
-    }
-  },
-  "#load-script": {
-    disabled: false,
-    
-    onclick: function() {
-      uploadScript.style.display = "inline";
-      uploadScript.disabled = false;
-      this.style.display = "none";
-    }
-  },
-  "#save-script": {
-    onclick: function() {
-      form.command.value = "save";
     }
   },
   "#decode-script": {    
@@ -82,13 +61,6 @@ new base2.JSB.RuleList({
         decodeScript.blur();
         decodeScript.disabled = true;
       }
-    }
-  },
-  "#upload-script": {
-    onchange: function() {
-      form.encoding = "multipart/form-data";
-      form.command.value = "load";
-      form.submit();
     }
   },
   "#base62,#shrink,#privates": {

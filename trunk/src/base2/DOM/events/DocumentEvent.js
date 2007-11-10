@@ -17,7 +17,6 @@ var DocumentEvent = Interface.extend({
   "@(document.createEvent)": {
     "@!(document.createEvent('Events'))": { // before Safari 3
       createEvent: function(document, type) {
-        // a type of "Events" throws an error on Safari
         return this.base(document, type == "Events" ? "UIEvents" : type);
       }
     }

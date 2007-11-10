@@ -31,8 +31,10 @@ var Call = Base.extend({
         invoke(Call.list, "release");
         delete Call.list;
         setTimeout(function() { // jump out of the current event
-          EventTarget.dispatchEvent(document,'ready');
-        }, 0);
+          var event = DocumentEvent.createEvent(document, "Events");
+          Event.initEvent(event, "ready", false, false);
+          EventTarget.dispatchEvent(document, event);
+        }, 1);
       }
     }, false);
   }

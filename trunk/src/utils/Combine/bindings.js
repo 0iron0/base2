@@ -52,7 +52,7 @@ else {
           var fn = basepath + lib;
           var f = new LocalFile(fn);
           f.open(LocalFile.READ);
-          if (f.exists()) {
+          if (f.has()) {
             var libs = document.getElementById('libs');
             var div = document.createElement("DIV");
             div.innerHTML = createCheckboxItem(libListName, lib, libListName + (libs.lastId++), true);
@@ -95,7 +95,7 @@ else {
             var fn = basepath + item.value;
             var f = new LocalFile(fn);
             f.open(LocalFile.READ);
-            if (f.exists()) {
+            if (f.has()) {
               contents.push("//--| Combine: "+fn);
               contents.push(f.read());
             } else {

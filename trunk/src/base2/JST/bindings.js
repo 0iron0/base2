@@ -8,89 +8,89 @@ new JSB.RuleList({
   "#input": null,
   "#output": null,
   "#script": {
-  	parser: null,
-  	
-  	ondocumentready: function() {
-    	this.clear();
-    	this.removeClass("disabled");
+    parser: null,
+    
+    ondocumentready: function() {
+      this.clear();
+      this.removeClass("disabled");
     },
-  	
-  	clear: function(all) {
-    	if (all) {
-      	this.filetype.value = "";
-      	this.filename.value = "";
-      	input.value = "";
+    
+    clear: function(all) {
+      if (all) {
+        this.filetype.value = "";
+        this.filename.value = "";
+        input.value = "";
       }
-    	output.value = "";
-    	input.focus();
-    	message.ready();
+      output.value = "";
+      input.focus();
+      message.ready();
     },
-  	
-  	parse: function() {
-    	try {
-      	if (input.value) {
-        	var start = new Date;
-        	var value = parser.parse(input.value);
-        	var time = (new Date) - start;
-        	output.value = value;
-        	message.time(time);
+    
+    parse: function() {
+      try {
+        if (input.value) {
+          var start = new Date;
+          var value = parser.parse(input.value);
+          var time = (new Date) - start;
+          output.value = value;
+          message.time(time);
         }
       } catch (error) {
-      	message.error("error parsing script", error);
+        message.error("error parsing script", error);
       }
     },
-  	
-  	interpret: function() {
-    	try {
-      	if (input.value) {
-        	var start = new Date;
-        	var value = interpreter.interpret(input.value);
-        	var time = (new Date) - start;
-        	output.value = value;
-        	message.time(time);
+    
+    interpret: function() {
+      try {
+        if (input.value) {
+          var start = new Date;
+          var value = interpreter.interpret(input.value);
+          var time = (new Date) - start;
+          output.value = value;
+          message.time(time);
         }
       } catch (error) {
-      	message.error("error interpreting script", error);
+        message.error("error interpreting script", error);
       }
     }
   },
   "#clear-all": {
-  	disabled: false,
-  	
-  	onclick: function() {
-    	script.clear(true);
+    disabled: false,
+    
+    onclick: function() {
+      script.clear(true);
     }
   },
   "#parse-script": {
-  	disabled: false,
-  	
-  	onclick: function() {
-    	script.parse();
+    disabled: false,
+    
+    onclick: function() {
+      script.parse();
     }
   },
   "#interpret-script": {
-  	disabled: false,
-  	
-  	onclick: function() {
-    	script.interpret();
+    disabled: false,
+    
+    onclick: function() {
+      script.interpret();
     }
   },
   "#message": {
-  	error: function(text, error) {
-    	this.write(text + ": " + error.message, "error");
+    error: function(text, error) {
+      this.write(text + ": " + error.message, "error");
     },
-  	
-  	time: function(ms) {
-    	this.write("parse time: " + ms/1000 + " seconds");
+    
+    time: function(ms) {
+      this.write("parse time: " + ms/1000 + " seconds");
     },
-  	
-  	ready: function() {
-    	this.write("ready");
+    
+    ready: function() {
+      this.write("ready");
     },
-  	
-  	write: function(text, className) {
-    	this.firstChild.nodeValue = text;
-    	this.className = className || "";
+    
+    write: function(text, className) {
+      this.firstChild.nodeValue = text;
+      this.className = className || "";
     } 
   }
 });

@@ -1,6 +1,6 @@
 /*
-  Packer version 3.1 (alpha 2) - copyright 2004-2007, Dean Edwards
-  http://www.opensource.org/licenses/mit-license
+  Packer version 3.1 (alpha 3) - copyright 2004-2007, Dean Edwards
+  http://www.opensource.org/licenses/mit-license.php
 */
 
 eval(base2.namespace);
@@ -10,7 +10,7 @@ var REMOVE = "";
 var SPACE = " ";
 var WORDS = /\w+/g;
 
-Packer = Base.extend({
+var Packer = Base.extend({
   minify: function(script) {
     // packing with no additional options
     return this.pack(script);
@@ -29,7 +29,7 @@ Packer = Base.extend({
     return script;
   },
   
-  _base62Encode: function(script, words) {
+  _base62Encode: function(script) {
     var words = new Words(script);
     words.encode();
     
@@ -37,10 +37,10 @@ Packer = Base.extend({
     
     var p = this._escape(words.exec(script));    
     var a = "[]";    
-    var c = words.count() || 1;    
+    var c = words.size() || 1;    
     var k = words.map(String).join("|").replace(/\|+$/, "");
     var e = Packer["ENCODE" + (c > 10 ? c > 36 ? 62 : 36 : 10)];
-    var r = "{}";
+    var r = c > 62 ? format("{1,%1}", Packer.encode62(c).length) : "";
     
     // the whole thing
     return format(Packer.UNPACK, p,a,c,k,e,r);
@@ -49,7 +49,7 @@ Packer = Base.extend({
   _encodePrivateVariables: function(script, words) {
     var index = 0;
     var encoded = {};
-    Packer.privates.store(Packer.PRIVATE, function(id) {
+    Packer.privates.put(Packer.PRIVATE, function(id) {
       if (encoded[id] == null) encoded[id] = index++;
       return "_" + encoded[id];
     });
@@ -94,7 +94,7 @@ Packer = Base.extend({
     var BRACKETS_g =  global(BRACKETS);
     var ENCODED =     /~#?(\d+)~/;
     var SCOPED  =     /~#(\d+)~/;
-    var VARS =        /\bvar\s+[\w$]+[^;]*|\bfunction\s+[\w$]+/g;
+    var VARS =        /\bvar\s+[\w$]+[^;#]*|\bfunction\s+[\w$]+/g;
     var VAR_TIDY =    /\b(var|function)\b|\sin\s+[^;]+/g;
     var VAR_EQUAL =   /\s*=[^,;]*/g;
     var LIST =        /[^\s,;]+/g;
@@ -165,7 +165,7 @@ Packer = Base.extend({
     
     // encode strings and regular expressions
     script = Packer.data.exec(script, store);
-    
+
     // remove closures (this is for base2 namespaces only)
     script = script.replace(/new function\(_\)\s*\{/g, "{;#;");
     
@@ -181,7 +181,7 @@ Packer = Base.extend({
     script = script.replace(/\{;#;/g, "new function(_){");
     
     // put strings and regular expressions back
-    script = script.replace(/#(\d+)/g, function(match, index) {    
+    script = script.replace(/#(\d+)/g, function(match, index) {
       return data[index];
     });
     
@@ -196,10 +196,10 @@ Packer = Base.extend({
   ENCODE10: "String",
   ENCODE36: "function(c){return c.toString(36)}",
   ENCODE62: "function(c){return(c<62?'':e(parseInt(c/62)))+((c=c%62)>35?String.fromCharCode(c+29):c.toString(36))}",
-      
-  UNPACK: "eval(function(p,a,c,k,e,r){var b,e=%5;if(!''.replace(/^/,String)){while(c--)a[c]=(r[b=e(c)]=k[c])?" +
-          "b:'\\\\x0';e=function(){return a.join('|')||'^'};k=[function(e){return r[e]}];c=1};while(c--)if(k[c])p=p." +
-      "replace(new RegExp('\\\\b('+e(c)+')\\\\b','g'),k[c]);return p}('%1',%2,%3,'%4'.split('|'),0,{}));",
+	
+	UNPACK: "eval(function(p,a,c,k,e,r){e=%5;if(!''.replace(/^/,String)){while(c--)r[e(c)]=k[c];" +
+	  "k=[function(e){return r[e]||e}];e=function(){return'\\\\w%6'};c=1};while(c--)if(k[c])p=p." +
+		"replace(new RegExp('\\\\b'+e(c)+'\\\\b','g'),k[c]);return p}('%1',%2,%3,'%4'.split('|'),0,{}))",
   
   init: function() {
     this.data = this.build(this.data);
@@ -211,10 +211,11 @@ Packer = Base.extend({
   },
   
   build: function(group) {
+    var javascript = this.javascript;
     return reduce(group, function(data, replacement, expression) {
-      data.store(this.javascript.exec(expression), replacement);
+      data.put(javascript.exec(expression), replacement);
       return data;
-    }, new RegGrp, this);
+    }, new RegGrp);
   },
   
   clean: {
@@ -245,9 +246,9 @@ Packer = Base.extend({
   },
   
   javascript: new RegGrp({
+    CONDITIONAL: /\/\*@\w*|\w*@\*\/|\/\/@\w*[^\n]*\n/.source,
     COMMENT1:    /(\/\/|;;;)[^\n]*/.source,
     COMMENT2:    /\/\*[^*]*\*+([^\/][^*]*\*+)*\//.source,
-    CONDITIONAL: /\/\*@|@\*\/|\/\/@[^\n]*\n/.source,
     REGEXP:      /\/(\\[\/\\]|[^*\/])(\\.|[^\/\n\\])*\/[gim]*/.source,
     STRING1:     /'(\\.|[^'\\])*'/.source,
     STRING2:     /"(\\.|[^"\\])*"/.source
@@ -259,6 +260,7 @@ Packer = Base.extend({
     "\\b\\s+\\$\\s+\\b": " $ ", // var $ in
     "\\$\\s+\\b": "$ ", // object$ in
     "\\b\\s+\\$": " $", // return $object
+    "\\b\\s+#": " #",
     "\\b\\s+\\b": SPACE,
     "\\s+": REMOVE
   }

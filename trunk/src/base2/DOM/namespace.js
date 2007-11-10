@@ -1,27 +1,28 @@
 
 var DOM = new base2.Namespace(this, {
   name:    "DOM",
-  version: "0.9 (alpha)",
+  version: "0.9.2 (alpha)",
   exports:
-    "Interface, Binding, AbstractView, Event, EventTarget, NodeSelector, DocumentEvent, DocumentSelector, ElementSelector, " +
-    "StaticNodeList, ViewCSS, Node, Document, Element, HTMLDocument, HTMLElement, Selector, Traversal, XPathParser",
+    "Interface, Binding, Node, Document, Element, AbstractView, Event, EventTarget, DocumentEvent, " +
+    "NodeSelector, DocumentSelector, ElementSelector, StaticNodeList, " +
+    "ViewCSS, HTMLDocument, HTMLElement, Selector, Traversal, XPathParser",
   
   bind: function(node) {
-    // apply a base2 DOM Binding to a native DOM node
+    // Apply a base2 DOM Binding to a native DOM node.
     if (node && node.nodeType) {
       var uid = assignID(node);
       if (!arguments.callee[uid]) {
         switch (node.nodeType) {
           case 1: // Element
             if (typeof node.className == "string") {
-              // it's an HTML element, use bindings based on tag name
+              // It's an HTML element, so use bindings based on tag name.
               (HTMLElement.bindings[node.tagName] || HTMLElement).bind(node);
             } else {
               Element.bind(node);
             }
             break;
           case 9: // Document
-            if (node.links) {
+            if (node.writeln) {
               HTMLDocument.bind(node);
             } else {
               Document.bind(node);
@@ -34,6 +35,15 @@ var DOM = new base2.Namespace(this, {
       }
     }
     return node;
+  },
+  
+  "@MSIE5.+win": {  
+    bind: function(node) {
+      if (node && node.writeln) {
+        node.nodeType = 9;
+      }
+      return this.base(node);
+    }
   }
 });
 

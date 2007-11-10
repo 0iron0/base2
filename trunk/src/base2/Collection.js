@@ -1,18 +1,18 @@
 
-// A Hash that is more array-like (accessible by index).
+// A Map that is more array-like (accessible by index).
 
 // Collection classes have a special (optional) property: Item
 // The Item property points to a constructor function.
 // Members of the collection must be an instance of Item.
 
 // The static create() method is responsible for all construction of collection items.
-// Instance methods that add new items (add, store, insertAt, storeAt) pass *all* of their arguments
+// Instance methods that add new items (add, put, insertAt, putAt) pass *all* of their arguments
 // to the static create() method. If you want to modify the way collection items are 
 // created then you only need to override this method for custom collections.
 
 var _KEYS = "~";
 
-var Collection = Hash.extend({
+var Collection = Map.extend({
   constructor: function(values) {
     this[_KEYS] = new Array2;
     this.base(values);
@@ -20,25 +20,15 @@ var Collection = Hash.extend({
   
   add: function(key, item) {
     // Duplicates not allowed using add().
-    // But you can still overwrite entries using store().
-    assert(!this.exists(key), "Duplicate key '" + key + "'.");
-    return this.store.apply(this, arguments);
+    // But you can still overwrite entries using put().
+    assert(!this.has(key), "Duplicate key '" + key + "'.");
+    this.put.apply(this, arguments);
   },
 
   copy: function() {
     var copy = this.base();
     copy[_KEYS] = this[_KEYS].copy();
     return copy;
-  },
-
-  count: function() {
-    return this[_KEYS].length;
-  },
-
-  fetchAt: function(index) { // optimised (refers to _HASH)
-    if (index < 0) index += this[_KEYS].length; // starting from the end
-    var key = this[_KEYS][index];
-    if (key !== undefined) return this[_HASH + key];
   },
 
   forEach: function(block, context) { // optimised (refers to _HASH)
@@ -49,46 +39,67 @@ var Collection = Hash.extend({
     }
   },
 
+  getAt: function(index) {
+    if (index < 0) index += this[_KEYS].length; // starting from the end
+    var key = this[_KEYS][index];
+    return (key === undefined)  ? undefined : this[_HASH + key];
+  },
+
+  getKeys: function() {
+    return this[_KEYS].concat();
+  },
+
   indexOf: function(key) {
     return this[_KEYS].indexOf(String(key));
   },
 
   insertAt: function(index, key, item) {
     assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
-    assert(!this.exists(key), "Duplicate key '" + key + "'.");
+    assert(!this.has(key), "Duplicate key '" + key + "'.");
     this[_KEYS].insertAt(index, String(key));
-    return this.store.apply(this, arguments);
+    this.put.apply(this, slice(arguments, 1));
   },
   
-  item: Undefined, // alias of fetchAt (defined when the class is initialised)
+  item: Undefined, // alias of getAt (defined when the class is initialised)
 
-  keys: function(index, length) {
-    switch (arguments.length) {
-      case 0:  return this[_KEYS].copy();
-      case 1:  return this[_KEYS].item(index);
-      default: return this[_KEYS].slice(index, length);
+  put: function(key, item) {
+    if (arguments.length == 1) item = key;
+    if (!this.has(key)) {
+      this[_KEYS].push(String(key));
     }
+    var klass = this.constructor;
+    if (klass.Item && !instanceOf(item, klass.Item)) {
+      item = klass.create.apply(klass, arguments);
+    }
+    this[_HASH + key] = item;
+  },
+
+  putAt: function(index, item) {
+    assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
+    arguments[0] = this[_KEYS].item(index);
+    this.put.apply(this, arguments);
   },
 
   remove: function(key) {
     // The remove() method of the Array object can be slow so check if the key exists first.
-    var keyDeleted = arguments[1];
-    if (keyDeleted || this.exists(key)) {
-      if (!keyDeleted) {                   // The key has already been deleted by removeAt().
-        this[_KEYS].remove(String(key));   // We still have to delete the value though.
-      }
-      return this.base(key);
+    if (this.has(key)) {
+      this[_KEYS].remove(String(key));
+      delete this[_HASH + key];
     }
   },
 
   removeAt: function(index) {
-    var key = this[_KEYS].removeAt(index);
-    if (key !== undefined) return this.remove(key, true);
+    this[_KEYS].removeAt(index);
+    delete this[_HASH + key];
   },
 
   reverse: function() {
     this[_KEYS].reverse();
     return this;
+  },
+
+  size: function() {
+    return this[_KEYS].length;
   },
 
   sort: function(compare) { // optimised (refers to _HASH)
@@ -101,24 +112,6 @@ var Collection = Hash.extend({
     return this;
   },
 
-  store: function(key, item) {
-    if (arguments.length == 1) item = key;
-    if (!this.exists(key)) {
-      this[_KEYS].push(String(key));
-    }
-    var klass = this.constructor;
-    if (klass.Item && !instanceOf(item, klass.Item)) {
-      item = klass.create.apply(klass, arguments);
-    }
-    return this[_HASH + key] = item;
-  },
-
-  storeAt: function(index, item) {
-    assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
-    arguments[0] = this[_KEYS].item(index);
-    return this.store.apply(this, arguments);
-  },
-
   toString: function() {
     return String(this[_KEYS]);
   }
@@ -126,11 +119,12 @@ var Collection = Hash.extend({
   Item: null, // If specified, all members of the collection must be instances of Item.
   
   init: function() {
-    this.prototype.item = this.prototype.fetchAt;
+    this.prototype.item = this.prototype.getAt;
   },
   
   create: function(key, item) {
     if (this.Item) return new this.Item(key, item);
+    return null;
   },
   
   extend: function(_instance, _static) {

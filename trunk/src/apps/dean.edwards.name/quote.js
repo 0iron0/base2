@@ -19,9 +19,9 @@ bindings.add("li.comment:not(.disabled)", {
     Traversal.setTextContent(button, "Quote");
     comment.appendChild(button);
     button.onclick = function() {
-      var textarea = document.matchSingle("textarea");
+      var textarea = document.querySelector("textarea");
       var id = comment.id;
-      var cite = comment.matchSingle("cite:last-child");
+      var cite = comment.querySelector("cite:last-child");
       var author = Traversal.getTextContent(cite) || "comment #" + id;
       // tidy the WordPress formatted text
       author = author.replace(/(^\s*comment(\s+by)?\s)|(\s\W\s.*$)/gi, "");
@@ -37,16 +37,16 @@ bindings.add("li.comment:not(.disabled)", {
         var quote = "<p>" + trim(selectedText) + "</p>";
       } else {
         // grab the entire comment's html
-        var text = comment.matchSingle("div.comment-text").cloneNode(true);
+        var text = comment.querySelector("div.comment-text").cloneNode(true);
         // strip syntax-highlighting
-        forEach (Element.matchAll(text, "pre"), function(pre) {
+        forEach (Element.querySelectorAll(text, "pre"), function(pre) {
           Traversal.setTextContent(pre, pre.getAttribute("originalText"));
           pre.removeAttribute("originalText");
           pre.removeAttribute("style");
           pre.removeAttribute("base2ID");
         });
         // remove smilies
-        forEach (Element.matchAll(text, "img"), function(img) {
+        forEach (Element.querySelectorAll(text, "img"), function(img) {
           img.parentNode.replaceChild(document.createTextNode(img.alt), img);
         });
         // tidy the html
@@ -61,10 +61,10 @@ bindings.add("li.comment:not(.disabled)", {
   },
   
   onmouseover: function() {
-    this.matchSingle("button").style.visibility = "visible";
+    this.querySelector("button").style.visibility = "visible";
   },
   
   onmouseout: function() {
-    this.matchSingle("button").style.visibility = "";
+    this.querySelector("button").style.visibility = "";
   }
 });

@@ -27,7 +27,7 @@ var Interface = Module.extend(null, {
       var FN = "var fn=function _%1(%2){%3.base=%3.%1.ancestor;var m=%3.base?'base':'%1';return %3[m](%4)}";
       var args = "abcdefghij".split("").slice(-length);
       eval(format(FN, name, args, args[0], args.slice(1)));
-      fn._delegate = name;
+      ;;; fn._delegate = name; // introspection
       this[name] = fn;
     }
   }

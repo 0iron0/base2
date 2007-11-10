@@ -4,6 +4,25 @@
 // TO DO: event capture
 
 var EventTarget = Interface.extend({
+/*  addEventListener: function(target, type, listener, capture) {
+    var listenerID = listener._cloneID || assignID(listener);
+    function _listener(event) {
+      Event.bind(event); // fix the event object
+      if (listener.handleEvent) {
+        listener.handleEvent(event);
+      } else {
+        listener.call(this, event);
+      }
+    };
+    EventTarget.$all[listenerID] = _listener;
+    this.base(target, type, _listener, capture);
+  },
+  
+  removeEventListener: function(target, type, listener, capture) {
+    var _listener = EventTarget.$all[listener.base2ID] || listener;
+    this.base(target, type, _listener, capture);
+  }, */
+  
   "@!(element.addEventListener)": {
     addEventListener: function(target, type, listener, capture) {
       // assign a unique id to both objects
@@ -59,19 +78,10 @@ var EventTarget = Interface.extend({
       }
     }
   }
-}, {  
-  dispatchEvent: function(target, event) {
-    // a little sugar
-    if (typeof event == "string") {
-      var type = event;
-      event = DocumentEvent.createEvent(target, "Events");
-      Event.initEvent(event, type, false, false);
-    }
-    this.base(target, event);
-  },
+}, {
+  $all : {},
   
   "@!(element.addEventListener)": {
-    $all : {},
   
     $handleEvent: function(target, event) {
       var returnValue = true;

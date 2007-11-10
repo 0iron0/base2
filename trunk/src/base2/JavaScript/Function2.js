@@ -4,10 +4,10 @@ var Function2 = _createObject2(
   "",
   [{
     bind: bind,
+    curry: curry,
     delegate: delegate,
     forEach: _Function_forEach,
     not: not,
-    partial: partial,
     unbind: unbind
   }, {
     partial: function(fn) {

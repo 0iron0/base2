@@ -1,5 +1,5 @@
   
-var Parser = RegGrp.extend({
+var CSSParser = RegGrp.extend({
   constructor: function(items) {
     this.base(items);
     this.cache = {};
@@ -15,7 +15,7 @@ var Parser = RegGrp.extend({
     // remove strings
     var QUOTE = /'/g;
     var strings = this._strings = [];
-    return this.optimise(this.format(String(selector).replace(Parser.ESCAPE, function(string) {
+    return this.optimise(this.format(String(selector).replace(CSSParser.ESCAPE, function(string) {
       strings.push(string.slice(1, -1).replace(QUOTE, "\\'"));
       return "\x01" + strings.length;
     })));
@@ -23,14 +23,14 @@ var Parser = RegGrp.extend({
   
   format: function(selector) {
     return selector
-      .replace(Parser.WHITESPACE, "$1")
-      .replace(Parser.IMPLIED_SPACE, "$1 $2")
-      .replace(Parser.IMPLIED_ASTERISK, "$1*$2");
+      .replace(CSSParser.WHITESPACE, "$1")
+      .replace(CSSParser.IMPLIED_SPACE, "$1 $2")
+      .replace(CSSParser.IMPLIED_ASTERISK, "$1*$2");
   },
   
   optimise: function(selector) {
     // optimise wild card descendant selectors
-    return this.sorter.exec(selector.replace(Parser.WILD_CARD, ">* "));
+    return this.sorter.exec(selector.replace(CSSParser.WILD_CARD, ">* "));
   },
   
   parse: function(selector) {
@@ -46,7 +46,7 @@ var Parser = RegGrp.extend({
     });
   }
 }, {
-  ESCAPE:           /(["'])[^\1]*\1/g,
+  ESCAPE:           /'(\\.|[^'\\])*'|"(\\.|[^"\\])*"/g,
   IMPLIED_ASTERISK: /([\s>+~,]|[^(]\+|^)([#.:@])/g,
   IMPLIED_SPACE:    /(^|,)([^\s>+~])/g,
   WHITESPACE:       /\s*([\s>+~(),]|^|$)\s*/g,
@@ -61,13 +61,13 @@ var Parser = RegGrp.extend({
     args = args.split(/n\+?/);
     var a = args[0] ? (args[0] == "-") ? -1 : parseInt(args[0]) : 1;
     var b = parseInt(args[1]) || 0;
-    var not = a < 0;
-    if (not) {
+    var negate = a < 0;
+    if (negate) {
       a = -a;
       if (a == 1) b++;
     }
     var query = format(a == 0 ? "%3%7" + (last + b) : "(%4%3-%2)%6%1%70%5%4%3>=%2", a, b, position, last, and, mod, equals);
-    if (not) query = not + "(" + query + ")";
+    if (negate) query = not + "(" + query + ")";
     return query;
   }
 });

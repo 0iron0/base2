@@ -4,7 +4,7 @@ eval(base2.namespace);
 var DEFAULT = "@0";
 var IGNORE  = RegGrp.IGNORE;
 
-Colorizer = RegGrp.extend({
+var Colorizer = RegGrp.extend({
   constructor: function(patterns, replacements, properties) {
     this.extend(properties);
     this.patterns = patterns || {};
@@ -41,7 +41,7 @@ Colorizer = RegGrp.extend({
     return String(text).replace(/</g, "\x01").replace(/&/g, "\x02");
   },
 
-  store: function(pattern, replacement) {
+  put: function(pattern, replacement) {
     // This is a bit complicated and is therefore probably wrong.
     if (!instanceOf(pattern, RegGrp.Item)) {
       if (typeof replacement == "string") {
@@ -53,7 +53,7 @@ Colorizer = RegGrp.extend({
       if (instanceOf(pattern, RegExp)) pattern = pattern.source;
       pattern = this.escape(pattern);
     }
-    this.base(pattern, replacement);
+    return this.base(pattern, replacement);
   },
 
   unescape: function(text) {
@@ -103,8 +103,12 @@ Colorizer = RegGrp.extend({
       }
     });
     this.urls = this.patterns.urls.copy();
-    this.urls.storeAt(0, '<a href="mailto:$0">$0</a>');
-    this.urls.storeAt(1, '<a href="$0">$0</a>');
+    this.urls.putAt(0, '<a href="mailto:$0">$0</a>');
+    this.urls.putAt(1, '<a href="$0">$0</a>');
+  },
+
+  addScheme: function(name, patterns, replacements, properties) {
+    this[name] = new this(patterns, replacements, properties);
   },
   
   // Pre-defined regular expressions.
@@ -129,4 +133,5 @@ Colorizer = RegGrp.extend({
   }
 });
 
-base2.utils.addName("Colorizer", Colorizer);
+base2.addNamespace("code");
+base2.code.addName("Colorizer", Colorizer);

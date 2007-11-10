@@ -4,13 +4,13 @@
   <include src="plumbing.js"/>
   <include src="Interface.js"/>
   <include src="Binding.js"/>
+  <include src="Node.js"/>
+  <include src="Document.js"/>
+  <include src="Element.js"/>
   <include src="Traversal.js"/>
   <include src="views/module.xml"/>
   <include src="events/module.xml"/>
   <include src="style/module.xml"/>
   <include src="selectors-api/module.xml"/>
-  <include src="core/module.xml"/>
-  <include src="implementations.js"/>
   <include src="html/module.xml"/>
-  <include src="init.js"/>
 </package>

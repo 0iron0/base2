@@ -26,7 +26,7 @@ if (detect("MSIE[56].+win") && !detect("SV1")) {
     
     var bound = function() {
       var element = document.all[elementID];
-      if (element) return closures[methodID].apply(element, arguments);
+      return element ? closures[methodID].apply(element, arguments) : undefined;
     };
     bound._cloneID = methodID;
     closures[elementID][methodID] = bound;

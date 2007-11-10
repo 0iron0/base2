@@ -17,13 +17,11 @@ Base
 .....DOM.ElementSelector
 ....DOM.ViewCSS
 ...Enumerable
-..Sorted
 .DOM.Selector
 .DOM.StaticNodeList
 .DOM.Traversal
 .Hash
 ..Collection
-...SortedCollection
 ...RegGrp
 ....DOM.CSSParser
 .....DOM.XPathParser

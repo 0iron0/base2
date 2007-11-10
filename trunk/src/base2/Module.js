@@ -6,7 +6,7 @@ var Module = Abstract.extend(null, {
     // Inherit class methods.
     forEach (this, function(method, name) {
       if (!Module[name] && instanceOf(method, Function) && !_PRIVATE.test(name)) {
-        extend(module, name, method);
+        module[name] = method;
       }
     });
     // Implement module (instance AND static) methods.
@@ -27,7 +27,7 @@ var Module = Abstract.extend(null, {
       if (Module.ancestorOf(_interface)) {
         forEach (_interface, function(method, name) {
           if (!Module[name] && instanceOf(method, Function) && !_PRIVATE.test(name)) {
-            extend(module, name, method);
+            module[name] = method;
           }
         });
       }
@@ -39,12 +39,12 @@ var Module = Abstract.extend(null, {
             forEach (source, arguments.callee);
           }
         } else if (!Module[name] && instanceOf(source, Function)) {
-          function _module() { // Late binding.
+          function _moduleMethod() { // Late binding.
             return module[name].apply(module, [this].concat(slice(arguments)));
           };
-          _module._module = module;
-          _module._base = _BASE.test(source);
-          extend(module.prototype, name, _module);
+          ;;; _moduleMethod._module = module; // introspection
+          _moduleMethod.__base = _BASE.test(source);
+          extend(module.prototype, name, _moduleMethod);
         }
       });
       // Add the static interface.

@@ -1,5 +1,5 @@
 
-Colorizer.xml = new Colorizer({
+with (base2.code.Colorizer) addScheme("xml", {
   attribute: /(\w+)=("[^"]*"|'[^']*')/,
   cdata:     /<!\[CDATA\[([^\]]|\][^\]]|\]\][^>])*\]\]>/,
   comment:   /<!\s*(--([^-]|[\r\n]|-[^-])*--\s*)>/,

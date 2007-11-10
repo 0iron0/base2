@@ -10,14 +10,14 @@
 // an exception is thrown.
 var FsmParser=Base.extend({
   constructor: function(acceptRightTrim) {
-    this.states=new Hash;
+    this.states=new Map;
     this.acceptRightTrim=acceptRightTrim||false;
   },
   startState: null,
   currentState: null, //the current accepting state
-  states: null, //Hash all states (key), containing an array of StateTransition's (value) 
+  states: null, //Map all states (key), containing an array of StateTransition's (value) 
   addState: function(stateName, entryAction, exitAction, context) {
-    var state=this.states.store(stateName, new State(stateName,entryAction, exitAction, context));
+    var state=this.states.put(stateName, new State(stateName,entryAction, exitAction, context));
     if(this.startState===null) this.setStartState(state); //first added state, is automatic start state
     return state;
   },
@@ -28,7 +28,7 @@ var FsmParser=Base.extend({
   },
   addAcceptState: function(state1/*, ..., stateN*/) {
     forEach(arguments, function(stateName) {
-      var state=this.states.fetch(stateName);
+      var state=this.states.get(stateName);
       if(state===undefined) throw newError("State %1 does not exist",stateName);
       state.setAcceptState();
     }, this);
@@ -42,8 +42,8 @@ var FsmParser=Base.extend({
     });
   },
   getState: function(stateName) {
-    if(this.states.exists(stateName)) {
-      return this.states.fetch(stateName);
+    if(this.states.has(stateName)) {
+      return this.states.get(stateName);
     }
     throw newError("State %1 does not exist",stateName);
   },
@@ -86,16 +86,16 @@ var FsmParser=Base.extend({
   },
   toDotString: function(name) {
     var graph=["/* Visit http://www.graphviz.org/ to create a chart of this text */",format("digraph %1 {",name)];
-    var drawn=new Hash;
+    var drawn=new Map;
     //Visualize start state
     graph.push(format('\t%1[style=filled,color="#B7D5F6"];',this.startState.name));
     this.states.forEach(function(state, stateName) {
       state.stateExits.forEach(function(transition) {
         //visualize accepting state
         var nextStateName=transition.getNextStateName();
-        if(this.states.fetch(nextStateName).isAcceptState&&!drawn.exists(nextStateName)) {
+        if(this.states.get(nextStateName).isAcceptState&&!drawn.has(nextStateName)) {
           graph.push(format("\t%1[style=bold]",nextStateName));
-          drawn.store(nextStateName);
+          drawn.put(nextStateName);
         }
         //add transition
         graph.push(format("\t%1 -> %2;", stateName, nextStateName));
