@@ -23,19 +23,21 @@ var _subclass = function(_instance, _static) {
         return extend(arguments[0], _prototype);
       }
     }
+    return this;
   };
   _prototype.constructor = klass;
   
   // Build the static interface.
   for (var i in Base) klass[i] = this[i];
+  klass.toString = K(String(_constructor));
   klass.ancestor = this;
   klass.base = Undefined;
   klass.init = Undefined;
-  klass.prototype = _prototype;
   extend(klass, _static);
+  klass.prototype = _prototype;
   klass.init();
   
-  // reflection (removed when packed)
+  // introspection (removed when packed)
   ;;; klass["#implements"] = [];
   ;;; klass["#implemented_by"] = [];
   
@@ -67,7 +69,7 @@ var Base = _subclass.call(Object, {
       // casting to apply the interface.
       if (Base.ancestorOf(source)) {
         source(this.prototype); // cast
-        // reflection (removed when packed)
+        // introspection (removed when packed)
         ;;; this["#implements"].push(source);
         ;;; source["#implemented_by"].push(this);
       }

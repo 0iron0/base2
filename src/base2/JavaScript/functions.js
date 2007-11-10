@@ -5,16 +5,13 @@ function _createObject2(Native, generics, extensions) {
   // Create a Module that will contain all the new methods.
   var INative = Module.extend();
   // http://developer.mozilla.org/en/docs/New_in_JavaScript_1.6#Array_and_String_generics
-  forEach (generics.split(","), function(name) {
+  forEach (generics.match(/\w+/g), function(name) {
     INative[name] = unbind(Native.prototype[name]);
   });
   forEach (extensions, INative.implement, INative);
   
   // create a faux constructor that augments the native object
   var Native2 = function() {
-    if (arguments[0] == Native.prototype) { // casting
-      extend(Native, Native2);
-    }
     return INative(this.constructor == INative ? Native.apply(Native, arguments) : arguments[0]);
   };
   Native2.prototype = INative.prototype;

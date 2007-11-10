@@ -6,12 +6,11 @@ var Words = RegGrp.extend({
   },
   
   add: function(word) {
-    if (!this.exists(word)) {
+    if (!this.has(word)) {
       this.base(word);
     }
-    word = this.fetch(word);
+    word = this.get(word);
     word.count++;
-    return word;
   },
   
   encode: function() {
@@ -22,19 +21,19 @@ var Words = RegGrp.extend({
     
     var encode = Packer.encode62;    
     var encoded = new Collection; // a dictionary of base62 -> base10
-    var count = this.count();
-    for (var i = 0; i < count; i++) {
-      encoded.store(encode(i), i);
+    var size = this.size();
+    for (var i = 0; i < size; i++) {
+      encoded.put(encode(i), i);
     }
     
     var empty = K("");
     var index = 0;
     forEach (this, function(word) {
-      if (encoded.exists(word)) {
-        word.index = encoded.fetch(word);
+      if (encoded.has(word)) {
+        word.index = encoded.get(word);
         word.toString = empty;
       } else {
-        while (this.exists(encode(index))) index++;
+        while (this.has(encode(index))) index++;
         word.index = index++;
         if (word.count == 1) {
           word.toString = empty;
@@ -52,7 +51,7 @@ var Words = RegGrp.extend({
   },
   
   exec: function(script) {
-    if (!this.count()) return script;
+    if (!this.size()) return script;
     var self = this;
     return script.replace(this.valueOf(), function(word) {
       return self["#" + word].replacement;

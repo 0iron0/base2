@@ -1,15 +1,15 @@
 /*
   MiniWeb - copyright 2007, Dean Edwards
-  http://www.opensource.org/licenses/mit-license
+  http://www.opensource.org/licenses/mit-license.php
 */
 
 // An active document thing
 
-MiniWeb = new base2.Namespace(this, {
+var MiniWeb = new base2.Namespace(this, {
   name:    "MiniWeb",
-  exports: "Client,Server,FileSystem,Command,Interpreter,Terminal,Request,History",
+  exports: "Client, Server, FileSystem, Command, Interpreter, Terminal, Request, History",
   imports: "IO",
-  version: "0.6",
+  version: "0.7",
   
   $$: {data: {}},
   
@@ -48,6 +48,8 @@ MiniWeb = new base2.Namespace(this, {
       MiniWeb.terminal = new Terminal;
       MiniWeb.client = new Client;
     };
+    
+    window.MiniWeb = this;
   },
   
   register: function(window) {

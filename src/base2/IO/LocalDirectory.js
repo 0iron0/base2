@@ -6,7 +6,7 @@ var LocalDirectory = Directory.extend({
       var files = directory.files;
       var length = files.Count();      
       for (var i = 0; i < length; i++) {
-        this.store(files.item(i));
+        this.put(files.item(i));
       }
     }
   },
@@ -16,7 +16,7 @@ var LocalDirectory = Directory.extend({
       this.base();
       var enumerator = directory.QueryInterface(Components.interfaces.nsIDirectoryEnumerator);
       while (enumerator.hasMoreElements()) {
-        this.store(enumerator.nextFile);
+        this.put(enumerator.nextFile);
       }
     })
   }

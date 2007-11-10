@@ -63,7 +63,7 @@ Date2.parse = function(string, defaultDate) {
       date["set" + prefix + part](value);
       // make sure that this setting does not overflow
       if (date["get" + prefix + part]() != match[_DATE_PARTS[part]]) {
-        return new Date(NaN)
+        return NaN;
       }
     }
     // timezone can be set, without time being available

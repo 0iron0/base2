@@ -5,11 +5,9 @@ window.undefined = window.undefined;
 
 new function() {
   var MSIE = /*@cc_on!@*/false;
-  var E = window.Error, slice = Array.prototype.slice;  
+  var slice = Array.prototype.slice;
   
-  if (!document.nodeType) document.nodeType = 9; // IE5.0
-  
-  $Legacy.exists = function e(o,k) {
+  $Legacy.has = function has(o,k) {
     if (o[k] !== undefined) return true;
     for (var i in o) if (i == k) return true;
     return false;
@@ -18,7 +16,7 @@ new function() {
   $Legacy.forEach = function(a, b, c) {
     var i, l = a.length;
     for (i = 0; i < l; i++) {
-      if (a[i] !== undefined || e(a, i)) b.call(c, a[i], i, a);
+      if (a[i] !== undefined || has(a, i)) b.call(c, a[i], i, a);
     }
   };
   
@@ -35,15 +33,26 @@ new function() {
     };
     decodeURIComponent = unescape;
   }
-  
-  if (!E) Error = function(m) {
-    this.name = "Error";
-    this.message = m || "Error";
-  };
-  if (E) Error.prototype = new E;
-  if (typeof TypeError == "undefined") {
-    TypeError = SyntaxError = Error;
+    
+  if (typeof Error == "undefined") {
+    Error = ErrorConstructor();
+    Error.prototype.name = "Error";
+    Error.prototype.toString = function() {
+      return this.message ? this.name + ": " + this.message : this.name;
+    };
+    TypeError = ErrorConstructor();
+    TypeError.prototype = new Error;
+    TypeError.prototype.name = "TypeError";
+    SyntaxError = ErrorConstructor();
+    SyntaxError.prototype = new Error;
+    SyntaxError.prototype.name = "SyntaxError";
   }
+  
+  function ErrorConstructor() {
+    return function(message) {
+      this.message = message;
+    };
+  };
   
   function extend(klass, name, method) {
     if (!klass.prototype[name]) {
@@ -75,6 +84,7 @@ new function() {
       this.length--;
       return i;
     }
+    return undefined;
   });
   
   extend(Array, "shift", function() {
@@ -88,15 +98,15 @@ new function() {
   });
   
   extend(Array, "unshift", function() {
-    var a = A.concat.call(slice.apply(arguments, [0]), this), i = a.length;
+    var a = this.concat.call(slice.apply(arguments, [0]), this), i = a.length;
     while (i--) this[i] = a[i];
     return this.length;
   });
   
   extend(Array, "splice", function(i, c) {
     var r = c ? this.slice(i, i + c) : [];
-    var a = this.slice(0, i).concat(slice.apply(arguments, [2])).concat(this.slice(i + c)), i = a.length;
-    this.length = i;
+    var a = this.slice(0, i).concat(slice.apply(arguments, [2])).concat(this.slice(i + c));
+    this.length = i = a.length;
     while (i--) this[i] = a[i];
     return r;
   });
@@ -108,7 +118,7 @@ new function() {
     return o;
   };
   
-  var ns = this; // this is a frig :-(
+  var ns = this;
   extend(Function, "apply", function(o, a) {
     if (o === undefined) o = ns;
     else if (o == null) o = window;

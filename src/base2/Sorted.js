@@ -11,7 +11,7 @@ var Sorted = Trait.extend({
   },
   
   remove: _sorted,
-  store:  _sorted
+  put:    _sorted
 });
 
 function _sorted() {

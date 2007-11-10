@@ -23,12 +23,11 @@ var Array2 = _createObject2(
     },
 
     flatten: function(array) {
-      var i = 0;
       return this.reduce(array, function(result, item) {
         if (this.like(item)) {
           this.reduce(item, arguments.callee, result, this);
         } else {
-          result[i++] = item;
+          result.push(item);
         }
         return result;
       }, [], this);
@@ -49,7 +48,7 @@ var Array2 = _createObject2(
       return -1;
     },
     
-    insertAt: function(array, item, index) {
+    insertAt: function(array, index, item) {
       this.splice(array, index, 0, item);
       return item;
     },
@@ -100,9 +99,12 @@ var Array2 = _createObject2(
 );
 
 Array2.reduce = Enumerable.reduce; // Mozilla does not implement the thisObj argument
-Array2.prototype.forEach = delegate(_Array_forEach);
 
 Array2.like = function(object) {
   // is the object like an array?
   return !!(object && typeof object == "object" && typeof object.length == "number");
 };
+
+// introspection (removed when packed)
+;;; Enumerable["#implemented_by"].pop();
+;;; Enumerable["#implemented_by"].push(Array2);

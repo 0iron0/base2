@@ -1,19 +1,21 @@
 
 var Interpreter = Base.extend({
-	constructor: function(command) {
-  	this.command = command || {};
-  	this.parser = new Parser;
+  constructor: function(command, environment) {
+    this.command = command || {};
+    this.environment = new Environment(environment);
+    this.parser = new Parser;
   },
-	
-	command: null,
-	parser: null,
-	
-	interpret: function(template) {
-  	var command = new Command(this.command);
-  	var code = base2.namespace + "with(arguments[0]){" +
-    	this.parser.parse(template) + 
-    "}return arguments[0][1].join('')";
+  
+  command: null,
+  environment: null,
+  parser: null,
+  
+  interpret: function(template) {
+    var command = new Command(this.command);
+    var code = base2.namespace + "\nwith(arguments[0])with(arguments[1]){\n" +
+      this.parser.parse(template) + 
+    "}\nreturn arguments[0][1].join('')";
     // use new Function() instead of eval() so that the script is evaluated in the global scope
-  	return new Function(code)(command);
+    return new Function(code)(command, this.environment);
   }
 });

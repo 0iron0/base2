@@ -12,7 +12,7 @@
  <script src="bindings.js" type="text/javascript"></script>
 </head>
 <body id="packer">
- <h1>Packer 3.1 (alpha 2)</h1>
+ <h1>Packer 3.1 (alpha 3)</h1>
  <form class="disabled" id="form" action="" method="post">
   <p><label class="paste">Paste:</label><br />
    <textarea id="input" name="input" rows="10" cols="80" disabled="disabled"></textarea></p>
@@ -24,15 +24,12 @@
    <label for="privates">Encode privates
     <input type="checkbox" id="privates" name="privates" value="1" disabled="disabled"/></label></p>
   <p class="form-buttons" id="input-buttons">
-   <input type="file" id="upload-script" name="upload" disabled="disabled"/>
-   <button type="button" id="load-script" disabled="disabled">Load</button>
    <button type="button" id="clear-all" disabled="disabled">Clear</button>
    <button type="button" id="pack-script" disabled="disabled">Pack</button></p>
   <p><label class="copy">Copy:</label>
    <textarea id="output" name="output" rows="10" cols="80" disabled="disabled"></textarea></p>
   <p id="message" class="error">disabled</p>
   <p class="form-buttons" id="output-buttons">
-   <button type="submit" id="save-script" disabled="disabled">Save</button>
    <button type="button" id="decode-script" disabled="disabled">Decode</button></p>
   <fieldset style="display:none">
    <input type="hidden" name="command" value=""/>

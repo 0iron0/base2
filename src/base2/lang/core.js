@@ -1,8 +1,12 @@
 
 function assignID(object) {
   // Assign a unique ID to an object.
-  if (!object.base2ID) object.base2ID = "b2_" + _ID++;
+  if (!object.base2ID) object.base2ID = "b2_" + counter();
   return object.base2ID;
+};
+
+function counter() {
+  return _counter++;
 };
 
 function copy(object) {

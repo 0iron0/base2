@@ -1,12 +1,12 @@
 
 var Document = Node.extend(null, {
   bind: function(document) {
-    this.base(document);
-    extend(document, "createElement", function(tagName) { //-dean- test this!
+    extend(document, "createElement", function(tagName) {
       return DOM.bind(this.base(tagName));
     });
     AbstractView.bind(document.defaultView);
-    return document;
+    new DOMContentLoadedEvent(document);
+    return this.base(document);
   },
   
   "@!(document.defaultView)": {
@@ -16,6 +16,3 @@ var Document = Node.extend(null, {
     }
   }
 });
-
-// provide these as pass-through methods
-Document.createDelegate("createElement", 2);

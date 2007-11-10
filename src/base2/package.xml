@@ -6,11 +6,10 @@
   <include src="Abstract.js"/>
   <include src="Module.js"/>
   <include src="Enumerable.js"/>
-  <include src="Hash.js"/>
+  <include src="Map.js"/>
   <include src="Collection.js"/>
   <include src="RegGrp.js"/>
   <include src="JavaScript/package.xml"/>
   <include src="lang/package.xml"/>
   <include src="init.js"/>
-  <include src="utils/namespace.js"/>
 </package>

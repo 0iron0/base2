@@ -3,7 +3,7 @@
 <!-- Windows Scripting Host command line wrapper for Packer  -->
 <!-- Run as CScript //nologo infile > outfile                 -->
 
-<script type="text/javascript" src="http://base2.googlecode.com/svn/trunk/lib/base2-p.js"></script>
+<script type="text/javascript" src="../base2.js"></script>
 <script type="text/javascript" src="../Packer.js"></script>
 <script type="text/javascript" src="../Words.js"></script>
 <script type="text/javascript">

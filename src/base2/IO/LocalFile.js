@@ -152,8 +152,7 @@ var LocalFile = Base.extend({
     },
 
     exists: function() {
-      var file = new java.io.File(this.path);
-      return file.exists();
+      return new java.io.File(this.path).exists();
     },
 
     open: function(mode) {

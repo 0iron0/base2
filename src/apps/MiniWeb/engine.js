@@ -1,4 +1,4 @@
-// timestamp: Fri, 10 Aug 2007 19:40:07
+// timestamp: Thu, 30 Aug 2007 17:39:24
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -7,16 +7,16 @@ new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 // =========================================================================
 /*
   MiniWeb - copyright 2007, Dean Edwards
-  http://www.opensource.org/licenses/mit-license
+  http://www.opensource.org/licenses/mit-license.php
 */
 
 // An active document thing
 
-MiniWeb = new base2.Namespace(this, {
+var MiniWeb = new base2.Namespace(this, {
   name:    "MiniWeb",
-  exports: "Client,Server,FileSystem,Command,Interpreter,Terminal,Request,History",
+  exports: "Client, Server, FileSystem, Command, Interpreter, Terminal, Request, History",
   imports: "IO",
-  version: "0.6",
+  version: "0.7",
   
   $$: {data: {}},
   
@@ -55,6 +55,8 @@ MiniWeb = new base2.Namespace(this, {
       MiniWeb.terminal = new Terminal;
       MiniWeb.client = new Client;
     };
+    
+    window.MiniWeb = this;
   },
   
   register: function(window) {
@@ -203,8 +205,10 @@ var Client = Base.extend({
       if (this.history.visited[href]) {
         link.className += " mw-visited";
       }
-      link.target = "_parent";
       link.onclick = Client.onclick;
+    }
+    if (!/^javascript/i.test(href)) {
+      link.target = "_parent";
     }
   },
   
@@ -309,6 +313,7 @@ var Client = Base.extend({
       }
       return false;
     }
+    return true;
   },
   
   onsubmit: function() {
@@ -470,12 +475,7 @@ var Server = Base.extend({
   },
   
   OPTIONS: function(server, request) {
-    var options = "GET,HEAD,OPTIONS,PUT,DELETE".split(",");
-    // don't support PUT/DELETE unless we are using the file: prototcol
-    if (!/^file:/.test(location.protocol)) {
-      options = options.slice(0, -2);
-    }
-    request.headers["Allow"] = options.join(",");
+    request.headers["Allow"] = "DELETE,GET,HEAD,OPTIONS,POST,PUT";
     request.status = 200; // OK
   },
   
@@ -691,12 +691,10 @@ var Command = FileSystem.extend({
 // The interpreter also provides access to to a copy of the request object 
 //  and its post data.
 
-// this is still in a state of flux until I can finalise the templating system.
-
 var Interpreter = Command.extend({
   constructor: function(request) {
     this.base();
-    this.request = JSON.copy(request);
+    this.request = copy(request);
   },
   
   query: "",

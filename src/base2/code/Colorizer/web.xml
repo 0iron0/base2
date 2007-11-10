@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package name="web" publish="false" closure="false">
+  <include src="xml.js"/>
+  <include src="html.js"/>
+  <include src="css.js"/>
+  <include src="javascript.js"/>
+  <include src="html-multi.js"/>
+</package>

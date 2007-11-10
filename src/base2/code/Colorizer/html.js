@@ -1,5 +1,5 @@
 
-Colorizer.html = new Colorizer({
+with (base2) code.Colorizer.addScheme("html", {
   conditional: /<!(--)?\[[^\]]*\]>|<!\[endif\](--)?>/, // conditional comments
   doctype:     /<!DOCTYPE[^>]+>/,
   inline:      /<(script|style)([^>]*)>((\\.|[^\\])*)<\/\1>/
@@ -12,4 +12,4 @@ Colorizer.html = new Colorizer({
   tabStop: 1
 });
 
-Colorizer.html.merge(Colorizer.xml);
+with (base2.code.Colorizer) html.merge(xml);

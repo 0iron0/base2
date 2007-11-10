@@ -25,29 +25,38 @@ var RegGrp = Collection.extend({
       var self = this;
       var keys = this[_KEYS];
       replacement = function(match) {
-        if (!match) return "";
-        var item, offset = 1, i = 0;
-        // Loop through the RegGrp items.
-        while (item = self[_HASH + keys[i++]]) {
-          var next = offset + item.length + 1;
-          if (arguments[offset]) { // do we have a result?
-            var replacement = item.replacement;
-            switch (typeof replacement) {
-              case "function":
-                var args = slice(arguments, offset, next);
-                var index = arguments[arguments.length - 2];
-                return replacement.apply(self, args.concat(index, string));
-              case "number":
-                return arguments[offset + replacement];
-              default:
-                return replacement;
+        if (match) {
+          var item, offset = 1, i = 0;
+          // Loop through the RegGrp items.
+          while ((item = self[_HASH + keys[i++]])) {
+            var next = offset + item.length + 1;
+            if (arguments[offset]) { // do we have a result?
+              var replacement = item.replacement;
+              switch (typeof replacement) {
+                case "function":
+                  var args = slice(arguments, offset, next);
+                  var index = arguments[arguments.length - 2];
+                  return replacement.apply(self, args.concat(index, string));
+                case "number":
+                  return arguments[offset + replacement];
+                default:
+                  return replacement;
+              }
             }
+            offset = next;
           }
-          offset = next;
         }
+        return "";
       };
     }
     return string.replace(this.valueOf(), replacement);
+  },
+
+  insertAt: function(index, expression, replacement) {
+    if (instanceOf(expression, RegExp)) {
+      arguments[1] = expression.source;
+    }
+    return base(this, arguments);
   },
 
   test: function(string) {
@@ -75,10 +84,10 @@ var RegGrp = Collection.extend({
   IGNORE: "$0",
   
   init: function() {
-    forEach ("add,exists,fetch,remove,store".split(","), function(name) {
+    forEach ("add,get,has,put,remove".split(","), function(name) {
       extend(this, name, function(expression) {
         if (instanceOf(expression, RegExp)) {
-          expression = expression.source;
+          arguments[0] = expression.source;
         }
         return base(this, arguments);
       });
@@ -109,7 +118,7 @@ var RegGrp = Collection.extend({
       
       this.length = RegGrp.count(expression);
       this.replacement = replacement;
-      this.toString = returns(expression);
+      this.toString = K(expression);
     },
     
     length: 0,

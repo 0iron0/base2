@@ -2,6 +2,8 @@
 var LIST = /[^\s,]+/g;
 
 base2["#name"] = "base2";
+window["#name"] = "window";
+
 forEach (base2.exports.match(LIST), function(name) {
   var property = this[name];
   if (property instanceof Function || property instanceof Namespace) {
@@ -21,6 +23,11 @@ forEach (base2.exports.match(LIST), function(name) {
           }
         });
       });
+    } else if (Collection.ancestorOf(property)) {
+      var Item = property.Item;
+      if (Item && !Item["#name"]) {
+        Item['#name'] = property['#name'] + ".Item";
+      }
     }
   }
 }, base2);

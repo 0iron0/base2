@@ -85,7 +85,7 @@ var Traversal = Module.extend({
   
   "@(element.contains)": {  
     contains: function(node, target) {
-      return node != target && this.isDocument(node) ? node == this.getOwnerDocument(target) : node.contains(target);
+      return node != target && (this.isDocument(node) ? node == this.getOwnerDocument(target) : node.contains(target));
     }
   },
   

@@ -1,8 +1,8 @@
-// timestamp: Fri, 10 Aug 2007 19:40:56
+// timestamp: Thu, 30 Aug 2007 17:39:24
 /*
   base2 - copyright 2007, Dean Edwards
   http://code.google.com/p/base2/
-  http://www.opensource.org/licenses/mit-license
+  http://www.opensource.org/licenses/mit-license.php
   
   Contributors:
     Doeke Zanstra
@@ -10,26 +10,26 @@
 
 var base2 = {
   name:    "base2",
-  version: "0.9 (alpha)",
+  version: "0.9.1 (alpha)",
   exports:
-    "Base, Namespace, Abstract, Module, Enumerable, Hash, Collection, RegGrp, " +
+    "Base, Namespace, Abstract, Module, Enumerable, Map, Collection, RegGrp, " +
     "Array2, Date2, String2, " +
     "assert, assertArity, assertType, " +
     "assignID, copy, detect, extend, forEach, format, instanceOf, match, rescape, slice, trim, " +
-    "I, K, Undefined, Null, True, False, bind, delegate, flip, not, partial, returns, unbind",
+    "I, K, Undefined, Null, True, False, bind, curry, delegate, flip, not, unbind",
   
   global: this, // the window object in a browser environment
   namespace: "var global=base2.global;function base(o,a){return o.base.apply(o,a)};",
-    
+  
   // this is defined here because it must be defined in the global scope
   detect: new function(_) {  
     // Two types of detection:
     //  1. Object detection
-    //     e.g. detect("(java)");
-    //     e.g. detect("!(document.addEventListener)");
+    //    e.g. detect("(java)");
+    //    e.g. detect("!(document.addEventListener)");
     //  2. Platform detection (browser sniffing)
-    //     e.g. detect("MSIE");
-    //     e.g. detect("MSIE|opera");
+    //    e.g. detect("MSIE");
+    //    e.g. detect("MSIE|opera");
         
     var global = _;
     var jscript/*@cc_on=@_jscript_version@*/; // http://dean.edwards.name/weblog/2007/03/sniff/#comment85164
@@ -118,19 +118,23 @@ var _subclass = function(_instance, _static) {
         return extend(arguments[0], _prototype);
       }
     }
+    return this;
   };
   _prototype.constructor = klass;
   
   // Build the static interface.
   for (var i in Base) klass[i] = this[i];
+  klass.toString = function() {
+    return String(_constructor);
+  };
   klass.ancestor = this;
   klass.base = Undefined;
   klass.init = Undefined;
-  klass.prototype = _prototype;
   extend(klass, _static);
+  klass.prototype = _prototype;
   klass.init();
   
-  // reflection (removed when packed)
+  // introspection (removed when packed)
   ;;; klass["#implements"] = [];
   ;;; klass["#implemented_by"] = [];
   
@@ -162,7 +166,7 @@ var Base = _subclass.call(Object, {
       // casting to apply the interface.
       if (Base.ancestorOf(source)) {
         source(this.prototype); // cast
-        // reflection (removed when packed)
+        // introspection (removed when packed)
         ;;; this["#implements"].push(source);
         ;;; source["#implemented_by"].push(this);
       }
@@ -183,38 +187,54 @@ var Namespace = Base.extend({
     this.extend(_public);
     
     // Initialise.
-    if (typeof this.init == "function") this.init();
+    this.init();
     
     if (this.name != "base2") {
-      base2.addName(this.name, this);
-      this.namespace = format("var %1=base2.%1;", this.name);
+      if (!this.parent) this.parent = base2;
+      this.parent.addName(this.name, this);
+      this.namespace = format("var %1=%2;", this.name, String(this).slice(1, -1));
     }
     
     var LIST = /[^\s,]+/g; // pattern for comma separated list
     
-    // This string should be evaluated immediately after creating a Namespace object.
-    _private.imports = Array2.reduce(this.imports.match(LIST), function(namespace, name) {
-      assert(base2[name], format("Namespace not found: '%1'.", name));
-      return namespace += base2[name].namespace;
-    }, base2.namespace);
-    
-    // This string should be evaluated after you have created all of the objects
-    // that are being exported.
-    _private.exports = Array2.reduce(this.exports.match(LIST), function(namespace, name) {
-      this.namespace += format("var %2=%1.%2;", this.name, name);
-      return namespace += format("if(!%1.%2)%1.%2=%2;", this.name, name);
-    }, "", this);
+    if (_private) {
+      // This string should be evaluated immediately after creating a Namespace object.
+      _private.imports = Array2.reduce(this.imports.match(LIST), function(namespace, name) {
+        eval("var ns=base2." + name);
+        assert(ns, format("Namespace not found: '%1'.", name));
+        return namespace += ns.namespace;
+      }, base2.namespace);
+      
+      // This string should be evaluated after you have created all of the objects
+      // that are being exported.
+      _private.exports = Array2.reduce(this.exports.match(LIST), function(namespace, name) {
+        this.namespace += format("var %2=%1.%2;", this.name, name);
+        return namespace += format("if(!%1.%2)%1.%2=%2;", this.name, name);
+      }, "", this);
+    }
   },
 
   exports: "",
-  imports: "",
-  namespace: "",
+  imports: "",  
+  init: Undefined,
   name: "",
-  
+  namespace: "",
+  parent: null,
+
   addName: function(name, value) {
-    this[name] = value;
-    this.exports += ", " + name;
-    this.namespace += format("var %1=%2.%1;", name, this.name);
+    if (!this[name]) {
+      this[name] = value;
+      this.exports += ", " + name;
+      this.namespace += format("var %1=%2.%1;", name, this.name);
+    }
+  },
+
+  addNamespace: function(name) {
+    this.addName(name, new Namespace(null, {name: name, parent: this}));
+  },
+  
+  toString: function() {
+    return format("[%1]", this.parent ? String(this.parent).slice(1, -1) + "." + this.name : this.name);
   }
 });
 
@@ -239,7 +259,7 @@ var Module = Abstract.extend(null, {
     // Inherit class methods.
     forEach (this, function(method, name) {
       if (!Module[name] && instanceOf(method, Function) && !_PRIVATE.test(name)) {
-        extend(module, name, method);
+        module[name] = method;
       }
     });
     // Implement module (instance AND static) methods.
@@ -319,9 +339,9 @@ var Enumerable = Module.extend({
     // Apply a method to each item in the enumerated object.
     var args = slice(arguments, 2);
     return this.map(object, (typeof method == "function") ? function(item) {
-      if (item != null) return method.apply(item, args);
+      return (item == null) ? undefined : method.apply(item, args);
     } : function(item) {
-      if (item != null) return item[method].apply(item, args);
+      return (item == null) ? undefined : item[method].apply(item, args);
     });
   },
   
@@ -335,7 +355,7 @@ var Enumerable = Module.extend({
   
   pluck: function(object, key) {
     return this.map(object, function(item) {
-      if (item != null) return item[key];
+      return (item == null) ? undefined : item[key];
     });
   },
   
@@ -360,31 +380,17 @@ var Enumerable = Module.extend({
 });
 
 // =========================================================================
-// base2/Hash.js
+// base2/Map.js
 // =========================================================================
 
 var _HASH = "#";
 
-var Hash = Base.extend({
+var Map = Base.extend({
   constructor: function(values) {
     this.merge(values);
   },
 
   copy: delegate(copy),
-
-  // Ancient browsers throw an error when we use "in" as an operator.
-  exists: function(key) {
-    /*@cc_on @*/
-    /*@if (@_jscript_version < 5.5)
-      return $Legacy.exists(this, _HASH + key);
-    @else @*/
-      return _HASH + key in this;
-    /*@end @*/
-  },
-
-  fetch: function(key) {
-    return this[_HASH + key];
-  },
 
   forEach: function(block, context) {
     for (var key in this) if (key.charAt(0) == _HASH) {
@@ -392,24 +398,51 @@ var Hash = Base.extend({
     }
   },
 
+  get: function(key) {
+    return this[_HASH + key];
+  },
+
+  getKeys: function() {
+    return this.map(flip(I));
+  },
+
+  getValues: function() {
+    return this.map(I);
+  },
+
+  // Ancient browsers throw an error when we use "in" as an operator.
+  has: function(key) {
+  /*@cc_on @*/
+  /*@if (@_jscript_version < 5.5)
+    return $Legacy.has(this, _HASH + key);
+  @else @*/
+    return _HASH + key in this;
+  /*@end @*/
+  },
+
   merge: function(values) {
-    var store = flip(this.store);
+    var put = flip(this.put);
     forEach (arguments, function(values) {
-      forEach (values, store, this);
+      forEach (values, put, this);
     }, this);
     return this;
   },
 
   remove: function(key) {
-    var value = this[_HASH + key];
     delete this[_HASH + key];
-    return value;
   },
 
-  store: function(key, value) {
+  put: function(key, value) {
     if (arguments.length == 1) value = key;
-    // Create the new entry (or overwrite the old entry).
-    return this[_HASH + key] = value;
+    // create the new entry (or overwrite the old entry).
+    this[_HASH + key] = value;
+  },
+
+  size: function() {
+    // this is expensive because we are not storing the keys
+    var size = 0;
+    for (var key in this) if (key.charAt(0) == _HASH) size++;
+    return size;
   },
 
   union: function(values) {
@@ -417,26 +450,26 @@ var Hash = Base.extend({
   }
 });
 
-Hash.implement(Enumerable);
+Map.implement(Enumerable);
 
 // =========================================================================
 // base2/Collection.js
 // =========================================================================
 
-// A Hash that is more array-like (accessible by index).
+// A Map that is more array-like (accessible by index).
 
 // Collection classes have a special (optional) property: Item
 // The Item property points to a constructor function.
 // Members of the collection must be an instance of Item.
 
 // The static create() method is responsible for all construction of collection items.
-// Instance methods that add new items (add, store, insertAt, storeAt) pass *all* of their arguments
+// Instance methods that add new items (add, put, insertAt, putAt) pass *all* of their arguments
 // to the static create() method. If you want to modify the way collection items are 
 // created then you only need to override this method for custom collections.
 
 var _KEYS = "~";
 
-var Collection = Hash.extend({
+var Collection = Map.extend({
   constructor: function(values) {
     this[_KEYS] = new Array2;
     this.base(values);
@@ -444,25 +477,15 @@ var Collection = Hash.extend({
   
   add: function(key, item) {
     // Duplicates not allowed using add().
-    // But you can still overwrite entries using store().
-    assert(!this.exists(key), "Duplicate key '" + key + "'.");
-    return this.store.apply(this, arguments);
+    // But you can still overwrite entries using put().
+    assert(!this.has(key), "Duplicate key '" + key + "'.");
+    this.put.apply(this, arguments);
   },
 
   copy: function() {
     var copy = this.base();
     copy[_KEYS] = this[_KEYS].copy();
     return copy;
-  },
-
-  count: function() {
-    return this[_KEYS].length;
-  },
-
-  fetchAt: function(index) { // optimised (refers to _HASH)
-    if (index < 0) index += this[_KEYS].length; // starting from the end
-    var key = this[_KEYS][index];
-    if (key !== undefined) return this[_HASH + key];
   },
 
   forEach: function(block, context) { // optimised (refers to _HASH)
@@ -473,46 +496,67 @@ var Collection = Hash.extend({
     }
   },
 
+  getAt: function(index) {
+    if (index < 0) index += this[_KEYS].length; // starting from the end
+    var key = this[_KEYS][index];
+    return (key === undefined)  ? undefined : this[_HASH + key];
+  },
+
+  getKeys: function() {
+    return this[_KEYS].concat();
+  },
+
   indexOf: function(key) {
     return this[_KEYS].indexOf(String(key));
   },
 
   insertAt: function(index, key, item) {
     assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
-    assert(!this.exists(key), "Duplicate key '" + key + "'.");
+    assert(!this.has(key), "Duplicate key '" + key + "'.");
     this[_KEYS].insertAt(index, String(key));
-    return this.store.apply(this, arguments);
+    this.put.apply(this, slice(arguments, 1));
   },
   
-  item: Undefined, // alias of fetchAt (defined when the class is initialised)
+  item: Undefined, // alias of getAt (defined when the class is initialised)
 
-  keys: function(index, length) {
-    switch (arguments.length) {
-      case 0:  return this[_KEYS].copy();
-      case 1:  return this[_KEYS].item(index);
-      default: return this[_KEYS].slice(index, length);
+  put: function(key, item) {
+    if (arguments.length == 1) item = key;
+    if (!this.has(key)) {
+      this[_KEYS].push(String(key));
     }
+    var klass = this.constructor;
+    if (klass.Item && !instanceOf(item, klass.Item)) {
+      item = klass.create.apply(klass, arguments);
+    }
+    this[_HASH + key] = item;
+  },
+
+  putAt: function(index, item) {
+    assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
+    arguments[0] = this[_KEYS].item(index);
+    this.put.apply(this, arguments);
   },
 
   remove: function(key) {
     // The remove() method of the Array object can be slow so check if the key exists first.
-    var keyDeleted = arguments[1];
-    if (keyDeleted || this.exists(key)) {
-      if (!keyDeleted) {                   // The key has already been deleted by removeAt().
-        this[_KEYS].remove(String(key));   // We still have to delete the value though.
-      }
-      return this.base(key);
+    if (this.has(key)) {
+      this[_KEYS].remove(String(key));
+      delete this[_HASH + key];
     }
   },
 
   removeAt: function(index) {
-    var key = this[_KEYS].removeAt(index);
-    if (key !== undefined) return this.remove(key, true);
+    this[_KEYS].removeAt(index);
+    delete this[_HASH + key];
   },
 
   reverse: function() {
     this[_KEYS].reverse();
     return this;
+  },
+
+  size: function() {
+    return this[_KEYS].length;
   },
 
   sort: function(compare) { // optimised (refers to _HASH)
@@ -525,24 +569,6 @@ var Collection = Hash.extend({
     return this;
   },
 
-  store: function(key, item) {
-    if (arguments.length == 1) item = key;
-    if (!this.exists(key)) {
-      this[_KEYS].push(String(key));
-    }
-    var klass = this.constructor;
-    if (klass.Item && !instanceOf(item, klass.Item)) {
-      item = klass.create.apply(klass, arguments);
-    }
-    return this[_HASH + key] = item;
-  },
-
-  storeAt: function(index, item) {
-    assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
-    arguments[0] = this[_KEYS].item(index);
-    return this.store.apply(this, arguments);
-  },
-
   toString: function() {
     return String(this[_KEYS]);
   }
@@ -550,11 +576,12 @@ var Collection = Hash.extend({
   Item: null, // If specified, all members of the collection must be instances of Item.
   
   init: function() {
-    this.prototype.item = this.prototype.fetchAt;
+    this.prototype.item = this.prototype.getAt;
   },
   
   create: function(key, item) {
     if (this.Item) return new this.Item(key, item);
+    return null;
   },
   
   extend: function(_instance, _static) {
@@ -601,29 +628,38 @@ var RegGrp = Collection.extend({
       var self = this;
       var keys = this[_KEYS];
       replacement = function(match) {
-        if (!match) return "";
-        var item, offset = 1, i = 0;
-        // Loop through the RegGrp items.
-        while (item = self[_HASH + keys[i++]]) {
-          var next = offset + item.length + 1;
-          if (arguments[offset]) { // do we have a result?
-            var replacement = item.replacement;
-            switch (typeof replacement) {
-              case "function":
-                var args = slice(arguments, offset, next);
-                var index = arguments[arguments.length - 2];
-                return replacement.apply(self, args.concat(index, string));
-              case "number":
-                return arguments[offset + replacement];
-              default:
-                return replacement;
+        if (match) {
+          var item, offset = 1, i = 0;
+          // Loop through the RegGrp items.
+          while ((item = self[_HASH + keys[i++]])) {
+            var next = offset + item.length + 1;
+            if (arguments[offset]) { // do we have a result?
+              var replacement = item.replacement;
+              switch (typeof replacement) {
+                case "function":
+                  var args = slice(arguments, offset, next);
+                  var index = arguments[arguments.length - 2];
+                  return replacement.apply(self, args.concat(index, string));
+                case "number":
+                  return arguments[offset + replacement];
+                default:
+                  return replacement;
+              }
             }
+            offset = next;
           }
-          offset = next;
         }
+        return "";
       };
     }
     return string.replace(this.valueOf(), replacement);
+  },
+
+  insertAt: function(index, expression, replacement) {
+    if (instanceOf(expression, RegExp)) {
+      arguments[1] = expression.source;
+    }
+    return base(this, arguments);
   },
 
   test: function(string) {
@@ -651,10 +687,10 @@ var RegGrp = Collection.extend({
   IGNORE: "$0",
   
   init: function() {
-    forEach ("add,exists,fetch,remove,store".split(","), function(name) {
+    forEach ("add,get,has,put,remove".split(","), function(name) {
       extend(this, name, function(expression) {
         if (instanceOf(expression, RegExp)) {
-          expression = expression.source;
+          arguments[0] = expression.source;
         }
         return base(this, arguments);
       });
@@ -685,7 +721,7 @@ var RegGrp = Collection.extend({
       
       this.length = RegGrp.count(expression);
       this.replacement = replacement;
-      this.toString = returns(expression);
+      this.toString = K(expression);
     },
     
     length: 0,
@@ -765,12 +801,11 @@ var Array2 = _createObject2(
     },
 
     flatten: function(array) {
-      var i = 0;
       return this.reduce(array, function(result, item) {
         if (this.like(item)) {
           this.reduce(item, arguments.callee, result, this);
         } else {
-          result[i++] = item;
+          result.push(item);
         }
         return result;
       }, [], this);
@@ -791,7 +826,7 @@ var Array2 = _createObject2(
       return -1;
     },
     
-    insertAt: function(array, item, index) {
+    insertAt: function(array, index, item) {
       this.splice(array, index, 0, item);
       return item;
     },
@@ -842,12 +877,15 @@ var Array2 = _createObject2(
 );
 
 Array2.reduce = Enumerable.reduce; // Mozilla does not implement the thisObj argument
-Array2.prototype.forEach = delegate(_Array_forEach);
 
 Array2.like = function(object) {
   // is the object like an array?
   return !!(object && typeof object == "object" && typeof object.length == "number");
 };
+
+// introspection (removed when packed)
+;;; Enumerable["#implemented_by"].pop();
+;;; Enumerable["#implemented_by"].push(Array2);
 
 // =========================================================================
 // JavaScript/Date2.js
@@ -917,7 +955,7 @@ Date2.parse = function(string, defaultDate) {
       date["set" + prefix + part](value);
       // make sure that this setting does not overflow
       if (date["get" + prefix + part]() != match[_DATE_PARTS[part]]) {
-        return NaN
+        return NaN;
       }
     }
     // timezone can be set, without time being available
@@ -953,16 +991,13 @@ function _createObject2(Native, generics, extensions) {
   // Create a Module that will contain all the new methods.
   var INative = Module.extend();
   // http://developer.mozilla.org/en/docs/New_in_JavaScript_1.6#Array_and_String_generics
-  forEach (generics.split(","), function(name) {
+  forEach (generics.match(/\w+/g), function(name) {
     INative[name] = unbind(Native.prototype[name]);
   });
   forEach (extensions, INative.implement, INative);
   
   // create a faux constructor that augments the native object
   var Native2 = function() {
-    if (arguments[0] == Native.prototype) { // casting
-      extend(Native, Native2);
-    }
     return INative(this.constructor == INative ? Native.apply(Native, arguments) : arguments[0]);
   };
   Native2.prototype = INative.prototype;
@@ -996,7 +1031,7 @@ function extend(object, source) { // or extend(object, key, value)
         return detect(key.slice(1)) ? extend(object, value) : object;
       }
       // Protect certain objects.
-      if (object.extend == extend && /^(base|extend)$/.test(key)) {
+      if (extend == object.extend && /^(base|extend)$/.test(key)) {
         return object;
       }
       // Check for method overriding.
@@ -1014,8 +1049,11 @@ function extend(object, source) { // or extend(object, key, value)
               return returnValue;
             };
             value = _base;
-            value.method = method;
             value.ancestor = ancestor;
+            value.method = method;
+            value.toString = function() {
+              return String(method);
+            };
           }
           object[key] = value;
         }
@@ -1048,8 +1086,12 @@ function extend(object, source) { // or extend(object, key, value)
 
 function _ancestorOf(ancestor, fn) {
   // Check if a function is in another function's inheritance chain.
-  while (fn && fn.ancestor != ancestor) fn = fn.ancestor;
-  return !!fn;
+  while (fn) { // stoopid firebug
+    if (!fn.ancestor) return false;
+    fn = fn.ancestor;
+    if (fn == ancestor) return true;
+  }
+  return false;
 };
 
 // =========================================================================
@@ -1091,15 +1133,15 @@ function _Array_forEach(array, block, context) {
     for (i = 0; i < length; i++) {
       block.call(context, array.charAt(i), i, array);
     }
-  } else {
-    // Cater for sparse arrays.
+  } else { // Cater for sparse arrays.
     for (i = 0; i < length; i++) {    
-      // Ignore undefined values. This is contrary to standard behaviour
-      //  but it's what Internet Explorer does. We want consistent behaviour
-      //  so we do this on all platforms.
-      if (array[i] !== undefined) {
+    /*@cc_on @*/
+    /*@if (@_jscript_version < 5.2)
+      if ($Legacy.has(array, i))
+    @else @*/
+      if (i in array)
+    /*@end @*/
         block.call(context, array[i], i, array);
-      }
     }
   }
 };
@@ -1143,6 +1185,8 @@ function instanceOf(object, klass) {
   // This is handy for JSON parsing (amongst other things).
   
   assertType(klass, "function", "Invalid 'instanceOf' operand.");
+
+  if (object == null) return false;
   
   /*@cc_on @*/
   /*@if (@_jscript_version < 5.1)
@@ -1151,13 +1195,20 @@ function instanceOf(object, klass) {
     if (object instanceof klass) return true;
   /*@end @*/
 
-  if (object == null) return false;
-
   // If the class is a Base class then it would have passed the test above.
   if (_isBaseClass(klass)) return false;
-
+  
+  try {
+    var _constructor = object.constructor;
+    // Only JavaScript objects allowed.
+    // COM objects do not have a constructor.
+    if (typeof _constructor != "function") return false;
+  } catch (error) {
+    return false;
+  }
+  
   // Base objects can only be instances of Object.
-  if (_isBaseClass(object.constructor)) return klass == Object;
+  if (_isBaseClass(_constructor)) return klass == Object;
   
   switch (klass) {
     case Array: // This is the only troublesome one.
@@ -1165,7 +1216,7 @@ function instanceOf(object, klass) {
     case Function:
       return !!(typeof object == "function" && object.call);
     case RegExp:
-      return object.constructor.prototype.toString() == _REGEXP_STRING;
+      return _constructor.prototype.toString() == _REGEXP_STRING;
     case Date:
       return !!object.getTimezoneOffset;
     case String:
@@ -1173,10 +1224,9 @@ function instanceOf(object, klass) {
     case Boolean:
       return typeof object == typeof klass.prototype.valueOf();
     case Object:
-      // Only JavaScript objects allowed.
-      // COM objects do not have a constructor.
-      return typeof object == "object" && typeof object.constructor == "function";
+      return true;
   }
+  
   return false;
 };
 
@@ -1267,8 +1317,6 @@ function K(k) {
   };
 };
 
-var returns = K; // alias of K
-
 function bind(fn, context) {
   var args = slice(arguments, 2);
   var bound = function() {
@@ -1276,6 +1324,13 @@ function bind(fn, context) {
   };
   bound._cloneID = assignID(fn);
   return bound;
+};
+
+function curry(fn) {
+  var args = slice.call(arguments, 1);
+  return function() {
+      return fn.apply(this, args.concat(slice(arguments)));
+  };
 };
 
 function delegate(fn, context) {
@@ -1298,13 +1353,6 @@ function not(fn) {
   };
 };
 
-function partial(fn) {
-  var args = slice.call(arguments, 1);
-  return function() {
-      return fn.apply(this, args.concat(slice(arguments)));
-  };
-};
-
 function unbind(fn) {
   return function(context) {
     return fn.apply(context, slice(arguments, 1));
@@ -1324,12 +1372,6 @@ forEach (Enumerable, function(method, name) {
   if (!Module[name]) base2.addName(name, bind(method, Enumerable));
 });
 
-// =========================================================================
-// base2/utils/namespace.js
-// =========================================================================
-
-var utils = new base2.Namespace(this, {name: "utils"});
-
 }; ////////////////////  END: CLOSURE  /////////////////////////////////////
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
@@ -1341,14 +1383,14 @@ new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 // JavaScript Templates
 
 /*
-	Based on the work of Erik Arvidsson:
-  	http://erik.eae.net/archives/2005/05/27/01.03.26/
+  Based on the work of Erik Arvidsson:
+    http://erik.eae.net/archives/2005/05/27/01.03.26/
 */
 
 var JST = new base2.Namespace(this, {
-	name:    "JST",
-	version: "0.9",
-	exports: "Command, Interpreter, Parser"
+  name:    "JST",
+  version: "0.9.1",
+  exports: "Command, Environment, Interpreter, Parser"
 });
 
 eval(this.imports);
@@ -1360,13 +1402,27 @@ eval(this.imports);
 var STDOUT = 1;
 
 var Command = Base.extend({
-	constructor: function(command) {
-  	this[STDOUT] = [];  	
-  	this.extend(command); // additional commands
+  constructor: function(command) {
+    this[STDOUT] = [];    
+    this.extend(command); // additional commands
   },
-	
-	echo: function(string) {
-  	this[STDOUT].push(string);
+  
+  echo: function(string) {
+    this[STDOUT].push(string);
+  }
+});
+
+// =========================================================================
+// JST/Environment.js
+// =========================================================================
+
+var Environment = Base.extend({
+  set: function(name, value) {
+    this[name] = value;
+  },
+  
+  unset: function(name) {
+    delete this[name];
   }
 });
 
@@ -1375,21 +1431,23 @@ var Command = Base.extend({
 // =========================================================================
 
 var Interpreter = Base.extend({
-	constructor: function(command) {
-  	this.command = command || {};
-  	this.parser = new Parser;
+  constructor: function(command, environment) {
+    this.command = command || {};
+    this.environment = new Environment(environment);
+    this.parser = new Parser;
   },
-	
-	command: null,
-	parser: null,
-	
-	interpret: function(template) {
-  	var command = new Command(this.command);
-  	var code = base2.namespace + "with(arguments[0]){" +
-    	this.parser.parse(template) + 
-    "}return arguments[0][1].join('')";
+  
+  command: null,
+  environment: null,
+  parser: null,
+  
+  interpret: function(template) {
+    var command = new Command(this.command);
+    var code = base2.namespace + "\nwith(arguments[0])with(arguments[1]){\n" +
+      this.parser.parse(template) + 
+    "}\nreturn arguments[0][1].join('')";
     // use new Function() instead of eval() so that the script is evaluated in the global scope
-  	return new Function(code)(command);
+    return new Function(code)(command, this.environment);
   }
 });
 
@@ -1398,29 +1456,29 @@ var Interpreter = Base.extend({
 // =========================================================================
 
 var Escape = Module.extend({
-	escape: function(parser, string) {
-  	if (parser.escapeChar) {
+  escape: function(parser, string) {
+    if (parser.escapeChar) {
       // encode escaped characters
-    	var ESCAPE = new RegExp(rescape(parser.escapeChar + "."), "g");
-    	string = string.replace(ESCAPE, function(match) {
-      	return String.fromCharCode(Escape.BASE + match.charCodeAt(1));
+      var ESCAPE = new RegExp(rescape(parser.escapeChar + "."), "g");
+      string = string.replace(ESCAPE, function(match) {
+        return String.fromCharCode(Escape.BASE + match.charCodeAt(1));
       });
     }
-  	return string;
+    return string;
   },
-	
-	unescape: function(parser, string) {
+  
+  unescape: function(parser, string) {
     // decode escaped characters
-  	if (parser.escapeChar) {
-    	string = string.replace(Escape.RANGE, function(match) {
-      	return parser.escapeChar + String.fromCharCode(match.charCodeAt(0) - Escape.BASE);
+    if (parser.escapeChar) {
+      string = string.replace(Escape.RANGE, function(match) {
+        return parser.escapeChar + String.fromCharCode(match.charCodeAt(0) - Escape.BASE);
       });
     }
-  	return string;
+    return string;
   }
 }, {
-	BASE: 65280,
-	RANGE: /[\uff00-\uffff]/g
+  BASE: 65280,
+  RANGE: /[\uff00-\uffff]/g
 });
 
 // =========================================================================
@@ -1430,54 +1488,54 @@ var Escape = Module.extend({
 // this needs a re-write but it works well enough for now.
 
 var Parser = Base.extend({
-	escapeChar: "\\",
-	
-	parse: function(string) {
-  	return this._decode(this._encode(String(string)));
+  escapeChar: "\\",
+  
+  parse: function(string) {
+    return this._decode(this._encode(String(string)));
   },
-	
-	_decode: function(string) {
-  	var evaluated = this._evaluated;
-  	while (Parser.EVALUATED.test(string)) {
-    	string = string.replace(Parser.EVALUATED, function(match, index) {
-      	return evaluated[index];
+  
+  _decode: function(string) {
+    var evaluated = this._evaluated;
+    while (Parser.EVALUATED.test(string)) {
+      string = string.replace(Parser.EVALUATED, function(match, index) {
+        return evaluated[index];
       });
     }
-  	delete this._evaluated;
-  	return this.unescape(string);
+    delete this._evaluated;
+    return this.unescape(string);
   },
-	
-	_encode: function(string) {  	
-  	var TRIM = /^=|;+$/g;
-  	var BLOCK = /<%[^%]*%([^>][^%]*%)*>/g;
-  	var evaluated = this._evaluated = [];
-  	var evaluate = function(block) {
-    	block = block.replace(Parser.TRIM, "");
-    	if (!block) return "";
-    	if (block.charAt(0) == "=") {
-      	block = "\necho(" + block.replace(TRIM, "") + ");";
+  
+  _encode: function(string) {    
+    var TRIM = /^=|;+$/g;
+    var BLOCK = /<%[^%]*%([^>][^%]*%)*>/g;
+    var evaluated = this._evaluated = [];
+    var evaluate = function(block) {
+      block = block.replace(Parser.TRIM, "");
+      if (!block) return "";
+      if (block.charAt(0) == "=") {
+        block = "\necho(" + block.replace(TRIM, "") + ");";
       }
-    	var replacement = "\x01" + evaluated.length + "\x01";
-    	evaluated.push(block);
-    	return replacement;
+      var replacement = "\x01" + evaluated.length + "\x01";
+      evaluated.push(block);
+      return replacement;
     };
-  	return Parser.TEXT.exec(this.escape(string).replace(BLOCK, evaluate));
+    return Parser.TEXT.exec(this.escape(string).replace(BLOCK, evaluate));
   }
 }, {
-	ESCAPE: new RegGrp({
-  	'\\\\': '\\\\',
-  	'"':    '\\"',
-  	'\\n':  '\\n',
-  	'\\r':  '\\r'
+  ESCAPE: new RegGrp({
+    '\\\\': '\\\\',
+    '"':    '\\"',
+    '\\n':  '\\n',
+    '\\r':  '\\r'
   }),
-	EVALUATED: /\x01(\d+)\x01/g,
-	TEXT: new RegGrp({
+  EVALUATED: /\x01(\d+)\x01/g,
+  TEXT: new RegGrp({
     "\\x01\\d+\\x01": RegGrp.IGNORE,
     "[^\\x01]+": function(match) {
-    	return '\necho("' + Parser.ESCAPE.exec(match) + '");';
+      return '\necho("' + Parser.ESCAPE.exec(match) + '");';
     }
   }),
-	TRIM: /^<%\-\-.*\-\-%>$|^<%\s*|\s*%>$/g
+  TRIM: /^<%\-\-.*\-\-%>$|^<%\s*|\s*%>$/g
 });
 
 Parser.implement(Escape);
@@ -1622,6 +1680,7 @@ JSON.String = JSON.Object.extend({
     } catch (error) {
       throw new SyntaxError("parseJSON");
     }
+    return "";
   },
 
   toJSONString: function(string) {
@@ -1924,7 +1983,7 @@ var LocalDirectory = Directory.extend({
       var files = directory.files;
       var length = files.Count();      
       for (var i = 0; i < length; i++) {
-        this.store(files.item(i));
+        this.put(files.item(i));
       }
     }
   },
@@ -1934,7 +1993,7 @@ var LocalDirectory = Directory.extend({
       this.base();
       var enumerator = directory.QueryInterface(Components.interfaces.nsIDirectoryEnumerator);
       while (enumerator.hasMoreElements()) {
-        this.store(enumerator.nextFile);
+        this.put(enumerator.nextFile);
       }
     })
   }
@@ -2109,8 +2168,7 @@ var LocalFile = Base.extend({
     },
 
     exists: function() {
-      var file = new java.io.File(this.path);
-      return file.exists();
+      return new java.io.File(this.path).exists();
     },
 
     open: function(mode) {
@@ -2214,7 +2272,7 @@ var JSONFileSystem = FileSystem.extend({
       // fetch data from the JSON object, regardless of type
       path = this.makepath(path);
       return reduce(path.split("/"), function(file, name) {
-        if (file && name) file = file[name];
+        if (file && name) file = (undefined === file[name]) ? undefined : file[name];
         return file;
       }, data);
     };
@@ -2279,7 +2337,7 @@ var JSONFileSystem = FileSystem.extend({
 
 var JSONDirectory = Directory.extend(null, {
   create: function(name, item) {
-    return new this.Item(name, typeof item == "object", item && item.length);
+    return new this.Item(name, typeof item == "object", typeof item == "string" ? item.length : 0);
   }
 });
 
@@ -2294,16 +2352,16 @@ new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 // =========================================================================
 /*
   MiniWeb - copyright 2007, Dean Edwards
-  http://www.opensource.org/licenses/mit-license
+  http://www.opensource.org/licenses/mit-license.php
 */
 
 // An active document thing
 
-MiniWeb = new base2.Namespace(this, {
+var MiniWeb = new base2.Namespace(this, {
   name:    "MiniWeb",
-  exports: "Client,Server,FileSystem,Command,Interpreter,Terminal,Request,History",
+  exports: "Client, Server, FileSystem, Command, Interpreter, Terminal, Request, History",
   imports: "IO",
-  version: "0.6",
+  version: "0.7",
   
   $$: {data: {}},
   
@@ -2342,6 +2400,8 @@ MiniWeb = new base2.Namespace(this, {
       MiniWeb.terminal = new Terminal;
       MiniWeb.client = new Client;
     };
+    
+    window.MiniWeb = this;
   },
   
   register: function(window) {
@@ -2490,8 +2550,10 @@ var Client = Base.extend({
       if (this.history.visited[href]) {
         link.className += " mw-visited";
       }
-      link.target = "_parent";
       link.onclick = Client.onclick;
+    }
+    if (!/^javascript/i.test(href)) {
+      link.target = "_parent";
     }
   },
   
@@ -2596,6 +2658,7 @@ var Client = Base.extend({
       }
       return false;
     }
+    return true;
   },
   
   onsubmit: function() {
@@ -2757,12 +2820,7 @@ var Server = Base.extend({
   },
   
   OPTIONS: function(server, request) {
-    var options = "GET,HEAD,OPTIONS,PUT,DELETE".split(",");
-    // don't support PUT/DELETE unless we are using the file: prototcol
-    if (!/^file:/.test(location.protocol)) {
-      options = options.slice(0, -2);
-    }
-    request.headers["Allow"] = options.join(",");
+    request.headers["Allow"] = "DELETE,GET,HEAD,OPTIONS,POST,PUT";
     request.status = 200; // OK
   },
   
@@ -2978,12 +3036,10 @@ var Command = FileSystem.extend({
 // The interpreter also provides access to to a copy of the request object 
 //  and its post data.
 
-// this is still in a state of flux until I can finalise the templating system.
-
 var Interpreter = Command.extend({
   constructor: function(request) {
     this.base();
-    this.request = JSON.copy(request);
+    this.request = copy(request);
   },
   
   query: "",

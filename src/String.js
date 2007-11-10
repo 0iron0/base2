@@ -1,5 +1,6 @@
 
-// fix String.replace (Safari/IE5.0)
+// Fix String.replace (Safari[12]/IE5.0).
+
 if ("".replace(/^/, String)) {
   var _GLOBAL = /(g|gi)$/;
   extend(String.prototype, "replace", function(expression, replacement) {
@@ -20,6 +21,20 @@ if ("".replace(/^/, String)) {
         if (!global) break;
       }
       return result + string;
+    }
+    return this.base(expression, replacement);
+  });
+}
+
+// Another Safari bug.
+
+if ("".replace(/^/, K("$$")) == "$") {
+  extend(String.prototype, "replace", function(expression, replacement) {
+    if (typeof replacement == "function") {
+      var fn = replacement;
+      replacement = function() {
+        return String(fn.apply(null, arguments)).split("$").join("$$");
+      };
     }
     return this.base(expression, replacement);
   });

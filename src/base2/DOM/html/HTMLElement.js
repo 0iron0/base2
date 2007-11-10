@@ -43,9 +43,8 @@ var HTMLElement = Element.extend({
   
   "@!(element.ownerDocument)": {
     bind: function(element) {
-      this.base(element);
       element.ownerDocument = Traversal.getOwnerDocument(element);
-      return element;
+      return this.base(element);
     }
   }
 });

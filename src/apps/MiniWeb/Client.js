@@ -59,8 +59,10 @@ var Client = Base.extend({
       if (this.history.visited[href]) {
         link.className += " mw-visited";
       }
-      link.target = "_parent";
       link.onclick = Client.onclick;
+    }
+    if (!/^javascript/i.test(href)) {
+      link.target = "_parent";
     }
   },
   
@@ -165,6 +167,7 @@ var Client = Base.extend({
       }
       return false;
     }
+    return true;
   },
   
   onsubmit: function() {

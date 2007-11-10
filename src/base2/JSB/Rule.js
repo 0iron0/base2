@@ -26,7 +26,7 @@ var Rule = Base.extend({
       }
       forEach (elements, bind);
     });
-    this.toString = returns(String(selector));
+    this.toString = K(String(selector));
     this.apply();
   },
   

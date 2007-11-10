@@ -1,7 +1,7 @@
 
-Colorizer.vbscript = new Colorizer({
+with (base2.code.Colorizer) addScheme("vbscript", {
   comment: /(rem|')[^\r\n]*/,
-  string:  Colorizer.patterns.string2
+  string: patterns.string2
   keyword: "\\b(call|class|end|const|dim|do|loop|erase|execute|executeglobal|exit|for|each|in|next|function|end\\sfunction|if|then|else|" +
     "on\\serror|resume\\snext|goto\\s0|goto\\s1|option\\sexplicit|private|property\\sget|property\\slet|property\\sset|end\\sproperty|public|" +
     "randomize|redim|select|end\\sselect|case|set|sub|end\\ssub|while|wend|with|" +

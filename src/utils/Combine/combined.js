@@ -10,7 +10,7 @@ new function() {
 	
 	if (!document.nodeType) document.nodeType = 9; // IE5.0
 	
-	$Legacy.exists = function e(o,k) {
+	$Legacy.has = function e(o,k) {
 		if (o[k] !== undefined) return true;
 		for (var i in o) if (i == k) return true;
 		return false;
@@ -509,7 +509,7 @@ var Hash = Base.extend({
 	exists: function(key) {
 		/*@cc_on @*/
 		/*@if (@_jscript_version < 5.5)
-			return $Legacy.exists(this, _HASH + key);
+			return $Legacy.has(this, _HASH + key);
 		@else @*/
 			return _HASH + key in this;
 		/*@end @*/
@@ -528,7 +528,7 @@ var Hash = Base.extend({
 	merge: function(values) {
 		forEach (arguments, function(values) {
 			forEach (values, function(value, key) {
-				this.store(key, value);
+				this.put(key, value);
 			}, this);
 		}, this);
 		return this;
@@ -579,8 +579,8 @@ var Collection = Hash.extend({
 	add: function(key, item) {
 		// Duplicates not allowed using add().
 		// But you can still overwrite entries using store().
-		assert(!this.exists(key), "Duplicate key '" + key + "'.");
-		return this.store.apply(this, arguments);
+		assert(!this.has(key), "Duplicate key '" + key + "'.");
+		return this.put.apply(this, arguments);
 	},
 
 	copy: function() {
@@ -613,9 +613,9 @@ var Collection = Hash.extend({
 
 	insertAt: function(index, key, item) {
 		assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
-		assert(!this.exists(key), "Duplicate key '" + key + "'.");
+		assert(!this.has(key), "Duplicate key '" + key + "'.");
 		this[_KEYS].insertAt(index, String(key));
-		return this.store.apply(this, arguments);
+		return this.put.apply(this, arguments);
 	},
 	
 	item: Undefined, // alias of fetchAt (defined when the class is initialised)
@@ -631,7 +631,7 @@ var Collection = Hash.extend({
 	remove: function(key) {
 		// The remove() method of the Array object can be slow so check if the key exists first.
 		var keyDeleted = arguments[1];
-		if (keyDeleted || this.exists(key)) {
+		if (keyDeleted || this.has(key)) {
 			if (!keyDeleted) {                   // The key has already been deleted by removeAt().
 				this[_KEYS].remove(String(key)); // We still have to delete the value though.
 			}
@@ -661,7 +661,7 @@ var Collection = Hash.extend({
 
 	store: function(key, item) {
 		if (arguments.length == 1) item = key;
-		if (!this.exists(key)) {
+		if (!this.has(key)) {
 			this[_KEYS].push(String(key));
 		}
 		var klass = this.constructor;
@@ -674,7 +674,7 @@ var Collection = Hash.extend({
 	storeAt: function(index, item) {
 		assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
 		arguments[0] = this[_KEYS].item(index);
-		return this.store.apply(this, arguments);
+		return this.put.apply(this, arguments);
 	},
 
 	toString: function() {
@@ -684,7 +684,7 @@ var Collection = Hash.extend({
 	Item: null, // If specified, all members of the collection must be instances of Item.
 	
 	init: function() {
-		this.prototype.item = this.prototype.fetchAt;
+		this.prototype.item = this.prototype.getAt;
 	},
 	
 	create: function(key, item) {
@@ -1889,16 +1889,16 @@ var NodeSelector = Interface.extend({
 			if (instanceOf(className, Array)) {
 				className = className.join(".");
 			}
-			return this.matchAll(node, "." + className);
+			return this.querySelectorAll(node, "." + className);
 		}
 	},
 	
-	"@!(element.matchSingle)": { // future-proof
-		matchAll: function(node, selector) {
+	"@!(element.querySelector)": { // future-proof
+		querySelectorAll: function(node, selector) {
 			return new Selector(selector).exec(node);
 		},
 		
-		matchSingle: function(node, selector) {
+		querySelector: function(node, selector) {
 			return new Selector(selector).exec(node, 1);
 		}
 	}
@@ -1907,13 +1907,13 @@ var NodeSelector = Interface.extend({
 // automatically bind objects retrieved using the Selectors API
 
 extend(NodeSelector.prototype, {
-	matchAll: function(selector) {
+	querySelectorAll: function(selector) {
 		return extend(this.base(selector), "item", function(index) {
 			return DOM.bind(this.base(index));
 		});
 	},
 	
-	matchSingle: function(selector) {
+	querySelector: function(selector) {
 		return DOM.bind(this.base(selector));
 	}
 });
@@ -1991,7 +1991,7 @@ StaticNodeList.implement(Enumerable);
 // =========================================================================
 
 // This object can be instantiated, however it is probably better to use
-// the matchAll/matchSingle methods on DOM nodes.
+// the querySelectorAll/querySelector methods on DOM nodes.
 
 // There is no public standard for this object. It just separates the NodeSelector
 //  interface from the complexity of the Selector parsers.
@@ -2357,7 +2357,7 @@ var XPathParser = Parser.extend({
 		// The sorter sorts child selectors to the end because they are slow.
 		// For XPath we need the child selectors to be sorted to the beginning,
 		// so we reverse the sort order. That's what this line does:
-		this.sorter.storeAt(1, "$1$4$3$6");
+		this.sorter.putAt(1, "$1$4$3$6");
 	},
 	
 	escape: function(selector) {
@@ -2988,15 +2988,15 @@ var LocalFileSystem = FileSystem.extend({
 		},
 		
 		exists: function(path) {
-			return this.$nsILocalFile.exists();
+			return this.$nsILocalFile.has();
 		},
 		
 		isFile: function(path) {
-			return this.exists() && this.$nsILocalFile.isFile();
+			return this.has() && this.$nsILocalFile.isFile();
 		},
 		
 		isDirectory: function(path) {
-			return this.exists() && this.$nsILocalFile.isDirectory();
+			return this.has() && this.$nsILocalFile.isDirectory();
 		},
 	
 		mkdir: function(path) {
@@ -3021,7 +3021,7 @@ var LocalFileSystem = FileSystem.extend({
 
 	"@(java && !global.Components)": {
 		exists: function(path) {
-			return new java.io.File(path).exists();
+			return new java.io.File(path).has();
 		}
 	}
 }, {
@@ -3054,7 +3054,7 @@ var LocalDirectory = Directory.extend({
 			var files = directory.files;
 			var length = files.Count();			
 			for (var i = 0; i < length; i++) {
-				this.store(files.item(i));
+				this.put(files.item(i));
 			}
 		}
 	},
@@ -3064,7 +3064,7 @@ var LocalDirectory = Directory.extend({
 			this.base();
 			var enumerator = directory.QueryInterface(Components.interfaces.nsIDirectoryEnumerator);
 			while (enumerator.hasMoreElements()) {
-				this.store(enumerator.nextFile);
+				this.put(enumerator.nextFile);
 			}
 		})
 	}
@@ -3137,7 +3137,7 @@ var LocalFile = Base.extend({
 				this.base(mode);
 				switch (this.mode) {
 					case LocalFile.READ:
-						if (!this.exists()) {
+						if (!this.has()) {
 							this.mode = LocalFile.CLOSED;
 							break;
 						}
@@ -3189,7 +3189,7 @@ var LocalFile = Base.extend({
 		},
 
 		exists: function() {
-			return this.$init().exists();
+			return this.$init().has();
 		},
 
 		open: function(mode) {
@@ -3198,7 +3198,7 @@ var LocalFile = Base.extend({
 				var file = this.$init();
 				switch (this.mode) {
 					case LocalFile.READ:
-						if (!file.exists()) {
+						if (!file.has()) {
 							this.mode = LocalFile.CLOSED;
 							break;
 						}
@@ -3208,7 +3208,7 @@ var LocalFile = Base.extend({
 						this.$stream.init($stream);
 						break;
 					case LocalFile.WRITE:
-						if (!file.exists()) file.create(0, 0664);
+						if (!file.has()) file.create(0, 0664);
 						this.$stream = XPCOM.createObject("network/file-output-stream;1", "nsIFileOutputStream");
 						this.$stream.init(file, 0x20 | 0x02, 00004, null);
 						break;
@@ -3240,7 +3240,7 @@ var LocalFile = Base.extend({
 
 		exists: function() {
 			var file = new java.io.File(this.path);
-			return file.exists();
+			return file.has();
 		},
 
 		open: function(mode) {
@@ -3291,7 +3291,7 @@ var LocalFile = Base.extend({
 	},
 
 	exists: function(fileName) {
-		return new this(fileName).exists();
+		return new this(fileName).has();
 	},
 
 	makepath: function(fileName) {
@@ -3546,7 +3546,7 @@ var RuleList = Collection.extend({
 			forEach (selector.split(COMMA), function(selector) {
 				if (ID.test(selector)) {
 					var name = ViewCSS.toCamelCase(selector.slice(1));
-					window[name] = Document.matchSingle(document, selector);
+					window[name] = Document.querySelector(document, selector);
 				}
 			});
 		});
@@ -3686,7 +3686,7 @@ Packer = Base.extend({
 	_encodePrivateVariables: function(script, words) {
 		var index = 0;
 		var encoded = {};
-		Packer.privates.store("\\b_[A-Za-z\\d]\\w*\\b", function(id) {
+		Packer.privates.put("\\b_[A-Za-z\\d]\\w*\\b", function(id) {
 			if (encoded[id] == null) encoded[id] = index++;
 			return "_" + encoded[id];
 		});
@@ -3846,7 +3846,7 @@ Packer = Base.extend({
 	
 	build: function(group) {
 		return reduce(group, function(data, replacement, expression) {
-			data.store(this.javascript.exec(expression), replacement);
+			data.put(this.javascript.exec(expression), replacement);
 			return data;
 		}, new RegGrp, this);
 	},
@@ -3904,10 +3904,10 @@ var Words = RegGrp.extend({
 	},
 	
 	add: function(word) {
-		if (!this.exists(word)) {
+		if (!this.has(word)) {
 			this.base(word);
 		}
-		word = this.fetch(word);
+		word = this.get(word);
 		word.count++;
 		return word;
 	},
@@ -3922,17 +3922,17 @@ var Words = RegGrp.extend({
 		var encoded = new Collection; // a dictionary of base62 -> base10
 		var count = this.count();
 		for (var i = 0; i < count; i++) {
-			encoded.store(encode(i), i);
+			encoded.put(encode(i), i);
 		}
 		
 		var empty = partial(String, "");
 		var index = 0;
 		forEach (this, function(word) {
-			if (encoded.exists(word)) {
-				word.index = encoded.fetch(word);
+			if (encoded.has(word)) {
+				word.index = encoded.get(word);
 				word.toString = empty;
 			} else {
-				while (this.exists(encode(index))) index++;
+				while (this.has(encode(index))) index++;
 				word.index = index++;
 				if (word.count == 1) {
 					word.toString = empty;

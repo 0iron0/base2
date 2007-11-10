@@ -72,12 +72,7 @@ var Server = Base.extend({
   },
   
   OPTIONS: function(server, request) {
-    var options = "GET,HEAD,OPTIONS,PUT,DELETE".split(",");
-    // don't support PUT/DELETE unless we are using the file: prototcol
-    if (!/^file:/.test(location.protocol)) {
-      options = options.slice(0, -2);
-    }
-    request.headers["Allow"] = options.join(",");
+    request.headers["Allow"] = "DELETE,GET,HEAD,OPTIONS,POST,PUT";
     request.status = 200; // OK
   },
   

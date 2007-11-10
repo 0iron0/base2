@@ -1,7 +1,7 @@
 
-NodeSelector.implement({
-  matchAll: strictNodeSelector,  
-  matchSingle: strictNodeSelector
+NodeSelector.implement({ 
+  querySelector: strictNodeSelector,
+  querySelectorAll: strictNodeSelector
 });
 
 function strictNodeSelector(node, selector) {

@@ -20,8 +20,8 @@
  *
  * TODO: Handle nesting of block comments.
  */
- 
-Colorizer.haskell = new Colorizer({
+
+base2.code.Colorizer.addScheme("haskell", {
   comment: /\-\-[^\n]*\n|\{\-([^\-]|\-[^\}])*\-\}/,
   /* Keywords from reservedid production of grammar in section 9.2 of Haskell Report. */
   keyword: /\b(as|case|class|data|default|deriving|do|else|hiding|if|import|in|infix|infixl|infixr|instance|let|module|newtype|of|qualified|then|type|where|_)\b/,

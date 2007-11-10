@@ -1,7 +1,7 @@
 /*
   base2 - copyright 2007, Dean Edwards
   http://code.google.com/p/base2/
-  http://www.opensource.org/licenses/mit-license
+  http://www.opensource.org/licenses/mit-license.php
   
   Contributors:
     Doeke Zanstra
@@ -9,26 +9,26 @@
 
 var base2 = {
   name:    "base2",
-  version: "0.9 (alpha)",
+  version: "0.9.2 (alpha)",
   exports:
-    "Base, Namespace, Abstract, Module, Enumerable, Hash, Collection, RegGrp, " +
+    "Base, Namespace, Abstract, Module, Enumerable, Map, Collection, RegGrp, " +
     "Array2, Date2, String2, " +
     "assert, assertArity, assertType, " +
-    "assignID, copy, detect, extend, forEach, format, instanceOf, match, rescape, slice, trim, " +
-    "I, K, Undefined, Null, True, False, bind, delegate, flip, not, partial, returns, unbind",
+    "assignID, copy, counter, detect, extend, forEach, format, instanceOf, match, rescape, slice, trim, " +
+    "I, K, Undefined, Null, True, False, bind, curry, delegate, flip, not, unbind",
   
   global: this, // the window object in a browser environment
   namespace: "var global=base2.global;function base(o,a){return o.base.apply(o,a)};",
-    
+  
   // this is defined here because it must be defined in the global scope
   detect: new function(_) {  
     // Two types of detection:
     //  1. Object detection
-    //     e.g. detect("(java)");
-    //     e.g. detect("!(document.addEventListener)");
+    //    e.g. detect("(java)");
+    //    e.g. detect("!(document.addEventListener)");
     //  2. Platform detection (browser sniffing)
-    //     e.g. detect("MSIE");
-    //     e.g. detect("MSIE|opera");
+    //    e.g. detect("MSIE");
+    //    e.g. detect("MSIE|opera");
         
     var global = _;
     var jscript/*@cc_on=@_jscript_version@*/; // http://dean.edwards.name/weblog/2007/03/sniff/#comment85164

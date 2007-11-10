@@ -10,14 +10,14 @@ function extend(object, source) { // or extend(object, key, value)
         return detect(key.slice(1)) ? extend(object, value) : object;
       }
       // Protect certain objects.
-      if (object.extend == extend && /^(base|extend)$/.test(key)) {
+      if (extend == object.extend && /^(base|extend)$/.test(key)) {
         return object;
       }
       // Check for method overriding.
       var ancestor = object[key];
       if (ancestor && instanceOf(value, Function)) {
         if (value != ancestor && !_ancestorOf(value, ancestor)) {
-          if (value._base || _BASE.test(value)) {
+          if (value.__base || _BASE.test(value)) {
             // Override the existing method.
             var method = value;
             function _base() {
@@ -28,8 +28,11 @@ function extend(object, source) { // or extend(object, key, value)
               return returnValue;
             };
             value = _base;
-            value.method = method;
             value.ancestor = ancestor;
+            value.method = method;
+            value.toString = function() {
+              return String(method);
+            };
           }
           object[key] = value;
         }
@@ -62,6 +65,10 @@ function extend(object, source) { // or extend(object, key, value)
 
 function _ancestorOf(ancestor, fn) {
   // Check if a function is in another function's inheritance chain.
-  while (fn && fn.ancestor != ancestor) fn = fn.ancestor;
-  return !!fn;
+  while (fn) {
+    if (!fn.ancestor) return false;
+    fn = fn.ancestor;
+    if (fn == ancestor) return true;
+  }
+  return false;
 };
