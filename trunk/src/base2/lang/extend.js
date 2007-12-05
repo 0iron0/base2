@@ -34,7 +34,7 @@ function extend(object, source) { // or extend(object, key, value)
         var ancestor = object[key];
         if (ancestor && typeof value == "function") {
           if (value != ancestor && (!ancestor.method || !_ancestorOf(value, ancestor))) {
-            if (_BASE.test(value)) {
+            if (value.__base || _BASE.test(value)) {
               _override(object, key, value);
             } else {
               object[key] = value;

@@ -24,7 +24,7 @@ var Module = Abstract.extend(null, {
       }
     } else {
       // Create the instance interface.
-      var proto = module.prototype;
+      var proto = {};
       _Function_forEach (Object, _interface, function(source, name) {
         if (name.charAt(0) == "@") { // object detection
           if (detect(name.slice(1))) {
@@ -35,13 +35,11 @@ var Module = Abstract.extend(null, {
             return module[name].apply(module, [this].concat(slice(arguments)));
           };
           ;;; _moduleMethod._module = module; // introspection
-          if (_BASE.test(source)) {
-            _override(proto, name, _moduleMethod);
-          } else {
-            proto[name] = _moduleMethod;
-          }
+          _moduleMethod.__base = _BASE.test(source);
+          proto[name] = _moduleMethod; 
         }
       });
+      extend(module.prototype, proto);
       // Add the static interface.
       extend(module, _interface);
     }
