@@ -10,11 +10,11 @@ var Sorted = Trait.extend({
     return this;
   },
   
-  remove: _sorted,
-  put:    _sorted
+  put:    _resort,
+  remove: _resort
 });
 
-function _sorted() {
+function _resort() {
   var value = base(this, arguments);
   if (!this._frozen) this.sort();
   return value;

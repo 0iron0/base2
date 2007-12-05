@@ -126,11 +126,7 @@ var Colorizer = RegGrp.extend({
     urls:          ["email", "url"]
   },
   
-  urls: null,
-  
-  "@KHTML": {
-    FORMAT: '<span class="%1">$$%2</span>'
-  }
+  urls: null
 });
 
 base2.addNamespace("code");

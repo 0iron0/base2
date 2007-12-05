@@ -1,0 +1,2 @@
+
+var Behavior = Abstract.extend();

@@ -169,5 +169,5 @@ date2tests.testParseDefaultDate = function() {
   assertEqual(d.getMilliseconds(), 12, "yyyy-MM-ddT format with default date; milliseconds");
 };
 date2tests.testParseOverflow = function() {
-  assert(Date2.parse("T60:70:80.900"), "T60:70:80.900 overflow testing");
+  assert(isNaN(Date2.parse("T60:70:80.900")), "T60:70:80.900 overflow testing");
 };

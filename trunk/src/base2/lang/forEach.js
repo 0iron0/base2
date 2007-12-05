@@ -8,7 +8,7 @@ if (typeof StopIteration == "undefined") {
 function forEach(object, block, context, fn) {
   if (object == null) return;
   if (!fn) {
-    if (instanceOf(object, Function)) {
+    if (typeof object == "function" && object.call) {
       // Functions are a special case.
       fn = Function;
     } else if (typeof object.forEach == "function" && object.forEach != arguments.callee) {
@@ -38,7 +38,7 @@ function _Array_forEach(array, block, context) {
     for (i = 0; i < length; i++) {    
     /*@cc_on @*/
     /*@if (@_jscript_version < 5.2)
-      if ($Legacy.has(array, i))
+      if (array[i] !== undefined || $Legacy.has(array, i))
     @else @*/
       if (i in array)
     /*@end @*/
@@ -47,19 +47,18 @@ function _Array_forEach(array, block, context) {
   }
 };
 
-function _get_Function_forEach() {
+function _Function_forEach(fn, object, block, context) {
   // http://code.google.com/p/base2/issues/detail?id=10
   
-  // run the test for Safari's buggy enumeration
+  // Run the test for Safari's buggy enumeration.
   var Temp = function(){this.i=1};
   Temp.prototype = {i:1};
   var count = 0;
   for (var i in new Temp) count++;
   
-  return (count > 1) ? function(fn, object, block, context) {
-    ///////////////////////////////////////
-    //    Safari fix (pre version 3)     //
-    ///////////////////////////////////////    
+  // Overwrite the main function the first time it is called.
+  _Function_forEach = (count > 1) ? function(fn, object, block, context) {
+    // Safari fix (pre version 3)
     var processed = {};
     for (var key in object) {
       if (!processed[key] && fn.prototype[key] === undefined) {
@@ -75,4 +74,6 @@ function _get_Function_forEach() {
       }
     }
   };
+  
+  _Function_forEach(fn, object, block, context);
 };

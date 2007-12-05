@@ -9,7 +9,7 @@
  	p.binding2 {font-weight: bold;}
  </style>
  <script type="text/javascript">
-	var MyBinding = base2.JSB.Binding.extend({
+	var MyBehavior = base2.JSB.Behavior.extend({
 		ondocumentready: function() {
 			this.innerHTML = "ondocumentready!"
 		},
@@ -37,7 +37,7 @@
 				this.removeClass("binding1");
 			}
 		},
-		"body > p": MyBinding
+		"body > p": MyBehavior
 	});
  </script>
 </head>

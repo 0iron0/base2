@@ -39,14 +39,6 @@ var Event = Binding.extend({
   }, */
   
   "@!(document.createEvent)": {
-    $bubbles: "abort,error,select,change,resize,scroll", // + Event.$cancelable
-    $cancelable: "click,mousedown,mouseup,mouseover,mousemove,mouseout,keydown,keyup,submit,reset",
-    
-    init: function() {
-      this.$bubbles = Array2.combine((this.$bubbles + "," + this.$cancelable).split(","));
-      this.$cancelable = Array2.combine(this.$cancelable.split(","));
-    },
-    
     "@MSIE": {
       "@Mac": {
         bind: function(event) {
@@ -65,17 +57,24 @@ var Event = Binding.extend({
       "@Windows": {
         bind: function(event) {
           if (!event.timeStamp) {
-            event.bubbles = !!this.$bubbles[event.type];
-            event.cancelable = !!this.$cancelable[event.type];
+            event.bubbles = !!_BUBBLES[event.type];
+            event.cancelable = !!_CANCELABLE[event.type];
             event.timeStamp = new Date().valueOf();
           }
           if (!event.target) {
             event.target = event.srcElement;
-            event.relatedTarget = event[(event.type == "mouseout" ? "to" : "from") + "Element"];
           }
+          event.relatedTarget = event[(event.type == "mouseout" ? "to" : "from") + "Element"];
           return this.base(event);
         }
       }
     }
   }
 });
+
+if (_MSIE) {
+  var _BUBBLES    = "abort,error,select,change,resize,scroll"; // + _CANCELABLE
+  var _CANCELABLE = "click,mousedown,mouseup,mouseover,mousemove,mouseout,keydown,keyup,submit,reset";
+  _BUBBLES = Array2.combine((_BUBBLES + "," + _CANCELABLE).split(","));
+  _CANCELABLE = Array2.combine(_CANCELABLE.split(","));
+}

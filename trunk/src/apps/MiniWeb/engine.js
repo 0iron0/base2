@@ -1,4 +1,4 @@
-// timestamp: Thu, 30 Aug 2007 17:39:24
+// timestamp: Wed, 05 Dec 2007 04:03:40
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -47,11 +47,8 @@ var MiniWeb = new base2.Namespace(this, {
     }, this);
     
     window.onload = function() {
+      MiniWeb.readOnly = location.protocol != "file:";
       MiniWeb.server = new Server;
-      // get server options
-      var request = new Request("OPTIONS");
-      var allow = request.getResponseHeader("Allow");
-      MiniWeb.readOnly = !/PUT/.test(allow);
       MiniWeb.terminal = new Terminal;
       MiniWeb.client = new Client;
     };
@@ -135,11 +132,11 @@ var MiniWeb = new base2.Namespace(this, {
   }
 });
 
-eval(this.imports);
-
 MiniWeb.toString = function() {
   return "MiniWeb version " + MiniWeb.version;
 };
+
+eval(this.imports);
 
 // =========================================================================
 // MiniWeb/Client.js
@@ -384,9 +381,9 @@ var History = Base.extend({
     $write: function(hash) {
       if (hash != location.hash) {
         var document = frames[0].document;
-        document.open(); // -dean: get rid?
+        document.open();
         document.write("<script>parent.location.hash='" + hash + "'<\/script>");
-        document.close(); // -DRE
+        document.close();
       }
     },
     
@@ -475,7 +472,7 @@ var Server = Base.extend({
   },
   
   OPTIONS: function(server, request) {
-    request.headers["Allow"] = "DELETE,GET,HEAD,OPTIONS,POST,PUT";
+    request.headers["Allow"] = "OPTIONS,HEAD,GET,POST,PUT,DELETE";
     request.status = 200; // OK
   },
   

@@ -3,7 +3,9 @@ function instanceOf(object, klass) {
   // Handle exceptions where the target object originates from another frame.
   // This is handy for JSON parsing (amongst other things).
   
-  assertType(klass, "function", "Invalid 'instanceOf' operand.");
+  if (typeof klass != "function") {
+    throw new TypeError("Invalid 'instanceOf' operand.");
+  }
 
   if (object == null) return false;
   
@@ -14,20 +16,15 @@ function instanceOf(object, klass) {
     if (object instanceof klass) return true;
   /*@end @*/
 
-  // If the class is a Base class then it would have passed the test above.
-  if (_isBaseClass(klass)) return false;
+  // If the class is a base2 class then it would have passed the test above.
+  if (Base.ancestorOf == klass.ancestorOf) return false;
   
-  try {
-    var _constructor = object.constructor;
-    // Only JavaScript objects allowed.
-    // COM objects do not have a constructor.
-    if (typeof _constructor != "function") return false;
-  } catch (error) {
-    return false;
-  }
+  // COM objects don't have a constructor
+  var _constructor = object.constructor;
+  if (typeof _constructor != "function") return false; 
   
-  // Base objects can only be instances of Object.
-  if (_isBaseClass(_constructor)) return klass == Object;
+  // base2 objects can only be instances of Object.
+  if (Base.ancestorOf == _constructor.ancestorOf) return klass == Object;
   
   switch (klass) {
     case Array: // This is the only troublesome one.
@@ -47,8 +44,4 @@ function instanceOf(object, klass) {
   }
   
   return false;
-};
-
-function _isBaseClass(klass) {
-  return klass == Base || _ancestorOf(Base, klass);
 };

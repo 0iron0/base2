@@ -1,4 +1,4 @@
-// timestamp: Fri, 10 Aug 2007 20:00:51
+// timestamp: Wed, 05 Dec 2007 04:03:40
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -277,7 +277,7 @@ var LocalDirectory = Directory.extend({
       var files = directory.files;
       var length = files.Count();      
       for (var i = 0; i < length; i++) {
-        this.store(files.item(i));
+        this.put(files.item(i));
       }
     }
   },
@@ -287,7 +287,7 @@ var LocalDirectory = Directory.extend({
       this.base();
       var enumerator = directory.QueryInterface(Components.interfaces.nsIDirectoryEnumerator);
       while (enumerator.hasMoreElements()) {
-        this.store(enumerator.nextFile);
+        this.put(enumerator.nextFile);
       }
     })
   }
@@ -318,7 +318,7 @@ var LocalFile = Base.extend({
     this.path = LocalFile.makepath(path);
     if (mode) this.open(mode);
   },
-  
+
   mode: 0,
   path: "",
 
@@ -343,7 +343,7 @@ var LocalFile = Base.extend({
       this.$fso = new ActiveXObject("Scripting.FileSystemObject");
       this.base(path, mode);
     },
-    
+
     close: function() {
       if (this.$stream) {
         this.$stream.Close();
@@ -391,7 +391,7 @@ var LocalFile = Base.extend({
       this.$nsILocalFile = LocalFile.$createObject();
       this.base(path, mode);
     },
-      
+
     $init: function() {
       var file = this.$nsILocalFile;
       try {
@@ -448,7 +448,7 @@ var LocalFile = Base.extend({
     },
 
     write: function(text) {
-      if (text == null) text = ""; 
+      if (text == null) text = "";
       this.$stream.write(text, text.length);
     }
   },
@@ -462,8 +462,7 @@ var LocalFile = Base.extend({
     },
 
     exists: function() {
-      var file = new java.io.File(this.path);
-      return file.exists();
+      return new java.io.File(this.path).exists();
     },
 
     open: function(mode) {
@@ -472,7 +471,7 @@ var LocalFile = Base.extend({
         switch (this.mode) {
           case LocalFile.READ:
             var file = new java.io.FileReader(this.path);
-            this.$stream = new java.io.BufferedReader(file); 
+            this.$stream = new java.io.BufferedReader(file);
             break;
           case LocalFile.WRITE:
             var file = new java.io.FileOutputStream(this.path);
@@ -501,7 +500,7 @@ var LocalFile = Base.extend({
   WRITE: 2,
 
   opened: {},
-  
+
   backup: function(fileName, backupName) {
     var text = this.read(fileName);
     this.write(backupName || (fileName + ".backup"), text);
@@ -518,13 +517,22 @@ var LocalFile = Base.extend({
   },
 
   makepath: function(fileName) {
-    var SLASH = /\//g;
-    var BACKSLASH = /\\/g;
     var TRIM = /[^\/]+$/;
-    fileName = String(fileName || "").replace(BACKSLASH, "/");
-    var path = location.pathname.replace(BACKSLASH, "/").replace(TRIM, "");
-    path = FileSystem.resolve(path, fileName).slice(1);
-    return decodeURIComponent(path.replace(SLASH, "\\"));
+    var path = location.pathname.replace(TRIM, "");
+    path = FileSystem.resolve(path, fileName);
+    return decodeURIComponent(path);
+  },
+
+  "@win(32|64)": {
+    makepath: function(fileName) {
+      var SLASH = /\//g;
+      var BACKSLASH = /\\/g;
+      var TRIM = /[^\/]+$/;
+      fileName = String(fileName || "").replace(BACKSLASH, "/");
+      var path = location.pathname.replace(BACKSLASH, "/").replace(TRIM, "");
+      path = FileSystem.resolve(path, fileName).slice(1);
+      return decodeURIComponent(path.replace(SLASH, "\\"));
+    }
   },
 
   read: function(fileName) {
@@ -544,10 +552,10 @@ var LocalFile = Base.extend({
     file.write(text);
     file.close();
   },
-  
+
   "@(Components)": {
     init: function() {
-      XPCOM.privelegedObject(this.prototype);    
+      XPCOM.privelegedObject(this.prototype);
       this.$createObject = XPCOM.privelegedMethod(function() {
         return XPCOM.createObject("file/local;1", "nsILocalFile");
       });
@@ -567,7 +575,7 @@ var JSONFileSystem = FileSystem.extend({
       // fetch data from the JSON object, regardless of type
       path = this.makepath(path);
       return reduce(path.split("/"), function(file, name) {
-        if (file && name) file = file[name];
+        if (file && name) file = (undefined === file[name]) ? undefined : file[name];
         return file;
       }, data);
     };
@@ -632,7 +640,7 @@ var JSONFileSystem = FileSystem.extend({
 
 var JSONDirectory = Directory.extend(null, {
   create: function(name, item) {
-    return new this.Item(name, typeof item == "object", item && item.length);
+    return new this.Item(name, typeof item == "object", typeof item == "string" ? item.length : 0);
   }
 });
 

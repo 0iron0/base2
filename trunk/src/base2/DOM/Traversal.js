@@ -4,6 +4,8 @@
 // Loosely based on this:
 // http://www.w3.org/TR/2007/WD-ElementTraversal-20070727/
 
+var TEXT = _MSIE ? "innerText" : "textContent";
+
 var Traversal = Module.extend({
   getDefaultView: function(node) {
     return this.getDocument(node).defaultView;
@@ -34,7 +36,7 @@ var Traversal = Module.extend({
   },
 
   getTextContent: function(node) {
-    return node[Traversal.$TEXT];
+    return node[TEXT];
   },
 
   isEmpty: function(node) {
@@ -47,7 +49,7 @@ var Traversal = Module.extend({
   },
 
   setTextContent: function(node, text) {
-    return node[Traversal.$TEXT] = text;
+    return node[TEXT] = text;
   },
   
   "@MSIE": {
@@ -63,8 +65,6 @@ var Traversal = Module.extend({
     }
   }
 }, {
-  $TEXT: "textContent",
-  
   contains: function(node, target) {
     while (target && (target = target.parentNode) && node != target) continue;
     return !!target;
@@ -87,10 +87,6 @@ var Traversal = Module.extend({
     contains: function(node, target) {
       return node != target && (this.isDocument(node) ? node == this.getOwnerDocument(target) : node.contains(target));
     }
-  },
-  
-  "@MSIE": {
-    $TEXT: "innerText"
   },
   
   "@MSIE5": {

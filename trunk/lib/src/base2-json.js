@@ -1,4 +1,4 @@
-// timestamp: Fri, 10 Aug 2007 20:00:51
+// timestamp: Wed, 05 Dec 2007 04:03:40
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -9,8 +9,8 @@ new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 // This code is loosely based on Douglas Crockford's original:
 //  http://www.json.org/json.js
 
-// This is not a particularly great implementation. I hacked it together to
-//  support another project. It seems to work well enough though.
+// This package will attempt to mirror the ES4 JSON package.
+// This package will not be finalised until the ES4 JSON proposal is also finalised.
 
 var JSON = new base2.Namespace(this, {
   name:    "JSON",
@@ -32,8 +32,8 @@ var JSON = new base2.Namespace(this, {
 
 eval(this.imports);
 
-extend(JSON, "toString", function(object) {
-  if (arguments.length == 0) return this.base();
+JSON.toString = function(object) {
+  if (arguments.length == 0) return "[base2.JSON]";
   // find the appropriate module
   var module = this.Object; // default
   try {
@@ -47,7 +47,7 @@ extend(JSON, "toString", function(object) {
     if (error != StopIteration) throw error;
   }
   return module.toJSONString(object);
-});
+};
 
 // =========================================================================
 // JSON/Object.js
@@ -55,7 +55,7 @@ extend(JSON, "toString", function(object) {
 
 JSON.Object = Module.extend({
   toJSONString: function(object) {
-    return object === null ? "null" : "{" + reduce(object, function(properties, property, name) {
+    return object == null ? "null" : "{" + reduce(object, function(properties, property, name) {
       if (JSON.Object.isValid(property)) {
         properties.push(JSON.String.toJSONString(name) + ":" + JSON.toString(property));
       }
@@ -63,7 +63,7 @@ JSON.Object = Module.extend({
     }, []).join(",") + "}";
   }
 }, {
-  VALID_TYPE: /object|boolean|number|string/,
+  VALID_TYPE: /^(object|boolean|number|string)$/,
   
   isValid: function(object) {
     return this.VALID_TYPE.test(typeof object);
@@ -136,6 +136,7 @@ JSON.String = JSON.Object.extend({
     } catch (error) {
       throw new SyntaxError("parseJSON");
     }
+    return "";
   },
 
   toJSONString: function(string) {

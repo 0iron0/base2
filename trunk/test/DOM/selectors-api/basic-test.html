@@ -15,13 +15,13 @@
  <script type="text/javascript">
  	base2.DOM.bind(document);
 	document.addEventListener("DOMContentLoaded", function() {
-		this.matchAll("pre").forEach(function(pre) {
+		this.querySelectorAll("pre").forEach(function(pre) {
 			// get the CSS rule from the pre tag
 			var rule = pre.firstChild.nodeValue;
 			// extract the selector part
 			var selector = rule.slice(0, rule.indexOf("{"));
 			// the tests have been constructed to match only one element
-			var element = document.matchSingle(selector);
+			var element = document.querySelector(selector);
 			if (element) element.style.backgroundColor = "lime";
 		});
 	}, false);

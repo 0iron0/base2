@@ -1,4 +1,4 @@
-// timestamp: Fri, 10 Aug 2007 20:00:50
+// timestamp: Wed, 05 Dec 2007 04:03:40
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -10,18 +10,16 @@ var JSB = new base2.Namespace(this, {
   name:    "JSB",
   version: "0.7",
   imports: "DOM",
-  exports: "Binding, Rule, RuleList"
+  exports: "Behavior, Rule, RuleList"
 });
 
 eval(this.imports);
 
 // =========================================================================
-// JSB/Binding.js
+// JSB/Behavior.js
 // =========================================================================
 
-// Remember: a binding is a function
-
-var Binding = Abstract.extend();
+var Behavior = Abstract.extend();
 
 // =========================================================================
 // JSB/Call.js
@@ -59,8 +57,10 @@ var Call = Base.extend({
         invoke(Call.list, "release");
         delete Call.list;
         setTimeout(function() { // jump out of the current event
-          EventTarget.dispatchEvent(document,'ready');
-        }, 0);
+          var event = DocumentEvent.createEvent(document, "Events");
+          Event.initEvent(event, "ready", false, false);
+          EventTarget.dispatchEvent(document, event);
+        }, 1);
       }
     }, false);
   }
@@ -70,42 +70,62 @@ var Call = Base.extend({
 // JSB/Rule.js
 // =========================================================================
 
+var _EVENT = /^on[a-z]+$/;
+
 var Rule = Base.extend({
-  constructor: function(selector, binding) {
-    // create the selector object
+  constructor: function(selector, behavior) {
+    // Create the selector object.
     selector = new Selector(selector);
-    // create the binding
-    if (typeof binding != "function") {
-      binding = Binding.extend(binding);
+    
+    if (Behavior.ancestorOf(behavior)) {
+      behavior = behavior.prototype;
     }
-    // create the bind function
-    var bound = {}; // don't bind more than once
-    function bind(element) {
+    
+    var extensions = {}, events = {}, style = behavior.style, applied = {};
+    
+    forEach (behavior, function(property, name) {
+      if (name.charAt(0) == "@") { // Add platform specific extensions.
+        if (detect(name.slice(1))) {
+          forEach (property, arguments.callee);
+        }
+      } else if (typeof property == "function" && _EVENT.test(name)) {
+        events[name.slice(2)] = property;
+      } else if (name != "style") {
+        extensions[name] = property;
+      }
+    });
+    
+    function addBehavior(element) {
       var uid = assignID(element);
-      if (!bound[uid]) {
-        bound[uid] = true;
-        binding(DOM.bind(element));
+      if (!applied[uid]) { // Don't apply more than once.
+        applied[uid] = true;
+        DOM.bind(element);
+        extend(element, extensions);
+        extend(element.style, style);
+        for (var type in events) {
+          var target = element;
+          var listener = events[type];
+          // Allow elements to pick up document events (e.g. ondocumentclick).
+          if (type.indexOf("document") == 0) {
+            target = document;
+            type = type.slice(8);
+            listener = bind(listener, element);
+          }
+          target.addEventListener(type, listener, false);
+        }
       }
     };
+    
     // execution of this method is deferred until the DOMContentLoaded event
-    this.apply = Call.defer(function() {
-      try {
-        var elements = selector.exec(document);
-      } catch (error) {
-        if (!instanceOf(error, SyntaxError)) throw error;
-        throw new SyntaxError(format("Selector '%1' is not supported by JSB", selector));
-      }
-      forEach (elements, bind);
+    this.refresh = Call.defer(function() {
+      selector.exec(document).forEach(addBehavior);
     });
-    this.toString = returns(String(selector));
-    this.apply();
+    this.toString = K(String(selector));
+    
+    this.refresh();
   },
   
-  apply: Undefined,
-  
-  refresh: function() {
-    this.apply();
-  }
+  refresh: Undefined
 });
 
 // =========================================================================
@@ -129,7 +149,7 @@ var RuleList = Collection.extend({
       forEach (match(selector, LIST), function(selector) {
         if (ID.test(selector)) {
           var name = ViewCSS.toCamelCase(selector.slice(1));
-          window[name] = Document.matchSingle(document, selector);
+          window[name] = Document.querySelector(document, selector);
         }
       });
     });
@@ -140,77 +160,6 @@ var RuleList = Collection.extend({
   }
 }, {
   Item: Rule
-});
-
-// =========================================================================
-// JSB/Event.js
-// =========================================================================
-
-extend(Event, {
-  PATTERN: /^on(DOMContentLoaded|[a-z]+)$/,
-  
-  cancel: function(event) {
-    event.stopPropagation();
-    event.preventDefault();
-    return false;
-  }
-});
-
-// =========================================================================
-// JSB/EventTarget.js
-// =========================================================================
-
-extend(EventTarget, {
-  addEventListener: function(target, type, listener, capture) {
-    // Allow elements to pick up document events (e.g. ondocumentclick).
-    if (type.indexOf("document") == 0) {
-      type = type.slice(8);
-      listener = bind(listener, target);
-      target = Traversal.getDocument(target);
-    }
-    // call the default method
-    this.base(target, type, listener, capture);
-  },
-  
-/*  dispatchEvent: function(target, event) { 
-    // Allow the event to be a string identifying its type.
-    if (typeof event == "string") {
-      var type = event;
-      var document = Traversal.getDocument(target);
-      event = document.createEvent("Events");
-      event.initEvent(type, false, false);
-    }
-    this.base(target, event);
-  }, */
-
-  removeEventListener: function(target, type, listener, capture) {
-    if (type.indexOf("document") == 0) {
-      type = type.slice(8);
-      target = Traversal.getDocument(target);
-    }
-    this.base(target, type, listener, capture);
-  }
-});
-
-// =========================================================================
-// JSB/HTMLElement.js
-// =========================================================================
-
-extend(HTMLElement.prototype, "extend", function(name, value) {
-  if (!base2.__prototyping && arguments.length >= 2) {
-    // automatically attach event handlers when extending
-    if (Event.PATTERN.test(name) && typeof value == "function") {
-      EventTarget.addEventListener(this, name.slice(2), value, false);
-      return this;
-    }
-    // extend the style object
-    if (name == "style") {
-      extend(this.style, value);
-      return this;
-    }
-    if (name == "extend") return this;
-  }
-  return base(this, arguments);
 });
 
 eval(this.exports);

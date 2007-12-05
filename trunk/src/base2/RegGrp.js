@@ -2,10 +2,12 @@
 // A collection of regular expressions and their associated replacement values.
 // A Base class for creating parsers.
 
-var _RG_BACK_REF        = /\\(\d+)/g;
-var _RG_ESCAPE_CHARS    = /\\./g;
-var _RG_ESCAPE_BRACKETS = /\(\?[:=!]|\[[^\]]+\]/g;
-var _RG_BRACKETS        = /\(/g;
+var _RG_BACK_REF        = /\\(\d+)/g,
+    _RG_ESCAPE_CHARS    = /\\./g,
+    _RG_ESCAPE_BRACKETS = /\(\?[:=!]|\[[^\]]+\]/g,
+    _RG_BRACKETS        = /\(/g,
+    _RG_LOOKUP          = /\$(\d+)/,
+    _RG_LOOKUP_SIMPLE   = /^\$\d+$/;
 
 var RegGrp = Collection.extend({
   constructor: function(values, flags) {
@@ -20,7 +22,8 @@ var RegGrp = Collection.extend({
   ignoreCase: false,
 
   exec: function(string, replacement) { // optimised (refers to _HASH/_KEYS)
-    string += ''; // type-safe
+    var flags = (this.global ? "g" : "") + (this.ignoreCase ? "i" : "");
+    string = String(string) + ""; // type-safe
     if (arguments.length == 1) {
       var self = this;
       var keys = this[_KEYS];
@@ -49,7 +52,7 @@ var RegGrp = Collection.extend({
         return "";
       };
     }
-    return string.replace(this.valueOf(), replacement);
+    return string.replace(new RegExp(this, flags), replacement);
   },
 
   insertAt: function(index, expression, replacement) {
@@ -73,20 +76,14 @@ var RegGrp = Collection.extend({
       length += item.length + 1;
       return ref;
     }).join(")|(") + ")";
-  },
-  
-  valueOf: function(type) {
-    if (type == "object") return this;
-    var flags = (this.global ? "g" : "") + (this.ignoreCase ? "i" : "");
-    return new RegExp(this, flags);
   }
 }, {
   IGNORE: "$0",
   
   init: function() {
     forEach ("add,get,has,put,remove".split(","), function(name) {
-      extend(this, name, function(expression) {
-        if (instanceOf(expression, RegExp)) {
+      _override(this, name, function(expression) {
+        if (expression && expression.source) {
           arguments[0] = expression.source;
         }
         return base(this, arguments);
@@ -96,15 +93,15 @@ var RegGrp = Collection.extend({
   
   Item: {
     constructor: function(expression, replacement) {
-      expression = instanceOf(expression, RegExp) ? expression.source : String(expression);
+      expression = (expression && expression.source) ? expression.source : String(expression);
       
       if (typeof replacement == "number") replacement = String(replacement);
       else if (replacement == null) replacement = "";    
       
       // does the pattern use sub-expressions?
-      if (typeof replacement == "string" && /\$(\d+)/.test(replacement)) {
+      if (typeof replacement == "string" && _RG_LOOKUP.test(replacement)) {
         // a simple lookup? (e.g. "$2")
-        if (/^\$\d+$/.test(replacement)) {
+        if (_RG_LOOKUP_SIMPLE.test(replacement)) {
           // store the index (used for fast retrieval of matched strings)
           replacement = parseInt(replacement.slice(1));
         } else { // a complicated lookup (e.g. "Hello $2 $1")

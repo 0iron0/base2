@@ -1,29 +1,48 @@
 
-// fix JavaScript for IE5.0 (and others)
-window.$Legacy = window.$Legacy || {};
+// This file is required if you wish to support any of the following browsers:
+//  * IE5.0 (Windows)
+//  * IE5.x (Mac)
+//  * Safari 1.x
+
 window.undefined = window.undefined;
 
 new function() {
-  var MSIE = /*@cc_on!@*/false;
   var slice = Array.prototype.slice;
   
-  $Legacy.has = function has(o,k) {
-    if (o[k] !== undefined) return true;
-    for (var i in o) if (i == k) return true;
-    return false;
-  };
+  $Legacy = {
+    has: function(object, key) {
+      if (object[key] !== undefined) return true;
+      key = String(key);
+      for (var i in object) if (i == key) return true;
+      return false;
+    },
   
-  $Legacy.forEach = function(a, b, c) {
-    var i, l = a.length;
-    for (i = 0; i < l; i++) {
-      if (a[i] !== undefined || has(a, i)) b.call(c, a[i], i, a);
+    instanceOf: function(object, klass) {
+      // only works properly with base2 classes
+      return object && (klass == Object || object.constructor == klass ||
+        (klass.ancestorOf && klass.ancestorOf(object.constructor)));
     }
   };
   
-  $Legacy.instanceOf = function(o, k) {
-    // only works properly with base2 objects
-    return o && (k == Object || o.constructor == k || (k.ancestorOf && k.ancestorOf(o.constructor)));
-  };
+  // Andrea Giammarchi
+  /*@cc_on @*/
+  /*@if (@_jscript_version < 5.1)
+  (function(override) {
+    window.setTimeout = override(setTimeout);
+    window.setInterval = override(setInterval);
+  })(function(base) {
+    return function(value, interval) {
+      if (typeof value == "function") {
+        var args = slice.call(arguments, 2);
+        var fn = value;
+        value = function(){
+          fn.apply(this, args);
+        };
+      }
+      return base(value, interval);
+    };
+  });
+  /*@end @*/
   
   if (typeof encodeURIComponent == "undefined") {
     encodeURIComponent = function(s) {
@@ -71,13 +90,6 @@ new function() {
     };
   }
   
-  extend(Array, "push", function() {
-    for (var i = 0; i < arguments.length; i++) {
-      this[this.length] = arguments[i];
-    }
-    return this.length;
-  });
-  
   extend(Array, "pop", function() {
     if (this.length) {
       var i = this[this.length - 1];
@@ -85,6 +97,13 @@ new function() {
       return i;
     }
     return undefined;
+  });
+  
+  extend(Array, "push", function() {
+    for (var i = 0; i < arguments.length; i++) {
+      this[this.length] = arguments[i];
+    }
+    return this.length;
   });
   
   extend(Array, "shift", function() {
@@ -97,12 +116,6 @@ new function() {
     return r;
   });
   
-  extend(Array, "unshift", function() {
-    var a = this.concat.call(slice.apply(arguments, [0]), this), i = a.length;
-    while (i--) this[i] = a[i];
-    return this.length;
-  });
-  
   extend(Array, "splice", function(i, c) {
     var r = c ? this.slice(i, i + c) : [];
     var a = this.slice(0, i).concat(slice.apply(arguments, [2])).concat(this.slice(i + c));
@@ -111,12 +124,11 @@ new function() {
     return r;
   });
   
-  function fix(o) { // fix
-    if (o && o.documentElement) {
-      o = o.documentElement.document || o;
-    }
-    return o;
-  };
+  extend(Array, "unshift", function() {
+    var a = this.concat.call(slice.apply(arguments, [0]), this), i = a.length;
+    while (i--) this[i] = a[i];
+    return this.length;
+  });
   
   var ns = this;
   extend(Function, "apply", function(o, a) {
@@ -126,7 +138,7 @@ new function() {
     else if (typeof o == "number") o = new Number(o);
     else if (typeof o == "boolean") o = new Boolean(o);
     if (arguments.length == 1) a = [];
-    else if (a[0]) a[0] = fix(a[0]); // fix
+    else if (a[0] && a[0].writeln) a[0] = a[0].documentElement.document || a[0];
     var $ = "#b2_apply", r;
     o[$] = this;
     switch (a.length) { // unroll for speed
@@ -141,12 +153,13 @@ new function() {
         do b[i] = "a[" + i + "]"; while (i--);
         eval("r=o[$](" + b + ")");
     }
-    try {
+    if (o.valueOf) { // not a COM object
       delete o[$];
-    } catch (e) {
+    } else {
       o[$] = undefined;
     }
-    return fix(r); // fix
+    if (r && r.writeln) r = r.documentElement.document || r;
+    return r;
   });
   
   extend(Function, "call", function(o) {
@@ -154,9 +167,44 @@ new function() {
   });
   
   extend(Number, "toFixed", function(n) {
-    var e = Math.pow(10, n);
-    var r = String(Math.round(this * e));
-    if (r == 0) for (var i = 0; i < n; i++) r += "0";
-    return r.slice(0, r.length - n) + "." + r.slice(r.length - n);
+    // Andrea Giammarchi
+    n = parseInt(n);
+    var	value = Math.pow(10, n);
+    value = String(Math.round(this * value) / value);
+    if (n > 0) {
+      value = value.split(".");
+      if (!value[1]) value[1] = "";
+      value[1] += Array(n - value[1].length + 1).join(0);
+      value = value.join(".");
+    };
+    return value;
   });
+  
+  // Fix String.replace (Safari1.x/IE5.0).
+  if ("".replace(/^/, String)) {
+    var GLOBAL = /(g|gi)$/;
+    var RESCAPE = /([\/()[\]{}|*+-.,^$?\\])/g;
+    var _replace = String.prototype.replace; 
+    String.prototype.replace = function(expression, replacement) {
+      if (typeof replacement == "function") { // Safari doesn't like functions
+        if (expression && expression.constructor == RegExp) {
+          var regexp = expression;
+          var global = regexp.global;
+          if (global == null) global = GLOBAL.test(regexp);
+          // we have to convert global RexpExps for exec() to work consistently
+          if (global) regexp = new RegExp(regexp.source); // non-global
+        } else {
+          regexp = new RegExp(String(expression).replace(RESCAPE, "\\$1"));
+        }
+        var match, string = this, result = "";
+        while (string && (match = regexp.exec(string))) {
+          result += string.slice(0, match.index) + replacement.apply(this, match);
+          string = string.slice(match.index + match[0].length);
+          if (!global) break;
+        }
+        return result + string;
+      }
+      return _replace.apply(this, arguments);
+    };
+  }
 };

@@ -1,4 +1,4 @@
-// timestamp: Fri, 10 Aug 2007 19:41:12
+// timestamp: Wed, 05 Dec 2007 04:03:40
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -60,6 +60,8 @@ doc.data = new Base({
 var LIST = /[^\s,]+/g;
 
 base2["#name"] = "base2";
+window["#name"] = "window";
+
 forEach (base2.exports.match(LIST), function(name) {
   var property = this[name];
   if (property instanceof Function || property instanceof Namespace) {
@@ -79,6 +81,11 @@ forEach (base2.exports.match(LIST), function(name) {
           }
         });
       });
+    } else if (Collection.ancestorOf(property)) {
+      var Item = property.Item;
+      if (Item && !Item["#name"]) {
+        Item['#name'] = property['#name'] + ".Item";
+      }
     }
   }
 }, base2);

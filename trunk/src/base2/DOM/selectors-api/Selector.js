@@ -4,6 +4,18 @@
 
 // There is no public standard for this object.
 
+var _NOT_XPATH = ":(checked|disabled|enabled|contains)|^(#[\\w-]+\\s*)?\\w+$";
+if (detect("KHTML")) {
+  if (detect("WebKit5")) {
+    _NOT_XPATH += "|nth\\-|,";
+  } else {
+    _NOT_XPATH = ".";
+  }
+}
+_NOT_XPATH = new RegExp(_NOT_XPATH);
+
+var _xpathParser;
+
 var Selector = Base.extend({
   constructor: function(selector) {
     this.toString = K(trim(selector));
@@ -29,7 +41,7 @@ var Selector = Base.extend({
   "@(XPathResult)": {
     exec: function(context, single) {
       // use DOM methods if the XPath engine can't be used
-      if (Selector.$NOT_XPATH.test(this)) {
+      if (_NOT_XPATH.test(this)) {
         return this.base(context, single);
       }
       var document = Traversal.getDocument(context);
@@ -43,7 +55,7 @@ var Selector = Base.extend({
   
   "@MSIE": {
     exec: function(context, single) {
-      if (typeof context.selectNodes != "undefined" && !Selector.$NOT_XPATH.test(this)) { // xml
+      if (typeof context.selectNodes != "undefined" && !_NOT_XPATH.test(this)) { // xml
         var method = single ? "selectSingleNode" : "selectNodes";
         return context[method](this.toXPath());
       }
@@ -61,48 +73,12 @@ var Selector = Base.extend({
       return single ? result : new StaticNodeList(result);
     }
   }
-}, {
-  $NOT_XPATH: /:(checked|disabled|enabled|contains)|^(#[\w-]+\s*)?\w+$/,
-  
-  operators: {
-    "=":  "%1=='%2'",
-    "!=": "%1!='%2'", //  not standard but other libraries support it
-    "~=": /(^| )%1( |$)/,
-    "|=": /^%1(-|$)/,
-    "^=": /^%1/,
-    "$=": /%1$/,
-    "*=": /%1/
-  },
-  
-  pseudoClasses: { //-dean: lang()
-    "checked":     "e%1.checked",
-    "contains":    "e%1[Traversal.$TEXT].indexOf('%2')!=-1",
-    "disabled":    "e%1.disabled",
-    "empty":       "Traversal.isEmpty(e%1)",
-    "enabled":     "e%1.disabled===false",
-    "first-child": "!Traversal.getPreviousElementSibling(e%1)",
-    "last-child":  "!Traversal.getNextElementSibling(e%1)",
-    "only-child":  "!Traversal.getPreviousElementSibling(e%1)&&!Traversal.getNextElementSibling(e%1)",
-    "root":        "e%1==Traversal.getDocument(e%1).documentElement"
-  },
-  
-  xpathParser: null,
-  
+}, {  
   toXPath: function(selector) {
-    if (!this.xpathParser) this.xpathParser = new XPathParser;
-    return this.xpathParser.parse(selector);
-  },
-  
-  "@KHTML": { // XPath is just too buggy on earlier versions of Safari  
-    $NOT_XPATH: /:(checked|disabled|enabled|contains)|^(#[\w-]+\s*)?\w+$|nth\-|,/,
-    
-    "@!WebKit5": {
-      $NOT_XPATH: /./
-    }
+    if (!_xpathParser) _xpathParser = new XPathParser;
+    return _xpathParser.parse(selector);
   }
 });
-
-Selector.operators[""] = "%1!=null";
 
 // Selector.parse() - converts CSS selectors to DOM queries.
 
@@ -111,8 +87,27 @@ Selector.operators[""] = "%1!=null";
 
 new function(_) {
   // some constants
-  var _MSIE = detect("MSIE");
-  var _MSIE5 = detect("MSIE5");
+  var _OPERATORS = {
+    "=":  "%1=='%2'",
+    "!=": "%1!='%2'", //  not standard but other libraries support it
+    "~=": /(^| )%1( |$)/,
+    "|=": /^%1(-|$)/,
+    "^=": /^%1/,
+    "$=": /%1$/,
+    "*=": /%1/
+  };
+  _OPERATORS[""] = "%1!=null";    
+  var _PSEUDO_CLASSES = { //-dean: lang()
+    "checked":     "e%1.checked",
+    "contains":    "e%1[TEXT].indexOf('%2')!=-1",
+    "disabled":    "e%1.disabled",
+    "empty":       "Traversal.isEmpty(e%1)",
+    "enabled":     "e%1.disabled===false",
+    "first-child": "!Traversal.getPreviousElementSibling(e%1)",
+    "last-child":  "!Traversal.getNextElementSibling(e%1)",
+    "only-child":  "!Traversal.getPreviousElementSibling(e%1)&&!Traversal.getNextElementSibling(e%1)",
+    "root":        "e%1==Traversal.getDocument(e%1).documentElement"
+  };
   var _INDEXED = detect("(element.sourceIndex)") ;
   var _VAR = "var p%2=0,i%2,e%2,n%2=e%1.";
   var _ID = _INDEXED ? "e%1.sourceIndex" : "assignID(e%1)";
@@ -162,7 +157,7 @@ new function(_) {
     return element;
   };
 
-  var sorter = _INDEXED? function(a, b) {
+  var sorter = _INDEXED ? function(a, b) {
     return a.sourceIndex - b.sourceIndex;
   } : Node.compareDocumentPosition;
 
@@ -239,7 +234,7 @@ new function(_) {
       replacement += "){e%1.b2_adjacent=indexed;";
       return format(replacement, _index, tagName);
     },
-    "#([\\w-]+)": function(match, id) { // _ID selector
+    "#([\\w-]+)": function(match, id) { // ID selector
       _wild = false;
       var replacement = "if(e%1.id=='%2'){";
       if (_list) replacement += format("i%1=n%1.length;", _list);
@@ -264,20 +259,20 @@ new function(_) {
       return format(replacement, _index) + CSSParser._nthChild(match, args, "i", last, "!", "&&", "%", "==") + "){";
     },
     ":([\\w-]+)(\\(([^)]+)\\))?": function(match, pseudoClass, $2, args) { // other pseudo class selectors
-      return "if(" + format(Selector.pseudoClasses[pseudoClass] || "throw", _index, args || "") + "){";
+      return "if(" + format(_PSEUDO_CLASSES[pseudoClass] || "throw", _index, args || "") + "){";
     },
     "\\[([\\w-]+)\\s*([^=]?=)?\\s*([^\\]]*)\\]": function(match, attr, operator, value) { // attribute selectors
-      var alias = Element.$attributes[attr] || attr;
+      var alias = _ATTRIBUTES[attr] || attr;
       if (operator) {
         var getAttribute = "e%1.getAttribute('%2',2)";
-        if (!Element.$EVALUATED.test(attr)) {
+        if (!_EVALUATED.test(attr)) {
           getAttribute = "e%1.%3||" + getAttribute;
         }
         attr = format("(" + getAttribute + ")", _index, attr, alias);
       } else {
         attr = format("Element.getAttribute(e%1,'%2')", _index, attr);
       }
-      var replacement = Selector.operators[operator || ""];
+      var replacement = _OPERATORS[operator || ""];
       if (instanceOf(replacement, RegExp)) {
         reg.push(new RegExp(format(replacement.source, rescape(parser.unescape(value)))));
         replacement = "reg[%2].test(%1)";

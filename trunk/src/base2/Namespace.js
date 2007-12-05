@@ -2,8 +2,6 @@
 var Namespace = Base.extend({
   constructor: function(_private, _public) {
     this.extend(_public);
-    
-    // Initialise.
     this.init();
     
     if (this.name != "base2") {
@@ -25,8 +23,9 @@ var Namespace = Base.extend({
       // This string should be evaluated after you have created all of the objects
       // that are being exported.
       _private.exports = Array2.reduce(this.exports.match(LIST), function(namespace, name) {
-        this.namespace += format("var %2=%1.%2;", this.name, name);
-        return namespace += format("if(!%1.%2)%1.%2=%2;", this.name, name);
+        var fullName = this.name + "." + name;
+        this.namespace += "var " + name + "=" + fullName + ";";
+        return namespace += "if(!" + fullName + ")" + fullName + "=" + name + ";";
       }, "", this);
     }
   },

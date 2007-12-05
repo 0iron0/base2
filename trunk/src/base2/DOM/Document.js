@@ -5,7 +5,8 @@ var Document = Node.extend(null, {
       return DOM.bind(this.base(tagName));
     });
     AbstractView.bind(document.defaultView);
-    new DOMContentLoadedEvent(document);
+    if (document != window.document)
+      new DOMContentLoadedEvent(document);
     return this.base(document);
   },
   

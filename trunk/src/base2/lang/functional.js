@@ -18,13 +18,6 @@ function bind(fn, context) {
   return bound;
 };
 
-function curry(fn) {
-  var args = slice.call(arguments, 1);
-  return function() {
-      return fn.apply(this, args.concat(slice(arguments)));
-  };
-};
-
 function delegate(fn, context) {
   return function() {
     //Array2.unshift(arguments, this);
@@ -42,6 +35,13 @@ function flip(fn) {
 function not(fn) {
   return function() {
     return !fn.apply(this, arguments);
+  };
+};
+
+function partial(fn) {
+  var args = slice.call(arguments, 1);
+  return function() {
+      return fn.apply(this, args.concat(slice(arguments)));
   };
 };
 

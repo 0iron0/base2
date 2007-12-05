@@ -72,7 +72,7 @@ var Server = Base.extend({
   },
   
   OPTIONS: function(server, request) {
-    request.headers["Allow"] = "DELETE,GET,HEAD,OPTIONS,POST,PUT";
+    request.headers["Allow"] = "OPTIONS,HEAD,GET,POST,PUT,DELETE";
     request.status = 200; // OK
   },
   

@@ -4,33 +4,14 @@
 // TO DO: event capture
 
 var EventTarget = Interface.extend({
-/*  addEventListener: function(target, type, listener, capture) {
-    var listenerID = listener._cloneID || assignID(listener);
-    function _listener(event) {
-      Event.bind(event); // fix the event object
-      if (listener.handleEvent) {
-        listener.handleEvent(event);
-      } else {
-        listener.call(this, event);
-      }
-    };
-    EventTarget.$all[listenerID] = _listener;
-    this.base(target, type, _listener, capture);
-  },
-  
-  removeEventListener: function(target, type, listener, capture) {
-    var _listener = EventTarget.$all[listener.base2ID] || listener;
-    this.base(target, type, _listener, capture);
-  }, */
-  
   "@!(element.addEventListener)": {
     addEventListener: function(target, type, listener, capture) {
       // assign a unique id to both objects
       var targetID = assignID(target);
       var listenerID = listener._cloneID || assignID(listener);
       // create a hash table of event types for the target object
-      var events = EventTarget.$all[targetID];
-      if (!events) events = EventTarget.$all[targetID] = {};
+      var events = _eventMap[targetID];
+      if (!events) events = _eventMap[targetID] = {};
       // create a hash table of event listeners for each object/event pair
       var listeners = events[type];
       var current = target["on" + type];
@@ -42,17 +23,17 @@ var EventTarget = Interface.extend({
       // store the event listener in the hash table
       listeners[listenerID] = listener;
       if (current !== undefined) {
-        target["on" + type] = delegate(EventTarget.$handleEvent);
+        target["on" + type] = delegate(_eventMap.handleEvent);
       }
     },
   
     dispatchEvent: function(target, event) {
-      return EventTarget.$handleEvent(target, event);
+      return _eventMap.handleEvent(target, event);
     },
   
     removeEventListener: function(target, type, listener, capture) {
       // delete the event listener from the hash table
-      var events = EventTarget.$all[target.base2ID];
+      var events = _eventMap[target.base2ID];
       if (events && events[type]) {
         delete events[type][listener.base2ID];
       }
@@ -78,42 +59,39 @@ var EventTarget = Interface.extend({
       }
     }
   }
-}, {
-  $all : {},
-  
-  "@!(element.addEventListener)": {
-  
-    $handleEvent: function(target, event) {
-      var returnValue = true;
-      // get a reference to the hash table of event listeners
-      var events = EventTarget.$all[target.base2ID];
-      if (events) {
-        event = Event.bind(event); // fix the event object
-        var listeners = events[event.type];
-        // execute each event listener
-        for (var i in listeners) {
-          var listener = listeners[i];
-          // support the EventListener interface
-          if (listener.handleEvent) {
-            returnValue = listener.handleEvent(event);
-          } else {
-            returnValue = listener.call(target, event);
-          }
-          if (event.returnValue === false) returnValue = false;
-          if (returnValue === false) break;
+});
+
+var _eventMap = new Base({ 
+  handleEvent: function(target, event) {
+    var returnValue = true;
+    // get a reference to the hash table of event listeners
+    var events = _eventMap[target.base2ID];
+    if (events) {
+      event = Event.bind(event); // fix the event object
+      var listeners = events[event.type];
+      // execute each event listener
+      for (var i in listeners) {
+        var listener = listeners[i];
+        // support the EventListener interface
+        if (listener.handleEvent) {
+          var result = listener.handleEvent(event);
+        } else {
+          result = listener.call(target, event);
         }
+        if (result === false || event.returnValue === false) returnValue = false;
       }
-      return returnValue;
-    },
-    
-    "@MSIE": {  
-      $handleEvent: function(target, event) {
-        if (target.Infinity) {
-          target = target.document.parentWindow;
-          if (!event) event = target.event;
-        }
-        return this.base(target, event || Traversal.getDefaultView(target).event);
+    }
+    return returnValue;
+  },
+  
+  "@MSIE": {  
+    handleEvent: function(target, event) {
+      if (target.Infinity) {
+        target = target.document.parentWindow;
+        if (!event) event = target.event;
       }
+      return this.base(target, event || Traversal.getDefaultView(target).event);
     }
   }
 });
+
