@@ -17,8 +17,7 @@ var StaticNodeList = Base.extend({
   length: 0,
   
   forEach: function(block, context) {
-    var length = this.length; // preserve
-    for (var i = 0; i < length; i++) {
+    for (var i = 0; i < this.length; i++) {
       block.call(context, this.item(i), i, this);
     }
   },

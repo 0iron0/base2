@@ -53,9 +53,9 @@ var History = Base.extend({
     $write: function(hash) {
       if (hash != location.hash) {
         var document = frames[0].document;
-        document.open(); // -dean: get rid?
+        document.open();
         document.write("<script>parent.location.hash='" + hash + "'<\/script>");
-        document.close(); // -DRE
+        document.close();
       }
     },
     

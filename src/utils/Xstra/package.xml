@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<package name="Xstra">
-  <include src="namespace.js"/>
-  <include src="tester.js"/>
-  <include src="Date2.js"/>
-</package>

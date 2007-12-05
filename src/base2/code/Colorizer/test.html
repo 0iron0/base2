@@ -4,6 +4,7 @@
  <title>Colorizer - Test Page</title>
  <meta name="author" content="Dean Edwards"/>
  <link rel="stylesheet" type="text/css" href="colorizer.css"/>
+ <script src="../../../../lib/base2-legacy-p.js" type="text/javascript"></script>
  <script src="../../../../lib/base2-jsb-fp.js" type="text/javascript"></script>
  <script src="../Colorizer.js" type="text/javascript"></script>
  <script src="xml.js" type="text/javascript"></script>
@@ -13,13 +14,13 @@
  <script src="html-multi.js" type="text/javascript"></script>
  <script src="haskell.js" type="text/javascript"></script>
  <style type="text/css">
-pre {
-	font-size: 14px;
-	font-family: "Consolas", "Bitstream Vera Sans Mono", "Lucida Console", "Courier New", courier, monospace;
-	font-style: normal;
-}
-</style>
- <script src="bindings.js" type="text/javascript"></script>
+  pre {
+   font-size: 14px;
+   font-family: "Consolas", "Lucida Console", "Courier New", courier, monospace;
+   font-style: normal;
+ }
+ </style>
+ <script src="behaviors.js" type="text/javascript"></script>
 </head>
 <body>
 <h2>Colorizer - Test Page</h2>
@@ -76,37 +77,38 @@ p x = do print x
 
 <h2>JavaScript</h2>
 <pre class="javascript">
-function getCookie( name ) {
-	var start = document.cookie.indexOf( name + "=" );
+// cookie functions
+function getCookie(name) {
+	var start = document.cookie.indexOf(name + "=");
 	var len = start + name.length + 1;
-	if ( ( !start ) && ( name != document.cookie.substring( 0, name.length ) ) ) {
+	if (!start && name != document.cookie.substring(0, name.length)) {
 		return null;
 	}
-	if ( start == -1 ) return null;
-	var end = document.cookie.indexOf( ';', len );
-	if ( end == -1 ) end = document.cookie.length;
-	return unescape( document.cookie.substring( len, end ) );
+	if (start == -1) return null;
+	var end = document.cookie.indexOf(';', len);
+	if (end == -1) end = document.cookie.length;
+	return unescape(document.cookie.substring(len, end));
 }
 
-function setCookie( name, value, expires, path, domain, secure ) {
+function setCookie(name, value, expires, path, domain, secure) {
 	var today = new Date();
-	today.setTime( today.getTime() );
-	if ( expires ) {
+	today.setTime(today.getTime());
+	if (expires) {
 		expires = expires * 1000 * 60 * 60 * 24;
 	}
-	var expires_date = new Date( today.getTime() + (expires) );
-	document.cookie = name+'='+escape( value ) +
-		( ( expires ) ? ';expires='+expires_date.toGMTString() : '' ) + //expires.toGMTString()
-		( ( path ) ? ';path=' + path : '' ) +
-		( ( domain ) ? ';domain=' + domain : '' ) +
-		( ( secure ) ? ';secure' : '' );
+	var expires_date = new Date(today.getTime() + expires);
+	document.cookie = name + '=' + escape(value) +
+		(expires ? ';expires=' + expires_date.toGMTString() : '') +
+		(path ? ';path=' + path : '') +
+		(domain ? ';domain=' + domain : '') +
+		(secure ? ';secure' : '');
 }
 
-function deleteCookie( name, path, domain ) {
-	if ( getCookie( name ) ) document.cookie = name + '=' +
-			( ( path ) ? ';path=' + path : '') +
-			( ( domain ) ? ';domain=' + domain : '' ) +
-			';expires=Thu, 01-Jan-1970 00:00:01 GMT';
+function deleteCookie(name, path, domain) {
+	if (getCookie(name)) document.cookie = name + '=' +
+		(path ? ';path=' + path : '') +
+		(domain ? ';domain=' + domain : '') +
+		';expires=Thu, 01-Jan-1970 00:00:01 GMT';
 }
 </pre>
 

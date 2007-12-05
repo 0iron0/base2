@@ -18,5 +18,5 @@ langTests.testInstanceOfBase2 = function() {
   assertEqual(instanceOf(new Object, Base), false, "Object/Base");
   assertEqual(instanceOf(new Collection, Object), true, "Collection/Object");
   assertEqual(instanceOf(new Collection, Base), true, "Collection/Base");
-  assertEqual(instanceOf(new Collection, Hash), true, "Collection/Hash");
+  assertEqual(instanceOf(new Collection, Map), true, "Collection/Map");
 };

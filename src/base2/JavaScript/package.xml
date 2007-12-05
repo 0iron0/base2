@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="JavaScript" publish="false" closure="false">
+  <include src="~/Date.js"/>
   <include src="~/Function.js"/>
   <include src="~/String.js"/>
   <include src="Array2.js"/>

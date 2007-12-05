@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="JSB" requires="DOM">
   <include src="namespace.js"/>
-  <include src="Binding.js"/>
+  <include src="Behavior.js"/>
   <include src="Call.js"/>
   <include src="Rule.js"/>
   <include src="RuleList.js"/>
-  <include src="Event.js"/>
-  <include src="EventTarget.js"/>
-  <include src="HTMLElement.js"/>
 </package>

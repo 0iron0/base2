@@ -123,8 +123,7 @@ var Collection = Map.extend({
   },
   
   create: function(key, item) {
-    if (this.Item) return new this.Item(key, item);
-    return null;
+    return this.Item ? new this.Item(key, item) : null;
   },
   
   extend: function(_instance, _static) {

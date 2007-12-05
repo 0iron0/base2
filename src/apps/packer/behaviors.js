@@ -87,10 +87,3 @@ new base2.JSB.RuleList({
     } 
   }
 });
-
-if (!(0).toFixed) Number.prototype.toFixed = function(n) {
-  var e = Math.pow(10, n);
-  var r = String(Math.round(this * e));
-  if (r == 0) for (var i = 0; i < n; i++) r += "0";
-  return r.slice(0, r.length - n) + "." + r.slice(r.length - n);
-};

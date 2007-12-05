@@ -2,8 +2,8 @@
 // This code is loosely based on Douglas Crockford's original:
 //  http://www.json.org/json.js
 
-// This is not a particularly great implementation. I hacked it together to
-//  support another project. It seems to work well enough though.
+// This package will attempt to mirror the ES4 JSON package.
+// This package will not be finalised until the ES4 JSON proposal is also finalised.
 
 var JSON = new base2.Namespace(this, {
   name:    "JSON",
@@ -25,8 +25,8 @@ var JSON = new base2.Namespace(this, {
 
 eval(this.imports);
 
-extend(JSON, "toString", function(object) {
-  if (arguments.length == 0) return this.base();
+JSON.toString = function(object) {
+  if (arguments.length == 0) return "[base2.JSON]";
   // find the appropriate module
   var module = this.Object; // default
   try {
@@ -40,4 +40,4 @@ extend(JSON, "toString", function(object) {
     if (error != StopIteration) throw error;
   }
   return module.toJSONString(object);
-});
+};

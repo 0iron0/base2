@@ -1,7 +1,7 @@
 
 var DOM = new base2.Namespace(this, {
   name:    "DOM",
-  version: "0.9.2 (alpha)",
+  version: "1.0 (beta 1)",
   exports:
     "Interface, Binding, Node, Document, Element, AbstractView, Event, EventTarget, DocumentEvent, " +
     "NodeSelector, DocumentSelector, ElementSelector, StaticNodeList, " +
@@ -48,3 +48,6 @@ var DOM = new base2.Namespace(this, {
 });
 
 eval(this.imports);
+
+var _MSIE = detect("MSIE");
+var _MSIE5 = detect("MSIE5");

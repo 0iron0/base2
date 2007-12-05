@@ -3,7 +3,7 @@
   <include src="~/base2/code/Colorizer.js"/>
   <include src="~/base2/code/Colorizer/web.xml"/>
   <include src="~/base2/code/Colorizer/base2.js"/>
-  <include src="bindings.js"/>
+  <include src="behaviors.js"/>
   <include src="colorize.js"/>
   <include src="required.js"/>
 </package>

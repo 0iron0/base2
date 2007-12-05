@@ -1,7 +1,7 @@
 
-function assert(condition, message, Err) {
+function assert(condition, message, ErrorClass) {
   if (!condition) {
-    throw new (Err || Error)(message || "Assertion failed.");
+    throw new (ErrorClass || Error)(message || "Assertion failed.");
   }
 };
 

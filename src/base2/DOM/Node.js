@@ -12,8 +12,8 @@ var Node = Binding.extend({
         return 2|8;  // preceding|contains
       }
       
-      var nodeIndex = Node.$getSourceIndex(node);
-      var otherIndex = Node.$getSourceIndex(other);
+      var nodeIndex = _getSourceIndex(node);
+      var otherIndex = _getSourceIndex(other);
       
       if (nodeIndex < otherIndex) {
         return 4; // following
@@ -23,20 +23,16 @@ var Node = Binding.extend({
       return 0;
     }
   }
-}, {
-  $getSourceIndex: function(node) {
-    // return a key suitable for comparing nodes
-    var key = 0;
-    while (node) {
-      key = Traversal.getNodeIndex(node) + "." + key;
-      node = node.parentNode;
-    }
-    return key;
-  },
-  
-  "@(element.sourceIndex)": {  
-    $getSourceIndex: function(node) {
-      return node.sourceIndex;
-    }
-  }
 });
+
+var _getSourceIndex = document.documentElement.sourceIndex ? function(node) {
+  return node.sourceIndex;
+} : function(node) {
+  // return a key suitable for comparing nodes
+  var key = 0;
+  while (node) {
+    key = Traversal.getNodeIndex(node) + "." + key;
+    node = node.parentNode;
+  }
+  return key;
+};

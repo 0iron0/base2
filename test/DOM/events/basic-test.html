@@ -13,7 +13,7 @@
  	base2.DOM.bind(document);
  	var clickable;
  	onload = function() {
- 		clickable = document.matchSingle("#clickable");
+ 		clickable = document.querySelector("#clickable");
  	};
 	function addListener() {
 		clickable.addEventListener("click", youClickedMe, false);

@@ -40,11 +40,8 @@ var MiniWeb = new base2.Namespace(this, {
     }, this);
     
     window.onload = function() {
+      MiniWeb.readOnly = location.protocol != "file:";
       MiniWeb.server = new Server;
-      // get server options
-      var request = new Request("OPTIONS");
-      var allow = request.getResponseHeader("Allow");
-      MiniWeb.readOnly = !/PUT/.test(allow);
       MiniWeb.terminal = new Terminal;
       MiniWeb.client = new Client;
     };
@@ -128,8 +125,8 @@ var MiniWeb = new base2.Namespace(this, {
   }
 });
 
-eval(this.imports);
-
 MiniWeb.toString = function() {
   return "MiniWeb version " + MiniWeb.version;
 };
+
+eval(this.imports);

@@ -8,7 +8,7 @@ var LocalFile = Base.extend({
     this.path = LocalFile.makepath(path);
     if (mode) this.open(mode);
   },
-  
+
   mode: 0,
   path: "",
 
@@ -33,7 +33,7 @@ var LocalFile = Base.extend({
       this.$fso = new ActiveXObject("Scripting.FileSystemObject");
       this.base(path, mode);
     },
-    
+
     close: function() {
       if (this.$stream) {
         this.$stream.Close();
@@ -81,7 +81,7 @@ var LocalFile = Base.extend({
       this.$nsILocalFile = LocalFile.$createObject();
       this.base(path, mode);
     },
-      
+
     $init: function() {
       var file = this.$nsILocalFile;
       try {
@@ -138,7 +138,7 @@ var LocalFile = Base.extend({
     },
 
     write: function(text) {
-      if (text == null) text = ""; 
+      if (text == null) text = "";
       this.$stream.write(text, text.length);
     }
   },
@@ -161,7 +161,7 @@ var LocalFile = Base.extend({
         switch (this.mode) {
           case LocalFile.READ:
             var file = new java.io.FileReader(this.path);
-            this.$stream = new java.io.BufferedReader(file); 
+            this.$stream = new java.io.BufferedReader(file);
             break;
           case LocalFile.WRITE:
             var file = new java.io.FileOutputStream(this.path);
@@ -190,7 +190,7 @@ var LocalFile = Base.extend({
   WRITE: 2,
 
   opened: {},
-  
+
   backup: function(fileName, backupName) {
     var text = this.read(fileName);
     this.write(backupName || (fileName + ".backup"), text);
@@ -207,13 +207,22 @@ var LocalFile = Base.extend({
   },
 
   makepath: function(fileName) {
-    var SLASH = /\//g;
-    var BACKSLASH = /\\/g;
     var TRIM = /[^\/]+$/;
-    fileName = String(fileName || "").replace(BACKSLASH, "/");
-    var path = location.pathname.replace(BACKSLASH, "/").replace(TRIM, "");
-    path = FileSystem.resolve(path, fileName).slice(1);
-    return decodeURIComponent(path.replace(SLASH, "\\"));
+    var path = location.pathname.replace(TRIM, "");
+    path = FileSystem.resolve(path, fileName);
+    return decodeURIComponent(path);
+  },
+
+  "@win(32|64)": {
+    makepath: function(fileName) {
+      var SLASH = /\//g;
+      var BACKSLASH = /\\/g;
+      var TRIM = /[^\/]+$/;
+      fileName = String(fileName || "").replace(BACKSLASH, "/");
+      var path = location.pathname.replace(BACKSLASH, "/").replace(TRIM, "");
+      path = FileSystem.resolve(path, fileName).slice(1);
+      return decodeURIComponent(path.replace(SLASH, "\\"));
+    }
   },
 
   read: function(fileName) {
@@ -233,10 +242,10 @@ var LocalFile = Base.extend({
     file.write(text);
     file.close();
   },
-  
+
   "@(Components)": {
     init: function() {
-      XPCOM.privelegedObject(this.prototype);    
+      XPCOM.privelegedObject(this.prototype);
       this.$createObject = XPCOM.privelegedMethod(function() {
         return XPCOM.createObject("file/local;1", "nsILocalFile");
       });

@@ -10,7 +10,7 @@ var _subclass = function(_instance, _static) {
   
   // Create the wrapper for the constructor function.
   var _constructor = _prototype.constructor;
-  function klass() {
+  function _class() {
     // Don't call the constructor function when prototyping.
     if (!base2.__prototyping) {
       if (this.constructor == arguments.callee || this.__constructing) {
@@ -19,29 +19,29 @@ var _subclass = function(_instance, _static) {
         _constructor.apply(this, arguments);
         delete this.__constructing;
       } else {
-        // Cast.
+        // Casting.
         return extend(arguments[0], _prototype);
       }
     }
     return this;
   };
-  _prototype.constructor = klass;
+  _prototype.constructor = _class;
   
   // Build the static interface.
-  for (var i in Base) klass[i] = this[i];
-  klass.toString = K(String(_constructor));
-  klass.ancestor = this;
-  klass.base = Undefined;
-  klass.init = Undefined;
-  extend(klass, _static);
-  klass.prototype = _prototype;
-  klass.init();
+  for (var i in Base) _class[i] = this[i];
+  _class.toString = K(String(_constructor));
+  _class.ancestor = this;
+  _class.base = Undefined;
+  _class.init = Undefined;
+  extend(_class, _static);
+  _class.prototype = _prototype;
+  _class.init();
   
   // introspection (removed when packed)
-  ;;; klass["#implements"] = [];
-  ;;; klass["#implemented_by"] = [];
+  ;;; _class["#implements"] = [];
+  ;;; _class["#implemented_by"] = [];
   
-  return klass;
+  return _class;
 };
 
 var Base = _subclass.call(Object, {
@@ -64,10 +64,10 @@ var Base = _subclass.call(Object, {
   forEach: delegate(_Function_forEach),
   
   implement: function(source) {
-    if (instanceOf(source, Function)) {
+    if (typeof source == "function") {
       // If we are implementing another classs/module then we can use
       // casting to apply the interface.
-      if (Base.ancestorOf(source)) {
+      if (_ancestorOf(Base, source)) {
         source(this.prototype); // cast
         // introspection (removed when packed)
         ;;; this["#implements"].push(source);
