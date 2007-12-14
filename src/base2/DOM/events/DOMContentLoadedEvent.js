@@ -20,20 +20,16 @@ var DOMContentLoadedEvent = Base.extend({
     EventTarget.addEventListener(document, "DOMContentLoaded", function() {
       fired = true;
     }, false);
+    this.listen(document);
+  },
+  
+  listen: function(document) {
     // if all else fails fall back on window.onload
     EventTarget.addEventListener(Traversal.getDefaultView(document), "load", this.fire, false);
   },
 
-  "@(attachEvent)": {
-    constructor: function() {
-      this.base(document);
-      Traversal.getDefaultView(document).attachEvent("onload", this.fire);
-    }
-  },
-
   "@MSIE.+win": {
-    constructor: function(document) {
-      this.base(document);
+    listen: function(document) {
       if (document.readyState != "complete") {
         // Matthias Miller/Mark Wubben/Paul Sowden/Me
         var event = this;
@@ -49,8 +45,7 @@ var DOMContentLoadedEvent = Base.extend({
   },
   
   "@KHTML": {
-    constructor: function(document) {
-      this.base(document);
+    listen: function(document) {
       // John Resig
       if (document.readyState != "complete") {
         var event = this;

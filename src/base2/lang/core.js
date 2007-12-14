@@ -1,12 +1,8 @@
 
 function assignID(object) {
   // Assign a unique ID to an object.
-  if (!object.base2ID) object.base2ID = "b2_" + counter();
+  if (!object.base2ID) object.base2ID = "b2_" + _counter++;
   return object.base2ID;
-};
-
-function counter() {
-  return _counter++;
 };
 
 function copy(object) {
@@ -23,8 +19,8 @@ function format(string) {
   // ==> "she sells sea shells"
   // Only %1 - %9 supported.
   var args = arguments;
-  var _FORMAT = new RegExp("%([1-" + arguments.length + "])", "g");
-  return String(string).replace(_FORMAT, function(match, index) {
+  var pattern = new RegExp("%([1-" + arguments.length + "])", "g");
+  return String(string).replace(pattern, function(match, index) {
     return index < args.length ? args[index] : match;
   });
 };

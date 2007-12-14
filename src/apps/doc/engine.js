@@ -6,7 +6,7 @@ new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 // doc/namespace.js
 // =========================================================================
 
-var doc = new base2.Namespace(this, {
+var doc = new base2.Package(this, {
   name:    "doc",
   version: "0.5",
 
@@ -64,9 +64,9 @@ window["#name"] = "window";
 
 forEach (base2.exports.match(LIST), function(name) {
   var property = this[name];
-  if (property instanceof Function || property instanceof Namespace) {
+  if (property instanceof Function || property instanceof Package) {
     property["#name"] = this["#name"] + "." + name;
-    if (property instanceof Namespace) {
+    if (property instanceof Package) {
       forEach (property.exports.match(LIST), arguments.callee, property);
       forEach (property, function(klass, name) {
         if (Base.ancestorOf(klass) && !klass['#name']) {

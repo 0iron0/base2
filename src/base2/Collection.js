@@ -57,7 +57,7 @@ var Collection = Map.extend({
     assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
     assert(!this.has(key), "Duplicate key '" + key + "'.");
     this[_KEYS].insertAt(index, String(key));
-    this.put.apply(this, slice(arguments, 1));
+    this.put.apply(this, _slice.call(arguments, 1));
   },
   
   item: Undefined, // alias of getAt (defined when the class is initialised)
@@ -123,7 +123,7 @@ var Collection = Map.extend({
   },
   
   create: function(key, item) {
-    return this.Item ? new this.Item(key, item) : null;
+    return this.Item ? new this.Item(key, item) : item;
   },
   
   extend: function(_instance, _static) {

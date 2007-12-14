@@ -1,4 +1,5 @@
 eval(base2.namespace);
+eval(JavaScript.namespace);
 
 var assertEqual = function(a, b, message) {
   assert(a==b, a + "==" + b + ": " + message);

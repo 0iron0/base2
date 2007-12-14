@@ -8,7 +8,7 @@ var Module = Abstract.extend(null, {
     // Implement module (instance AND static) methods.
     module.implement(_interface);
     // Implement static properties and methods.
-    extend(module, _static);    
+    extend(module, _static);
     module.init();
     return module;
   },
@@ -32,7 +32,9 @@ var Module = Abstract.extend(null, {
           }
         } else if (!Module[name] && typeof source == "function" && source.call) {
           function _moduleMethod() { // Late binding.
-            return module[name].apply(module, [this].concat(slice(arguments)));
+            var args = _slice.call(arguments);
+            args.unshift(this);
+            return module[name].apply(module, args);
           };
           ;;; _moduleMethod._module = module; // introspection
           _moduleMethod.__base = _BASE.test(source);

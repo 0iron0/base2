@@ -1,14 +1,15 @@
 
 var Array2 = _createObject2(
   Array,
+  Array,
   "concat,join,pop,push,reverse,shift,slice,sort,splice,unshift", // generics
   [Enumerable, {
     combine: function(keys, values) {
       // Combine two arrays to make a hash.
       if (!values) values = keys;
-      return this.reduce(keys, function(object, key, index) {
-        object[key] = values[index];
-        return object;
+      return this.reduce(keys, function(hash, key, index) {
+        hash[key] = values[index];
+        return hash;
       }, {});
     },
 
@@ -17,17 +18,18 @@ var Array2 = _createObject2(
     },
 
     copy: function(array) {
-      var copy = this.slice(array);
-      if (!copy.swap) this(copy);  // cast to Array2
+      var copy = _slice.call(array);
+      if (!copy.swap) this(copy); // cast to Array2
       return copy;
     },
 
     flatten: function(array) {
+      var length = 0;
       return this.reduce(array, function(result, item) {
         if (this.like(item)) {
           this.reduce(item, arguments.callee, result, this);
         } else {
-          result.push(item);
+          result[length++] = item;
         }
         return result;
       }, [], this);
@@ -90,6 +92,8 @@ var Array2 = _createObject2(
     },
 
     swap: function(array, index1, index2) {
+      if (index1 < 0) index1 += array.length; // starting from the end
+      if (index2 < 0) index2 += array.length;
       var temp = array[index1];
       array[index1] = array[index2];
       array[index2] = temp;

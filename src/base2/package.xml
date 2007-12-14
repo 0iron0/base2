@@ -2,7 +2,7 @@
 <package name="base2" publish="false">
   <include src="lang/header.js"/>
   <include src="Base.js"/>
-  <include src="Namespace.js"/>
+  <include src="Package.js"/>
   <include src="Abstract.js"/>
   <include src="Module.js"/>
   <include src="Enumerable.js"/>

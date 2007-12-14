@@ -52,8 +52,8 @@ var Words = RegGrp.extend({
   
   exec: function(script) {
     if (!this.size()) return script;
-    var self = this;
-    return script.replace(this.valueOf(), function(word) {
+    self = this;
+    return script.replace(new RegExp(this, "g"), function(word) {
       return self["#" + word].replacement;
     });
   },

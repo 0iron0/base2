@@ -24,7 +24,14 @@ var _TRIM_ZEROES   = /(((00)?:0+)?:0+)?\.0+$/;
 var _TRIM_TIMEZONE = /(T[0-9:.]+)$/;
 
 var Date2 = _createObject2(
-  Date, "", [{
+  Date, 
+  function(yy, mm, dd, h, m, s, ms) {
+    switch (arguments.length) {
+      case 0: return new Date;
+      case 1: return new Date(yy);
+      default: return new Date(yy, mm, arguments.length == 2 ? 1 : dd, h || 0, m || 0, s || 0, ms || 0);
+    }
+  }, "", [{
     toISOString: function(date) {
       var string = "####-##-##T##:##:##.###";
       for (var part in _DATE_PARTS) {

@@ -1,17 +1,17 @@
 
-var DOM = new base2.Namespace(this, {
+var DOM = new base2.Package(this, {
   name:    "DOM",
   version: "1.0 (beta 1)",
   exports:
     "Interface, Binding, Node, Document, Element, AbstractView, Event, EventTarget, DocumentEvent, " +
     "NodeSelector, DocumentSelector, ElementSelector, StaticNodeList, " +
-    "ViewCSS, HTMLDocument, HTMLElement, Selector, Traversal, XPathParser",
+    "ViewCSS, CSSStyleDeclaration, HTMLDocument, HTMLElement, Selector, Traversal, XPathParser",
   
   bind: function(node) {
     // Apply a base2 DOM Binding to a native DOM node.
     if (node && node.nodeType) {
       var uid = assignID(node);
-      if (!arguments.callee[uid]) {
+      if (!DOM.bind[uid]) {
         switch (node.nodeType) {
           case 1: // Element
             if (typeof node.className == "string") {
@@ -31,7 +31,7 @@ var DOM = new base2.Namespace(this, {
           default:
             Node.bind(node);
         }
-        arguments.callee[uid] = true;
+        DOM.bind[uid] = true;
       }
     }
     return node;

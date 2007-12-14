@@ -4,6 +4,7 @@ Base
 ...DOM.Interface
 ....DOM.Binding
 .....DOM.AbstractView
+.....DOM.CSSStyleDeclaration
 .....DOM.Event
 .....DOM.Node
 ......DOM.Element
@@ -16,13 +17,10 @@ Base
 .....DOM.DocumentSelector
 .....DOM.ElementSelector
 ....DOM.ViewCSS
-...Enumerable
 .DOM.Selector
 .DOM.StaticNodeList
 .DOM.Traversal
-.Hash
+.Map
 ..Collection
 ...RegGrp
-....DOM.CSSParser
-.....DOM.XPathParser
-.Namespace
+....DOM.XPathParser

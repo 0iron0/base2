@@ -1,4 +1,6 @@
 
+base2.DOM.bind(document);
+
 var packer = new Packer;
 
 new base2.JSB.RuleList({

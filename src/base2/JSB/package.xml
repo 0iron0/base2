@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="JSB" requires="DOM">
-  <include src="namespace.js"/>
+  <include src="package.js"/>
   <include src="Behavior.js"/>
   <include src="Call.js"/>
   <include src="Rule.js"/>

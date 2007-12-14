@@ -21,7 +21,9 @@ function instanceOf(object, klass) {
   
   // COM objects don't have a constructor
   var _constructor = object.constructor;
-  if (typeof _constructor != "function") return false; 
+  if (typeof _constructor != "function") {
+    return typeOf(object) == typeof klass.prototype.valueOf();
+  }
   
   // base2 objects can only be instances of Object.
   if (Base.ancestorOf == _constructor.ancestorOf) return klass == Object;
@@ -30,9 +32,9 @@ function instanceOf(object, klass) {
     case Array: // This is the only troublesome one.
       return !!(typeof object == "object" && object.join && object.splice);
     case Function:
-      return !!(typeof object == "function" && object.call);
+      return typeOf(object) == "function";
     case RegExp:
-      return _constructor.prototype.toString() == _REGEXP_STRING;
+      return typeof _constructor.$1 == "string";
     case Date:
       return !!object.getTimezoneOffset;
     case String:

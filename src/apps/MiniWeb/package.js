@@ -5,7 +5,7 @@
 
 // An active document thing
 
-var MiniWeb = new base2.Namespace(this, {
+var MiniWeb = new base2.Package(this, {
   name:    "MiniWeb",
   exports: "Client, Server, FileSystem, Command, Interpreter, Terminal, Request, History",
   imports: "IO",

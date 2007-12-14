@@ -1,5 +1,5 @@
 
-var doc = new base2.Namespace(this, {
+var doc = new base2.Package(this, {
   name:    "doc",
   version: "0.5",
 

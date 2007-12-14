@@ -1,9 +1,9 @@
-// timestamp: Wed, 05 Dec 2007 04:03:40
+// timestamp: Fri, 14 Dec 2007 11:07:14
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
 // =========================================================================
-// MiniWeb/namespace.js
+// MiniWeb/package.js
 // =========================================================================
 /*
   MiniWeb - copyright 2007, Dean Edwards
@@ -12,7 +12,7 @@ new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
 // An active document thing
 
-var MiniWeb = new base2.Namespace(this, {
+var MiniWeb = new base2.Package(this, {
   name:    "MiniWeb",
   exports: "Client, Server, FileSystem, Command, Interpreter, Terminal, Request, History",
   imports: "IO",
@@ -229,7 +229,8 @@ var Client = Base.extend({
     // refresh the current page from the last response
     
     // insert a script
-    var script = "parent.MiniWeb.register(this);var base2=parent.base2;" + base2.namespace;
+    var script = "parent.MiniWeb.register(this);var base2=parent.base2;" + 
+      base2.namespace + "JavaScript.bind(this);";
     script = format(MiniWeb.SCRIPT, script);
     var html = this.response.replace(/(<head[^>]*>)/i, "$1\n" + script);
     

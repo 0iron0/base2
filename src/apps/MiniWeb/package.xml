@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="MiniWeb" requires="JST,JSON,IO">
-  <include src="namespace.js"/>
+  <include src="package.js"/>
   <include src="Client.js"/>
   <include src="History.js"/>
   <include src="Server.js"/>

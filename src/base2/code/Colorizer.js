@@ -129,5 +129,5 @@ var Colorizer = RegGrp.extend({
   urls: null
 });
 
-base2.addNamespace("code");
+base2.addPackage("code");
 base2.code.addName("Colorizer", Colorizer);
