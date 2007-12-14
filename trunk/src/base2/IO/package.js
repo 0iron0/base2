@@ -1,7 +1,7 @@
 
-var IO = new base2.Namespace(this, {
+var IO = new base2.Package(this, {
   name:    "IO",
-  version: "0.4",
+  version: "0.8",
   exports: "FileSystem, Directory, LocalFileSystem, LocalDirectory, LocalFile, JSONFileSystem, JSONDirectory"
 });
 

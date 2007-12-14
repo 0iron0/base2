@@ -37,7 +37,7 @@ var RegGrp = Collection.extend({
               var replacement = item.replacement;
               switch (typeof replacement) {
                 case "function":
-                  var args = slice(arguments, offset, next);
+                  var args = _slice.call(arguments, offset, next);
                   var index = arguments[arguments.length - 2];
                   return replacement.apply(self, args.concat(index, string));
                 case "number":
@@ -83,7 +83,7 @@ var RegGrp = Collection.extend({
   init: function() {
     forEach ("add,get,has,put,remove".split(","), function(name) {
       _override(this, name, function(expression) {
-        if (expression && expression.source) {
+        if (instanceOf(expression, RegExp)) {
           arguments[0] = expression.source;
         }
         return base(this, arguments);
@@ -93,8 +93,6 @@ var RegGrp = Collection.extend({
   
   Item: {
     constructor: function(expression, replacement) {
-      expression = (expression && expression.source) ? expression.source : String(expression);
-      
       if (typeof replacement == "number") replacement = String(replacement);
       else if (replacement == null) replacement = "";    
       
@@ -115,7 +113,7 @@ var RegGrp = Collection.extend({
       
       this.length = RegGrp.count(expression);
       this.replacement = replacement;
-      this.toString = K(expression);
+      this.toString = K(String(expression));
     },
     
     length: 0,

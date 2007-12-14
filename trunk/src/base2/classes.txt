@@ -7,6 +7,6 @@ Object
 ..Map
 ...Collection
 ....RegGrp
-..Namespace
+..Package
 .Date2
 .String2

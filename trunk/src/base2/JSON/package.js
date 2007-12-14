@@ -5,7 +5,7 @@
 // This package will attempt to mirror the ES4 JSON package.
 // This package will not be finalised until the ES4 JSON proposal is also finalised.
 
-var JSON = new base2.Namespace(this, {
+var JSON = new base2.Package(this, {
   name:    "JSON",
   version: "0.9",
 

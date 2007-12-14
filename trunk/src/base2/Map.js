@@ -1,4 +1,6 @@
 
+// http://wiki.ecmascript.org/doku.php?id=proposals:dictionary
+
 var _HASH = "#";
 
 var Map = Base.extend({

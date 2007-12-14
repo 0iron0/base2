@@ -1,8 +1,9 @@
 
-var JavaScript = new base2.Namespace(this, {
-  name:    "JavaScript",
-	version: base2.version,
-  exports: "Array2, Date2, String2",
+var JavaScript = {
+  name:      "JavaScript",
+	version:   base2.version,
+  exports:   "Array2, Date2, String2",
+  namespace: "", // fixed later
   
   bind: function(host) {
     forEach (this.exports.match(/\w+/g), function(name2) {
@@ -10,7 +11,6 @@ var JavaScript = new base2.Namespace(this, {
       extend(host[name], this[name2]);
       this[name2](host[name].prototype); // cast
     }, this);
+    return this;
   }
-});
-
-eval(this.exports);
+};

@@ -26,8 +26,8 @@ function extend(object, source) { // or extend(object, key, value)
       if (proto[key] === undefined) {
         var value = source[key];
         // Object detection.
-        if (key.charAt(0) == "@" && detect(key.slice(1))) {
-          arguments.callee(object, value);
+        if (key.charAt(0) == "@") {
+          if (detect(key.slice(1))) arguments.callee(object, value);
           continue;
         }
         // Check for method overriding.

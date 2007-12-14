@@ -27,10 +27,10 @@ var Selector = Base.extend({
   
   test: function(element) {
     //-dean: improve this for simple selectors
-    var selector = new Selector(this + "[-base2-test]");
-    element.setAttribute("-base2-test", true);
+    var selector = new Selector(this + "[b2-test]");
+    element.setAttribute("b2-test", true);
     var result = selector.exec(Traversal.getOwnerDocument(element), true);
-    element.removeAttribute("-base2-test");
+    element.removeAttribute("b2-test");
     return result == element;
   },
   

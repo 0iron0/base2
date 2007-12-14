@@ -9,7 +9,7 @@ window.undefined = window.undefined;
 new function() {
   var slice = Array.prototype.slice;
   
-  $Legacy = {
+  $Legacy = {    
     has: function(object, key) {
       if (object[key] !== undefined) return true;
       key = String(key);
@@ -21,33 +21,33 @@ new function() {
       // only works properly with base2 classes
       return object && (klass == Object || object.constructor == klass ||
         (klass.ancestorOf && klass.ancestorOf(object.constructor)));
+    },
+    
+    fire: function(type) {
+      if (base2.DOM) {
+        with (base2.DOM) {
+          var event = DocumentEvent.createEvent(document, "Events");
+          Event.initEvent(event, type, false, false);
+          EventTarget.dispatchEvent(document, event);
+        }      
+        if (type == "DOMContentLoaded") setTimeout('$Legacy.fire("ready")', 1);
+      }
     }
   };
   
-  // Andrea Giammarchi
   /*@cc_on @*/
   /*@if (@_jscript_version < 5.1)
-  (function(override) {
-    window.setTimeout = override(setTimeout);
-    window.setInterval = override(setInterval);
-  })(function(base) {
-    return function(value, interval) {
-      if (typeof value == "function") {
-        var args = slice.call(arguments, 2);
-        var fn = value;
-        value = function(){
-          fn.apply(this, args);
-        };
-      }
-      return base(value, interval);
-    };
-  });
+  var _onload = onload;
+  onload = function() {
+    if (_onload) _onload();
+    setTimeout('$Legacy.fire("DOMContentLoaded")', 1);
+  };
   /*@end @*/
   
   if (typeof encodeURIComponent == "undefined") {
-    encodeURIComponent = function(s) {
-      return escape(s).replace(/\%(21|7E|27|28|29)/g, unescape).replace(/[@+\/]/g, function(c) {
-        return "%" + c.charCodeAt(0).toString(16).toUpperCase();
+    encodeURIComponent = function(string) {
+      return escape(string).replace(/\%(21|7E|27|28|29)/g, unescape).replace(/[@+\/]/g, function(chr) {
+        return "%" + chr.charCodeAt(0).toString(16).toUpperCase();
       });
     };
     decodeURIComponent = unescape;
@@ -153,7 +153,7 @@ new function() {
         do b[i] = "a[" + i + "]"; while (i--);
         eval("r=o[$](" + b + ")");
     }
-    if (o.valueOf) { // not a COM object
+    if (typeof o.valueOf == "function") { // not a COM object
       delete o[$];
     } else {
       o[$] = undefined;

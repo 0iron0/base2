@@ -86,7 +86,8 @@ var Client = Base.extend({
     // refresh the current page from the last response
     
     // insert a script
-    var script = "parent.MiniWeb.register(this);var base2=parent.base2;" + base2.namespace;
+    var script = "parent.MiniWeb.register(this);var base2=parent.base2;" + 
+      base2.namespace + "JavaScript.bind(this);";
     script = format(MiniWeb.SCRIPT, script);
     var html = this.response.replace(/(<head[^>]*>)/i, "$1\n" + script);
     

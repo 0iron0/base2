@@ -9,13 +9,15 @@
  	p.binding2 {font-weight: bold;}
  </style>
  <script type="text/javascript">
+  base2.DOM.bind(document)
 	var MyBehavior = base2.JSB.Behavior.extend({
-		ondocumentready: function() {
-			this.innerHTML = "ondocumentready!"
+		ondocumentready: function(event) {
+		  //alert(event.type);
+			this.innerHTML = "ondocumentready!";
 		},
 		
 		ondocumentclick: function() {
-			this.innerHTML = "ondocumentclick!"
+			this.innerHTML = "ondocumentclick!";
 		},
 		
 		onmouseover: function() {

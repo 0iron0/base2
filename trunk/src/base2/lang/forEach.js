@@ -38,7 +38,7 @@ function _Array_forEach(array, block, context) {
     for (i = 0; i < length; i++) {    
     /*@cc_on @*/
     /*@if (@_jscript_version < 5.2)
-      if (array[i] !== undefined || $Legacy.has(array, i))
+      if ($Legacy.has(array, i))
     @else @*/
       if (i in array)
     /*@end @*/

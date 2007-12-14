@@ -8,7 +8,7 @@ var EventTarget = Interface.extend({
     addEventListener: function(target, type, listener, capture) {
       // assign a unique id to both objects
       var targetID = assignID(target);
-      var listenerID = listener._cloneID || assignID(listener);
+      var listenerID = assignID(listener);
       // create a hash table of event types for the target object
       var events = _eventMap[targetID];
       if (!events) events = _eventMap[targetID] = {};
@@ -23,12 +23,12 @@ var EventTarget = Interface.extend({
       // store the event listener in the hash table
       listeners[listenerID] = listener;
       if (current !== undefined) {
-        target["on" + type] = delegate(_eventMap.handleEvent);
+        target["on" + type] = _eventMap._handleEvent;
       }
     },
   
     dispatchEvent: function(target, event) {
-      return _eventMap.handleEvent(target, event);
+      return _handleEvent.call(target, event);
     },
   
     removeEventListener: function(target, type, listener, capture) {
@@ -39,22 +39,14 @@ var EventTarget = Interface.extend({
       }
     },
     
-    "@MSIE.+win": {
-      addEventListener: function(target, type, listener, capture) {
-        // avoid memory leaks
-        if (typeof listener == "function") {
-          listener = bind(listener, target);
-        }
-        this.base(target, type, listener, capture);
-      },
-      
+    "@MSIE[56].+win": {
       dispatchEvent: function(target, event) {
         event.target = target;
         try {
           return target.fireEvent(event.type, event);
         } catch (error) {
           // the event type is not supported
-          return this.base(target, event);
+          return _handleEvent.call(target, event);
         }
       }
     }
@@ -62,36 +54,36 @@ var EventTarget = Interface.extend({
 });
 
 var _eventMap = new Base({ 
-  handleEvent: function(target, event) {
-    var returnValue = true;
-    // get a reference to the hash table of event listeners
-    var events = _eventMap[target.base2ID];
-    if (events) {
-      event = Event.bind(event); // fix the event object
-      var listeners = events[event.type];
-      // execute each event listener
-      for (var i in listeners) {
-        var listener = listeners[i];
-        // support the EventListener interface
-        if (listener.handleEvent) {
-          var result = listener.handleEvent(event);
-        } else {
-          result = listener.call(target, event);
-        }
-        if (result === false || event.returnValue === false) returnValue = false;
-      }
-    }
-    return returnValue;
-  },
+  _handleEvent: _handleEvent,
   
-  "@MSIE": {  
-    handleEvent: function(target, event) {
-      if (target.Infinity) {
-        target = target.document.parentWindow;
-        if (!event) event = target.event;
-      }
-      return this.base(target, event || Traversal.getDefaultView(target).event);
+  "@MSIE": {
+    _handleEvent: function() {
+      var target = this;
+      var window = (target.document || target).parentWindow;
+      if (target.Infinity) target = window;
+      return _handleEvent.call(target, window.event);
     }
   }
 });
 
+function _handleEvent(event) {
+  var returnValue = true;
+  // get a reference to the hash table of event listeners
+  var events = _eventMap[this.base2ID];
+  if (events) {
+    Event.bind(event); // fix the event object
+    var listeners = events[event.type];
+    // execute each event listener
+    for (var i in listeners) {
+      var listener = listeners[i];
+      // support the EventListener interface
+      if (listener.handleEvent) {
+        var result = listener.handleEvent(event);
+      } else {
+        result = listener.call(this, event);
+      }
+      if (result === false || event.returnValue === false) returnValue = false;
+    }
+  }
+  return returnValue;
+};

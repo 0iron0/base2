@@ -6,7 +6,7 @@
 // getAttribute() will return null if the attribute is not specified. This is
 //  contrary to the specification but has become the de facto standard.
 
-var _EVALUATED = /^(href|src|type|value)$/;
+var _EVALUATED = /^(href|src|type)$/;
 var _ATTRIBUTES = {
   "class": "className",
   "for": "htmlFor"
@@ -37,7 +37,13 @@ var Element = Node.extend({
       } else if (name == "style") {
         element.style.cssText = value;
       } else {
-        this.base(element, _ATTRIBUTES[name] || name, String(value));
+        value = String(value);
+        var attribute = _MSIE_getAttributeNode(element, name);
+        if (attribute) {
+          attribute.nodeValue = value;
+        } else {
+          this.base(element, _ATTRIBUTES[name] || name, value);
+        }
       }
     }
   },

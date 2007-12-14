@@ -2,6 +2,7 @@
 <package name="lang" closure="false" publish="false">
   <include src="extend.js"/>
   <include src="forEach.js"/>
+  <include src="typeOf.js"/>
   <include src="instanceOf.js"/>
   <include src="assert.js"/>
   <include src="core.js"/>

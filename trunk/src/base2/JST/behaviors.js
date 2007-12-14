@@ -1,5 +1,6 @@
 
 eval(base2.namespace);
+DOM.bind(document);
 
 var parser = new JST.Parser;
 var interpreter = new JST.Interpreter;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="JST">
-  <include src="namespace.js"/>
+  <include src="package.js"/>
   <include src="Command.js"/>
   <include src="Environment.js"/>
   <include src="Interpreter.js"/>

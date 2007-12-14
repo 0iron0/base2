@@ -1,4 +1,6 @@
 
+// NOT USED
+
 // avoid memory leaks
 
 if (detect("MSIE[56].+win") && !detect("SV1")) {
@@ -28,7 +30,7 @@ if (detect("MSIE[56].+win") && !detect("SV1")) {
       var element = document.all[elementID];
       return element ? closures[methodID].apply(element, arguments) : undefined;
     };
-    bound._cloneID = methodID;
+    bound.base2ID = methodID;
     closures[elementID][methodID] = bound;
     
     return bound;

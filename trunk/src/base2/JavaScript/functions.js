@@ -1,5 +1,5 @@
 
-function _createObject2(Native, generics, extensions) {
+function _createObject2(Native, constructor, generics, extensions) {
   // Clone native objects and extend them.
 
   // Create a Module that will contain all the new methods.
@@ -12,7 +12,7 @@ function _createObject2(Native, generics, extensions) {
 
   // create a faux constructor that augments the native object
   var Native2 = function() {
-    return INative(this.constructor == INative ? Native.apply(Native, arguments) : arguments[0]);
+    return INative(this.constructor == INative ? constructor.apply(null, arguments) : arguments[0]);
   };
   Native2.prototype = INative.prototype;
 
@@ -26,6 +26,7 @@ function _createObject2(Native, generics, extensions) {
   });
   Native2.ancestor = Object;
   delete Native2.extend;
+  if (Native != Array) delete Native2.forEach; 
 
   return Native2;
 };

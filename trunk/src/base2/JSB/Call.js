@@ -22,9 +22,9 @@ var Call = Base.extend({
   
   init: function() {
     EventTarget.addEventListener(document, "DOMContentLoaded", function() {
+      _bind = DOM.bind[document.base2ID];
       // release deferred calls
       if (Call.list) {
-        DOM.bind(document);
         Call.list.sort(function(a, b) {
           return a.rank - b.rank;
         });

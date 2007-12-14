@@ -54,7 +54,7 @@ var Traversal = Module.extend({
   
   "@MSIE": {
     getDefaultView: function(node) {
-      return this.getDocument(node).parentWindow;
+      return (node.document || node).parentWindow;
     },
   
     "@MSIE5": {

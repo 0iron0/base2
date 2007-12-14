@@ -1,8 +1,8 @@
 
-var Namespace = Base.extend({
+var Package = Base.extend({
   constructor: function(_private, _public) {
     this.extend(_public);
-    this.init();
+    if (this.init) this.init();
     
     if (this.name != "base2") {
       if (!this.parent) this.parent = base2;
@@ -13,12 +13,12 @@ var Namespace = Base.extend({
     var LIST = /[^\s,]+/g; // pattern for comma separated list
     
     if (_private) {
-      // This string should be evaluated immediately after creating a Namespace object.
+      // This string should be evaluated immediately after creating a Package object.
       _private.imports = Array2.reduce(this.imports.match(LIST), function(namespace, name) {
         eval("var ns=base2." + name);
-        assert(ns, format("Namespace not found: '%1'.", name));
+        assert(ns, format("Package not found: '%1'.", name));
         return namespace += ns.namespace;
-      }, base2.namespace);
+      }, _namespace + base2.namespace + JavaScript.namespace);
       
       // This string should be evaluated after you have created all of the objects
       // that are being exported.
@@ -31,8 +31,7 @@ var Namespace = Base.extend({
   },
 
   exports: "",
-  imports: "",  
-  init: Undefined,
+  imports: "",
   name: "",
   namespace: "",
   parent: null,
@@ -45,8 +44,8 @@ var Namespace = Base.extend({
     }
   },
 
-  addNamespace: function(name) {
-    this.addName(name, new Namespace(null, {name: name, parent: this}));
+  addPackage: function(name) {
+    this.addName(name, new Package(null, {name: name, parent: this}));
   },
   
   toString: function() {

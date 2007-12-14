@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="DOM">
-  <include src="namespace.js"/>
-  <include src="plumbing.js"/>
+  <include src="package.js"/>
   <include src="Interface.js"/>
   <include src="Binding.js"/>
   <include src="Node.js"/>

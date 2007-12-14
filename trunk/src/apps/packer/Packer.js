@@ -72,7 +72,7 @@ var Packer = Base.extend({
     var data = []; // encoded strings and regular expressions
     var REGEXP = /^[^'"]\//;
     var store = function(string) {
-      var replacement = "#" + data.length;
+      var replacement = "@" + data.length;
       if (REGEXP.test(string)) {
         replacement = string.charAt(0) + replacement;
         string = string.slice(1);
@@ -113,7 +113,7 @@ var Packer = Base.extend({
           
           // create the list of variable and argument names
           args = args.slice(1, -1);
-          vars = match(block, VARS).join(";");
+          var vars = match(block, VARS).join(";");
           while (BRACKETS.test(vars)) {
             vars = vars.replace(BRACKETS_g, "");
           }
@@ -181,7 +181,7 @@ var Packer = Base.extend({
     script = script.replace(/\{;#;/g, "new function(_){");
     
     // put strings and regular expressions back
-    script = script.replace(/#(\d+)/g, function(match, index) {
+    script = script.replace(/@(\d+)/g, function(match, index) {
       return data[index];
     });
     
@@ -219,7 +219,7 @@ var Packer = Base.extend({
   },
   
   clean: {
-    "\\(\\s*;\\s*;\\s*\\)": "(;;)", // for (;;) loops
+    "\\(\\s*([^;]*)\\s*;\\s*([^;]*)\\s*;\\s*([^)]*)\\)": "($1;$2;$3)", // for (;;) loops
     "throw[^};]+[};]": IGNORE, // a safari 1.3 bug
     ";+\\s*([};])": "$1"
   },

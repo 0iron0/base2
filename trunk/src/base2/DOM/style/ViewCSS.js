@@ -11,11 +11,7 @@ var ViewCSS = Interface.extend({
       getComputedStyle: function(view, element, pseudoElement) {
         // pseudoElement parameter is not supported
         var currentStyle = element.currentStyle;
-        var computedStyle = {
-          getPropertyValue: function(propertyName) {
-            return this[ViewCSS.toCamelCase(propertyName)];
-          }
-        };
+        var computedStyle = {};
         for (var i in currentStyle) {
           if (_METRICS.test(i)) {
             computedStyle[i] = _MSIE_getPixelValue(element, computedStyle[i]) + "px";
@@ -28,6 +24,12 @@ var ViewCSS = Interface.extend({
         return computedStyle;
       }
     }
+  },
+  
+  getComputedStyle: function(view, element, pseudoElement) {
+    var computedStyle = _CSSStyleDeclaration_ReadOnly.bind(this.base(view, element, pseudoElement));
+    computedStyle.opacity = computedStyle.getPropertyValue("opacity");
+    return computedStyle;
   }
 }, {
   toCamelCase: function(string) {

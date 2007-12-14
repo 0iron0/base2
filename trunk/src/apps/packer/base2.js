@@ -1,4 +1,4 @@
-// timestamp: Mon, 27 Aug 2007 15:07:12
+// timestamp: Fri, 07 Dec 2007 14:39:58
 /*
   base2 - copyright 2007, Dean Edwards
   http://code.google.com/p/base2/
@@ -10,13 +10,12 @@
 
 var base2 = {
   name:    "base2",
-  version: "0.9.1 (alpha)",
+  version: "1.0 (beta 1)",
   exports:
-    "Base, Namespace, Abstract, Module, Enumerable, Map, Collection, RegGrp, " +
-    "Array2, Date2, String2, " +
+    "Base, Package, Abstract, Module, Enumerable, Map, Collection, RegGrp, " +
     "assert, assertArity, assertType, " +
-    "assignID, copy, detect, extend, forEach, format, instanceOf, match, rescape, slice, trim, " +
-    "I, K, Undefined, Null, True, False, bind, curry, delegate, flip, not, unbind",
+    "assignID, copy, counter, detect, extend, forEach, format, instanceOf, match, rescape, slice, trim, " +
+    "I, K, Undefined, Null, True, False, bind, delegate, flip, not, partial, unbind",
   
   global: this, // the window object in a browser environment
   namespace: "var global=base2.global;function base(o,a){return o.base.apply(o,a)};",
@@ -33,28 +32,32 @@ var base2 = {
         
     var global = _;
     var jscript/*@cc_on=@_jscript_version@*/; // http://dean.edwards.name/weblog/2007/03/sniff/#comment85164
-    var java = _.java;
-    
+    var java = _.java ? true : false;
     if (_.navigator) {
       var element = document.createElement("span");
-      var platform = navigator.platform + " " + navigator.userAgent;
+      var userAgent = navigator.platform + " " + navigator.userAgent;
       // Fix opera's (and others) user agent string.
-      if (!jscript) platform = platform.replace(/MSIE\s[\d.]+/, "");
+      if (!jscript) userAgent = userAgent.replace(/MSIE\s[\d.]+/, "");
       // Close up the space between name and version number.
       //  e.g. MSIE 6 -> MSIE6
-      platform = platform.replace(/([a-z])[\s\/](\d)/gi, "$1$2");
-      java = navigator.javaEnabled() && java;
+      userAgent = userAgent.replace(/([a-z])[\s\/](\d)/gi, "$1$2");
+      java &= navigator.javaEnabled();
     }
     
-    return function(test) {
+    return function(expression) {
       var r = false;
-      var not = test.charAt(0) == "!";
-      if (not) test = test.slice(1);
-      test = test.replace(/^([^\(].*)$/, "/($1)/i.test(platform)");
-      try {
-        eval("r=!!" + test);
-      } catch (error) {
-        // the test failed
+      var not = expression.charAt(0) == "!";
+      if (not) expression = expression.slice(1);
+      if (expression.charAt(0) == "(") {
+        // Object detection.
+        try {
+          eval("r=!!" + expression);
+        } catch (error) {
+          // the test failed
+        }
+      } else {
+        // Browser sniffing.
+        r = new RegExp("(" + expression + ")", "i").test(userAgent);
       }
       return !!(not ^ r);
     };
@@ -68,25 +71,26 @@ new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 // =========================================================================
 
 var detect = base2.detect;
-var slice = Array.slice || function(array) {
-  // Slice an array-like object.
-  return _slice.apply(array, _slice.call(arguments, 1));
-};
+
+var slice = Array.slice || (function(slice) {
+  return function(array) {
+    return slice.apply(array, slice.call(arguments, 1));
+  };
+})(Array.prototype.slice);
 
 var Undefined = K(), Null = K(null), True = K(true), False = K(false);
 
 // private
-var _ID = 1;
-var _PRIVATE = /^[_$]/; //-dean: get rid of this?
 var _FORMAT = /%([1-9])/g;
 var _LTRIM = /^\s\s*/;
 var _RTRIM = /\s\s*$/;
-var _RESCAPE = /([\/()[\]{}|*+-.,^$?\\])/g;           // safe regular expressions
-var _BASE = /eval/.test(detect) ? /\bbase\b/ : /./;   // some platforms don't allow decompilation
-var _HIDDEN = ["constructor", "toString", "valueOf"]; // only override these when prototyping
+var _RESCAPE = /([\/()[\]{}|*+-.,^$?\\])/g;             // safe regular expressions
+var _BASE = /eval/.test(detect) ? /\bbase\s*\(/ : /.*/; // some platforms don't allow decompilation
+var _HIDDEN = ["constructor", "toString", "valueOf"];   // only override these when prototyping
 var _REGEXP_STRING = String(new RegExp);
-var _slice = Array.prototype.slice;
-var _Function_forEach = _get_Function_forEach();      // curse you Safari!
+var _counter = 1;
+
+_Function_forEach(); // make sure this is initialised
 
 eval(base2.namespace);
 
@@ -105,7 +109,7 @@ var _subclass = function(_instance, _static) {
   
   // Create the wrapper for the constructor function.
   var _constructor = _prototype.constructor;
-  function klass() {
+  function _class() {
     // Don't call the constructor function when prototyping.
     if (!base2.__prototyping) {
       if (this.constructor == arguments.callee || this.__constructing) {
@@ -114,31 +118,29 @@ var _subclass = function(_instance, _static) {
         _constructor.apply(this, arguments);
         delete this.__constructing;
       } else {
-        // Cast.
+        // Casting.
         return extend(arguments[0], _prototype);
       }
     }
     return this;
   };
-  _prototype.constructor = klass;
+  _prototype.constructor = _class;
   
   // Build the static interface.
-  for (var i in Base) klass[i] = this[i];
-  klass.toString = function() {
-    return String(_constructor);
-  };
-  klass.ancestor = this;
-  klass.base = Undefined;
-  klass.init = Undefined;
-  extend(klass, _static);
-  klass.prototype = _prototype;
-  klass.init();
+  for (var i in Base) _class[i] = this[i];
+  _class.toString = K(String(_constructor));
+  _class.ancestor = this;
+  _class.base = Undefined;
+  _class.init = Undefined;
+  extend(_class, _static);
+  _class.prototype = _prototype;
+  _class.init();
   
   // introspection (removed when packed)
-  ;;; klass["#implements"] = [];
-  ;;; klass["#implemented_by"] = [];
+  ;;; _class["#implements"] = [];
+  ;;; _class["#implemented_by"] = [];
   
-  return klass;
+  return _class;
 };
 
 var Base = _subclass.call(Object, {
@@ -161,10 +163,10 @@ var Base = _subclass.call(Object, {
   forEach: delegate(_Function_forEach),
   
   implement: function(source) {
-    if (instanceOf(source, Function)) {
+    if (typeof source == "function") {
       // If we are implementing another classs/module then we can use
       // casting to apply the interface.
-      if (Base.ancestorOf(source)) {
+      if (_ancestorOf(Base, source)) {
         source(this.prototype); // cast
         // introspection (removed when packed)
         ;;; this["#implements"].push(source);
@@ -179,15 +181,13 @@ var Base = _subclass.call(Object, {
 });
 
 // =========================================================================
-// base2/Namespace.js
+// base2/Package.js
 // =========================================================================
 
-var Namespace = Base.extend({
+var Package = Base.extend({
   constructor: function(_private, _public) {
     this.extend(_public);
-    
-    // Initialise.
-    this.init();
+    if (this.init) this.init();
     
     if (this.name != "base2") {
       if (!this.parent) this.parent = base2;
@@ -198,34 +198,39 @@ var Namespace = Base.extend({
     var LIST = /[^\s,]+/g; // pattern for comma separated list
     
     if (_private) {
-      // This string should be evaluated immediately after creating a Namespace object.
+      // This string should be evaluated immediately after creating a Package object.
       _private.imports = Array2.reduce(this.imports.match(LIST), function(namespace, name) {
-        assert(base2[name], format("Namespace not found: '%1'.", name));
-        return namespace += base2[name].namespace;
-      }, base2.namespace);
+        eval("var ns=base2." + name);
+        assert(ns, format("Package not found: '%1'.", name));
+        return namespace += ns.namespace;
+      }, base2.namespace + JavaScript.namespace);
       
       // This string should be evaluated after you have created all of the objects
       // that are being exported.
       _private.exports = Array2.reduce(this.exports.match(LIST), function(namespace, name) {
-        this.namespace += format("var %2=%1.%2;", this.name, name);
-        return namespace += format("if(!%1.%2)%1.%2=%2;", this.name, name);
+        var fullName = this.name + "." + name;
+        this.namespace += "var " + name + "=" + fullName + ";";
+        return namespace += "if(!" + fullName + ")" + fullName + "=" + name + ";";
       }, "", this);
     }
   },
 
   exports: "",
-  imports: "",  
-  init: Undefined,
+  imports: "",
   name: "",
   namespace: "",
   parent: null,
-  
+
   addName: function(name, value) {
     if (!this[name]) {
       this[name] = value;
       this.exports += ", " + name;
       this.namespace += format("var %1=%2.%1;", name, this.name);
     }
+  },
+
+  addPackage: function(name) {
+    this.addName(name, new Package(null, {name: name, parent: this}));
   },
   
   toString: function() {
@@ -252,16 +257,11 @@ var Module = Abstract.extend(null, {
     // Extend a module to create a new module.
     var module = this.base();
     // Inherit class methods.
-    forEach (this, function(method, name) {
-      if (!Module[name] && instanceOf(method, Function) && !_PRIVATE.test(name)) {
-        module[name] = method;
-      }
-    });
+    _extendModule(module, this);
     // Implement module (instance AND static) methods.
     module.implement(_interface);
     // Implement static properties and methods.
     extend(module, _static);
-    // Make the submarine noises Larry!
     module.init();
     return module;
   },
@@ -272,35 +272,42 @@ var Module = Abstract.extend(null, {
     if (typeof _interface == "function") {
       module.base(_interface);
       // If we are implementing another Module then add its static methods.
-      if (Module.ancestorOf(_interface)) {
-        forEach (_interface, function(method, name) {
-          if (!Module[name] && instanceOf(method, Function) && !_PRIVATE.test(name)) {
-            extend(module, name, method);
-          }
-        });
+      if (_ancestorOf(Module, _interface)) {
+        _extendModule(module, _interface)
       }
     } else {
       // Create the instance interface.
+      var proto = {};
       _Function_forEach (Object, _interface, function(source, name) {
         if (name.charAt(0) == "@") { // object detection
           if (detect(name.slice(1))) {
             forEach (source, arguments.callee);
           }
-        } else if (!Module[name] && instanceOf(source, Function)) {
-          function _module() { // Late binding.
+        } else if (!Module[name] && typeof source == "function" && source.call) {
+          function _moduleMethod() { // Late binding.
             return module[name].apply(module, [this].concat(slice(arguments)));
           };
-          _module._module = module;
-          _module._base = _BASE.test(source);
-          extend(module.prototype, name, _module);
+          ;;; _moduleMethod._module = module; // introspection
+          _moduleMethod.__base = _BASE.test(source);
+          proto[name] = _moduleMethod; 
         }
       });
+      extend(module.prototype, proto);
       // Add the static interface.
       extend(module, _interface);
     }
     return module;
   }
 });
+
+function _extendModule(module, _interface) {
+  for (var name in _interface) {
+    var method = _interface[name];
+    if (!Module[name] && typeof method == "function" && method.call) {
+      module[name] = method;
+    }
+  }
+};
 
 // =========================================================================
 // base2/Enumerable.js
@@ -575,8 +582,7 @@ var Collection = Map.extend({
   },
   
   create: function(key, item) {
-    if (this.Item) return new this.Item(key, item);
-    return null;
+    return this.Item ? new this.Item(key, item) : item;
   },
   
   extend: function(_instance, _static) {
@@ -600,10 +606,12 @@ var Collection = Map.extend({
 // A collection of regular expressions and their associated replacement values.
 // A Base class for creating parsers.
 
-var _RG_BACK_REF        = /\\(\d+)/g;
-var _RG_ESCAPE_CHARS    = /\\./g;
-var _RG_ESCAPE_BRACKETS = /\(\?[:=!]|\[[^\]]+\]/g;
-var _RG_BRACKETS        = /\(/g;
+var _RG_BACK_REF        = /\\(\d+)/g,
+    _RG_ESCAPE_CHARS    = /\\./g,
+    _RG_ESCAPE_BRACKETS = /\(\?[:=!]|\[[^\]]+\]/g,
+    _RG_BRACKETS        = /\(/g,
+    _RG_LOOKUP          = /\$(\d+)/,
+    _RG_LOOKUP_SIMPLE   = /^\$\d+$/;
 
 var RegGrp = Collection.extend({
   constructor: function(values, flags) {
@@ -618,7 +626,8 @@ var RegGrp = Collection.extend({
   ignoreCase: false,
 
   exec: function(string, replacement) { // optimised (refers to _HASH/_KEYS)
-    string += ''; // type-safe
+    var flags = (this.global ? "g" : "") + (this.ignoreCase ? "i" : "");
+    string = String(string) + ""; // type-safe
     if (arguments.length == 1) {
       var self = this;
       var keys = this[_KEYS];
@@ -647,7 +656,7 @@ var RegGrp = Collection.extend({
         return "";
       };
     }
-    return string.replace(this.valueOf(), replacement);
+    return string.replace(new RegExp(this, flags), replacement);
   },
 
   insertAt: function(index, expression, replacement) {
@@ -671,20 +680,14 @@ var RegGrp = Collection.extend({
       length += item.length + 1;
       return ref;
     }).join(")|(") + ")";
-  },
-  
-  valueOf: function(type) {
-    if (type == "object") return this;
-    var flags = (this.global ? "g" : "") + (this.ignoreCase ? "i" : "");
-    return new RegExp(this, flags);
   }
 }, {
   IGNORE: "$0",
   
   init: function() {
     forEach ("add,get,has,put,remove".split(","), function(name) {
-      extend(this, name, function(expression) {
-        if (instanceOf(expression, RegExp)) {
+      _override(this, name, function(expression) {
+        if (expression && expression.source) {
           arguments[0] = expression.source;
         }
         return base(this, arguments);
@@ -694,15 +697,15 @@ var RegGrp = Collection.extend({
   
   Item: {
     constructor: function(expression, replacement) {
-      expression = instanceOf(expression, RegExp) ? expression.source : String(expression);
+      expression = (expression && expression.source) ? expression.source : String(expression);
       
       if (typeof replacement == "number") replacement = String(replacement);
       else if (replacement == null) replacement = "";    
       
       // does the pattern use sub-expressions?
-      if (typeof replacement == "string" && /\$(\d+)/.test(replacement)) {
+      if (typeof replacement == "string" && _RG_LOOKUP.test(replacement)) {
         // a simple lookup? (e.g. "$2")
-        if (/^\$\d+$/.test(replacement)) {
+        if (_RG_LOOKUP_SIMPLE.test(replacement)) {
           // store the index (used for fast retrieval of matched strings)
           replacement = parseInt(replacement.slice(1));
         } else { // a complicated lookup (e.g. "Hello $2 $1")
@@ -731,10 +734,44 @@ var RegGrp = Collection.extend({
 });
 
 // =========================================================================
+// JavaScript/package.js
+// =========================================================================
+
+var JavaScript = {
+  name:      "JavaScript",
+	version:   base2.version,
+  exports:   "Array2, Date2, String2",
+  namespace: "", // fixed later
+  
+  bind: function(host) {
+    forEach (this.exports.match(/\w+/g), function(name2) {
+      var name = name2.slice(0, -1);
+      extend(host[name], this[name2]);
+      this[name2](host[name].prototype); // cast
+    }, this);
+  }
+};
+
+// =========================================================================
+// JavaScript/~/Date.js
+// =========================================================================
+
+// Fix Date.get/setYear() (IE5-7)
+
+if ((new Date).getYear() > 1900) {
+  Date.prototype.getYear = function() {
+    return this.getFullYear() - 1900;
+  };
+  Date.prototype.setYear = function(year) {
+    return this.setFullYear(year + 1900);
+  };
+}
+
+// =========================================================================
 // JavaScript/~/Function.js
 // =========================================================================
 
-// some browsers don't define this
+// Some browsers don't define this.
 
 Function.prototype.prototype = {};
 
@@ -742,27 +779,15 @@ Function.prototype.prototype = {};
 // JavaScript/~/String.js
 // =========================================================================
 
-// fix String.replace (Safari/IE5.0)
-if ("".replace(/^/, String)) {
-  var _GLOBAL = /(g|gi)$/;
+// A KHTML bug.
+
+if ("".replace(/^/, K("$$")) == "$") {
   extend(String.prototype, "replace", function(expression, replacement) {
-    if (typeof replacement == "function") { // Safari doesn't like functions
-      if (instanceOf(expression, RegExp)) {
-        var regexp = expression;
-        var global = regexp.global;
-        if (global == null) global = _GLOBAL.test(regexp);
-        // we have to convert global RexpExps for exec() to work consistently
-        if (global) regexp = new RegExp(regexp.source); // non-global
-      } else {
-        regexp = new RegExp(rescape(expression));
-      }
-      var match, string = this, result = "";
-      while (string && (match = regexp.exec(string))) {
-        result += string.slice(0, match.index) + replacement.apply(this, match);
-        string = string.slice(match.index + match[0].length);
-        if (!global) break;
-      }
-      return result + string;
+    if (typeof replacement == "function") {
+      var fn = replacement;
+      replacement = function() {
+        return String(fn.apply(null, arguments)).split("$").join("$$");
+      };
     }
     return this.base(expression, replacement);
   });
@@ -773,6 +798,7 @@ if ("".replace(/^/, String)) {
 // =========================================================================
 
 var Array2 = _createObject2(
+  Array,
   Array,
   "concat,join,pop,push,reverse,shift,slice,sort,splice,unshift", // generics
   [Enumerable, {
@@ -911,7 +937,14 @@ var _TRIM_ZEROES   = /(((00)?:0+)?:0+)?\.0+$/;
 var _TRIM_TIMEZONE = /(T[0-9:.]+)$/;
 
 var Date2 = _createObject2(
-  Date, "", [{
+  Date, 
+  function(yy, mm, dd, h, m, s, ms) {
+    switch (arguments.length) {
+      case 0: return new Date;
+      case 1: return new Date(yy);
+      default: return new Date(yy, mm, arguments.length == 2 ? 1 : dd, h || 0, m || 0, s || 0, ms || 0);
+    }
+  }, "", [{
     toISOString: function(date) {
       var string = "####-##-##T##:##:##.###";
       for (var part in _DATE_PARTS) {
@@ -971,7 +1004,10 @@ Date2.parse = function(string, defaultDate) {
 // =========================================================================
 
 var String2 = _createObject2(
-  String,
+  String, 
+  function(string) {
+    return new String(arguments.length == 0 ? "" : string);
+  },
   "charAt,charCodeAt,concat,indexOf,lastIndexOf,match,replace,search,slice,split,substr,substring,toLowerCase,toUpperCase",
   [{trim: trim}]
 );
@@ -980,9 +1016,9 @@ var String2 = _createObject2(
 // JavaScript/functions.js
 // =========================================================================
 
-function _createObject2(Native, generics, extensions) {
+function _createObject2(Native, constructor, generics, extensions) {
   // Clone native objects and extend them.
-  
+
   // Create a Module that will contain all the new methods.
   var INative = Module.extend();
   // http://developer.mozilla.org/en/docs/New_in_JavaScript_1.6#Array_and_String_generics
@@ -990,13 +1026,13 @@ function _createObject2(Native, generics, extensions) {
     INative[name] = unbind(Native.prototype[name]);
   });
   forEach (extensions, INative.implement, INative);
-  
+
   // create a faux constructor that augments the native object
   var Native2 = function() {
-    return INative(this.constructor == INative ? Native.apply(Native, arguments) : arguments[0]);
+    return INative(this.constructor == INative ? constructor.apply(null, arguments) : arguments[0]);
   };
   Native2.prototype = INative.prototype;
-  
+
   // Remove methods that are already implemented.
   forEach (INative, function(method, name) {
     if (Native[name]) {
@@ -1007,7 +1043,8 @@ function _createObject2(Native, generics, extensions) {
   });
   Native2.ancestor = Object;
   delete Native2.extend;
-  
+  if (Native != Array) delete Native2.forEach; 
+
   return Native2;
 };
 
@@ -1016,64 +1053,50 @@ function _createObject2(Native, generics, extensions) {
 // =========================================================================
 
 function extend(object, source) { // or extend(object, key, value)
-  var extend = arguments.callee;
-  if (object != null) {
+  if (object && source) {
     if (arguments.length > 2) { // Extending with a key/value pair.
-      var key = String(source);
-      var value = arguments[2];
-      // Object detection.
-      if (key.charAt(0) == "@") {
-        return detect(key.slice(1)) ? extend(object, value) : object;
-      }
-      // Protect certain objects.
-      if (extend == object.extend && /^(base|extend)$/.test(key)) {
-        return object;
-      }
-      // Check for method overriding.
-      var ancestor = object[key];
-      if (ancestor && instanceOf(value, Function)) {
-        if (value != ancestor && !_ancestorOf(value, ancestor)) {
-          if (value._base || _BASE.test(value)) {
-            // Override the existing method.
-            var method = value;
-            function _base() {
-              var previous = this.base;
-              this.base = ancestor;
-              var returnValue = method.apply(this, arguments);
-              this.base = previous;
-              return returnValue;
-            };
-            value = _base;
-            value.ancestor = ancestor;
-            value.method = method;
-            value.toString = function() {
-              return String(method);
-            };
+      var key = source;
+      source = {};
+      source[key] = arguments[2];
+    }
+    var proto = (typeof source == "function" ? Function : Object).prototype;
+    // Add constructor, toString etc
+    var i = _HIDDEN.length, key;
+    if (base2.__prototyping) {
+      while (key = _HIDDEN[--i]) {
+        var value = source[key];
+        if (value != proto[key]) {
+          if (_BASE.test(value)) {
+            _override(object, key, value)
+          } else {
+            object[key] = value;
           }
+        }
+      }
+    }
+    // Copy each of the source object's properties to the target object.
+    for (key in source) {
+      if (proto[key] === undefined) {
+        var value = source[key];
+        // Object detection.
+        if (key.charAt(0) == "@" && detect(key.slice(1))) {
+          arguments.callee(object, value);
+          continue;
+        }
+        // Check for method overriding.
+        var ancestor = object[key];
+        if (ancestor && typeof value == "function") {
+          if (value != ancestor && (!ancestor.method || !_ancestorOf(value, ancestor))) {
+            if (value.__base || _BASE.test(value)) {
+              _override(object, key, value);
+            } else {
+              object[key] = value;
+            }
+          }
+        } else {
           object[key] = value;
         }
-      } else {
-        object[key] = value;
       }
-    } else if (source) { // Extending with an object literal.
-      var Type = instanceOf(source, Function) ? Function : Object;
-      if (base2.__prototyping) {
-        // Add constructor, toString etc if we are prototyping.
-        forEach (_HIDDEN, function(key) {
-          if (source[key] != Type.prototype[key]) {
-            extend(object, key, source[key]);
-          }
-        });
-      } else {
-        // Does the target object have a custom extend() method?
-        if (typeof object.extend == "function" && typeof object != "function" && object.extend != extend) {
-          extend = unbind(object.extend);
-        }
-      }
-      // Copy each of the source object's properties to the target object.
-      _Function_forEach (Type, source, function(value, key) {
-        extend(object, key, value);
-      });
     }
   }
   return object;
@@ -1081,12 +1104,30 @@ function extend(object, source) { // or extend(object, key, value)
 
 function _ancestorOf(ancestor, fn) {
   // Check if a function is in another function's inheritance chain.
-  while (fn) { // stoopid firebug
+  while (fn) {
     if (!fn.ancestor) return false;
     fn = fn.ancestor;
     if (fn == ancestor) return true;
   }
   return false;
+};
+
+function _override(object, name, method) {
+  // Override an existing method.
+  var ancestor = object[name];
+  function _base() {
+    var previous = this.base;
+    this.base = ancestor;
+    var returnValue = method.apply(this, arguments);
+    this.base = previous;
+    return returnValue;
+  };
+  _base.ancestor = ancestor;
+  _base.method = method;
+  _base.toString = function() {
+    return String(method);
+  };
+  object[name] = _base;
 };
 
 // =========================================================================
@@ -1102,7 +1143,7 @@ if (typeof StopIteration == "undefined") {
 function forEach(object, block, context, fn) {
   if (object == null) return;
   if (!fn) {
-    if (instanceOf(object, Function)) {
+    if (typeof object == "function" && object.call) {
       // Functions are a special case.
       fn = Function;
     } else if (typeof object.forEach == "function" && object.forEach != arguments.callee) {
@@ -1132,7 +1173,7 @@ function _Array_forEach(array, block, context) {
     for (i = 0; i < length; i++) {    
     /*@cc_on @*/
     /*@if (@_jscript_version < 5.2)
-      if ($Legacy.has(array, i))
+      if (array[i] !== undefined || $Legacy.has(array, i))
     @else @*/
       if (i in array)
     /*@end @*/
@@ -1141,19 +1182,18 @@ function _Array_forEach(array, block, context) {
   }
 };
 
-function _get_Function_forEach() {
+function _Function_forEach(fn, object, block, context) {
   // http://code.google.com/p/base2/issues/detail?id=10
   
-  // run the test for Safari's buggy enumeration
+  // Run the test for Safari's buggy enumeration.
   var Temp = function(){this.i=1};
   Temp.prototype = {i:1};
   var count = 0;
   for (var i in new Temp) count++;
   
-  return (count > 1) ? function(fn, object, block, context) {
-    ///////////////////////////////////////
-    //    Safari fix (pre version 3)     //
-    ///////////////////////////////////////    
+  // Overwrite the main function the first time it is called.
+  _Function_forEach = (count > 1) ? function(fn, object, block, context) {
+    // Safari fix (pre version 3)
     var processed = {};
     for (var key in object) {
       if (!processed[key] && fn.prototype[key] === undefined) {
@@ -1169,6 +1209,8 @@ function _get_Function_forEach() {
       }
     }
   };
+  
+  _Function_forEach(fn, object, block, context);
 };
 
 // =========================================================================
@@ -1179,7 +1221,9 @@ function instanceOf(object, klass) {
   // Handle exceptions where the target object originates from another frame.
   // This is handy for JSON parsing (amongst other things).
   
-  assertType(klass, "function", "Invalid 'instanceOf' operand.");
+  if (typeof klass != "function") {
+    throw new TypeError("Invalid 'instanceOf' operand.");
+  }
 
   if (object == null) return false;
   
@@ -1190,20 +1234,15 @@ function instanceOf(object, klass) {
     if (object instanceof klass) return true;
   /*@end @*/
 
-  // If the class is a Base class then it would have passed the test above.
-  if (_isBaseClass(klass)) return false;
+  // If the class is a base2 class then it would have passed the test above.
+  if (Base.ancestorOf == klass.ancestorOf) return false;
   
-  try {
-    var _constructor = object.constructor;
-    // Only JavaScript objects allowed.
-    // COM objects do not have a constructor.
-    if (typeof _constructor != "function") return false;
-  } catch (error) {
-    return false;
-  }
+  // COM objects don't have a constructor
+  var _constructor = object.constructor;
+  if (typeof _constructor != "function") return false; 
   
-  // Base objects can only be instances of Object.
-  if (_isBaseClass(_constructor)) return klass == Object;
+  // base2 objects can only be instances of Object.
+  if (Base.ancestorOf == _constructor.ancestorOf) return klass == Object;
   
   switch (klass) {
     case Array: // This is the only troublesome one.
@@ -1225,17 +1264,13 @@ function instanceOf(object, klass) {
   return false;
 };
 
-function _isBaseClass(klass) {
-  return klass == Base || _ancestorOf(Base, klass);
-};
-
 // =========================================================================
 // lang/assert.js
 // =========================================================================
 
-function assert(condition, message, Err) {
+function assert(condition, message, ErrorClass) {
   if (!condition) {
-    throw new (Err || Error)(message || "Assertion failed.");
+    throw new (ErrorClass || Error)(message || "Assertion failed.");
   }
 };
 
@@ -1258,8 +1293,12 @@ function assertType(object, type, message) {
 
 function assignID(object) {
   // Assign a unique ID to an object.
-  if (!object.base2ID) object.base2ID = "b2_" + _ID++;
+  if (!object.base2ID) object.base2ID = "b2_" + counter();
   return object.base2ID;
+};
+
+function counter() {
+  return _counter++;
 };
 
 function copy(object) {
@@ -1321,13 +1360,6 @@ function bind(fn, context) {
   return bound;
 };
 
-function curry(fn) {
-  var args = slice.call(arguments, 1);
-  return function() {
-      return fn.apply(this, args.concat(slice(arguments)));
-  };
-};
-
 function delegate(fn, context) {
   return function() {
     //Array2.unshift(arguments, this);
@@ -1348,6 +1380,13 @@ function not(fn) {
   };
 };
 
+function partial(fn) {
+  var args = slice.call(arguments, 1);
+  return function() {
+      return fn.apply(this, args.concat(slice(arguments)));
+  };
+};
+
 function unbind(fn) {
   return function(context) {
     return fn.apply(context, slice(arguments, 1));
@@ -1358,19 +1397,18 @@ function unbind(fn) {
 // base2/init.js
 // =========================================================================
 
-base2 = new Namespace(this, base2);
+base2 = new Package(this, base2);
 eval(this.exports);
 
 base2.extend = extend;
 
+// the enumerable methods are extremely useful so we'll add them to the base2
+//  namespace for convenience
 forEach (Enumerable, function(method, name) {
   if (!Module[name]) base2.addName(name, bind(method, Enumerable));
 });
 
-// =========================================================================
-// base2/utils/namespace.js
-// =========================================================================
-
-var utils = new base2.Namespace(this, {name: "utils"});
+JavaScript = new Package(this, JavaScript);
+eval(this.exports);
 
 }; ////////////////////  END: CLOSURE  /////////////////////////////////////

@@ -1,4 +1,4 @@
-// timestamp: Wed, 05 Dec 2007 06:00:11
+// timestamp: Fri, 14 Dec 2007 11:07:13
 /*
   base2 - copyright 2007, Dean Edwards
   http://code.google.com/p/base2/
@@ -12,14 +12,12 @@ var base2 = {
   name:    "base2",
   version: "1.0 (beta 1)",
   exports:
-    "Base, Namespace, Abstract, Module, Enumerable, Map, Collection, RegGrp, " +
-    "Array2, Date2, String2, " +
-    "assert, assertArity, assertType, " +
-    "assignID, copy, counter, detect, extend, forEach, format, instanceOf, match, rescape, slice, trim, " +
+    "Base, Package, Abstract, Module, Enumerable, Map, Collection, RegGrp, " +
+    "assert, assertArity, assertType, assignID, base, copy, detect, extend, " +
+    "forEach, format, instanceOf, match, rescape, slice, trim, typeOf, " +
     "I, K, Undefined, Null, True, False, bind, delegate, flip, not, partial, unbind",
   
   global: this, // the window object in a browser environment
-  namespace: "var global=base2.global;function base(o,a){return o.base.apply(o,a)};",
   
   // this is defined here because it must be defined in the global scope
   detect: new function(_) {  
@@ -36,12 +34,11 @@ var base2 = {
     var java = _.java ? true : false;
     if (_.navigator) {
       var element = document.createElement("span");
-      var userAgent = navigator.platform + " " + navigator.userAgent;
-      // Fix opera's (and others) user agent string.
-      if (!jscript) userAgent = userAgent.replace(/MSIE\s[\d.]+/, "");
       // Close up the space between name and version number.
       //  e.g. MSIE 6 -> MSIE6
-      userAgent = userAgent.replace(/([a-z])[\s\/](\d)/gi, "$1$2");
+      var userAgent = navigator.platform + " " + navigator.userAgent.replace(/([a-z])[\s\/](\d)/gi, "$1$2");
+      // Fix opera's (and others) user agent string.
+      if (!jscript) userAgent = userAgent.replace(/MSIE[\d.]+/, "");
       java &= navigator.javaEnabled();
     }
     
@@ -71,13 +68,10 @@ new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 // base2/lang/header.js
 // =========================================================================
 
-var detect = base2.detect;
+var _namespace = "var global=base2.global;function base(o,a){return o.base.apply(o,a)};";
+eval(_namespace);
 
-var slice = Array.slice || (function(slice) {
-  return function(array) {
-    return slice.apply(array, slice.call(arguments, 1));
-  };
-})(Array.prototype.slice);
+var detect = base2.detect;
 
 var Undefined = K(), Null = K(null), True = K(true), False = K(false);
 
@@ -88,12 +82,17 @@ var _RTRIM = /\s\s*$/;
 var _RESCAPE = /([\/()[\]{}|*+-.,^$?\\])/g;             // safe regular expressions
 var _BASE = /eval/.test(detect) ? /\bbase\s*\(/ : /.*/; // some platforms don't allow decompilation
 var _HIDDEN = ["constructor", "toString", "valueOf"];   // only override these when prototyping
-var _REGEXP_STRING = String(new RegExp);
+var _MSIE_NATIVE_FUNCTION = detect("(jscript)") ?
+  new RegExp("^" + rescape(isNaN).replace(/isNaN/, "\\w+") + "$") : {test: False};
+
 var _counter = 1;
+var _slice = Array.prototype.slice;
+
+var slice = Array.slice || function(array) {
+  return _slice.apply(array, _slice.call(arguments, 1));
+};
 
 _Function_forEach(); // make sure this is initialised
-
-eval(base2.namespace);
 
 // =========================================================================
 // base2/Base.js
@@ -182,13 +181,13 @@ var Base = _subclass.call(Object, {
 });
 
 // =========================================================================
-// base2/Namespace.js
+// base2/Package.js
 // =========================================================================
 
-var Namespace = Base.extend({
+var Package = Base.extend({
   constructor: function(_private, _public) {
     this.extend(_public);
-    this.init();
+    if (this.init) this.init();
     
     if (this.name != "base2") {
       if (!this.parent) this.parent = base2;
@@ -199,12 +198,12 @@ var Namespace = Base.extend({
     var LIST = /[^\s,]+/g; // pattern for comma separated list
     
     if (_private) {
-      // This string should be evaluated immediately after creating a Namespace object.
+      // This string should be evaluated immediately after creating a Package object.
       _private.imports = Array2.reduce(this.imports.match(LIST), function(namespace, name) {
         eval("var ns=base2." + name);
-        assert(ns, format("Namespace not found: '%1'.", name));
+        assert(ns, format("Package not found: '%1'.", name));
         return namespace += ns.namespace;
-      }, base2.namespace);
+      }, _namespace + base2.namespace + JavaScript.namespace);
       
       // This string should be evaluated after you have created all of the objects
       // that are being exported.
@@ -217,8 +216,7 @@ var Namespace = Base.extend({
   },
 
   exports: "",
-  imports: "",  
-  init: Undefined,
+  imports: "",
   name: "",
   namespace: "",
   parent: null,
@@ -231,8 +229,8 @@ var Namespace = Base.extend({
     }
   },
 
-  addNamespace: function(name) {
-    this.addName(name, new Namespace(null, {name: name, parent: this}));
+  addPackage: function(name) {
+    this.addName(name, new Package(null, {name: name, parent: this}));
   },
   
   toString: function() {
@@ -263,7 +261,7 @@ var Module = Abstract.extend(null, {
     // Implement module (instance AND static) methods.
     module.implement(_interface);
     // Implement static properties and methods.
-    extend(module, _static);    
+    extend(module, _static);
     module.init();
     return module;
   },
@@ -287,7 +285,9 @@ var Module = Abstract.extend(null, {
           }
         } else if (!Module[name] && typeof source == "function" && source.call) {
           function _moduleMethod() { // Late binding.
-            return module[name].apply(module, [this].concat(slice(arguments)));
+            var args = _slice.call(arguments);
+            args.unshift(this);
+            return module[name].apply(module, args);
           };
           ;;; _moduleMethod._module = module; // introspection
           _moduleMethod.__base = _BASE.test(source);
@@ -341,7 +341,7 @@ var Enumerable = Module.extend({
   
   invoke: function(object, method) {
     // Apply a method to each item in the enumerated object.
-    var args = slice(arguments, 2);
+    var args = _slice.call(arguments, 2);
     return this.map(object, (typeof method == "function") ? function(item) {
       return (item == null) ? undefined : method.apply(item, args);
     } : function(item) {
@@ -386,6 +386,8 @@ var Enumerable = Module.extend({
 // =========================================================================
 // base2/Map.js
 // =========================================================================
+
+// http://wiki.ecmascript.org/doku.php?id=proposals:dictionary
 
 var _HASH = "#";
 
@@ -518,7 +520,7 @@ var Collection = Map.extend({
     assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
     assert(!this.has(key), "Duplicate key '" + key + "'.");
     this[_KEYS].insertAt(index, String(key));
-    this.put.apply(this, slice(arguments, 1));
+    this.put.apply(this, _slice.call(arguments, 1));
   },
   
   item: Undefined, // alias of getAt (defined when the class is initialised)
@@ -584,7 +586,7 @@ var Collection = Map.extend({
   },
   
   create: function(key, item) {
-    return this.Item ? new this.Item(key, item) : null;
+    return this.Item ? new this.Item(key, item) : item;
   },
   
   extend: function(_instance, _static) {
@@ -643,7 +645,7 @@ var RegGrp = Collection.extend({
               var replacement = item.replacement;
               switch (typeof replacement) {
                 case "function":
-                  var args = slice(arguments, offset, next);
+                  var args = _slice.call(arguments, offset, next);
                   var index = arguments[arguments.length - 2];
                   return replacement.apply(self, args.concat(index, string));
                 case "number":
@@ -689,7 +691,7 @@ var RegGrp = Collection.extend({
   init: function() {
     forEach ("add,get,has,put,remove".split(","), function(name) {
       _override(this, name, function(expression) {
-        if (expression && expression.source) {
+        if (instanceOf(expression, RegExp)) {
           arguments[0] = expression.source;
         }
         return base(this, arguments);
@@ -699,8 +701,6 @@ var RegGrp = Collection.extend({
   
   Item: {
     constructor: function(expression, replacement) {
-      expression = (expression && expression.source) ? expression.source : String(expression);
-      
       if (typeof replacement == "number") replacement = String(replacement);
       else if (replacement == null) replacement = "";    
       
@@ -721,7 +721,7 @@ var RegGrp = Collection.extend({
       
       this.length = RegGrp.count(expression);
       this.replacement = replacement;
-      this.toString = K(expression);
+      this.toString = K(String(expression));
     },
     
     length: 0,
@@ -734,6 +734,26 @@ var RegGrp = Collection.extend({
     return match(expression, _RG_BRACKETS).length;
   }
 });
+
+// =========================================================================
+// JavaScript/package.js
+// =========================================================================
+
+var JavaScript = {
+  name:      "JavaScript",
+	version:   base2.version,
+  exports:   "Array2, Date2, String2",
+  namespace: "", // fixed later
+  
+  bind: function(host) {
+    forEach (this.exports.match(/\w+/g), function(name2) {
+      var name = name2.slice(0, -1);
+      extend(host[name], this[name2]);
+      this[name2](host[name].prototype); // cast
+    }, this);
+    return this;
+  }
+};
 
 // =========================================================================
 // JavaScript/~/Date.js
@@ -782,14 +802,15 @@ if ("".replace(/^/, K("$$")) == "$") {
 
 var Array2 = _createObject2(
   Array,
+  Array,
   "concat,join,pop,push,reverse,shift,slice,sort,splice,unshift", // generics
   [Enumerable, {
     combine: function(keys, values) {
       // Combine two arrays to make a hash.
       if (!values) values = keys;
-      return this.reduce(keys, function(object, key, index) {
-        object[key] = values[index];
-        return object;
+      return this.reduce(keys, function(hash, key, index) {
+        hash[key] = values[index];
+        return hash;
       }, {});
     },
 
@@ -798,17 +819,18 @@ var Array2 = _createObject2(
     },
 
     copy: function(array) {
-      var copy = this.slice(array);
-      if (!copy.swap) this(copy);  // cast to Array2
+      var copy = _slice.call(array);
+      if (!copy.swap) this(copy); // cast to Array2
       return copy;
     },
 
     flatten: function(array) {
+      var length = 0;
       return this.reduce(array, function(result, item) {
         if (this.like(item)) {
           this.reduce(item, arguments.callee, result, this);
         } else {
-          result.push(item);
+          result[length++] = item;
         }
         return result;
       }, [], this);
@@ -871,6 +893,8 @@ var Array2 = _createObject2(
     },
 
     swap: function(array, index1, index2) {
+      if (index1 < 0) index1 += array.length; // starting from the end
+      if (index2 < 0) index2 += array.length;
       var temp = array[index1];
       array[index1] = array[index2];
       array[index2] = temp;
@@ -919,7 +943,14 @@ var _TRIM_ZEROES   = /(((00)?:0+)?:0+)?\.0+$/;
 var _TRIM_TIMEZONE = /(T[0-9:.]+)$/;
 
 var Date2 = _createObject2(
-  Date, "", [{
+  Date, 
+  function(yy, mm, dd, h, m, s, ms) {
+    switch (arguments.length) {
+      case 0: return new Date;
+      case 1: return new Date(yy);
+      default: return new Date(yy, mm, arguments.length == 2 ? 1 : dd, h || 0, m || 0, s || 0, ms || 0);
+    }
+  }, "", [{
     toISOString: function(date) {
       var string = "####-##-##T##:##:##.###";
       for (var part in _DATE_PARTS) {
@@ -979,7 +1010,10 @@ Date2.parse = function(string, defaultDate) {
 // =========================================================================
 
 var String2 = _createObject2(
-  String,
+  String, 
+  function(string) {
+    return new String(arguments.length == 0 ? "" : string);
+  },
   "charAt,charCodeAt,concat,indexOf,lastIndexOf,match,replace,search,slice,split,substr,substring,toLowerCase,toUpperCase",
   [{trim: trim}]
 );
@@ -988,7 +1022,7 @@ var String2 = _createObject2(
 // JavaScript/functions.js
 // =========================================================================
 
-function _createObject2(Native, generics, extensions) {
+function _createObject2(Native, constructor, generics, extensions) {
   // Clone native objects and extend them.
 
   // Create a Module that will contain all the new methods.
@@ -1001,7 +1035,7 @@ function _createObject2(Native, generics, extensions) {
 
   // create a faux constructor that augments the native object
   var Native2 = function() {
-    return INative(this.constructor == INative ? Native.apply(Native, arguments) : arguments[0]);
+    return INative(this.constructor == INative ? constructor.apply(null, arguments) : arguments[0]);
   };
   Native2.prototype = INative.prototype;
 
@@ -1015,6 +1049,7 @@ function _createObject2(Native, generics, extensions) {
   });
   Native2.ancestor = Object;
   delete Native2.extend;
+  if (Native != Array) delete Native2.forEach; 
 
   return Native2;
 };
@@ -1050,8 +1085,8 @@ function extend(object, source) { // or extend(object, key, value)
       if (proto[key] === undefined) {
         var value = source[key];
         // Object detection.
-        if (key.charAt(0) == "@" && detect(key.slice(1))) {
-          arguments.callee(object, value);
+        if (key.charAt(0) == "@") {
+          if (detect(key.slice(1))) arguments.callee(object, value);
           continue;
         }
         // Check for method overriding.
@@ -1144,7 +1179,7 @@ function _Array_forEach(array, block, context) {
     for (i = 0; i < length; i++) {    
     /*@cc_on @*/
     /*@if (@_jscript_version < 5.2)
-      if (array[i] !== undefined || $Legacy.has(array, i))
+      if ($Legacy.has(array, i))
     @else @*/
       if (i in array)
     /*@end @*/
@@ -1185,6 +1220,24 @@ function _Function_forEach(fn, object, block, context) {
 };
 
 // =========================================================================
+// lang/typeOf.js
+// =========================================================================
+
+// http://wiki.ecmascript.org/doku.php?id=proposals:typeof
+
+function typeOf(object) {
+  var type = typeof object;
+  switch (type) {
+    case "object":
+      return object === null ? "null" : typeof object.call == "function" || _MSIE_NATIVE_FUNCTION.test(object) ? "function" : type;
+    case "function":
+      return typeof object.call == "function" ? type : "object";
+    default:
+      return type;
+  }
+};
+
+// =========================================================================
 // lang/instanceOf.js
 // =========================================================================
 
@@ -1210,7 +1263,9 @@ function instanceOf(object, klass) {
   
   // COM objects don't have a constructor
   var _constructor = object.constructor;
-  if (typeof _constructor != "function") return false; 
+  if (typeof _constructor != "function") {
+    return typeOf(object) == typeof klass.prototype.valueOf();
+  }
   
   // base2 objects can only be instances of Object.
   if (Base.ancestorOf == _constructor.ancestorOf) return klass == Object;
@@ -1219,9 +1274,9 @@ function instanceOf(object, klass) {
     case Array: // This is the only troublesome one.
       return !!(typeof object == "object" && object.join && object.splice);
     case Function:
-      return !!(typeof object == "function" && object.call);
+      return typeOf(object) == "function";
     case RegExp:
-      return _constructor.prototype.toString() == _REGEXP_STRING;
+      return typeof _constructor.$1 == "string";
     case Date:
       return !!object.getTimezoneOffset;
     case String:
@@ -1264,12 +1319,8 @@ function assertType(object, type, message) {
 
 function assignID(object) {
   // Assign a unique ID to an object.
-  if (!object.base2ID) object.base2ID = "b2_" + counter();
+  if (!object.base2ID) object.base2ID = "b2_" + _counter++;
   return object.base2ID;
-};
-
-function counter() {
-  return _counter++;
 };
 
 function copy(object) {
@@ -1286,8 +1337,8 @@ function format(string) {
   // ==> "she sells sea shells"
   // Only %1 - %9 supported.
   var args = arguments;
-  var _FORMAT = new RegExp("%([1-" + arguments.length + "])", "g");
-  return String(string).replace(_FORMAT, function(match, index) {
+  var pattern = new RegExp("%([1-" + arguments.length + "])", "g");
+  return String(string).replace(pattern, function(match, index) {
     return index < args.length ? args[index] : match;
   });
 };
@@ -1323,19 +1374,17 @@ function K(k) {
 };
 
 function bind(fn, context) {
-  var args = slice(arguments, 2);
-  var bound = function() {
-    return fn.apply(context, args.concat(slice(arguments)));
+  var args = _slice.call(arguments, 2);
+  return function() {
+    return fn.apply(context, args.concat(_slice.call(arguments)));
   };
-  bound._cloneID = assignID(fn);
-  return bound;
 };
 
 function delegate(fn, context) {
   return function() {
-    //Array2.unshift(arguments, this);
-    //return fn.apply(context, arguments);
-    return fn.apply(context, [this].concat(slice(arguments)));
+    var args = _slice.call(arguments);
+    args.unshift(this);
+    return fn.apply(context, args);
   };
 };
 
@@ -1352,15 +1401,15 @@ function not(fn) {
 };
 
 function partial(fn) {
-  var args = slice.call(arguments, 1);
+  var args = _slice.call(arguments, 1);
   return function() {
-      return fn.apply(this, args.concat(slice(arguments)));
+    return fn.apply(context, args.concat(_slice.call(arguments)));
   };
 };
 
 function unbind(fn) {
   return function(context) {
-    return fn.apply(context, slice(arguments, 1));
+    return fn.apply(context, _slice.call(arguments, 1));
   };
 };
 
@@ -1368,13 +1417,18 @@ function unbind(fn) {
 // base2/init.js
 // =========================================================================
 
-base2 = new Namespace(this, base2);
+base2 = new Package(this, base2);
 eval(this.exports);
 
 base2.extend = extend;
 
+// the enumerable methods are extremely useful so we'll add them to the base2
+//  namespace for convenience
 forEach (Enumerable, function(method, name) {
   if (!Module[name]) base2.addName(name, bind(method, Enumerable));
 });
+
+JavaScript = new Package(this, JavaScript);
+eval(this.exports);
 
 }; ////////////////////  END: CLOSURE  /////////////////////////////////////

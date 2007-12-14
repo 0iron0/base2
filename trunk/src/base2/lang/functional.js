@@ -10,19 +10,17 @@ function K(k) {
 };
 
 function bind(fn, context) {
-  var args = slice(arguments, 2);
-  var bound = function() {
-    return fn.apply(context, args.concat(slice(arguments)));
+  var args = _slice.call(arguments, 2);
+  return function() {
+    return fn.apply(context, args.concat(_slice.call(arguments)));
   };
-  bound._cloneID = assignID(fn);
-  return bound;
 };
 
 function delegate(fn, context) {
   return function() {
-    //Array2.unshift(arguments, this);
-    //return fn.apply(context, arguments);
-    return fn.apply(context, [this].concat(slice(arguments)));
+    var args = _slice.call(arguments);
+    args.unshift(this);
+    return fn.apply(context, args);
   };
 };
 
@@ -39,14 +37,14 @@ function not(fn) {
 };
 
 function partial(fn) {
-  var args = slice.call(arguments, 1);
+  var args = _slice.call(arguments, 1);
   return function() {
-      return fn.apply(this, args.concat(slice(arguments)));
+    return fn.apply(context, args.concat(_slice.call(arguments)));
   };
 };
 
 function unbind(fn) {
   return function(context) {
-    return fn.apply(context, slice(arguments, 1));
+    return fn.apply(context, _slice.call(arguments, 1));
   };
 };

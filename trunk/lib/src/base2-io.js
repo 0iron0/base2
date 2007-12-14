@@ -1,12 +1,12 @@
-// timestamp: Wed, 05 Dec 2007 04:03:40
+// timestamp: Fri, 14 Dec 2007 11:07:14
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
 // =========================================================================
-// IO/namespace.js
+// IO/package.js
 // =========================================================================
 
-var IO = new base2.Namespace(this, {
+var IO = new base2.Package(this, {
   name:    "IO",
   version: "0.4",
   exports: "FileSystem, Directory, LocalFileSystem, LocalDirectory, LocalFile, JSONFileSystem, JSONDirectory"

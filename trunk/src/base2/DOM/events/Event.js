@@ -40,33 +40,17 @@ var Event = Binding.extend({
   
   "@!(document.createEvent)": {
     "@MSIE": {
-      "@Mac": {
-        bind: function(event) {
-          // Mac IE5 does not allow expando properties on the event object so
-          //  we copy the object instead.
-          return this.base(extend(copy(event), {
-            preventDefault: function() {
-              if (this.cancelable !== false) {
-                this.returnValue = false;
-              }
-            }
-          }));
+      bind: function(event) {
+        if (!event.timeStamp) {
+          event.bubbles = !!_BUBBLES[event.type];
+          event.cancelable = !!_CANCELABLE[event.type];
+          event.timeStamp = new Date().valueOf();
         }
-      },
-      
-      "@Windows": {
-        bind: function(event) {
-          if (!event.timeStamp) {
-            event.bubbles = !!_BUBBLES[event.type];
-            event.cancelable = !!_CANCELABLE[event.type];
-            event.timeStamp = new Date().valueOf();
-          }
-          if (!event.target) {
-            event.target = event.srcElement;
-          }
-          event.relatedTarget = event[(event.type == "mouseout" ? "to" : "from") + "Element"];
-          return this.base(event);
+        if (!event.target) {
+          event.target = event.srcElement;
         }
+        event.relatedTarget = event[(event.type == "mouseout" ? "to" : "from") + "Element"];
+        return this.base(event);
       }
     }
   }

@@ -1,24 +1,24 @@
-// timestamp: Wed, 05 Dec 2007 06:00:11
+// timestamp: Fri, 14 Dec 2007 11:07:14
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
 // =========================================================================
-// DOM/namespace.js
+// DOM/package.js
 // =========================================================================
 
-var DOM = new base2.Namespace(this, {
+var DOM = new base2.Package(this, {
   name:    "DOM",
   version: "1.0 (beta 1)",
   exports:
     "Interface, Binding, Node, Document, Element, AbstractView, Event, EventTarget, DocumentEvent, " +
     "NodeSelector, DocumentSelector, ElementSelector, StaticNodeList, " +
-    "ViewCSS, HTMLDocument, HTMLElement, Selector, Traversal, XPathParser",
+    "ViewCSS, CSSStyleDeclaration, HTMLDocument, HTMLElement, Selector, Traversal, XPathParser",
   
   bind: function(node) {
     // Apply a base2 DOM Binding to a native DOM node.
     if (node && node.nodeType) {
       var uid = assignID(node);
-      if (!arguments.callee[uid]) {
+      if (!DOM.bind[uid]) {
         switch (node.nodeType) {
           case 1: // Element
             if (typeof node.className == "string") {
@@ -38,7 +38,7 @@ var DOM = new base2.Namespace(this, {
           default:
             Node.bind(node);
         }
-        arguments.callee[uid] = true;
+        DOM.bind[uid] = true;
       }
     }
     return node;
@@ -58,50 +58,6 @@ eval(this.imports);
 
 var _MSIE = detect("MSIE");
 var _MSIE5 = detect("MSIE5");
-
-// =========================================================================
-// DOM/plumbing.js
-// =========================================================================
-
-// avoid memory leaks
-
-if (detect("MSIE[56].+win") && !detect("SV1")) {
-  var closures = {}; // all closures stored here
-  
-  extend(base2, "bind", function(method, element) {
-    if (!element || element.nodeType != 1) {
-      return this.base(method, element);
-    }
-    
-    // unique id's for element and function
-    var elementID = element.uniqueID;
-    var methodID = assignID(method);
-    
-    // store the closure in a manageable scope
-    closures[methodID] = method;
-    
-    // reset pointers
-    method = null;
-    element = null;
-    
-    if (!closures[elementID]) closures[elementID] = {};
-    var closure = closures[elementID][methodID];
-    if (closure) return closure; // already stored
-    
-    var bound = function() {
-      var element = document.all[elementID];
-      return element ? closures[methodID].apply(element, arguments) : undefined;
-    };
-    bound._cloneID = methodID;
-    closures[elementID][methodID] = bound;
-    
-    return bound;
-  });
-  
-  attachEvent("onunload", function() {
-    closures = null; // closures are destroyed when the page is unloaded
-  });
-}
 
 // =========================================================================
 // DOM/Interface.js
@@ -239,7 +195,7 @@ var Document = Node.extend(null, {
 // getAttribute() will return null if the attribute is not specified. This is
 //  contrary to the specification but has become the de facto standard.
 
-var _EVALUATED = /^(href|src|type|value)$/;
+var _EVALUATED = /^(href|src|type)$/;
 var _ATTRIBUTES = {
   "class": "className",
   "for": "htmlFor"
@@ -270,7 +226,13 @@ var Element = Node.extend({
       } else if (name == "style") {
         element.style.cssText = value;
       } else {
-        this.base(element, _ATTRIBUTES[name] || name, String(value));
+        value = String(value);
+        var attribute = _MSIE_getAttributeNode(element, name);
+        if (attribute) {
+          attribute.nodeValue = value;
+        } else {
+          this.base(element, _ATTRIBUTES[name] || name, value);
+        }
       }
     }
   },
@@ -360,7 +322,7 @@ var Traversal = Module.extend({
   
   "@MSIE": {
     getDefaultView: function(node) {
-      return this.getDocument(node).parentWindow;
+      return (node.document || node).parentWindow;
     },
   
     "@MSIE5": {
@@ -453,33 +415,17 @@ var Event = Binding.extend({
   
   "@!(document.createEvent)": {
     "@MSIE": {
-      "@Mac": {
-        bind: function(event) {
-          // Mac IE5 does not allow expando properties on the event object so
-          //  we copy the object instead.
-          return this.base(extend(copy(event), {
-            preventDefault: function() {
-              if (this.cancelable !== false) {
-                this.returnValue = false;
-              }
-            }
-          }));
+      bind: function(event) {
+        if (!event.timeStamp) {
+          event.bubbles = !!_BUBBLES[event.type];
+          event.cancelable = !!_CANCELABLE[event.type];
+          event.timeStamp = new Date().valueOf();
         }
-      },
-      
-      "@Windows": {
-        bind: function(event) {
-          if (!event.timeStamp) {
-            event.bubbles = !!_BUBBLES[event.type];
-            event.cancelable = !!_CANCELABLE[event.type];
-            event.timeStamp = new Date().valueOf();
-          }
-          if (!event.target) {
-            event.target = event.srcElement;
-          }
-          event.relatedTarget = event[(event.type == "mouseout" ? "to" : "from") + "Element"];
-          return this.base(event);
+        if (!event.target) {
+          event.target = event.srcElement;
         }
+        event.relatedTarget = event[(event.type == "mouseout" ? "to" : "from") + "Element"];
+        return this.base(event);
       }
     }
   }
@@ -505,7 +451,7 @@ var EventTarget = Interface.extend({
     addEventListener: function(target, type, listener, capture) {
       // assign a unique id to both objects
       var targetID = assignID(target);
-      var listenerID = listener._cloneID || assignID(listener);
+      var listenerID = assignID(listener);
       // create a hash table of event types for the target object
       var events = _eventMap[targetID];
       if (!events) events = _eventMap[targetID] = {};
@@ -520,12 +466,12 @@ var EventTarget = Interface.extend({
       // store the event listener in the hash table
       listeners[listenerID] = listener;
       if (current !== undefined) {
-        target["on" + type] = delegate(_eventMap.handleEvent);
+        target["on" + type] = _eventMap._handleEvent;
       }
     },
   
     dispatchEvent: function(target, event) {
-      return _eventMap.handleEvent(target, event);
+      return _handleEvent.call(target, event);
     },
   
     removeEventListener: function(target, type, listener, capture) {
@@ -536,22 +482,14 @@ var EventTarget = Interface.extend({
       }
     },
     
-    "@MSIE.+win": {
-      addEventListener: function(target, type, listener, capture) {
-        // avoid memory leaks
-        if (typeof listener == "function") {
-          listener = bind(listener, target);
-        }
-        this.base(target, type, listener, capture);
-      },
-      
+    "@MSIE[56].+win": {
       dispatchEvent: function(target, event) {
         event.target = target;
         try {
           return target.fireEvent(event.type, event);
         } catch (error) {
           // the event type is not supported
-          return this.base(target, event);
+          return _handleEvent.call(target, event);
         }
       }
     }
@@ -559,39 +497,39 @@ var EventTarget = Interface.extend({
 });
 
 var _eventMap = new Base({ 
-  handleEvent: function(target, event) {
-    var returnValue = true;
-    // get a reference to the hash table of event listeners
-    var events = _eventMap[target.base2ID];
-    if (events) {
-      event = Event.bind(event); // fix the event object
-      var listeners = events[event.type];
-      // execute each event listener
-      for (var i in listeners) {
-        var listener = listeners[i];
-        // support the EventListener interface
-        if (listener.handleEvent) {
-          var result = listener.handleEvent(event);
-        } else {
-          result = listener.call(target, event);
-        }
-        if (result === false || event.returnValue === false) returnValue = false;
-      }
-    }
-    return returnValue;
-  },
+  _handleEvent: _handleEvent,
   
-  "@MSIE": {  
-    handleEvent: function(target, event) {
-      if (target.Infinity) {
-        target = target.document.parentWindow;
-        if (!event) event = target.event;
-      }
-      return this.base(target, event || Traversal.getDefaultView(target).event);
+  "@MSIE": {
+    _handleEvent: function() {
+      var target = this;
+      var window = (target.document || target).parentWindow;
+      if (target.Infinity) target = window;
+      return _handleEvent.call(target, window.event);
     }
   }
 });
 
+function _handleEvent(event) {
+  var returnValue = true;
+  // get a reference to the hash table of event listeners
+  var events = _eventMap[this.base2ID];
+  if (events) {
+    Event.bind(event); // fix the event object
+    var listeners = events[event.type];
+    // execute each event listener
+    for (var i in listeners) {
+      var listener = listeners[i];
+      // support the EventListener interface
+      if (listener.handleEvent) {
+        var result = listener.handleEvent(event);
+      } else {
+        result = listener.call(this, event);
+      }
+      if (result === false || event.returnValue === false) returnValue = false;
+    }
+  }
+  return returnValue;
+};
 
 // =========================================================================
 // DOM/events/DocumentEvent.js
@@ -646,20 +584,16 @@ var DOMContentLoadedEvent = Base.extend({
     EventTarget.addEventListener(document, "DOMContentLoaded", function() {
       fired = true;
     }, false);
+    this.listen(document);
+  },
+  
+  listen: function(document) {
     // if all else fails fall back on window.onload
     EventTarget.addEventListener(Traversal.getDefaultView(document), "load", this.fire, false);
   },
 
-  "@(attachEvent)": {
-    constructor: function() {
-      this.base(document);
-      Traversal.getDefaultView(document).attachEvent("onload", this.fire);
-    }
-  },
-
   "@MSIE.+win": {
-    constructor: function(document) {
-      this.base(document);
+    listen: function(document) {
       if (document.readyState != "complete") {
         // Matthias Miller/Mark Wubben/Paul Sowden/Me
         var event = this;
@@ -675,8 +609,7 @@ var DOMContentLoadedEvent = Base.extend({
   },
   
   "@KHTML": {
-    constructor: function(document) {
-      this.base(document);
+    listen: function(document) {
       // John Resig
       if (document.readyState != "complete") {
         var event = this;
@@ -718,11 +651,7 @@ var ViewCSS = Interface.extend({
       getComputedStyle: function(view, element, pseudoElement) {
         // pseudoElement parameter is not supported
         var currentStyle = element.currentStyle;
-        var computedStyle = {
-          getPropertyValue: function(propertyName) {
-            return this[ViewCSS.toCamelCase(propertyName)];
-          }
-        };
+        var computedStyle = {};
         for (var i in currentStyle) {
           if (_METRICS.test(i)) {
             computedStyle[i] = _MSIE_getPixelValue(element, computedStyle[i]) + "px";
@@ -735,6 +664,12 @@ var ViewCSS = Interface.extend({
         return computedStyle;
       }
     }
+  },
+  
+  getComputedStyle: function(view, element, pseudoElement) {
+    var computedStyle = _CSSStyleDeclaration_ReadOnly.bind(this.base(view, element, pseudoElement));
+    computedStyle.opacity = computedStyle.getPropertyValue("opacity");
+    return computedStyle;
   }
 }, {
   toCamelCase: function(string) {
@@ -762,6 +697,52 @@ function _MSIE_getColorValue(element, value) {
   var color = range.queryCommandValue(value);
   return format("rgb(%1,%2,%3)", color & 0xff, (color & 0xff00) >> 8,  (color & 0xff0000) >> 16);
 };
+
+// =========================================================================
+// DOM/style/CSSStyleDeclaration.js
+// =========================================================================
+
+// http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSStyleDeclaration
+
+var _CSSStyleDeclaration_ReadOnly = Binding.extend({
+  getPropertyValue: function(style, propertyName) {
+    return this.base(style, _CSSPropertyNameMap[propertyName] || propertyName);
+  },
+  
+  "@MSIE.+win": {
+    getPropertyValue: function(style, propertyName) {
+      return style[ViewCSS.toCamelCase(propertyName)];
+    }
+  }
+});
+
+var CSSStyleDeclaration = _CSSStyleDeclaration_ReadOnly.extend({
+  setProperty: function(style, propertyName, value, important) {
+    return this.base(style, _CSSPropertyNameMap[propertyName] || propertyName, value, important);
+  },
+  
+  "@MSIE.+win": {
+    setProperty: function(style, propertyName, value, priority) {
+      if (propertyName == "opacity") {
+        style.opacity = value;
+        style.zoom = 1;
+        style.filter = "progid:DXImageTransform.Microsoft.Alpha(opacity=" + (value * 100) + ")";
+      } else {
+        style.cssText += format("%1:%2 %3;", propertyName, value, priority);
+      }
+    }
+  }
+});
+
+var _CSSPropertyNameMap = new Base({
+  "@Gecko": {
+    opacity: "-moz-opacity"
+  },
+  
+  "@KHTML": {
+    opacity: "-khtml-opacity"
+  }
+});
 
 // =========================================================================
 // DOM/style/implementations.js
@@ -1123,10 +1104,10 @@ var Selector = Base.extend({
   
   test: function(element) {
     //-dean: improve this for simple selectors
-    var selector = new Selector(this + "[-base2-test]");
-    element.setAttribute("-base2-test", true);
+    var selector = new Selector(this + "[b2-test]");
+    element.setAttribute("b2-test", true);
     var result = selector.exec(Traversal.getOwnerDocument(element), true);
-    element.removeAttribute("-base2-test");
+    element.removeAttribute("b2-test");
     return result == element;
   },
   
@@ -1464,6 +1445,11 @@ var HTMLElement = Element.extend({
 }, {
   bindings: {},
   tags: "*",
+  
+  bind: function(element) {
+    CSSStyleDeclaration.bind(element.style);
+    return this.base(element);
+  },
   
   extend: function() {
     // Maintain HTML element bindings.

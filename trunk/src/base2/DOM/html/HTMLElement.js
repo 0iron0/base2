@@ -29,6 +29,11 @@ var HTMLElement = Element.extend({
   bindings: {},
   tags: "*",
   
+  bind: function(element) {
+    CSSStyleDeclaration.bind(element.style);
+    return this.base(element);
+  },
+  
   extend: function() {
     // Maintain HTML element bindings.
     // This allows us to map specific interfaces to elements by reference

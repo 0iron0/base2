@@ -1,19 +1,23 @@
-// timestamp: Wed, 05 Dec 2007 04:03:40
+// timestamp: Fri, 14 Dec 2007 11:07:14
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
 // =========================================================================
-// JSB/namespace.js
+// JSB/package.js
 // =========================================================================
 
-var JSB = new base2.Namespace(this, {
+// JavaScript Behaviors
+
+var JSB = new base2.Package(this, {
   name:    "JSB",
-  version: "0.7",
+  version: "0.8",
   imports: "DOM",
   exports: "Behavior, Rule, RuleList"
 });
 
 eval(this.imports);
+
+var _bind;
 
 // =========================================================================
 // JSB/Behavior.js
@@ -48,9 +52,9 @@ var Call = Base.extend({
   
   init: function() {
     EventTarget.addEventListener(document, "DOMContentLoaded", function() {
+      _bind = DOM.bind[document.base2ID];
       // release deferred calls
       if (Call.list) {
-        DOM.bind(document);
         Call.list.sort(function(a, b) {
           return a.rank - b.rank;
         });
@@ -70,62 +74,68 @@ var Call = Base.extend({
 // JSB/Rule.js
 // =========================================================================
 
-var _EVENT = /^on[a-z]+$/;
-
 var Rule = Base.extend({
   constructor: function(selector, behavior) {
-    // Create the selector object.
     selector = new Selector(selector);
-    
-    if (Behavior.ancestorOf(behavior)) {
-      behavior = behavior.prototype;
+    if (!Behavior.ancestorOf(behavior)) {
+      behavior = Behavior.extend(behavior);
     }
+    behavior = behavior.prototype;
     
-    var extensions = {}, events = {}, style = behavior.style, applied = {};
+    // Internal data.
+    var result, applied = {}, extensions = {}, events = {}, style = behavior.style;
     
+    // Extract behavior properties.
     forEach (behavior, function(property, name) {
-      if (name.charAt(0) == "@") { // Add platform specific extensions.
+      // Platform specific extensions.
+      if (name.charAt(0) == "@") {
         if (detect(name.slice(1))) {
           forEach (property, arguments.callee);
         }
-      } else if (typeof property == "function" && _EVENT.test(name)) {
-        events[name.slice(2)] = property;
+      } else if (typeof property == "function" && /^on[a-z]+$/.test(name)) {
+        // Allow elements to pick up document events (e.g. ondocumentclick).
+        if (name.indexOf("document") == 2) {
+          EventTarget.addEventListener(document, name.slice(10), function(event) {
+            result.invoke(property, event);
+          }, false);
+        } else {
+          // Store event handlers.
+          events[name.slice(2)] = property;
+        }
       } else if (name != "style") {
+        // Store element extensions.
         extensions[name] = property;
       }
     });
     
-    function addBehavior(element) {
-      var uid = assignID(element);
-      if (!applied[uid]) { // Don't apply more than once.
-        applied[uid] = true;
-        DOM.bind(element);
-        extend(element, extensions);
-        extend(element.style, style);
-        for (var type in events) {
-          var target = element;
-          var listener = events[type];
-          // Allow elements to pick up document events (e.g. ondocumentclick).
-          if (type.indexOf("document") == 0) {
-            target = document;
-            type = type.slice(8);
-            listener = bind(listener, element);
-          }
-          target.addEventListener(type, listener, false);
-        }
-      }
-    };
-    
-    // execution of this method is deferred until the DOMContentLoaded event
+    // Execution of this method is deferred until the DOMContentLoaded event.
     this.refresh = Call.defer(function() {
-      selector.exec(document).forEach(addBehavior);
+      // Find matching elements.
+      result = selector.exec();
+      // Apply the behavior.
+      result.forEach(function(element) {
+        var uid = assignID(element);
+        if (!applied[uid]) { // Don't apply more than once.
+          applied[uid] = true;
+          // If the document is bound then bind the element.
+          if (_bind) DOM.bind(element);
+          // Extend the element.
+          extend(element, extensions);
+          extend(element.style, style);
+          // Add event listeners.
+          forEach (events, function(listener, type) {
+            EventTarget.addEventListener(element, type, listener, false);
+          });
+        }
+      });
     });
+    
     this.toString = K(String(selector));
     
     this.refresh();
   },
   
-  refresh: Undefined
+  refresh: Undefined // defined in the constructor function
 });
 
 // =========================================================================
