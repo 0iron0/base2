@@ -1,4 +1,4 @@
-// timestamp: Wed, 19 Dec 2007 18:49:34
+// timestamp: Wed, 19 Dec 2007 19:57:29
 /*
   base2 - copyright 2007, Dean Edwards
   http://code.google.com/p/base2/
@@ -269,7 +269,7 @@ var Module = Abstract.extend(null, {
   implement: function(_interface) {
     var module = this;
     if (typeof _interface == "function") {
-      if (!_ancestorOf(module, _interface)) {
+      if (!_ancestorOf(_interface, module)) {
         this.base(_interface);
       }
       if (_ancestorOf(Module, _interface)) {

@@ -16,7 +16,7 @@ var Module = Abstract.extend(null, {
   implement: function(_interface) {
     var module = this;
     if (typeof _interface == "function") {
-      if (!_ancestorOf(module, _interface)) {
+      if (!_ancestorOf(_interface, module)) {
         this.base(_interface);
       }
       if (_ancestorOf(Module, _interface)) {
