@@ -57,6 +57,7 @@ var Collection = Map.extend({
     assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
     assert(!this.has(key), "Duplicate key '" + key + "'.");
     this[_KEYS].insertAt(index, String(key));
+    this[_HASH + key] == null; // placeholder
     this.put.apply(this, _slice.call(arguments, 1));
   },
   

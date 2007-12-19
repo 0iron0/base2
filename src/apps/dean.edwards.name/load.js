@@ -1,2 +1,2 @@
 if (!"".replace(/^/, String))
-  document.write('<script type="" src="http://dean.edwards.test/base2/trunk/src/base2/apps/dean.edwards.name/package.php?full"><\/script>');
+ document.write('<script type="text/javascript" src="http://deanedwards.googlecode.com/svn/trunk/js/my.js"><\/script>');

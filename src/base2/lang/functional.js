@@ -11,8 +11,10 @@ function K(k) {
 
 function bind(fn, context) {
   var args = _slice.call(arguments, 2);
-  return function() {
-    return fn.apply(context, args.concat(_slice.call(arguments)));
+  return args.length == 0 ? function() {
+    return fn.apply(context, arguments);
+  } : function() {
+    return fn.apply(context, args.concat.apply(args, arguments));
   };
 };
 
@@ -33,13 +35,6 @@ function flip(fn) {
 function not(fn) {
   return function() {
     return !fn.apply(this, arguments);
-  };
-};
-
-function partial(fn) {
-  var args = _slice.call(arguments, 1);
-  return function() {
-    return fn.apply(context, args.concat(_slice.call(arguments)));
   };
 };
 

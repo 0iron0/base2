@@ -27,9 +27,7 @@ var ViewCSS = Interface.extend({
   },
   
   getComputedStyle: function(view, element, pseudoElement) {
-    var computedStyle = _CSSStyleDeclaration_ReadOnly.bind(this.base(view, element, pseudoElement));
-    computedStyle.opacity = computedStyle.getPropertyValue("opacity");
-    return computedStyle;
+    return _CSSStyleDeclaration_ReadOnly.bind(this.base(view, element, pseudoElement));
   }
 }, {
   toCamelCase: function(string) {

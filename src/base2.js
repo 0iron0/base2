@@ -11,10 +11,10 @@ var base2 = {
   name:    "base2",
   version: "1.0 (beta 1)",
   exports:
-    "Base, Package, Abstract, Module, Enumerable, Map, Collection, RegGrp, " +
-    "assert, assertArity, assertType, assignID, base, copy, detect, extend, " +
-    "forEach, format, instanceOf, match, rescape, slice, trim, typeOf, " +
-    "I, K, Undefined, Null, True, False, bind, delegate, flip, not, partial, unbind",
+    "Base,Package,Abstract,Module,Enumerable,Map,Collection,RegGrp,"+
+    "assert,assertArity,assertType,assignID,copy,detect,extend,"+
+    "forEach,format,global,instanceOf,match,rescape,slice,trim,typeOf,"+
+    "I,K,Undefined,Null,True,False,bind,delegate,flip,not,unbind",
   
   global: this, // the window object in a browser environment
   
@@ -29,7 +29,7 @@ var base2 = {
     //    e.g. detect("MSIE|opera");
         
     var global = _;
-    var jscript/*@cc_on=@_jscript_version@*/; // http://dean.edwards.name/weblog/2007/03/sniff/#comment85164
+    var jscript = NaN/*@cc_on||@_jscript_version@*/; // http://dean.edwards.name/weblog/2007/03/sniff/#comment85164
     var java = _.java ? true : false;
     if (_.navigator) {
       var element = document.createElement("span");

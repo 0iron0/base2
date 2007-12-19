@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<package name="DOM/extras" publish="false" requires="DOM">
-  <include src="package.js"/>
-  <include src="HTMLElement.js"/>
-</package>

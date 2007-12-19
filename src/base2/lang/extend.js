@@ -32,11 +32,12 @@ function extend(object, source) { // or extend(object, key, value)
         }
         // Check for method overriding.
         var ancestor = object[key];
-        if (ancestor && typeof value == "function") {
+        if (typeof ancestor == "function" && typeof value == "function") {
           if (value != ancestor && (!ancestor.method || !_ancestorOf(value, ancestor))) {
-            if (value.__base || _BASE.test(value)) {
+            if (_BASE.test(value)) {
               _override(object, key, value);
             } else {
+              value.ancestor = ancestor;
               object[key] = value;
             }
           }
@@ -62,9 +63,11 @@ function _ancestorOf(ancestor, fn) {
 function _override(object, name, method) {
   // Override an existing method.
   var ancestor = object[name];
+  var superObject = base2.__prototyping; // late binding for classes
+  if (superObject && ancestor != superObject[name]) superObject = null;
   function _base() {
     var previous = this.base;
-    this.base = ancestor;
+    this.base = superObject ? superObject[name] : ancestor;
     var returnValue = method.apply(this, arguments);
     this.base = previous;
     return returnValue;

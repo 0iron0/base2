@@ -1,25 +1,25 @@
 
 EventTarget.implement({
-  addEventListener: strictEventListener,
+  addEventListener: _strictEventListener,
 
   dispatchEvent: function(target, event) {
     assertArity(arguments);
-    assertEventTarget(target);
+    _assertEventTarget(target);
     assert(event && event.type, "Invalid event object.", TypeError);
-    return base(this, arguments);
+    return this.base(target, event);
   },
 
-  removeEventListener: strictEventListener
+  removeEventListener: _strictEventListener
 });
 
-function strictEventListener(target, type, listener, capture) {
+function _strictEventListener(target, type, listener, capture) {
   assertArity(arguments);
-  assertEventTarget(target);
+  _assertEventTarget(target);
   assertType(listener.handleEvent || listener, "function", "Invalid event listener.");
   assertType(capture, "boolean", "Invalid capture argument.");
-  return base(this, arguments);
+  return this.base(target, type, listener, capture);
 };
 
-function assertEventTarget(target) {
+function _assertEventTarget(target) {
   assert(target == window || Traversal.isDocument(target) || Traversal.isElement(target), "Invalid event target.", TypeError);
 };

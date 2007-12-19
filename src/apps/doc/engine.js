@@ -1,14 +1,16 @@
-// timestamp: Wed, 05 Dec 2007 04:03:40
+// timestamp: Wed, 19 Dec 2007 18:49:34
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
 // =========================================================================
-// doc/namespace.js
+// doc/package.js
 // =========================================================================
 
 var doc = new base2.Package(this, {
   name:    "doc",
   version: "0.5",
+  
+  show: {},
 
   colorize: function(text) {
     return Colorizer.javascript.exec(text);
@@ -67,6 +69,7 @@ forEach (base2.exports.match(LIST), function(name) {
   if (property instanceof Function || property instanceof Package) {
     property["#name"] = this["#name"] + "." + name;
     if (property instanceof Package) {
+      doc.show[name] = true;
       forEach (property.exports.match(LIST), arguments.callee, property);
       forEach (property, function(klass, name) {
         if (Base.ancestorOf(klass) && !klass['#name']) {
@@ -76,7 +79,7 @@ forEach (base2.exports.match(LIST), function(name) {
     } else if (Module.ancestorOf(property)) {
       forEach(property["#implements"], function(module) {
         forEach (module, function(method, name) {
-          if (!Module[name] && instanceOf(method, Function) && property[name]) {
+          if (!Module[name] && typeOf(method) == "function" && property[name]) {
             property[name]._module = module;
           }
         });

@@ -9,7 +9,7 @@
 var JST = new base2.Package(this, {
   name:    "JST",
   version: "0.9.2",
-  exports: "Command, Environment, Interpreter, Parser"
+  exports: "Command,Environment,Interpreter,Parser"
 });
 
 eval(this.imports);

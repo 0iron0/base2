@@ -4,7 +4,7 @@ var Module = Abstract.extend(null, {
     // Extend a module to create a new module.
     var module = this.base();
     // Inherit class methods.
-    _extendModule(module, this);
+    module.implement(this);
     // Implement module (instance AND static) methods.
     module.implement(_interface);
     // Implement static properties and methods.
@@ -14,46 +14,43 @@ var Module = Abstract.extend(null, {
   },
   
   implement: function(_interface) {
-    // Implement an interface on BOTH the instance and static interfaces.
     var module = this;
     if (typeof _interface == "function") {
-      module.base(_interface);
-      // If we are implementing another Module then add its static methods.
+      if (!_ancestorOf(module, _interface)) {
+        this.base(_interface);
+      }
       if (_ancestorOf(Module, _interface)) {
-        _extendModule(module, _interface)
+        // Implement static methods.
+        forEach (_interface, function(property, name) {
+          if (!module[name]) {
+            if (typeof property == "function" && property.call && _interface.prototype[name]) {
+              property = function() { // Late binding.
+                return _interface[name].apply(_interface, arguments);
+              };
+            }
+            module[name] = property;
+          }
+        });
       }
     } else {
-      // Create the instance interface.
-      var proto = {};
+      // Add static interface.
+      extend(module, _interface);
+      // Add instance interface.
       _Function_forEach (Object, _interface, function(source, name) {
         if (name.charAt(0) == "@") { // object detection
           if (detect(name.slice(1))) {
             forEach (source, arguments.callee);
           }
-        } else if (!Module[name] && typeof source == "function" && source.call) {
-          function _moduleMethod() { // Late binding.
+        } else if (typeof source == "function" && source.call) {
+          module.prototype[name] = function() { // Late binding.
             var args = _slice.call(arguments);
             args.unshift(this);
             return module[name].apply(module, args);
           };
-          ;;; _moduleMethod._module = module; // introspection
-          _moduleMethod.__base = _BASE.test(source);
-          proto[name] = _moduleMethod; 
+          ;;; module.prototype[name]._module = module; // introspection
         }
       });
-      extend(module.prototype, proto);
-      // Add the static interface.
-      extend(module, _interface);
     }
     return module;
   }
 });
-
-function _extendModule(module, _interface) {
-  for (var name in _interface) {
-    var method = _interface[name];
-    if (!Module[name] && typeof method == "function" && method.call) {
-      module[name] = method;
-    }
-  }
-};
