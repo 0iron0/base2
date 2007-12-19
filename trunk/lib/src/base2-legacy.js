@@ -52,25 +52,20 @@ new function() {
     };
     decodeURIComponent = unescape;
   }
-    
-  if (typeof Error == "undefined") {
-    Error = ErrorConstructor();
-    Error.prototype.name = "Error";
-    Error.prototype.toString = function() {
-      return this.message ? this.name + ": " + this.message : this.name;
-    };
-    TypeError = ErrorConstructor();
-    TypeError.prototype = new Error;
-    TypeError.prototype.name = "TypeError";
-    SyntaxError = ErrorConstructor();
-    SyntaxError.prototype = new Error;
-    SyntaxError.prototype.name = "SyntaxError";
-  }
   
-  function ErrorConstructor() {
-    return function(message) {
-      this.message = message;
-    };
+  createError("Error");
+  createError("TypeError");
+  createError("SyntaxError");
+  createError("ReferenceError");
+  
+  function createError(name) {
+    if (typeof window[name] == "undefined") {
+      var error = window[name] = function(message) {
+        this.message = message;
+      };
+      error.prototype = new window.Error;
+      error.prototype.name = name;
+    }
   };
   
   function extend(klass, name, method) {

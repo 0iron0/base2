@@ -1,4 +1,4 @@
-// timestamp: Fri, 14 Dec 2007 11:07:13
+// timestamp: Wed, 19 Dec 2007 18:49:34
 /*
   base2 - copyright 2007, Dean Edwards
   http://code.google.com/p/base2/
@@ -12,10 +12,10 @@ var base2 = {
   name:    "base2",
   version: "1.0 (beta 1)",
   exports:
-    "Base, Package, Abstract, Module, Enumerable, Map, Collection, RegGrp, " +
-    "assert, assertArity, assertType, assignID, base, copy, detect, extend, " +
-    "forEach, format, instanceOf, match, rescape, slice, trim, typeOf, " +
-    "I, K, Undefined, Null, True, False, bind, delegate, flip, not, partial, unbind",
+    "Base,Package,Abstract,Module,Enumerable,Map,Collection,RegGrp,"+
+    "assert,assertArity,assertType,assignID,copy,detect,extend,"+
+    "forEach,format,global,instanceOf,match,rescape,slice,trim,typeOf,"+
+    "I,K,Undefined,Null,True,False,bind,delegate,flip,not,unbind",
   
   global: this, // the window object in a browser environment
   
@@ -30,7 +30,7 @@ var base2 = {
     //    e.g. detect("MSIE|opera");
         
     var global = _;
-    var jscript/*@cc_on=@_jscript_version@*/; // http://dean.edwards.name/weblog/2007/03/sniff/#comment85164
+    var jscript = NaN/*@cc_on||@_jscript_version@*/; // http://dean.edwards.name/weblog/2007/03/sniff/#comment85164
     var java = _.java ? true : false;
     if (_.navigator) {
       var element = document.createElement("span");
@@ -68,7 +68,7 @@ new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 // base2/lang/header.js
 // =========================================================================
 
-var _namespace = "var global=base2.global;function base(o,a){return o.base.apply(o,a)};";
+var _namespace = "function base(o,a){return o.base.apply(o,a)};";
 eval(_namespace);
 
 var detect = base2.detect;
@@ -102,7 +102,7 @@ _Function_forEach(); // make sure this is initialised
 
 var _subclass = function(_instance, _static) {
   // Build the prototype.
-  base2.__prototyping = true;
+  base2.__prototyping = this.prototype;
   var _prototype = new this;
   extend(_prototype, _instance);
   delete base2.__prototyping;
@@ -201,7 +201,7 @@ var Package = Base.extend({
       // This string should be evaluated immediately after creating a Package object.
       _private.imports = Array2.reduce(this.imports.match(LIST), function(namespace, name) {
         eval("var ns=base2." + name);
-        assert(ns, format("Package not found: '%1'.", name));
+        assert(ns, format("Package not found: '%1'.", name), ReferenceError);
         return namespace += ns.namespace;
       }, _namespace + base2.namespace + JavaScript.namespace);
       
@@ -257,7 +257,7 @@ var Module = Abstract.extend(null, {
     // Extend a module to create a new module.
     var module = this.base();
     // Inherit class methods.
-    _extendModule(module, this);
+    module.implement(this);
     // Implement module (instance AND static) methods.
     module.implement(_interface);
     // Implement static properties and methods.
@@ -267,49 +267,46 @@ var Module = Abstract.extend(null, {
   },
   
   implement: function(_interface) {
-    // Implement an interface on BOTH the instance and static interfaces.
     var module = this;
     if (typeof _interface == "function") {
-      module.base(_interface);
-      // If we are implementing another Module then add its static methods.
+      if (!_ancestorOf(module, _interface)) {
+        this.base(_interface);
+      }
       if (_ancestorOf(Module, _interface)) {
-        _extendModule(module, _interface)
+        // Implement static methods.
+        forEach (_interface, function(property, name) {
+          if (!module[name]) {
+            if (typeof property == "function" && property.call && _interface.prototype[name]) {
+              property = function() { // Late binding.
+                return _interface[name].apply(_interface, arguments);
+              };
+            }
+            module[name] = property;
+          }
+        });
       }
     } else {
-      // Create the instance interface.
-      var proto = {};
+      // Add static interface.
+      extend(module, _interface);
+      // Add instance interface.
       _Function_forEach (Object, _interface, function(source, name) {
         if (name.charAt(0) == "@") { // object detection
           if (detect(name.slice(1))) {
             forEach (source, arguments.callee);
           }
-        } else if (!Module[name] && typeof source == "function" && source.call) {
-          function _moduleMethod() { // Late binding.
+        } else if (typeof source == "function" && source.call) {
+          module.prototype[name] = function() { // Late binding.
             var args = _slice.call(arguments);
             args.unshift(this);
             return module[name].apply(module, args);
           };
-          ;;; _moduleMethod._module = module; // introspection
-          _moduleMethod.__base = _BASE.test(source);
-          proto[name] = _moduleMethod; 
+          ;;; module.prototype[name]._module = module; // introspection
         }
       });
-      extend(module.prototype, proto);
-      // Add the static interface.
-      extend(module, _interface);
     }
     return module;
   }
 });
-
-function _extendModule(module, _interface) {
-  for (var name in _interface) {
-    var method = _interface[name];
-    if (!Module[name] && typeof method == "function" && method.call) {
-      module[name] = method;
-    }
-  }
-};
 
 // =========================================================================
 // base2/Enumerable.js
@@ -382,6 +379,7 @@ var Enumerable = Module.extend({
 }, {
   forEach: forEach
 });
+
 
 // =========================================================================
 // base2/Map.js
@@ -520,6 +518,7 @@ var Collection = Map.extend({
     assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
     assert(!this.has(key), "Duplicate key '" + key + "'.");
     this[_KEYS].insertAt(index, String(key));
+    this[_HASH + key] == null; // placeholder
     this.put.apply(this, _slice.call(arguments, 1));
   },
   
@@ -742,7 +741,7 @@ var RegGrp = Collection.extend({
 var JavaScript = {
   name:      "JavaScript",
 	version:   base2.version,
-  exports:   "Array2, Date2, String2",
+  exports:   "Array2,Date2,String2",
   namespace: "", // fixed later
   
   bind: function(host) {
@@ -1091,11 +1090,12 @@ function extend(object, source) { // or extend(object, key, value)
         }
         // Check for method overriding.
         var ancestor = object[key];
-        if (ancestor && typeof value == "function") {
+        if (typeof ancestor == "function" && typeof value == "function") {
           if (value != ancestor && (!ancestor.method || !_ancestorOf(value, ancestor))) {
-            if (value.__base || _BASE.test(value)) {
+            if (_BASE.test(value)) {
               _override(object, key, value);
             } else {
+              value.ancestor = ancestor;
               object[key] = value;
             }
           }
@@ -1121,9 +1121,11 @@ function _ancestorOf(ancestor, fn) {
 function _override(object, name, method) {
   // Override an existing method.
   var ancestor = object[name];
+  var superObject = base2.__prototyping; // late binding for classes
+  if (superObject && ancestor != superObject[name]) superObject = null;
   function _base() {
     var previous = this.base;
-    this.base = ancestor;
+    this.base = superObject ? superObject[name] : ancestor;
     var returnValue = method.apply(this, arguments);
     this.base = previous;
     return returnValue;
@@ -1251,7 +1253,12 @@ function instanceOf(object, klass) {
 
   if (object == null) return false;
   
-  /*@cc_on @*/
+  /*@cc_on  
+  // COM objects don't have a constructor
+  if (typeof object.constructor != "function") {
+    return typeOf(object) == typeof klass.prototype.valueOf();
+  }
+  @*/
   /*@if (@_jscript_version < 5.1)
     if ($Legacy.instanceOf(object, klass)) return true;
   @else @*/
@@ -1261,14 +1268,8 @@ function instanceOf(object, klass) {
   // If the class is a base2 class then it would have passed the test above.
   if (Base.ancestorOf == klass.ancestorOf) return false;
   
-  // COM objects don't have a constructor
-  var _constructor = object.constructor;
-  if (typeof _constructor != "function") {
-    return typeOf(object) == typeof klass.prototype.valueOf();
-  }
-  
   // base2 objects can only be instances of Object.
-  if (Base.ancestorOf == _constructor.ancestorOf) return klass == Object;
+  if (Base.ancestorOf == object.constructor.ancestorOf) return klass == Object;
   
   switch (klass) {
     case Array: // This is the only troublesome one.
@@ -1276,7 +1277,7 @@ function instanceOf(object, klass) {
     case Function:
       return typeOf(object) == "function";
     case RegExp:
-      return typeof _constructor.$1 == "string";
+      return typeof object.constructor.$1 == "string";
     case Date:
       return !!object.getTimezoneOffset;
     case String:
@@ -1375,8 +1376,10 @@ function K(k) {
 
 function bind(fn, context) {
   var args = _slice.call(arguments, 2);
-  return function() {
-    return fn.apply(context, args.concat(_slice.call(arguments)));
+  return args.length == 0 ? function() {
+    return fn.apply(context, arguments);
+  } : function() {
+    return fn.apply(context, args.concat.apply(args, arguments));
   };
 };
 
@@ -1397,13 +1400,6 @@ function flip(fn) {
 function not(fn) {
   return function() {
     return !fn.apply(this, arguments);
-  };
-};
-
-function partial(fn) {
-  var args = _slice.call(arguments, 1);
-  return function() {
-    return fn.apply(context, args.concat(_slice.call(arguments)));
   };
 };
 

@@ -6,9 +6,7 @@ var Words = RegGrp.extend({
   },
   
   add: function(word) {
-    if (!this.has(word)) {
-      this.base(word);
-    }
+    if (!this.has(word)) this.base(word);
     word = this.get(word);
     word.count++;
   },

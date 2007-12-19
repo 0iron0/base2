@@ -66,3 +66,4 @@ var Enumerable = Module.extend({
 }, {
   forEach: forEach
 });
+

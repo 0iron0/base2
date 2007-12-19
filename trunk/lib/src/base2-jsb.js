@@ -1,4 +1,4 @@
-// timestamp: Fri, 14 Dec 2007 11:07:14
+// timestamp: Wed, 19 Dec 2007 18:49:34
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -12,7 +12,7 @@ var JSB = new base2.Package(this, {
   name:    "JSB",
   version: "0.8",
   imports: "DOM",
-  exports: "Behavior, Rule, RuleList"
+  exports: "Behavior,Rule,RuleList"
 });
 
 eval(this.imports);
@@ -80,13 +80,13 @@ var Rule = Base.extend({
     if (!Behavior.ancestorOf(behavior)) {
       behavior = Behavior.extend(behavior);
     }
-    behavior = behavior.prototype;
     
     // Internal data.
-    var result, applied = {}, extensions = {}, events = {}, style = behavior.style;
+    var result, applied = {};
+    var events = {}, _interface = {};
     
     // Extract behavior properties.
-    forEach (behavior, function(property, name) {
+    forEach (behavior.prototype, function(property, name) {
       // Platform specific extensions.
       if (name.charAt(0) == "@") {
         if (detect(name.slice(1))) {
@@ -102,9 +102,9 @@ var Rule = Base.extend({
           // Store event handlers.
           events[name.slice(2)] = property;
         }
-      } else if (name != "style") {
-        // Store element extensions.
-        extensions[name] = property;
+      } else {
+        // Store element propertie and methods.
+        _interface[name] = property;
       }
     });
     
@@ -119,13 +119,12 @@ var Rule = Base.extend({
           applied[uid] = true;
           // If the document is bound then bind the element.
           if (_bind) DOM.bind(element);
-          // Extend the element.
-          extend(element, extensions);
-          extend(element.style, style);
           // Add event listeners.
           forEach (events, function(listener, type) {
             EventTarget.addEventListener(element, type, listener, false);
           });
+          // Extend the element.
+          extend(element, _interface);
         }
       });
     });

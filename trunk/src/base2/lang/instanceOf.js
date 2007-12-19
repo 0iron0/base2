@@ -9,7 +9,12 @@ function instanceOf(object, klass) {
 
   if (object == null) return false;
   
-  /*@cc_on @*/
+  /*@cc_on  
+  // COM objects don't have a constructor
+  if (typeof object.constructor != "function") {
+    return typeOf(object) == typeof klass.prototype.valueOf();
+  }
+  @*/
   /*@if (@_jscript_version < 5.1)
     if ($Legacy.instanceOf(object, klass)) return true;
   @else @*/
@@ -19,14 +24,8 @@ function instanceOf(object, klass) {
   // If the class is a base2 class then it would have passed the test above.
   if (Base.ancestorOf == klass.ancestorOf) return false;
   
-  // COM objects don't have a constructor
-  var _constructor = object.constructor;
-  if (typeof _constructor != "function") {
-    return typeOf(object) == typeof klass.prototype.valueOf();
-  }
-  
   // base2 objects can only be instances of Object.
-  if (Base.ancestorOf == _constructor.ancestorOf) return klass == Object;
+  if (Base.ancestorOf == object.constructor.ancestorOf) return klass == Object;
   
   switch (klass) {
     case Array: // This is the only troublesome one.
@@ -34,7 +33,7 @@ function instanceOf(object, klass) {
     case Function:
       return typeOf(object) == "function";
     case RegExp:
-      return typeof _constructor.$1 == "string";
+      return typeof object.constructor.$1 == "string";
     case Date:
       return !!object.getTimezoneOffset;
     case String:

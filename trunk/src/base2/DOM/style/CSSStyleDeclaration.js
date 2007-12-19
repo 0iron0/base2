@@ -8,7 +8,7 @@ var _CSSStyleDeclaration_ReadOnly = Binding.extend({
   
   "@MSIE.+win": {
     getPropertyValue: function(style, propertyName) {
-      return style[ViewCSS.toCamelCase(propertyName)];
+      return propertyName == "float" ? style.styleFloat : style[ViewCSS.toCamelCase(propertyName)];
     }
   }
 });

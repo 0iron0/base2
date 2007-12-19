@@ -53,3 +53,8 @@ var HTMLElement = Element.extend({
     }
   }
 });
+
+HTMLElement.extend(null, {
+  tags: "APPLET,EMBED",  
+  bind: I // Binding not allowed for these elements.
+});

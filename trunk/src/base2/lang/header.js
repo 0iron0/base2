@@ -1,5 +1,5 @@
 
-var _namespace = "var global=base2.global;function base(o,a){return o.base.apply(o,a)};";
+var _namespace = "function base(o,a){return o.base.apply(o,a)};";
 eval(_namespace);
 
 var detect = base2.detect;

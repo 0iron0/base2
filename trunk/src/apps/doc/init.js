@@ -9,6 +9,7 @@ forEach (base2.exports.match(LIST), function(name) {
   if (property instanceof Function || property instanceof Package) {
     property["#name"] = this["#name"] + "." + name;
     if (property instanceof Package) {
+      doc.show[name] = true;
       forEach (property.exports.match(LIST), arguments.callee, property);
       forEach (property, function(klass, name) {
         if (Base.ancestorOf(klass) && !klass['#name']) {
@@ -18,7 +19,7 @@ forEach (base2.exports.match(LIST), function(name) {
     } else if (Module.ancestorOf(property)) {
       forEach(property["#implements"], function(module) {
         forEach (module, function(method, name) {
-          if (!Module[name] && instanceOf(method, Function) && property[name]) {
+          if (!Module[name] && typeOf(method) == "function" && property[name]) {
             property[name]._module = module;
           }
         });

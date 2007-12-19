@@ -16,7 +16,7 @@ var Package = Base.extend({
       // This string should be evaluated immediately after creating a Package object.
       _private.imports = Array2.reduce(this.imports.match(LIST), function(namespace, name) {
         eval("var ns=base2." + name);
-        assert(ns, format("Package not found: '%1'.", name));
+        assert(ns, format("Package not found: '%1'.", name), ReferenceError);
         return namespace += ns.namespace;
       }, _namespace + base2.namespace + JavaScript.namespace);
       

@@ -1,11 +1,11 @@
 
 NodeSelector.implement({ 
-  querySelector: strictNodeSelector,
-  querySelectorAll: strictNodeSelector
+  querySelector:    _strictNodeSelector,
+  querySelectorAll: _strictNodeSelector
 });
 
-function strictNodeSelector(node, selector) {
+function _strictNodeSelector(node, selector) {
   assertArity(arguments);
-  assert(Traversal.isDocument(target) || Traversal.isElement(target), "Invalid object.", TypeError);
-  return base(this, arguments);
+  assert(Traversal.isDocument(node) || Traversal.isElement(node), "Invalid object.", TypeError);
+  return this.base(node, selector);
 };

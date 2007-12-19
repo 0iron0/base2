@@ -1,4 +1,4 @@
-// timestamp: Fri, 14 Dec 2007 11:07:14
+// timestamp: Wed, 19 Dec 2007 18:49:34
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -10,9 +10,9 @@ var DOM = new base2.Package(this, {
   name:    "DOM",
   version: "1.0 (beta 1)",
   exports:
-    "Interface, Binding, Node, Document, Element, AbstractView, Event, EventTarget, DocumentEvent, " +
-    "NodeSelector, DocumentSelector, ElementSelector, StaticNodeList, " +
-    "ViewCSS, CSSStyleDeclaration, HTMLDocument, HTMLElement, Selector, Traversal, XPathParser",
+    "Interface,Binding,Node,Document,Element,AbstractView,HTMLDocument,HTMLElement,"+
+    "Selector,Traversal,XPathParser,NodeSelector,DocumentSelector,ElementSelector,"+
+    "StaticNodeList,Event,EventTarget,DocumentEvent,ViewCSS,CSSStyleDeclaration",
   
   bind: function(node) {
     // Apply a base2 DOM Binding to a native DOM node.
@@ -68,32 +68,37 @@ var _MSIE5 = detect("MSIE5");
 // e.g. http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-1950641247
 
 var Interface = Module.extend(null, {
-  implement: function(_interface) {    
-    if (typeof _interface == "object") {
-      forEach (_interface, function(source, name) {
-        if (name.charAt(0) == "@") {
-          forEach (source, arguments.callee, this);
-        } else if (!this[name] && typeof source == "function") {
-          this.createDelegate(name, source.length);
+  implement: function(_interface) {
+    var module = this;
+    if (Interface.ancestorOf(_interface)) {
+      forEach (_interface, function(property, name) {
+        if (_interface[name]._delegate) {
+          module[name] = function() { // Late binding.
+            return _interface[name].apply(_interface, arguments);
+          };
         }
-      }, this);
+      });
+    } else if (typeof _interface == "object") {
+      this.forEach (_interface, function(source, name) {
+        if (name.charAt(0) == "@") {
+          forEach (source, arguments.callee);
+        } else if (typeof source == "function" && source.call) {
+          // delegate a static method to the bound object
+          //  e.g. for most browsers:
+          //    EventTarget.addEventListener(element, type, listener, capture) 
+          //  forwards to:
+          //    element.addEventListener(type, listener, capture)
+          if (!module[name]) {
+            var FN = "var fn=function _%1(%2){%3.base=%3.%1.ancestor;var m=%3.base?'base':'%1';return %3[m](%4)}";
+            var args = "abcdefghij".split("").slice(-source.length);
+            eval(format(FN, name, args, args[0], args.slice(1)));
+            fn._delegate = name;
+            module[name] = fn;
+          }
+        }
+      });
     }
     return this.base(_interface);
-  },
-  
-  createDelegate: function(name, length) {
-    // delegate a static method to the bound object
-    //  e.g. for most browsers:
-    //    EventTarget.addEventListener(element, type, listener, capture) 
-    //  forwards to:
-    //    element.addEventListener(type, listener, capture)
-    if (!this[name]) {
-      var FN = "var fn=function _%1(%2){%3.base=%3.%1.ancestor;var m=%3.base?'base':'%1';return %3[m](%4)}";
-      var args = "abcdefghij".split("").slice(-length);
-      eval(format(FN, name, args, args[0], args.slice(1)));
-      ;;; fn._delegate = name; // introspection
-      this[name] = fn;
-    }
   }
 });
 
@@ -103,19 +108,7 @@ var Interface = Module.extend(null, {
 
 var Binding = Interface.extend(null, {
   bind: function(object) {
-    forEach (this.prototype, function(method, name) {
-      if (typeof object[name] == "undefined") {
-        object[name] = method;
-      } else {
-        try {
-          extend(object, name, method);
-        } catch (error) {
-          // some methods can't be overridden (e.g. methods of the <embed> element)
-          // we'll just ignore the errors..
-        }
-      }
-    });
-    return object;
+    return extend(object, this.prototype);
   }
 });
 
@@ -482,14 +475,14 @@ var EventTarget = Interface.extend({
       }
     },
     
-    "@MSIE[56].+win": {
+    "@(element.fireEvent)": {
       dispatchEvent: function(target, event) {
+        var type = "on" + event.type;
         event.target = target;
-        try {
-          return target.fireEvent(event.type, event);
-        } catch (error) {
-          // the event type is not supported
-          return _handleEvent.call(target, event);
+        if (target[type] === undefined) {
+          return this.base(target, event);
+        } else {
+          return target.fireEvent(type, event);
         }
       }
     }
@@ -667,9 +660,7 @@ var ViewCSS = Interface.extend({
   },
   
   getComputedStyle: function(view, element, pseudoElement) {
-    var computedStyle = _CSSStyleDeclaration_ReadOnly.bind(this.base(view, element, pseudoElement));
-    computedStyle.opacity = computedStyle.getPropertyValue("opacity");
-    return computedStyle;
+    return _CSSStyleDeclaration_ReadOnly.bind(this.base(view, element, pseudoElement));
   }
 }, {
   toCamelCase: function(string) {
@@ -711,7 +702,7 @@ var _CSSStyleDeclaration_ReadOnly = Binding.extend({
   
   "@MSIE.+win": {
     getPropertyValue: function(style, propertyName) {
-      return style[ViewCSS.toCamelCase(propertyName)];
+      return propertyName == "float" ? style.styleFloat : style[ViewCSS.toCamelCase(propertyName)];
     }
   }
 });
@@ -1469,6 +1460,11 @@ var HTMLElement = Element.extend({
       return this.base(element);
     }
   }
+});
+
+HTMLElement.extend(null, {
+  tags: "APPLET,EMBED",  
+  bind: I // Binding not allowed for these elements.
 });
 
 eval(this.exports);

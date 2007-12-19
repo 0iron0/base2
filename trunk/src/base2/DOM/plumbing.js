@@ -3,7 +3,7 @@
 
 // avoid memory leaks
 
-if (detect("MSIE[56].+win") && !detect("SV1")) {
+if (detect("MSIE+.win") && detect("(jscript<5.7)")) {
   var closures = {}; // all closures stored here
   
   extend(base2, "bind", function(method, element) {

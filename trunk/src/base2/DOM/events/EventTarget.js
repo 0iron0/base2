@@ -39,14 +39,14 @@ var EventTarget = Interface.extend({
       }
     },
     
-    "@MSIE[56].+win": {
+    "@(element.fireEvent)": {
       dispatchEvent: function(target, event) {
+        var type = "on" + event.type;
         event.target = target;
-        try {
-          return target.fireEvent(event.type, event);
-        } catch (error) {
-          // the event type is not supported
-          return _handleEvent.call(target, event);
+        if (target[type] === undefined) {
+          return this.base(target, event);
+        } else {
+          return target.fireEvent(type, event);
         }
       }
     }

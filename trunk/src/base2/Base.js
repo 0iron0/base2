@@ -3,7 +3,7 @@
 
 var _subclass = function(_instance, _static) {
   // Build the prototype.
-  base2.__prototyping = true;
+  base2.__prototyping = this.prototype;
   var _prototype = new this;
   extend(_prototype, _instance);
   delete base2.__prototyping;
