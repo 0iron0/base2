@@ -90,7 +90,7 @@ var Collection = Map.extend({
   },
 
   removeAt: function(index) {
-    this[_KEYS].removeAt(index);
+    var key = this[_KEYS].removeAt(index);
     delete this[_HASH + key];
   },
 

@@ -72,7 +72,7 @@ var Packer = Base.extend({
     var data = []; // encoded strings and regular expressions
     var REGEXP = /^[^'"]\//;
     var store = function(string) {
-      var replacement = "@" + data.length;
+      var replacement = "\x01" + data.length + "\x01";
       if (REGEXP.test(string)) {
         replacement = string.charAt(0) + replacement;
         string = string.slice(1);
@@ -166,7 +166,11 @@ var Packer = Base.extend({
     };
     
     // encode strings and regular expressions
-    script = Packer.data.exec(script, store);
+    var strings = Packer.data.copy();
+    strings.putAt(0, store);
+    strings.putAt(1, store);
+    strings.putAt(3, store);
+    script = strings.exec(script);
 
     // remove closures (this is for base2 namespaces only)
     script = script.replace(/new function\(_\)\s*\{/g, "{;#;");
@@ -183,7 +187,7 @@ var Packer = Base.extend({
     script = script.replace(/\{;#;/g, "new function(_){");
     
     // put strings and regular expressions back
-    script = script.replace(/@(\d+)/g, function(match, index) {
+    script = script.replace(/\x01(\d+)\x01/g, function(match, index) {
       return data[index];
     });
     

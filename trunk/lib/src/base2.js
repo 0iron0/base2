@@ -1,4 +1,4 @@
-// timestamp: Wed, 19 Dec 2007 19:57:29
+// timestamp: Thu, 20 Dec 2007 19:22:03
 /*
   base2 - copyright 2007, Dean Edwards
   http://code.google.com/p/base2/
@@ -551,7 +551,7 @@ var Collection = Map.extend({
   },
 
   removeAt: function(index) {
-    this[_KEYS].removeAt(index);
+    var key = this[_KEYS].removeAt(index);
     delete this[_HASH + key];
   },
 
