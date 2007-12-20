@@ -13,17 +13,17 @@ var WORDS = /\w+/g;
 var Packer = Base.extend({
   minify: function(script) {
     // packing with no additional options
-    return this.pack(script);
-  },
-  
-  pack: function(script, base62, shrink, privateVars) {
     script += "\n";
     script = script.replace(Packer.CONTINUE, "");
     script = Packer.comments.exec(script);
     script = Packer.clean.exec(script);
-    if (shrink) script = this._shrinkVariables(script);
     script = Packer.whitespace.exec(script);
-    if (shrink) script = Packer.clean.exec(script);
+    return script;
+  },
+  
+  pack: function(script, base62, shrink, privateVars) {
+    script = this.minify(script);
+    if (shrink) script = this._shrinkVariables(script);
     if (privateVars) script = this._encodePrivateVariables(script);
     if (base62) script = this._base62Encode(script);
     return script;
@@ -124,13 +124,15 @@ var Packer = Base.extend({
           // process each identifier
           var count = 0, shortId;
           var ids = match([args, vars], LIST);
+          var processed = {};
           for (var i = 0; i < ids.length; i++) {
             id = ids[i];
-            if (id.length > 1) { // > 1 char
+            if (!processed[id] && id.length > 1) { // > 1 char
+              processed[id] = true;
               id = rescape(id);
               // find the next free short name (check everything in the current scope)
               do shortId = encode52(count++);
-              while (new RegExp("[^\\w$.@]" + shortId + "[^\\w$:@]").test(block));
+              while (new RegExp("[^\\w$.@]" + shortId + "[^\\w$:@]").test(block)) {}
               // replace the long name with the short name
               var reg = new RegExp("([^\\w$.@])" + id + "([^\\w$:@])");
               while (reg.test(block)) {
