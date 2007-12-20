@@ -113,7 +113,7 @@ new function(_) {
   var _ID = _INDEXED ? "e%1.sourceIndex" : "assignID(e%1)";
   var _TEST = "var g=" + _ID + ";if(!p[g]){p[g]=1;";
   var _STORE = "r[r.length]=e%1;if(s)return e%1;";
-  var _SORT = "r.sort(sorter);";
+//var _SORT = "r.sort(sorter);";
   var _FN = "fn=function(e0,s){indexed++;var r=[],p={},reg=[%1]," +
     "d=Traversal.getDocument(e0),c=d.body?'toUpperCase':'toString';";
 
@@ -157,9 +157,9 @@ new function(_) {
     return element;
   };
 
-  var sorter = _INDEXED ? function(a, b) {
-    return a.sourceIndex - b.sourceIndex;
-  } : Node.compareDocumentPosition;
+//var sorter = _INDEXED ? function(a, b) {
+//  return a.sourceIndex - b.sourceIndex;
+//} : Node.compareDocumentPosition;
 
   // variables used by the parser
   var fn;
@@ -301,7 +301,7 @@ new function(_) {
         block += Array(match(block, /\{/g).length + 1).join("}");
         fn += block;
       }
-      if (selectors.length > 1) fn += _SORT;
+//    if (selectors.length > 1) fn += _SORT;
       eval(format(_FN, reg) + parser.unescape(fn) + "return s?null:r}");
       _cache[selector] = fn;
     }

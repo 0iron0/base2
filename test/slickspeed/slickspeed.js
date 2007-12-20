@@ -40,7 +40,7 @@ window.onload = function(){
 		return false;
 	};
 	
-	score = [];
+	var score = [];
 	var scores = {};
 	
 	var frxi = 0;

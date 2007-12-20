@@ -19,7 +19,7 @@ var Element = Node.extend({
         return this.base(element, name);
       }
       var attribute = _MSIE_getAttributeNode(element, name);
-      if (attribute && attribute.specified) {
+      if (attribute && (attribute.specified || name == "value")) {
         if (_EVALUATED.test(name)) {
           return this.base(element, name, 2);
         } else if (name == "style") {

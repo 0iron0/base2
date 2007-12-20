@@ -31,12 +31,15 @@
 	
 	</script>
 	
-	<script type="text/javascript" src="../../lib/base2-dom-fp.js"></script>
+ <script src="../../lib/base2-dom-fp.js" type="text/javascript"></script>
 	
 	<script type="text/javascript">
 		var modifier = '';
+		var $ = function(selector) {
+		  return base2.DOM.NodeSelector.querySelectorAll(document, selector);
+		}
 		var test = function(selector){
-			return testSelector(base2.DOM.$$, selector);
+			return testSelector($, selector);
 		}
 	</script></head><body>
 	
