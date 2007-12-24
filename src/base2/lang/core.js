@@ -21,7 +21,7 @@ function format(string) {
   var args = arguments;
   var pattern = new RegExp("%([1-" + arguments.length + "])", "g");
   return String(string).replace(pattern, function(match, index) {
-    return index < args.length ? args[index] : match;
+    return args[index];
   });
 };
 

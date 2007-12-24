@@ -64,7 +64,7 @@ var Array2 = _createObject2(
       var length = array.length;
       if (fromIndex == null) {
         fromIndex = length - 1;
-      } else if (from < 0) {
+      } else if (fromIndex < 0) {
         fromIndex = Math.max(0, length + fromIndex);
       }
       for (var i = fromIndex; i >= 0; i--) {

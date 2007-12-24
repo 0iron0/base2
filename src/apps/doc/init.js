@@ -2,7 +2,7 @@
 var LIST = /[^\s,]+/g;
 
 base2["#name"] = "base2";
-window["#name"] = "window";
+window["#name"] = "global";
 
 forEach (base2.exports.match(LIST), function(name) {
   var property = this[name];
@@ -10,6 +10,8 @@ forEach (base2.exports.match(LIST), function(name) {
     property["#name"] = this["#name"] + "." + name;
     if (property instanceof Package) {
       doc.show[name] = true;
+      property.imports = property.imports.split(",").join(", ");
+      property.exports = property.exports.split(",").join(", ");
       forEach (property.exports.match(LIST), arguments.callee, property);
       forEach (property, function(klass, name) {
         if (Base.ancestorOf(klass) && !klass['#name']) {
@@ -32,3 +34,5 @@ forEach (base2.exports.match(LIST), function(name) {
     }
   }
 }, base2);
+
+base2.exports = base2.exports.split(",").join(", ");

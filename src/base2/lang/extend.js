@@ -32,7 +32,7 @@ function extend(object, source) { // or extend(object, key, value)
         }
         // Check for method overriding.
         var ancestor = object[key];
-        if (typeof ancestor == "function" && typeof value == "function") {
+        if (ancestor && typeof value == "function") {
           if (value != ancestor && (!ancestor.method || !_ancestorOf(value, ancestor))) {
             if (_BASE.test(value)) {
               _override(object, key, value);

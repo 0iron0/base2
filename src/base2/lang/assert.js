@@ -13,7 +13,7 @@ function assertArity(args, arity, message) {
 };
 
 function assertType(object, type, message) {
-  if (type && (typeof type == "function" ? !instanceOf(object, type) : typeof object != type)) {
+  if (type && (typeof type == "function" ? !instanceOf(object, type) : typeOf(object) != type)) {
     throw new TypeError(message || "Invalid type.");
   }
 };

@@ -9,7 +9,7 @@
 
 var base2 = {
   name:    "base2",
-  version: "1.0 (beta 1)",
+  version: "1.0 (beta 2)",
   exports:
     "Base,Package,Abstract,Module,Enumerable,Map,Collection,RegGrp,"+
     "assert,assertArity,assertType,assignID,copy,detect,extend,"+

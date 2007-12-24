@@ -39,7 +39,7 @@ var Package = Base.extend({
   addName: function(name, value) {
     if (!this[name]) {
       this[name] = value;
-      this.exports += ", " + name;
+      this.exports += "," + name;
       this.namespace += format("var %1=%2.%1;", name, this.name);
     }
   },
