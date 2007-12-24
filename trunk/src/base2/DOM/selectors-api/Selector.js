@@ -65,11 +65,12 @@ var Selector = Base.extend({
   
   "@(true)": {
     exec: function(context, single) {
-      try {
+    alert(this.toXPath());
+    //  try {
         var result = this.base(context || document, single);
-      } catch (error) { // probably an invalid selector =)
-        throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
-      }
+    //  } catch (error) { // probably an invalid selector =)
+    //    throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
+    //  }
       return single ? result : new StaticNodeList(result);
     }
   }

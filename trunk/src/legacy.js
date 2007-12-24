@@ -21,26 +21,23 @@ new function() {
       // only works properly with base2 classes
       return object && (klass == Object || object.constructor == klass ||
         (klass.ancestorOf && klass.ancestorOf(object.constructor)));
-    },
-    
-    fire: function(type) {
-      if (base2.DOM) {
-        with (base2.DOM) {
-          var event = DocumentEvent.createEvent(document, "Events");
-          Event.initEvent(event, type, false, false);
-          EventTarget.dispatchEvent(document, event);
-        }      
-        if (type == "DOMContentLoaded") setTimeout('$Legacy.fire("ready")', 1);
-      }
     }
   };
   
   /*@cc_on @*/
   /*@if (@_jscript_version < 5.1)
-  var _onload = onload;
+  var _onload = onload;    
+  function fire(type) {
+    with (base2.DOM) {
+      var event = DocumentEvent.createEvent(document, "Events");
+      Event.initEvent(event, type, false, false);
+      EventTarget.dispatchEvent(document, event);
+    }
+  };
   onload = function() {
+    if (base2.DOM) fire("DOMContentLoaded");
+    if (base2.JSB) fire("ready");
     if (_onload) _onload();
-    setTimeout('$Legacy.fire("DOMContentLoaded")', 1);
   };
   /*@end @*/
   
@@ -152,8 +149,8 @@ new function() {
       delete o[$];
     } else {
       o[$] = undefined;
+      if (r && r.writeln) r = r.documentElement.document || r;
     }
-    if (r && r.writeln) r = r.documentElement.document || r;
     return r;
   });
   

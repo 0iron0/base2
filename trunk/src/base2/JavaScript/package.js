@@ -1,7 +1,7 @@
 
 var JavaScript = {
   name:      "JavaScript",
-	version:   base2.version,
+  version:   base2.version,
   exports:   "Array2,Date2,String2",
   namespace: "", // fixed later
   

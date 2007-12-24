@@ -235,12 +235,12 @@ var Packer = Base.extend({
     "(COMMENT2)\\s*(REGEXP)?": " $3"
   },
   
-  privates: { // conditional comments
+  privates: {
     "STRING1": IGNORE,
     'STRING2': IGNORE,
     "@\\w+": IGNORE,
     "\\w+@": IGNORE,
-    "([\\[(\\^=,{}:;&|!*?])\\s*(REGEXP)": "$1$2"
+    "(return|[\\[(\\^=,{}:;&|!*?])\\s*(REGEXP)": "$1$2"
   },
   
   data: {
@@ -248,7 +248,7 @@ var Packer = Base.extend({
     "STRING1": IGNORE,
     'STRING2': IGNORE,
     "CONDITIONAL": IGNORE, // conditional comments
-    "([\\[(\\^=,{}:;&|!*?])\\s*(REGEXP)": "$1$2"
+    "(return|[\\[(\\^=,{}:;&|!*?])\\s*(REGEXP)": "$1$2"
   },
   
   javascript: new RegGrp({

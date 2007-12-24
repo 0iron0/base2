@@ -1,7 +1,7 @@
 
 var DOM = new base2.Package(this, {
   name:    "DOM",
-  version: "1.0 (beta 1)",
+  version: "1.0 (beta 2)",
   exports:
     "Interface,Binding,Node,Document,Element,AbstractView,HTMLDocument,HTMLElement,"+
     "Selector,Traversal,XPathParser,NodeSelector,DocumentSelector,ElementSelector,"+

@@ -15,9 +15,8 @@ var CSSParser = RegGrp.extend({
     // remove strings
     var QUOTE = /'/g;
     var strings = this._strings = [];
-    return this.optimise(this.format(String(selector).replace(CSSParser.ESCAPE, function(string) {
-      strings.push(string.slice(1, -1).replace(QUOTE, "\\'"));
-      return "\x01" + strings.length;
+    return this.optimise(this.format(String(selector).replace(CSSParser.ESCAPE, function(string) {      
+      return "\x01" + strings.push(string.slice(1, -1).replace(QUOTE, "\\'"));
     })));
   },
   
@@ -47,7 +46,7 @@ var CSSParser = RegGrp.extend({
   }
 }, {
   ESCAPE:           /'(\\.|[^'\\])*'|"(\\.|[^"\\])*"/g,
-  IMPLIED_ASTERISK: /([\s>+~,]|[^(]\+|^)([#.:@])/g,
+  IMPLIED_ASTERISK: /([\s>+~,]|[^(]\+|^)([#.:\[])/g,
   IMPLIED_SPACE:    /(^|,)([^\s>+~])/g,
   WHITESPACE:       /\s*([\s>+~(),]|^|$)\s*/g,
   WILD_CARD:        /\s\*\s/g,

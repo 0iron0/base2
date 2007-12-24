@@ -21,8 +21,10 @@ var XPathParser = CSSParser.extend({
     return this.base(selector
       .replace(/\[self::\*\]/g, "")   // remove redundant wild cards
       .replace(/(^|\x02)\//g, "$1./") // context
-      .replace(/\x02/g, " | ")        // put commas back
-    );
+      .replace(/\x02/g, " | ")        // put commas back      
+    ).replace(/'[^'\\]*\\'(\\.|[^'\\])*'/g, function(match) { // escape single quotes
+      return "concat(" + match.split("\\'").join("',\"'\",'") + ")";
+    });
   },
   
   "@opera": {
