@@ -2,7 +2,6 @@
 var Document = Node.extend(null, {
   bind: function(document) {
     extend(document, "createElement", function(tagName) {
-    alert(this.base);
       return DOM.bind(this.base(tagName));
     });
     AbstractView.bind(document.defaultView);
