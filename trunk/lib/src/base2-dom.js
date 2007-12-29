@@ -1,4 +1,4 @@
-// timestamp: Thu, 20 Dec 2007 19:22:03
+// timestamp: Sat, 29 Dec 2007 20:48:25
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -8,7 +8,7 @@ new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
 var DOM = new base2.Package(this, {
   name:    "DOM",
-  version: "1.0 (beta 1)",
+  version: "1.0 (beta 2)",
   exports:
     "Interface,Binding,Node,Document,Element,AbstractView,HTMLDocument,HTMLElement,"+
     "Selector,Traversal,XPathParser,NodeSelector,DocumentSelector,ElementSelector,"+
@@ -857,9 +857,8 @@ var CSSParser = RegGrp.extend({
     // remove strings
     var QUOTE = /'/g;
     var strings = this._strings = [];
-    return this.optimise(this.format(String(selector).replace(CSSParser.ESCAPE, function(string) {
-      strings.push(string.slice(1, -1).replace(QUOTE, "\\'"));
-      return "\x01" + strings.length;
+    return this.optimise(this.format(String(selector).replace(CSSParser.ESCAPE, function(string) {      
+      return "\x01" + strings.push(string.slice(1, -1).replace(QUOTE, "\\'"));
     })));
   },
   
@@ -889,7 +888,7 @@ var CSSParser = RegGrp.extend({
   }
 }, {
   ESCAPE:           /'(\\.|[^'\\])*'|"(\\.|[^"\\])*"/g,
-  IMPLIED_ASTERISK: /([\s>+~,]|[^(]\+|^)([#.:@])/g,
+  IMPLIED_ASTERISK: /([\s>+~,]|[^(]\+|^)([#.:\[])/g,
   IMPLIED_SPACE:    /(^|,)([^\s>+~])/g,
   WHITESPACE:       /\s*([\s>+~(),]|^|$)\s*/g,
   WILD_CARD:        /\s\*\s/g,
@@ -940,8 +939,10 @@ var XPathParser = CSSParser.extend({
     return this.base(selector
       .replace(/\[self::\*\]/g, "")   // remove redundant wild cards
       .replace(/(^|\x02)\//g, "$1./") // context
-      .replace(/\x02/g, " | ")        // put commas back
-    );
+      .replace(/\x02/g, " | ")        // put commas back      
+    ).replace(/'[^'\\]*\\'(\\.|[^'\\])*'/g, function(match) { // escape single quotes
+      return "concat(" + match.split("\\'").join("',\"'\",'") + ")";
+    });
   },
   
   "@opera": {
