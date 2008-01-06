@@ -38,12 +38,18 @@ var Words = RegGrp.extend({
         }
       }
       word.replacement = encode(word.index);
+      if (word.replacement.length == word.toString().length) {
+        word.toString = empty;
+      }
     }, this);
     
     // sort by encoding
     this.sort(function(word1, word2) {
       return word1.index - word2.index;
     });
+    
+    // trim unencoded words
+    this[KEYS].length = match(this.map(String).join("|").replace(/\|+$/, ""), /\|/g).length + 1;
     
     return this;
   },

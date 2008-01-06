@@ -29,7 +29,6 @@ var _subclass = function(_instance, _static) {
   
   // Build the static interface.
   for (var i in Base) _class[i] = this[i];
-  _class.toString = K(String(_constructor));
   _class.ancestor = this;
   _class.base = Undefined;
   _class.init = Undefined;
@@ -38,6 +37,7 @@ var _subclass = function(_instance, _static) {
   _class.init();
   
   // introspection (removed when packed)
+  ;;; _class.toString = K(String(_constructor));
   ;;; _class["#implements"] = [];
   ;;; _class["#implemented_by"] = [];
   

@@ -91,7 +91,7 @@ var Traversal = Module.extend({
   
   "@MSIE5": {
     isElement: function(node) {
-      return !!(node && node.nodeType == 1 && node.tagName != "!");
+      return !!(node && node.nodeType == 1 && node.nodeName != "!");
     }
   }
 });

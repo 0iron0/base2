@@ -73,9 +73,7 @@ function _override(object, name, method) {
     return returnValue;
   };
   _base.ancestor = ancestor;
-  _base.method = method;
-  _base.toString = function() {
-    return String(method);
-  };
   object[name] = _base;
+  // introspection (removed when packed)
+  ;;; _base.toString = K(String(method));
 };

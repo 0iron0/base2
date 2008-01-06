@@ -15,7 +15,7 @@ var HTMLElement = Element.extend({
 
   removeClass: function(element, className) {
     var regexp = new RegExp("(^|\\s)" + className + "(\\s|$)", "g");
-    element.className = element.className.replace(regexp, "$2");
+    element.className = trim(element.className.replace(regexp, "$2"));
   },
 
   toggleClass: function(element, className) {
