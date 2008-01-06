@@ -34,9 +34,9 @@ var Rule = Base.extend({
     });
     
     // Execution of this method is deferred until the DOMContentLoaded event.
-    this.refresh = Call.defer(function(context) {
+    this.refresh = Call.defer(function() {
       // Find matching elements.
-      result = selector.exec(context);
+      result = selector.exec();
       // Apply the behavior.
       result.forEach(function(element) {
         var uid = assignID(element);
@@ -55,6 +55,8 @@ var Rule = Base.extend({
     });
     
     this.toString = K(String(selector));
+    
+    this.refresh();
   },
   
   refresh: Undefined // defined in the constructor function
