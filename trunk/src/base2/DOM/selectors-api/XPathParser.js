@@ -59,7 +59,7 @@ var XPathParser = CSSParser.extend({
       "([ >])(\\*|[\\w-]+):([\\w-]+-child(\\(([^)]+)\\))?)": function(match, token, tagName, pseudoClass, $4, args) {
         var replacement = (token == " ") ? "//*" : "/*";
         if (/^nth/i.test(pseudoClass)) {
-          replacement += _nthChild(pseudoClass, args, "position()");
+          replacement += _xpath_nthChild(pseudoClass, args, "position()");
         } else {
           replacement += XPathParser.optimised.pseudoClasses[pseudoClass];
         }
@@ -114,9 +114,9 @@ var XPathParser = CSSParser.extend({
 //-   "lang()":           "[boolean(lang('$1') or boolean(ancestor-or-self::*[@lang][1][starts-with(@lang,'$1')]))]",
       "first-child":      "[not(preceding-sibling::*)]",
       "last-child":       "[not(following-sibling::*)]",
-      "not()":            _not,
-      "nth-child()":      _nthChild,
-      "nth-last-child()": _nthChild,
+      "not()":            _xpath_not,
+      "nth-child()":      _xpath_nthChild,
+      "nth-last-child()": _xpath_nthChild,
       "only-child":       "[not(preceding-sibling::*) and not(following-sibling::*)]",
       "root":             "[not(parent::*)]"
     }
@@ -133,7 +133,7 @@ var XPathParser = CSSParser.extend({
 
 // these functions defined here to make the code more readable
 var _notParser = new XPathParser;
-function _not(match, args) {
+function _xpath_not(match, args) {
   return "[not(" + _notParser.exec(trim(args))
     .replace(/\[1\]/g, "") // remove the "[1]" introduced by ID selectors
     .replace(/^(\*|[\w-]+)/, "[self::$1]") // tagName test
@@ -142,6 +142,6 @@ function _not(match, args) {
   + ")]";
 };
 
-function _nthChild(match, args, position) {
-  return "[" + CSSParser._nthChild(match, args, position || "count(preceding-sibling::*)+1", "last()", "not", " and ", " mod ", "=") + "]";
+function _xpath_nthChild(match, args, position) {
+  return "[" + _nthChild(match, args, position || "count(preceding-sibling::*)+1", "last()", "not", " and ", " mod ", "=") + "]";
 };

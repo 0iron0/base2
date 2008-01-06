@@ -1,5 +1,5 @@
 /*
-  base2 - copyright 2007, Dean Edwards
+  base2 - copyright 2007-2008, Dean Edwards
   http://code.google.com/p/base2/
   http://www.opensource.org/licenses/mit-license.php
   
@@ -32,12 +32,15 @@ var base2 = {
     var jscript = NaN/*@cc_on||@_jscript_version@*/; // http://dean.edwards.name/weblog/2007/03/sniff/#comment85164
     var java = _.java ? true : false;
     if (_.navigator) {
+      var MSIE = /MSIE[\d.]+/g;
       var element = document.createElement("span");
       // Close up the space between name and version number.
       //  e.g. MSIE 6 -> MSIE6
-      var userAgent = navigator.platform + " " + navigator.userAgent.replace(/([a-z])[\s\/](\d)/gi, "$1$2");
+      var userAgent = navigator.userAgent.replace(/([a-z])[\s\/](\d)/gi, "$1$2");
       // Fix opera's (and others) user agent string.
-      if (!jscript) userAgent = userAgent.replace(/MSIE[\d.]+/, "");
+      if (!jscript) userAgent = userAgent.replace(MSIE, "");
+      if (MSIE.test(userAgent)) userAgent = userAgent.match(MSIE)[0] + " " + userAgent.replace(MSIE, "");
+      userAgent = navigator.platform + " " + userAgent;
       java &= navigator.javaEnabled();
     }
     
@@ -49,7 +52,7 @@ var base2 = {
         // Object detection.
         try {
           eval("r=!!" + expression);
-        } catch (error) {
+        } catch (e) {
           // the test failed
         }
       } else {

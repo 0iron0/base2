@@ -1,12 +1,12 @@
 
 // http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-745549614
 
-// Fix get/setAttribute() for IE here instead of HTMLElement.
+// Fix has/get/setAttribute() for IE here instead of HTMLElement.
 
 // getAttribute() will return null if the attribute is not specified. This is
 //  contrary to the specification but has become the de facto standard.
 
-var _EVALUATED = /^(href|src|type)$/;
+var _EVALUATED = /^(href|src)$/;
 var _ATTRIBUTES = {
   "class": "className",
   "for": "htmlFor"
@@ -63,9 +63,9 @@ extend(Element.prototype, "cloneNode", function(deep) {
 });
 
 if (_MSIE) {
-  var names = "colSpan,rowSpan,vAlign,dateTime,accessKey,tabIndex,encType,maxLength,readOnly,longDesc";
+  var _PROPERCASE_ATTRIBUTES = "colSpan,rowSpan,vAlign,dateTime,accessKey,tabIndex,encType,maxLength,readOnly,longDesc";
   // Convert the list of strings to a hash, mapping the lowercase name to the camelCase name.
-  extend(_ATTRIBUTES, Array2.combine(names.toLowerCase().split(","), names.split(",")));
+  extend(_ATTRIBUTES, Array2.combine(_PROPERCASE_ATTRIBUTES.toLowerCase().split(","), _PROPERCASE_ATTRIBUTES.split(",")));
   
   var _MSIE_getAttributeNode = _MSIE5 ? function(element, name) {
     return element.attributes[name] || element.attributes[_ATTRIBUTES[name.toLowerCase()]];

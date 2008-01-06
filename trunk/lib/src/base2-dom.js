@@ -1,4 +1,4 @@
-// timestamp: Sat, 29 Dec 2007 20:48:25
+// timestamp: Sun, 06 Jan 2008 18:17:46
 
 new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
@@ -183,12 +183,12 @@ var Document = Node.extend(null, {
 
 // http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-745549614
 
-// Fix get/setAttribute() for IE here instead of HTMLElement.
+// Fix has/get/setAttribute() for IE here instead of HTMLElement.
 
 // getAttribute() will return null if the attribute is not specified. This is
 //  contrary to the specification but has become the de facto standard.
 
-var _EVALUATED = /^(href|src|type)$/;
+var _EVALUATED = /^(href|src)$/;
 var _ATTRIBUTES = {
   "class": "className",
   "for": "htmlFor"
@@ -245,9 +245,9 @@ extend(Element.prototype, "cloneNode", function(deep) {
 });
 
 if (_MSIE) {
-  var names = "colSpan,rowSpan,vAlign,dateTime,accessKey,tabIndex,encType,maxLength,readOnly,longDesc";
+  var _PROPERCASE_ATTRIBUTES = "colSpan,rowSpan,vAlign,dateTime,accessKey,tabIndex,encType,maxLength,readOnly,longDesc";
   // Convert the list of strings to a hash, mapping the lowercase name to the camelCase name.
-  extend(_ATTRIBUTES, Array2.combine(names.toLowerCase().split(","), names.split(",")));
+  extend(_ATTRIBUTES, Array2.combine(_PROPERCASE_ATTRIBUTES.toLowerCase().split(","), _PROPERCASE_ATTRIBUTES.split(",")));
   
   var _MSIE_getAttributeNode = _MSIE5 ? function(element, name) {
     return element.attributes[name] || element.attributes[_ATTRIBUTES[name.toLowerCase()]];
@@ -352,7 +352,7 @@ var Traversal = Module.extend({
   
   "@MSIE5": {
     isElement: function(node) {
-      return !!(node && node.nodeType == 1 && node.tagName != "!");
+      return !!(node && node.nodeType == 1 && node.nodeName != "!");
     }
   }
 });
@@ -715,12 +715,21 @@ var CSSStyleDeclaration = _CSSStyleDeclaration_ReadOnly.extend({
   "@MSIE.+win": {
     setProperty: function(style, propertyName, value, priority) {
       if (propertyName == "opacity") {
+        value *= 100;
         style.opacity = value;
         style.zoom = 1;
-        style.filter = "progid:DXImageTransform.Microsoft.Alpha(opacity=" + (value * 100) + ")";
+        style.filter = "Alpha(opacity=" + value + ")";
       } else {
-        style.cssText += format("%1:%2 %3;", propertyName, value, priority);
+        style.setAttribute(propertyName, value);
       }
+    }
+  }
+}, {
+  "@MSIE": {
+    bind: function(style) {
+      style.getPropertyValue = this.prototype.getPropertyValue;
+      style.setProperty = this.prototype.setProperty;
+      return style;
     }
   }
 });
@@ -734,6 +743,10 @@ var _CSSPropertyNameMap = new Base({
     opacity: "-khtml-opacity"
   }
 });
+
+with (CSSStyleDeclaration.prototype) getPropertyValue.toString = setProperty.toString = function() {
+  return "[base2]";
+};
 
 // =========================================================================
 // DOM/style/implementations.js
@@ -840,6 +853,14 @@ StaticNodeList.implement(Enumerable);
 // =========================================================================
 // DOM/selectors-api/CSSParser.js
 // =========================================================================
+
+var _CSS_ESCAPE =           /'(\\.|[^'\\])*'|"(\\.|[^"\\])*"/g,
+    _CSS_IMPLIED_ASTERISK = /([\s>+~,]|[^(]\+|^)([#.:\[])/g,
+    _CSS_IMPLIED_SPACE =    /(^|,)([^\s>+~])/g,
+    _CSS_WHITESPACE =       /\s*([\s>+~(),]|^|$)\s*/g,
+    _CSS_WILD_CARD =        /\s\*\s/g,
+    _CSS_UNESCAPE =         /\x01(\d+)/g,
+    _QUOTE =                /'/g;
   
 var CSSParser = RegGrp.extend({
   constructor: function(items) {
@@ -855,23 +876,22 @@ var CSSParser = RegGrp.extend({
   
   escape: function(selector) {
     // remove strings
-    var QUOTE = /'/g;
     var strings = this._strings = [];
-    return this.optimise(this.format(String(selector).replace(CSSParser.ESCAPE, function(string) {      
-      return "\x01" + strings.push(string.slice(1, -1).replace(QUOTE, "\\'"));
+    return this.optimise(this.format(String(selector).replace(_CSS_ESCAPE, function(string) {      
+      return "\x01" + strings.push(string.slice(1, -1).replace(_QUOTE, "\\'"));
     })));
   },
   
   format: function(selector) {
     return selector
-      .replace(CSSParser.WHITESPACE, "$1")
-      .replace(CSSParser.IMPLIED_SPACE, "$1 $2")
-      .replace(CSSParser.IMPLIED_ASTERISK, "$1*$2");
+      .replace(_CSS_WHITESPACE, "$1")
+      .replace(_CSS_IMPLIED_SPACE, "$1 $2")
+      .replace(_CSS_IMPLIED_ASTERISK, "$1*$2");
   },
   
   optimise: function(selector) {
     // optimise wild card descendant selectors
-    return this.sorter.exec(selector.replace(CSSParser.WILD_CARD, ">* "));
+    return this.sorter.exec(selector.replace(_CSS_WILD_CARD, ">* "));
   },
   
   parse: function(selector) {
@@ -882,36 +902,30 @@ var CSSParser = RegGrp.extend({
   unescape: function(selector) {
     // put string values back
     var strings = this._strings;
-    return selector.replace(/\x01(\d+)/g, function(match, index) {
+    return selector.replace(_CSS_UNESCAPE, function(match, index) {
       return strings[index - 1];
     });
   }
-}, {
-  ESCAPE:           /'(\\.|[^'\\])*'|"(\\.|[^"\\])*"/g,
-  IMPLIED_ASTERISK: /([\s>+~,]|[^(]\+|^)([#.:\[])/g,
-  IMPLIED_SPACE:    /(^|,)([^\s>+~])/g,
-  WHITESPACE:       /\s*([\s>+~(),]|^|$)\s*/g,
-  WILD_CARD:        /\s\*\s/g,
-  
-  _nthChild: function(match, args, position, last, not, and, mod, equals) {
-    // ugly but it works for both CSS and XPath
-    last = /last/i.test(match) ? last + "+1-" : "";
-    if (!isNaN(args)) args = "0n+" + args;
-    else if (args == "even") args = "2n";
-    else if (args == "odd") args = "2n+1";
-    args = args.split(/n\+?/);
-    var a = args[0] ? (args[0] == "-") ? -1 : parseInt(args[0]) : 1;
-    var b = parseInt(args[1]) || 0;
-    var negate = a < 0;
-    if (negate) {
-      a = -a;
-      if (a == 1) b++;
-    }
-    var query = format(a == 0 ? "%3%7" + (last + b) : "(%4%3-%2)%6%1%70%5%4%3>=%2", a, b, position, last, and, mod, equals);
-    if (negate) query = not + "(" + query + ")";
-    return query;
-  }
 });
+
+function _nthChild(match, args, position, last, not, and, mod, equals) {
+  // ugly but it works for both CSS and XPath
+  last = /last/i.test(match) ? last + "+1-" : "";
+  if (!isNaN(args)) args = "0n+" + args;
+  else if (args == "even") args = "2n";
+  else if (args == "odd") args = "2n+1";
+  args = args.split("n");
+  var a = args[0] ? (args[0] == "-") ? -1 : parseInt(args[0]) : 1;
+  var b = parseInt(args[1]) || 0;
+  var negate = a < 0;
+  if (negate) {
+    a = -a;
+    if (a == 1) b++;
+  }
+  var query = format(a == 0 ? "%3%7" + (last + b) : "(%4%3-%2)%6%1%70%5%4%3>=%2", a, b, position, last, and, mod, equals);
+  if (negate) query = not + "(" + query + ")";
+  return query;
+};
 
 // =========================================================================
 // DOM/selectors-api/XPathParser.js
@@ -977,7 +991,7 @@ var XPathParser = CSSParser.extend({
       "([ >])(\\*|[\\w-]+):([\\w-]+-child(\\(([^)]+)\\))?)": function(match, token, tagName, pseudoClass, $4, args) {
         var replacement = (token == " ") ? "//*" : "/*";
         if (/^nth/i.test(pseudoClass)) {
-          replacement += _nthChild(pseudoClass, args, "position()");
+          replacement += _xpath_nthChild(pseudoClass, args, "position()");
         } else {
           replacement += XPathParser.optimised.pseudoClasses[pseudoClass];
         }
@@ -1032,9 +1046,9 @@ var XPathParser = CSSParser.extend({
 //-   "lang()":           "[boolean(lang('$1') or boolean(ancestor-or-self::*[@lang][1][starts-with(@lang,'$1')]))]",
       "first-child":      "[not(preceding-sibling::*)]",
       "last-child":       "[not(following-sibling::*)]",
-      "not()":            _not,
-      "nth-child()":      _nthChild,
-      "nth-last-child()": _nthChild,
+      "not()":            _xpath_not,
+      "nth-child()":      _xpath_nthChild,
+      "nth-last-child()": _xpath_nthChild,
       "only-child":       "[not(preceding-sibling::*) and not(following-sibling::*)]",
       "root":             "[not(parent::*)]"
     }
@@ -1051,7 +1065,7 @@ var XPathParser = CSSParser.extend({
 
 // these functions defined here to make the code more readable
 var _notParser = new XPathParser;
-function _not(match, args) {
+function _xpath_not(match, args) {
   return "[not(" + _notParser.exec(trim(args))
     .replace(/\[1\]/g, "") // remove the "[1]" introduced by ID selectors
     .replace(/^(\*|[\w-]+)/, "[self::$1]") // tagName test
@@ -1060,8 +1074,8 @@ function _not(match, args) {
   + ")]";
 };
 
-function _nthChild(match, args, position) {
-  return "[" + CSSParser._nthChild(match, args, position || "count(preceding-sibling::*)+1", "last()", "not", " and ", " mod ", "=") + "]";
+function _xpath_nthChild(match, args, position) {
+  return "[" + _nthChild(match, args, position || "count(preceding-sibling::*)+1", "last()", "not", " and ", " mod ", "=") + "]";
 };
 
 // =========================================================================
@@ -1072,18 +1086,6 @@ function _nthChild(match, args, position) {
 // the querySelector/querySelectorAll methods on DOM nodes.
 
 // There is no public standard for this object.
-
-var _NOT_XPATH = ":(checked|disabled|enabled|contains)|^(#[\\w-]+\\s*)?\\w+$";
-if (detect("KHTML")) {
-  if (detect("WebKit5")) {
-    _NOT_XPATH += "|nth\\-|,";
-  } else {
-    _NOT_XPATH = ".";
-  }
-}
-_NOT_XPATH = new RegExp(_NOT_XPATH);
-
-var _xpathParser;
 
 var Selector = Base.extend({
   constructor: function(selector) {
@@ -1149,46 +1151,195 @@ var Selector = Base.extend({
   }
 });
 
+var _NOT_XPATH = ":(checked|disabled|enabled|contains)|^(#[\\w-]+\\s*)?\\w+$";
+if (detect("KHTML")) {
+  if (detect("WebKit5")) {
+    _NOT_XPATH += "|nth\\-|,";
+  } else {
+    _NOT_XPATH = ".";
+  }
+}
+_NOT_XPATH = new RegExp(_NOT_XPATH);
+
 // Selector.parse() - converts CSS selectors to DOM queries.
 
 // Hideous code but it produces fast DOM queries.
 // Respect due to Alex Russell and Jack Slocum for inspiration.
 
-new function(_) {
-  // some constants
-  var _OPERATORS = {
-    "=":  "%1=='%2'",
-    "!=": "%1!='%2'", //  not standard but other libraries support it
-    "~=": /(^| )%1( |$)/,
-    "|=": /^%1(-|$)/,
-    "^=": /^%1/,
-    "$=": /%1$/,
-    "*=": /%1/
-  };
-  _OPERATORS[""] = "%1!=null";    
-  var _PSEUDO_CLASSES = { //-dean: lang()
-    "checked":     "e%1.checked",
-    "contains":    "e%1[TEXT].indexOf('%2')!=-1",
-    "disabled":    "e%1.disabled",
-    "empty":       "Traversal.isEmpty(e%1)",
-    "enabled":     "e%1.disabled===false",
-    "first-child": "!Traversal.getPreviousElementSibling(e%1)",
-    "last-child":  "!Traversal.getNextElementSibling(e%1)",
-    "only-child":  "!Traversal.getPreviousElementSibling(e%1)&&!Traversal.getNextElementSibling(e%1)",
-    "root":        "e%1==Traversal.getDocument(e%1).documentElement"
-  };
-  var _INDEXED = detect("(element.sourceIndex)") ;
-  var _VAR = "var p%2=0,i%2,e%2,n%2=e%1.";
-  var _ID = _INDEXED ? "e%1.sourceIndex" : "assignID(e%1)";
-  var _TEST = "var g=" + _ID + ";if(!p[g]){p[g]=1;";
-  var _STORE = "r[r.length]=e%1;if(s)return e%1;";
-//var _SORT = "r.sort(sorter);";
-  var _FN = "fn=function(e0,s){indexed++;var r=[],p={},reg=[%1]," +
-    "d=Traversal.getDocument(e0),c=d.body?'toUpperCase':'toString';";
+var _OPERATORS = {
+  "=":  "%1=='%2'",
+  "!=": "%1!='%2'", //  not standard but other libraries support it
+  "~=": /(^| )%1( |$)/,
+  "|=": /^%1(-|$)/,
+  "^=": /^%1/,
+  "$=": /%1$/,
+  "*=": /%1/
+};
+_OPERATORS[""] = "%1!=null";
 
+var _PSEUDO_CLASSES = { //-dean: lang()
+  "checked":     "e%1.checked",
+  "contains":    "e%1[TEXT].indexOf('%2')!=-1",
+  "disabled":    "e%1.disabled",
+  "empty":       "Traversal.isEmpty(e%1)",
+  "enabled":     "e%1.disabled===false",
+  "first-child": "!Traversal.getPreviousElementSibling(e%1)",
+  "last-child":  "!Traversal.getNextElementSibling(e%1)",
+  "only-child":  "!Traversal.getPreviousElementSibling(e%1)&&!Traversal.getNextElementSibling(e%1)",
+  "root":        "e%1==Traversal.getDocument(e%1).documentElement"
+};
+
+var _INDEXED = detect("(element.sourceIndex)") ;
+var _VAR = "var p%2=0,i%2,e%2,n%2=e%1.";
+var _ID = _INDEXED ? "e%1.sourceIndex" : "assignID(e%1)";
+var _TEST = "var g=" + _ID + ";if(!p[g]){p[g]=1;";
+var _STORE = "r[r.length]=e%1;if(s)return e%1;";
+//var _SORT = "r.sort(sorter);";
+var _FN = "var _selectorFunction=function(e0,s){_indexed++;var r=[],p={},reg=[%1]," +
+  "d=Traversal.getDocument(e0),c=d.body?'toUpperCase':'toString';";
+  
+var _xpathParser;
+
+//var sorter = _INDEXED ? function(a, b) {
+//  return a.sourceIndex - b.sourceIndex;
+//} : Node.compareDocumentPosition;
+
+// variables used by the parser
+
+var _reg; // a store for RexExp objects
+var _index;
+var _wild; // need to flag certain _wild card selectors as _MSIE includes comment nodes
+var _list; // are we processing a node _list?
+var _duplicate; // possible duplicates?
+var _cache = {}; // store parsed selectors
+
+// a hideous parser
+var _parser = new CSSParser({
+  "^ \\*:root": function(match) { // :root pseudo class
+    _wild = false;
+    var replacement = "e%2=d.documentElement;if(Traversal.contains(e%1,e%2)){";
+    return format(replacement, _index++, _index);
+  },
+  
+  " (\\*|[\\w-]+)#([\\w-]+)": function(match, tagName, id) { // descendant selector followed by ID
+    _wild = false;
+    var replacement = "var e%2=_byId(d,'%4');if(e%2&&";
+    if (tagName != "*") replacement += "e%2.nodeName=='%3'[c]()&&";
+    replacement += "Traversal.contains(e%1,e%2)){";
+    if (_list) replacement += format("i%1=n%1.length;", _list);
+    return format(replacement, _index++, _index, tagName, id);
+  },
+  
+  " (\\*|[\\w-]+)": function(match, tagName) { // descendant selector
+    _duplicate++; // this selector may produce duplicates
+    _wild = tagName == "*";
+    var replacement = _VAR;
+    // IE5.x does not support getElementsByTagName("*");
+    replacement += (_wild && _MSIE5) ? "all" : "getElementsByTagName('%3')";
+    replacement += ";for(i%2=0;(e%2=n%2[i%2]);i%2++){";
+    return format(replacement, _index++, _list = _index, tagName);
+  },
+  
+  ">(\\*|[\\w-]+)": function(match, tagName) { // child selector
+    var children = _MSIE && _list;
+    _wild = tagName == "*";
+    var replacement = _VAR;
+    // use the children property for _MSIE as it does not contain text nodes
+    //  (but the children collection still includes comments).
+    // the document object does not have a children collection
+    replacement += children ? "children": "childNodes";
+    if (!_wild && children) replacement += ".tags('%3')";
+    replacement += ";for(i%2=0;(e%2=n%2[i%2]);i%2++){";
+    if (_wild) {
+      replacement += "if(e%2.nodeType==1){";
+      _wild = _MSIE5;
+    } else {
+      if (!children) replacement += "if(e%2.nodeName=='%3'[c]()){";
+    }
+    return format(replacement, _index++, _list = _index, tagName);
+  },
+  
+  "\\+(\\*|[\\w-]+)": function(match, tagName) { // direct adjacent selector
+    var replacement = "";
+    if (_wild && _MSIE) replacement += "if(e%1.nodeName!='!'){";
+    _wild = false;
+    replacement += "e%1=Traversal.getNextElementSibling(e%1);if(e%1";
+    if (tagName != "*") replacement += "&&e%1.nodeName=='%2'[c]()";
+    replacement += "){";
+    return format(replacement, _index, tagName);
+  },
+  
+  "~(\\*|[\\w-]+)": function(match, tagName) { // indirect adjacent selector
+    var replacement = "";
+    if (_wild && _MSIE) replacement += "if(e%1.nodeName!='!'){";
+    _wild = false;
+    _duplicate = 2; // this selector may produce duplicates
+    replacement += "while(e%1=e%1.nextSibling){if(e%1.b2_adjacent==_indexed)break;if(";
+    if (tagName == "*") {
+      replacement += "e%1.nodeType==1";
+      if (_MSIE5) replacement += "&&e%1.nodeName!='!'";
+    } else replacement += "e%1.nodeName=='%2'[c]()";
+    replacement += "){e%1.b2_adjacent=_indexed;";
+    return format(replacement, _index, tagName);
+  },
+  
+  "#([\\w-]+)": function(match, id) { // ID selector
+    _wild = false;
+    var replacement = "if(e%1.id=='%2'){";
+    if (_list) replacement += format("i%1=n%1.length;", _list);
+    return format(replacement, _index, id);
+  },
+  
+  "\\.([\\w-]+)": function(match, className) { // class selector
+    _wild = false;
+    // store RegExp objects - slightly faster on IE
+    _reg.push(new RegExp("(^|\\s)" + rescape(className) + "(\\s|$)"));
+    return format("if(e%1.className&&reg[%2].test(e%1.className)){", _index, _reg.length - 1);
+  },
+  
+  ":not\\((\\*|[\\w-]+)?([^)]*)\\)": function(match, tagName, filters) { // :not pseudo class
+    var replacement = (tagName && tagName != "*") ? format("if(e%1.nodeName=='%2'[c]()){", _index, tagName) : "";
+    replacement += _parser.exec(filters);
+    return "if(!" + replacement.slice(2, -1).replace(/\)\{if\(/g, "&&") + "){";
+  },
+  
+  ":nth(-last)?-child\\(([^)]+)\\)": function(match, last, args) { // :nth-child pseudo classes
+    _wild = false;
+    last = format("e%1.parentNode.b2_length", _index);
+    var replacement = "if(p%1!==e%1.parentNode)p%1=_register(e%1.parentNode);";
+    replacement += "var i=e%1[p%1.b2_lookup];if(p%1.b2_lookup!='b2_index')i++;if(";
+    return format(replacement, _index) + _nthChild(match, args, "i", last, "!", "&&", "%", "==") + "){";
+  },
+  
+  ":([\\w-]+)(\\(([^)]+)\\))?": function(match, pseudoClass, $2, args) { // other pseudo class selectors
+    return "if(" + format(_PSEUDO_CLASSES[pseudoClass] || "throw", _index, args || "") + "){";
+  },
+  
+  "\\[([\\w-]+)\\s*([^=]?=)?\\s*([^\\]]*)\\]": function(match, attr, operator, value) { // attribute selectors
+    var alias = _ATTRIBUTES[attr] || attr;
+    if (operator) {
+      var getAttribute = "e%1.getAttribute('%2',2)";
+      if (!_EVALUATED.test(attr)) {
+        getAttribute = "e%1.%3||" + getAttribute;
+      }
+      attr = format("(" + getAttribute + ")", _index, attr, alias);
+    } else {
+      attr = format("Element.getAttribute(e%1,'%2')", _index, attr);
+    }
+    var replacement = _OPERATORS[operator || ""];
+    if (instanceOf(replacement, RegExp)) {
+      _reg.push(new RegExp(format(replacement.source, rescape(_parser.unescape(value)))));
+      replacement = "reg[%2].test(%1)";
+      value = _reg.length - 1;
+    }
+    return "if(" + format(replacement, attr, value) + "){";
+  }
+});
+
+new function(_) {
   // IE confuses the name attribute with id for form elements,
   // use document.all to retrieve all elements with name/id instead
-  var byId = _MSIE ? function(document, id) {
+  var _byId = _MSIE ? function(document, id) {
     var result = document.all[id] || null;
     // returns a single element or a collection
     if (!result || result.id == id) return result;
@@ -1202,15 +1353,15 @@ new function(_) {
   };
 
   // register a node and index its children
-  var indexed = 1;
-  function register(element) {
+  var _indexed = 1;
+  function _register(element) {
     if (element.rows) {
       element.b2_length = element.rows.length;
       element.b2_lookup = "rowIndex";
     } else if (element.cells) {
       element.b2_length = element.cells.length;
       element.b2_lookup = "cellIndex";
-    } else if (element.b2_indexed != indexed) {
+    } else if (element.b2_indexed != _indexed) {
       var index = 0;
       var child = element.firstChild;
       while (child) {
@@ -1222,146 +1373,21 @@ new function(_) {
       element.b2_length = index;
       element.b2_lookup = "b2_index";
     }
-    element.b2_indexed = indexed;
+    element.b2_indexed = _indexed;
     return element;
   };
-
-//var sorter = _INDEXED ? function(a, b) {
-//  return a.sourceIndex - b.sourceIndex;
-//} : Node.compareDocumentPosition;
-
-  // variables used by the parser
-  var fn;
-  var reg; // a store for RexExp objects
-  var _index;
-  var _wild; // need to flag certain _wild card selectors as _MSIE includes comment nodes
-  var _list; // are we processing a node _list?
-  var _duplicate; // possible duplicates?
-  var _cache = {}; // store parsed selectors
-
-  // a hideous parser
-  var parser = new CSSParser({
-    "^ \\*:root": function(match) { // :root pseudo class
-      _wild = false;
-      var replacement = "e%2=d.documentElement;if(Traversal.contains(e%1,e%2)){";
-      return format(replacement, _index++, _index);
-    },
-    " (\\*|[\\w-]+)#([\\w-]+)": function(match, tagName, id) { // descendant selector followed by ID
-      _wild = false;
-      var replacement = "var e%2=byId(d,'%4');if(e%2&&";
-      if (tagName != "*") replacement += "e%2.nodeName=='%3'[c]()&&";
-      replacement += "Traversal.contains(e%1,e%2)){";
-      if (_list) replacement += format("i%1=n%1.length;", _list);
-      return format(replacement, _index++, _index, tagName, id);
-    },
-    " (\\*|[\\w-]+)": function(match, tagName) { // descendant selector
-      _duplicate++; // this selector may produce duplicates
-      _wild = tagName == "*";
-      var replacement = _VAR;
-      // IE5.x does not support getElementsByTagName("*");
-      replacement += (_wild && _MSIE5) ? "all" : "getElementsByTagName('%3')";
-      replacement += ";for(i%2=0;(e%2=n%2[i%2]);i%2++){";
-      return format(replacement, _index++, _list = _index, tagName);
-    },
-    ">(\\*|[\\w-]+)": function(match, tagName) { // child selector
-      var children = _MSIE && _list;
-      _wild = tagName == "*";
-      var replacement = _VAR;
-      // use the children property for _MSIE as it does not contain text nodes
-      //  (but the children collection still includes comments).
-      // the document object does not have a children collection
-      replacement += children ? "children": "childNodes";
-      if (!_wild && children) replacement += ".tags('%3')";
-      replacement += ";for(i%2=0;(e%2=n%2[i%2]);i%2++){";
-      if (_wild) {
-        replacement += "if(e%2.nodeType==1){";
-        _wild = _MSIE5;
-      } else {
-        if (!children) replacement += "if(e%2.nodeName=='%3'[c]()){";
-      }
-      return format(replacement, _index++, _list = _index, tagName);
-    },
-    "\\+(\\*|[\\w-]+)": function(match, tagName) { // direct adjacent selector
-      var replacement = "";
-      if (_wild && _MSIE) replacement += "if(e%1.tagName!='!'){";
-      _wild = false;
-      replacement += "e%1=Traversal.getNextElementSibling(e%1);if(e%1";
-      if (tagName != "*") replacement += "&&e%1.nodeName=='%2'[c]()";
-      replacement += "){";
-      return format(replacement, _index, tagName);
-    },
-    "~(\\*|[\\w-]+)": function(match, tagName) { // indirect adjacent selector
-      var replacement = "";
-      if (_wild && _MSIE) replacement += "if(e%1.tagName!='!'){";
-      _wild = false;
-      _duplicate = 2; // this selector may produce duplicates
-      replacement += "while(e%1=e%1.nextSibling){if(e%1.b2_adjacent==indexed)break;if(";
-      if (tagName == "*") {
-        replacement += "e%1.nodeType==1";
-        if (_MSIE5) replacement += "&&e%1.tagName!='!'";
-      } else replacement += "e%1.nodeName=='%2'[c]()";
-      replacement += "){e%1.b2_adjacent=indexed;";
-      return format(replacement, _index, tagName);
-    },
-    "#([\\w-]+)": function(match, id) { // ID selector
-      _wild = false;
-      var replacement = "if(e%1.id=='%2'){";
-      if (_list) replacement += format("i%1=n%1.length;", _list);
-      return format(replacement, _index, id);
-    },
-    "\\.([\\w-]+)": function(match, className) { // class selector
-      _wild = false;
-      // store RegExp objects - slightly faster on IE
-      reg.push(new RegExp("(^|\\s)" + rescape(className) + "(\\s|$)"));
-      return format("if(e%1.className&&reg[%2].test(e%1.className)){", _index, reg.length - 1);
-    },
-    ":not\\((\\*|[\\w-]+)?([^)]*)\\)": function(match, tagName, filters) { // :not pseudo class
-      var replacement = (tagName && tagName != "*") ? format("if(e%1.nodeName=='%2'[c]()){", _index, tagName) : "";
-      replacement += parser.exec(filters);
-      return "if(!" + replacement.slice(2, -1).replace(/\)\{if\(/g, "&&") + "){";
-    },
-    ":nth(-last)?-child\\(([^)]+)\\)": function(match, last, args) { // :nth-child pseudo classes
-      _wild = false;
-      last = format("e%1.parentNode.b2_length", _index);
-      var replacement = "if(p%1!==e%1.parentNode)p%1=register(e%1.parentNode);";
-      replacement += "var i=e%1[p%1.b2_lookup];if(";
-      return format(replacement, _index) + CSSParser._nthChild(match, args, "i", last, "!", "&&", "%", "==") + "){";
-    },
-    ":([\\w-]+)(\\(([^)]+)\\))?": function(match, pseudoClass, $2, args) { // other pseudo class selectors
-      return "if(" + format(_PSEUDO_CLASSES[pseudoClass] || "throw", _index, args || "") + "){";
-    },
-    "\\[([\\w-]+)\\s*([^=]?=)?\\s*([^\\]]*)\\]": function(match, attr, operator, value) { // attribute selectors
-      var alias = _ATTRIBUTES[attr] || attr;
-      if (operator) {
-        var getAttribute = "e%1.getAttribute('%2',2)";
-        if (!_EVALUATED.test(attr)) {
-          getAttribute = "e%1.%3||" + getAttribute;
-        }
-        attr = format("(" + getAttribute + ")", _index, attr, alias);
-      } else {
-        attr = format("Element.getAttribute(e%1,'%2')", _index, attr);
-      }
-      var replacement = _OPERATORS[operator || ""];
-      if (instanceOf(replacement, RegExp)) {
-        reg.push(new RegExp(format(replacement.source, rescape(parser.unescape(value)))));
-        replacement = "reg[%2].test(%1)";
-        value = reg.length - 1;
-      }
-      return "if(" + format(replacement, attr, value) + "){";
-    }
-  });
   
   Selector.parse = function(selector) {
     if (!_cache[selector]) {
-      reg = []; // store for RegExp objects
-      fn = "";
-      var selectors = parser.escape(selector).split(",");
+      _reg = []; // store for RegExp objects
+      var fn = "";
+      var selectors = _parser.escape(selector).split(",");
       for (var i = 0; i < selectors.length; i++) {
         _wild = _index = _list = 0; // reset
         _duplicate = selectors.length > 1 ? 2 : 0; // reset
-        var block = parser.exec(selectors[i]) || "throw;";
+        var block = _parser.exec(selectors[i]) || "throw;";
         if (_wild && _MSIE) { // IE's pesky comment nodes
-          block += format("if(e%1.tagName!='!'){", _index);
+          block += format("if(e%1.nodeName!='!'){", _index);
         }
         // check for duplicates before storing results
         var store = (_duplicate > 1) ? _TEST : "";
@@ -1371,8 +1397,8 @@ new function(_) {
         fn += block;
       }
 //    if (selectors.length > 1) fn += _SORT;
-      eval(format(_FN, reg) + parser.unescape(fn) + "return s?null:r}");
-      _cache[selector] = fn;
+      eval(format(_FN, _reg) + _parser.unescape(fn) + "return s?null:r}");
+      _cache[selector] = _selectorFunction;
     }
     return _cache[selector];
   };
@@ -1424,7 +1450,7 @@ var HTMLElement = Element.extend({
 
   removeClass: function(element, className) {
     var regexp = new RegExp("(^|\\s)" + className + "(\\s|$)", "g");
-    element.className = element.className.replace(regexp, "$2");
+    element.className = trim(element.className.replace(regexp, "$2"));
   },
 
   toggleClass: function(element, className) {

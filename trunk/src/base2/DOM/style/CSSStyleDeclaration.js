@@ -21,12 +21,21 @@ var CSSStyleDeclaration = _CSSStyleDeclaration_ReadOnly.extend({
   "@MSIE.+win": {
     setProperty: function(style, propertyName, value, priority) {
       if (propertyName == "opacity") {
+        value *= 100;
         style.opacity = value;
         style.zoom = 1;
-        style.filter = "progid:DXImageTransform.Microsoft.Alpha(opacity=" + (value * 100) + ")";
+        style.filter = "Alpha(opacity=" + value + ")";
       } else {
-        style.cssText += format("%1:%2 %3;", propertyName, value, priority);
+        style.setAttribute(propertyName, value);
       }
+    }
+  }
+}, {
+  "@MSIE": {
+    bind: function(style) {
+      style.getPropertyValue = this.prototype.getPropertyValue;
+      style.setProperty = this.prototype.setProperty;
+      return style;
     }
   }
 });
@@ -40,3 +49,7 @@ var _CSSPropertyNameMap = new Base({
     opacity: "-khtml-opacity"
   }
 });
+
+with (CSSStyleDeclaration.prototype) getPropertyValue.toString = setProperty.toString = function() {
+  return "[base2]";
+};

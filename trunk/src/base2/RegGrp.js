@@ -37,9 +37,7 @@ var RegGrp = Collection.extend({
               var replacement = item.replacement;
               switch (typeof replacement) {
                 case "function":
-                  var args = _slice.call(arguments, offset, next);
-                  var index = arguments[arguments.length - 2];
-                  return replacement.apply(self, args.concat(index, string));
+                  return replacement.apply(self, _slice.call(arguments, offset, next));
                 case "number":
                   return arguments[offset + replacement];
                 default:

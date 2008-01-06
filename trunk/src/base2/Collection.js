@@ -61,7 +61,9 @@ var Collection = Map.extend({
     this.put.apply(this, _slice.call(arguments, 1));
   },
   
-  item: Undefined, // alias of getAt (defined when the class is initialised)
+  item: function(keyOrIndex) {
+    return this[typeof keyOrIndex == "number" ? "getAt" : "get"](keyOrIndex);
+  },
 
   put: function(key, item) {
     if (arguments.length == 1) item = key;
@@ -118,10 +120,6 @@ var Collection = Map.extend({
   }
 }, {
   Item: null, // If specified, all members of the collection must be instances of Item.
-  
-  init: function() {
-    this.prototype.item = this.prototype.getAt;
-  },
   
   create: function(key, item) {
     return this.Item ? new this.Item(key, item) : item;
