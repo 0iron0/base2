@@ -2,11 +2,9 @@
 // A collection of Rule objects
 
 var RuleList = Collection.extend({
-  constructor: function(rules, context) {
+  constructor: function(rules) {
     this.base(rules);
     this.globalize(); //-dean: make this optional
-    this.context = context;
-    this.refresh();
   },
   
   globalize: Call.defer(function() {
@@ -24,8 +22,8 @@ var RuleList = Collection.extend({
     });
   }, 10),
   
-  refresh: function(context) {
-    this.invoke("refresh", context||this.context);
+  refresh: function() {
+    this.invoke("refresh");
   }
 }, {
   Item: Rule
