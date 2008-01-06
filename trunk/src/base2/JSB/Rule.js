@@ -1,6 +1,6 @@
 
 var Rule = Base.extend({
-  constructor: function(selector, behavior, context) {
+  constructor: function(selector, behavior) {
     selector = new Selector(selector);
     if (!Behavior.ancestorOf(behavior)) {
       behavior = Behavior.extend(behavior);
@@ -36,7 +36,7 @@ var Rule = Base.extend({
     // Execution of this method is deferred until the DOMContentLoaded event.
     this.refresh = Call.defer(function() {
       // Find matching elements.
-      result = selector.exec(context);
+      result = selector.exec();
       // Apply the behavior.
       result.forEach(function(element) {
         var uid = assignID(element);
