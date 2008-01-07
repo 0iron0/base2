@@ -1,7 +1,9 @@
 
 var Rule = Base.extend({
   constructor: function(selector, behavior) {
-    selector = new Selector(selector);
+    if (!instanceOf(selector, Selector)) {
+      selector = new Selector(selector);
+    }
     if (!Behavior.ancestorOf(behavior)) {
       behavior = Behavior.extend(behavior);
     }
