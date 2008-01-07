@@ -9,5 +9,9 @@ var Command = Base.extend({
   
   echo: function(string) {
     this[STDOUT].push(string);
+  },
+
+  toString: function() {
+    return this[STDOUT].join('');
   }
 });
