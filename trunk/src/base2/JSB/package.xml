@@ -2,7 +2,10 @@
 <package name="JSB" requires="DOM">
   <include src="package.js"/>
   <include src="Behavior.js"/>
-  <include src="Call.js"/>
   <include src="Rule.js"/>
   <include src="RuleList.js"/>
+  <include src="MouseCapture.js"/>
+  <include src="engine.js"/>
+  <include src="events.js"/>
+  <include src="batch.js"/>
 </package>
