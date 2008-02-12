@@ -21,7 +21,7 @@ var Theme = Base.extend({
         }
       } else element = document.documentElement;
       // detect XP theme by inspecting the ActiveCaption colour
-      element.style.color = "ButtonFace";
+      element.style.color = "ActiveCaption";
       var chrome = Chrome.getComputedStyle(element, "color");
       element.style.color = "";
       if (_MSIE) body.removeChild(element);
@@ -35,7 +35,7 @@ var Theme = Base.extend({
   },
   
   name: "royale",
-  host: "http://rekky.rosso.name/base2/trunk/src/base2/JSB/chrome/",
+  host: "/base2/trunk/src/base2/JSB/chrome/",
   prefix: "",
 
   "@Gecko": {
