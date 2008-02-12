@@ -1,4 +1,6 @@
 
+// A Selector associated with a Behavior.
+
 var Rule = Base.extend({
   constructor: function(selector, behavior) {
     if (!instanceOf(selector, Selector)) {
@@ -8,57 +10,25 @@ var Rule = Base.extend({
       behavior = Behavior.extend(behavior);
     }
     
-    // Internal data.
-    var result, applied = {};
-    var events = {}, _interface = {};
+    var domQuery = Selector.parse(selector);
     
-    // Extract behavior properties.
-    forEach (behavior.prototype, function(property, name) {
-      // Platform specific extensions.
-      if (name.charAt(0) == "@") {
-        if (detect(name.slice(1))) {
-          forEach (property, arguments.callee);
-        }
-      } else if (typeof property == "function" && /^on[a-z]+$/.test(name)) {
-        // Allow elements to pick up document events (e.g. ondocumentclick).
-        if (name.indexOf("document") == 2) {
-          EventTarget.addEventListener(document, name.slice(10), function(event) {
-            result.invoke(property, event);
-          }, false);
-        } else {
-          // Store event handlers.
-          events[name.slice(2)] = property;
-        }
+    this.refresh = function() {
+      if (_ready) {
+        var elements = selector.exec(document);
+        console2.log("final("+assignID(this)+"): "+elements.length);
+        forEach (elements, behavior.bind);
       } else {
-        // Store element propertie and methods.
-        _interface[name] = property;
+        var state = domQuery.state || [];
+        state.unshift(document, false);
+        elements = domQuery.apply(null, state);
+        console2.log("batch("+assignID(this)+"): "+elements.length);
+        batch.forEach(elements, behavior.bind);
       }
-    });
+    };
+
+    this.toString = selector.toString;
     
-    // Execution of this method is deferred until the DOMContentLoaded event.
-    this.refresh = Call.defer(function() {
-      // Find matching elements.
-      result = selector.exec();
-      // Apply the behavior.
-      result.forEach(function(element) {
-        var uid = assignID(element);
-        if (!applied[uid]) { // Don't apply more than once.
-          applied[uid] = true;
-          // If the document is bound then bind the element.
-          if (_bind) DOM.bind(element);
-          // Add event listeners.
-          forEach (events, function(listener, type) {
-            EventTarget.addEventListener(element, type, listener, false);
-          });
-          // Extend the element.
-          extend(element, _interface);
-        }
-      });
-    });
-    
-    this.toString = K(String(selector));
-    
-    this.refresh();
+    _addRule(this);
   },
   
   refresh: Undefined // defined in the constructor function
