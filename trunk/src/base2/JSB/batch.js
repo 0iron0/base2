@@ -1,7 +1,7 @@
 
 var batch = [];
-var total=0;
-var ss = new Date;
+;;; var total=0;
+;;; var ss = new Date;
 batch.forEach = function(elements, bind, i) {
   if (arguments.length < 3) {
     var args = Array2.slice(arguments);
@@ -13,19 +13,21 @@ batch.forEach = function(elements, bind, i) {
   var length = elements.length;
   var start = new Date;
   var now = start;
-  var j = i;
+  ;;; var j = i;
   while (i < length && (now - start) < 200) {
     bind(elements[i++]);
     if (i < 5 || i % 50 == 0) now = new Date;
   }
-  total +=(i-j);
-  console2.log("processed: "+(i-j)+"/"+total+" ("+(now-start)+"ms)");
-  if (i >= length) {
+  ;;; total +=(i-j);
+  ;;; console2.log("processed: "+(i-j)+" of " + length + " in "+(now-start)+"ms (total=" + total+")");
+  if (i == length) {
     i = 0;
     this.shift();
     if (!this.length) {
-      clearInterval(this.timer);
-      delete this.timer;
+      if (this.timer) {
+        clearInterval(this.timer);
+        delete this.timer;
+      }
       _fireReady();
       return;
     }

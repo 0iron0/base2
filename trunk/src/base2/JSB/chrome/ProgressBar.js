@@ -8,33 +8,52 @@ var _vertical = {};
 
 var ProgressBar = NumberControl.extend({
   onfocus: function(element) {
-    if (Chrome._active != element) Chrome._focus = element;
+    if (element != Chrome._active) Chrome._focus = element;
     //Chrome._focus = element;
     this.layout(element);
   },
   
-  onmousedown: function(element, event, x, y, screenX, screenY) {
-    this.base(element, event, x, y);
+  onmousedown: function(element, event) {
+    base(this, arguments);
     event.preventDefault();
-    if (Chrome._focus && Chrome._focus != element) {
+    if (Chrome._focus && element != Chrome._focus) {
       Chrome._focus.blur();
     }
+  },
+  
+  "@MSIE": {
+    onactivate: function(element) {
+      if (undefined === this._readOnly) {
+        this._readOnly = element.readOnly;
+        element.readOnly = true;
+      }
+    },
+
+    ondeactivate: function(element) {
+      if (undefined !== this._readOnly) {
+        element.readOnly = this._readOnly;
+        delete this._readOnly;
+      }
+    }
+  },
+
+  onscroll: function(element) {
+    alert(99);
+    element.scrollTop = 0;
   }
 }, {
   HEIGHT: 3000,
   WIDTH: 3000,
   CHUNK_WIDTH: 10,
   CHUNK_HEIGHT: 10,
-  HORIZONTAL: 0,
-  VERTICAL: 1,
   
+  appearance: "progressbar",
+
   defaults: {
     min:  0,
     max:  100,
     step: 1
   },
-  
-  image: "progressbar",
 
   hitTest: False,
 
@@ -55,10 +74,11 @@ var ProgressBar = NumberControl.extend({
 		var clientHeight = element.clientHeight;
 		var base2ID = element.base2ID;
     if (clientWidth >= clientHeight) {
-		  var chunk = chrome.theme.name == "royale" ? 1 : this.CHUNK_WIDTH;
+		  var chunk = chrome.theme.name == "luna" ? this.CHUNK_WIDTH : 1;
       var left = Math.floor(clientWidth * _values[base2ID]) - this.WIDTH;
       left = Math.round(++left / chunk) * chunk;
       var top = (-clientHeight / 2) * (clientHeight + 3) - 2;
+      //var top = (-clientHeight / 2) * (clientHeight - 1);
       if (_vertical[base2ID]) this.setOrientation(element, this.HORIZONTAL);
     } else {
       left = (-clientWidth / 2) * (clientWidth + 3) - 2;
@@ -69,17 +89,7 @@ var ProgressBar = NumberControl.extend({
     element.style.backgroundPosition = left + PX + " " + top + PX;
   },
 
-  setOrientation: function(element, orientation) {
-    if (orientation == this.VERTICAL) {
-      _vertical[element.base2ID] = true;
-      this.setCSSProperty(element, "background-image", "url(" + chrome.theme + this.image + "-vertical.png)", true);
-    } else {
-      delete _vertical[element.base2ID];
-      element.style.backgroundImage = "";
-    }
-  },
-
-  getCursor: K("default"),
+  getCursor: K(""),
 
   getValue: function(element) {
     return _values[element.base2ID];
@@ -90,5 +100,15 @@ var ProgressBar = NumberControl.extend({
     this.base(element, min + (max - min) * value);
     _values[element.base2ID] = (element.value - min) / (max - min);
 		this.layout(element);
+  },
+
+  resetScroll: function(element) {
+    element.scrollTop = element.scrollHeight;
+  },
+
+  "@MSIE": {
+    isEditable: function(element) {
+      return !element.disabled && !this._readOnly;
+    }
   }
 });

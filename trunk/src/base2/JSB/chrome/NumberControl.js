@@ -23,19 +23,21 @@ var NumberControl = Chrome.extend({
     this.base(element);
   },
   
-  onmousewheel: function(element, event) {
-    if (Chrome._active == element && this.isEditable(element)) {
-      this.increment(element, parseInt(event.wheelDelta / 120));
+  onmousewheel: function(element, event, delta) {
+        console2.log(Chrome._active);
+    if (element == Chrome._active) {
+        console2.log(event.wheelDelta);
+      if (this.isEditable(element)) this.increment(element, parseInt(delta / 120));
       event.preventDefault();
     }
-  },
+  }
   
-  setAttribute: function(element, name, value) {
+  /*setAttribute: function(element, name, value) {
     this.base(element, name, value);
     if (/^(min|max|step|value)$/.test(name.toLowerCase())) {
       this.layout(element);
     }
-  }
+  }*/
 }, {
   defaults: {
     min:  "",
@@ -62,6 +64,7 @@ var NumberControl = Chrome.extend({
   },
 
   setValue: function(element, value) {
+    //console2.log(value);
     var min = parseFloat(element.min), max = parseFloat(element.max), step = parseFloat(element.step) || 1;
     // check min/max
     value = value > max ? max : value < min ? min : value;

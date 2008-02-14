@@ -2,7 +2,6 @@ Base
 .Abstract
 ..Module
 ...JSB.Behavior
-....JSB.ExtendedMouse
 ....JSB.MouseCapture
 .....chrome.Chrome
 ......chrome.ComboBox
@@ -10,6 +9,7 @@ Base
 .......chrome.ProgressBar
 ........chrome.Slider
 .......chrome.Spinner
+.....JSB.ExtendedMouse
 .chrome.Rect
 .chrome.Theme
 .JSB.Rule

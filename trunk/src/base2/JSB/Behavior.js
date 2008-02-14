@@ -3,36 +3,43 @@ var Behavior = Module.extend(null, {
   bind: I,
   
   extend: function(_interface, _static) {
-    // Extend a module to create a new module.
+    // Extend a behavior to create a new behavior.
     var behavior = this.base(_interface, _static);
-    var attributes = {}, methods, events = {};
-    var boundElements = {};
-    var eventListener = {
+    var boundElementIDs = {};
+    var events = {}, attributes = {}, methods;
+    
+    var eventListener = new Base({
       handleEvent: function(event) {
         var type = event.type;
         var fixedType = _EVENT_TYPE_FIX[type];
-        if (_EVENT_MOUSE.test(fixedType || type) && MouseCapture._capture) {
+        if (_EVENT_MOUSE.test(fixedType || type) && MouseCapture._handleEvent) {
           event.stopPropagation();
           event.preventDefault();
-        } else if (type == "ready" && typeof behavior.ondocumentready == "function") {
-          forEach (boundElements, behavior.ondocumentready, behavior);
         } else {
-          var target = event.target;
-          if (target) {
-            if (boundElements[target.base2ID]) {
-              if (fixedType) {
-                event = _EventFixer.fix(event, fixedType);
-              }
-              behavior.handleEvent(target, event);
-            }
+          var element = event.target;
+          if (element && boundElementIDs[element.base2ID]) {
+            if (fixedType) event = _EventFixer.fix(event, fixedType);
+            behavior.handleEvent(element, event, event.type);
           }
         }
+      },
+      
+      "@Gecko" : {
+        handleEvent: function(event) {
+          if (_EVENT_MOUSE.test(event.type)) {
+            var box = document.getBoxObjectFor(event.target);
+            event.offsetX = event.pageX - box.x;
+            event.offsetY = event.pageY - box.y;
+          }
+          this.base(event);
+        }
       }
-    };
-
+    });
+    
     // Extract behavior properties.
     behavior.forEach (function(property, name) {
       if (_EVENT.test(name)) {
+        // Store event handlers.
         var type = name.slice(2);
         events[_EVENT_TYPE_MAP[type] || type] = property;
       } else {
@@ -41,41 +48,40 @@ var Behavior = Module.extend(null, {
         methods[name] = behavior.prototype[name];
       }
     });
-    forEach (_interface, function(property, name) {
-      if (name.charAt(0) == "@") { // object detection
-        if (detect(name.slice(1))) {
-          forEach (property, arguments.callee);
-        }
-      } else if (typeOf(property) != "function") {
+    forEach.detect (_interface, function(property, name) {
+      // Store attributes.
+      if (typeOf(property) != "function") {
         attributes[name] = property;
       }
     });
 
     behavior.bind = function(element) {
       var base2ID = element.base2ID || assignID(element);
-      if (!boundElements[base2ID]) { // Don't bind more than once.
-        boundElements[base2ID] = element;
+      if (!boundElementIDs[base2ID]) { // Don't bind more than once.
+        boundElementIDs[base2ID] = true;
         // If the document is bound then bind the element.
-        if (DOM.bind[document.base2ID]) DOM.bind(element);
-        // Add event handlers (we are using event delegation so only do this once)
+        var docID = document.base2ID;
+        if (DOM.bind[docID]) DOM.bind(element);
+        // Add event handlers
         if (events) {
           for (var type in events) {
-            EventTarget.addEventListener(document, type, eventListener, _CAPTURE.test(type));
+            addEventListener(document, type, eventListener, _CAPTURE.test(type));
+            if (type == "mousemove") {
+              addEventListener(document, type, eventListener, true);
+            }
           }
-          events = null;
+          events = null; // We are using event delegation. ;-)
         }
         // Extend the element.
         for (var name in attributes) {
-          if (element[name] == undefined) {
-            element.setAttribute(name, attributes[name]);
+          if (element[name] === undefined) {
+            element.setAttribute(name, attributes[name])
           } else {
             element[name] = attributes[name];
           }
         }
         if (methods) extend(element, methods);
-        if (typeof behavior.oncontentready == "function") {
-          behavior.oncontentready(element);
-        }
+        if (behavior.oncontentready) behavior.oncontentready(element);
       }
       return element;
     };
@@ -83,20 +89,22 @@ var Behavior = Module.extend(null, {
     return behavior;
   },
 
-  dispatchEvent: function(element, event, data) {
+  dispatchEvent: function(element, event) {
     if (typeof event == "string") {
       var type = event;
       event = DocumentEvent.createEvent(document, "Events");
       Event.initEvent(event, type, true, false);
-      forEach (data, function(property, name) {
-        event[name] = property;
-      });
+      //forEach.detect (data, function(property, name) {
+      //  event[name] = property;
+      //});
     }
     EventTarget.dispatchEvent(element, event);
   },
 
-  handleEvent: function(element, event) {
-    var type = event.type;
+  handleEvent: function(element, event, type) {
+    // We could use the passed event type but we can't trust the descendant
+    // classes to always pass it. :-P
+    type = event.type;
     if (_EVENT_MOUSE.test(type)) {
       this.handleMouseEvent(element, event, type);
     } else if (_EVENT_KEYBOARD.test(type)) {
@@ -115,18 +123,15 @@ var Behavior = Module.extend(null, {
     }
   },
 
-  handleMouseEvent: function(element, event) {
-    var handler = "on" + event.type;
-    if (this[handler] && (!_BUTTON.test(event.type) || event.button == _MOUSE_BUTTON_LEFT)) {
-      this[handler](element, event, event.offsetX, event.offsetY, event.screenX, event.screenY);
-    }
-  },
-  
-  "@Gecko": {
-    handleMouseEvent: function(element, event) {
-      event.offsetX = event.layerX;
-      event.offsetY = event.layerY;
-      this.base(element, event);
+  handleMouseEvent: function(element, event, type) {
+    type = event.type;
+    var handler = "on" + type;
+    if (this[handler] && (!_BUTTON.test(type) || event.button == _MOUSE_BUTTON_LEFT)) {
+      if (type == "mousewheel") {
+        this[handler](element, event, event.wheelDelta);
+      } else {
+        this[handler](element, event, event.offsetX, event.offsetY, event.screenX, event.screenY);
+      }
     }
   },
 
@@ -140,8 +145,8 @@ var Behavior = Module.extend(null, {
     CSSStyleDeclaration.getPropertyValue(element.style, propertyName);
   },
 
-  setCSSProperty: function(element, propertyName, value, priority) {
-    CSSStyleDeclaration.setProperty(element.style, propertyName, value, priority ? "important" : "");
+  setCSSProperty: function(element, propertyName, value, important) {
+    CSSStyleDeclaration.setProperty(element.style, propertyName, value, important ? "important" : "");
   }
 });
 

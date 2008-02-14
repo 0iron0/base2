@@ -1,13 +1,6 @@
 
 var Slider = ProgressBar.extend({
-/* oncontentready: function(element) {
-    //element.onselect = False;
-    element.onselectstart = False;
-    // default behaviour
-    this.base(element);
-  }, */
-
-  "@KHTML|opera[91]": {
+  "@KHTML--opera[91]": {
     oncontentready: function(element) {
       if (element.nodeName == "INPUT" && element.type != "range") {
         element.type = "range";
@@ -16,7 +9,7 @@ var Slider = ProgressBar.extend({
   },
   
   onmousedown: function(element, event, x, y, screenX, screenY) {
-    this.base(element, event, x, y);
+    base(this, arguments);
     if (!this.isEditable(element)) return;
     if (Chrome._activeThumb) {
       var thumb = this.getThumbRect(element);
@@ -28,19 +21,18 @@ var Slider = ProgressBar.extend({
       Chrome._firedOnce = true;
     } else {
       this.startTimer(element);
-      Chrome._eventClientX = event.clientX;
-      Chrome._eventClientY = event.clientY;
+      Chrome._eventX = x;
+      Chrome._eventY = y;
     }
   },
 
   onmouseup: function(element, event) {
     this.base(element, event);
-    //event.preventDefault();
     delete Chrome._dragInfo;
     if (!Chrome._firedOnce) this.tick(element);
     this.stopTimer(element);
-    delete Chrome._eventClientX;
-    delete Chrome._eventClientY;
+    delete Chrome._eventX;
+    delete Chrome._eventY;
     delete Chrome._increasing;
     delete Chrome._firedOnce;
   },
@@ -58,7 +50,7 @@ var Slider = ProgressBar.extend({
       }
       this.setValue(element, pos / size);
     } else {
-      this.base(element, event, x, y);
+      base(this, arguments);
     }
   },
 
@@ -98,9 +90,9 @@ var Slider = ProgressBar.extend({
   THUMB_WIDTH: 11,
   THUMB_HEIGHT: 11,
 
-  image: "slider",
+  appearance: "slider",
   
-  "@KHTML|opera[91]": {
+  "@KHTML--opera[91]": {
     isNativeControl: function(element) {
       return element.nodeName == "INPUT" && element.type == "range";
     }
@@ -112,26 +104,27 @@ var Slider = ProgressBar.extend({
     if (state == null) state = this.getState(element);
 
 		var base2ID = element.base2ID;
-		var clientWidth = element.clientWidth;
-		var clientHeight = element.clientHeight;
-    if (clientWidth >= clientHeight) {
-      var backgroundPosition = (
-        Math.floor((clientWidth - this.THUMB_WIDTH) * _values[base2ID]) -
+		
+		var availableWidth = element.clientWidth - this.VERTICAL_WIDTH;
+		var availableHeight = element.clientHeight - this.HORIZONTAL_HEIGHT;
+    if (availableWidth >= availableHeight) {
+      var left = (
+        Math.floor(availableWidth * _values[base2ID]) -
         Math.ceil((this.HORIZONTAL_WIDTH - this.THUMB_WIDTH) / 2) -
         state * this.HORIZONTAL_WIDTH
-      ) + PX + " center";
+      )
+      var top = availableHeight / 2;
       if (!_vertical[base2ID]) this.setOrientation(element, this.HORIZONTAL);
     } else {
-      backgroundPosition = "center " + (
-        clientHeight - this.THUMB_HEIGHT - Math.floor(clientHeight * _values[base2ID]) -
+      left = availableWidth / 2 ;
+      top = (
+        availableHeight - Math.floor(availableHeight * _values[base2ID]) -
 				Math.ceil((this.VERTICAL_HEIGHT - this.THUMB_HEIGHT) / 2) -
         state * this.VERTICAL_HEIGHT
-      ) + PX;
+      );
       if (!_vertical[base2ID]) this.setOrientation(element, this.VERTICAL);
     }
-    if (element.style.backgroundPosition != backgroundPosition) {
-      element.style.backgroundPosition = backgroundPosition;
-    }
+    element.style.backgroundPosition = left + PX + " " + top + PX;
   },
 
   getThumbRect: function(element) {
@@ -146,9 +139,10 @@ var Slider = ProgressBar.extend({
         this.HORIZONTAL_HEIGHT
       );
     } else {
+      clientHeight -= this.HORIZONTAL_HEIGHT;
       return new Rect(
         Math.floor((clientWidth - this.VERTICAL_WIDTH) / 2),
-        clientHeight - this.THUMB_HEIGHT - Math.floor(clientHeight * value),
+        clientHeight - Math.floor(clientHeight * value),
         this.VERTICAL_WIDTH,
         this.THUMB_HEIGHT
       );
@@ -164,9 +158,9 @@ var Slider = ProgressBar.extend({
   getState: function(element) {
     if (element.disabled) {
       var state = "disabled";
-    } else if (Chrome._hover == element && Chrome._activeThumb) {
+    } else if (element == Chrome._hover && Chrome._activeThumb) {
       state = "active";
-    } else if ((Chrome._hover == element && Chrome._hoverThumb) || (Chrome._focus == element && Chrome._active != element)) {
+    } else if ((element == Chrome._hover && Chrome._hoverThumb) || (element == Chrome._focus && element != Chrome._active)) {
       state = "hover";
     } else {
       state = "normal";
@@ -175,10 +169,9 @@ var Slider = ProgressBar.extend({
   },
 
   tick: function(element) {
-    var rect = this.getBoundingClientRect(element);
     var thumb = this.getThumbRect(element);
     if (element.clientWidth >= element.clientHeight) {
-      var mx = Chrome._eventClientX - rect.left;
+      var mx = Chrome._eventX;
       // _increasing is true, false or null
       if (mx < thumb.left && Chrome._increasing != true) {
         this.increment(element, -1, true);
@@ -188,7 +181,7 @@ var Slider = ProgressBar.extend({
         Chrome._increasing = true;
       }
     } else {
-      var my = Chrome._eventClientY - rect.top;
+      var my = Chrome._eventY;
       if (my < thumb.top && Chrome._increasing != false) {
         this.increment(element, 1, true);
         Chrome._increasing = true;

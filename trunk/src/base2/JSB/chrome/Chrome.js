@@ -30,6 +30,7 @@ var Chrome = MouseCapture.extend({
   },
 
   onmousemove: function(element, event, x, y) {
+            ///console2.log([x,y]);
     Chrome._hoverThumb = this.hitTest(element, x, y);
     this.delayRefresh(element);
   },
@@ -45,31 +46,31 @@ var Chrome = MouseCapture.extend({
     this.delayRefresh(element);
   },
 
-  onfocus: function(element) {
+  onfocus: function(element, event) {
     Chrome._focus = element;
+    event.preventDefault();
     this.layout(element);
   },
 
   onblur: function(element) {
     delete Chrome._focus;
     this.layout(element);
-  },
+  }
 
 /*  onresize: function(element) {
     this.layout(element);
-  },
+  },, */
 
-  onscroll: function(element) {
-    this.resetScroll(element);
-  }, */
-
-  setAttribute: function(element, name, value) {
+/*  setAttribute: function(element, name, value) {
     HTMLElement.setAttribute(element, name, value);
     if (/^(disabled|readonly)$/.test(name.toLowerCase())) {
       this.layout(element);
     }
-  }
+  } */
 }, {
+  HORIZONTAL: 0,
+  VERTICAL: 1,
+  
   states: {
     normal:   0,
     hover:    1,
@@ -81,7 +82,7 @@ var Chrome = MouseCapture.extend({
   imageWidth: 17,
 
   isActive: function(element) {
-    return Chrome._hover == element && Chrome._activeThumb && (Chrome._activeThumb == Chrome._hoverThumb);
+    return element == Chrome._hover && Chrome._activeThumb && (Chrome._activeThumb == Chrome._hoverThumb);
   },
 
   isEditable: function(element) {
@@ -89,38 +90,9 @@ var Chrome = MouseCapture.extend({
   },
 
   isNativeControl: False,
-  
-  getBoundingClientRect: function(element) {
-    var left = element.offsetLeft;
-    var top = element.offsetTop;
-    return {
-      top: top,
-      right: left + element.clientWidth,
-      bottom: top + element.clientHeight,
-      left: left
-    };
-  },
-
-  "@(document.getBoxObjectFor)": {
-    getBoundingClientRect: function(element) {
-      var box = document.getBoxObjectFor(element);
-      return {
-        top: box.y,
-        right: box.x + box.width,
-        bottom: box.y + box.height,
-        left: box.x
-      };
-    }
-  },
-
-  "@(element.getBoundingClientRect)": {
-    getBoundingClientRect: function(element) {
-      return element.getBoundingClientRect();
-    }
-  },
 
   getCursor: function(element) {
-    return Chrome._hover == element && (Chrome._activeThumb || Chrome._hoverThumb) ? "default" : "";
+    return element == Chrome._hover && (Chrome._activeThumb || Chrome._hoverThumb) ? "default" : "";
   },
 
   syncCursor: function(element) {
@@ -133,6 +105,16 @@ var Chrome = MouseCapture.extend({
     //var rtl = element.currentStyle.direction == "rtl";
     var rtl = false;
     return rtl ? x <= this.imageWidth : x >= element.clientWidth - this.imageWidth;
+  },
+
+  setOrientation: function(element, orientation) {
+    if (orientation == this.VERTICAL) {
+      _vertical[element.base2ID] = true;
+      this.setCSSProperty(element, "background-image", "url(" + chrome.theme + this.appearance + "-vertical.png)", true);
+    } else {
+      delete _vertical[element.base2ID];
+      element.style.backgroundImage = "";
+    }
   },
 
 	startTimer: function(element, id) {
@@ -182,8 +164,4 @@ var Chrome = MouseCapture.extend({
       this.base(element, event);
     }
   }
-  
-/*  resetScroll: function(element) {
-    element.scrollLeft = element.scrollWidth;
-  } */
 });

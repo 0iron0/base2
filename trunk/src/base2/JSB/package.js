@@ -4,8 +4,9 @@
 var JSB = new base2.Package(this, {
   name:    "JSB",
   version: "0.9",
-  imports: "Function2,Enumerable,DOM",
-  exports: "Behavior,Rule,RuleList,MouseCapture"
+  imports: "Function2,Enumerable,DOM,DOM.EventTarget",
+  exports: "Behavior,Rule,RuleList,MouseCapture,ExtendedMouse"
 });
 
 eval(this.imports);
+

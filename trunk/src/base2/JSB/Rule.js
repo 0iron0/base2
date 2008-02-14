@@ -15,14 +15,16 @@ var Rule = Base.extend({
     this.refresh = function() {
       if (_ready) {
         var elements = selector.exec(document);
-        console2.log("final("+assignID(this)+"): "+elements.length);
-        forEach (elements, behavior.bind);
+        ;;; console2.log("final("+assignID(this)+"): "+elements.length);
+        batch.forEach (elements, behavior.bind);
       } else {
         var state = domQuery.state || [];
         state.unshift(document, false);
         elements = domQuery.apply(null, state);
-        console2.log("batch("+assignID(this)+"): "+elements.length);
-        batch.forEach(elements, behavior.bind);
+        if (elements.length) {
+          ;;; console2.log("batch("+assignID(this)+"): "+elements.length);
+          batch.forEach(elements, behavior.bind);
+        }
       }
     };
 

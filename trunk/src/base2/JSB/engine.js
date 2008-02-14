@@ -1,62 +1,62 @@
 
 JSB.refresh = function(ready) {
   if (ready || !batch.timer) {
-    console2.log("tick: " + (new Date().valueOf()));
+    ;;; console2.log("tick: " + (new Date().valueOf()));
     // This method is overridden once the document has loaded.
     var refreshed = {};
-    for (var tagName in _rulesByTagName) {
-      var rules = _rulesByTagName[tagName];
+    function refresh(rule) {
+      if (!refreshed[rule.base2ID]) {
+        refreshed[rule.base2ID] = true;
+        rule.refresh();
+      }
+    };
+    forEach (_rulesByID, function(rules, id) {
+      if (!rules._found && NodeSelector.querySelector(document, "#" + id)) {
+        ;;; console2.log("Found " + id);
+        rules._found = true;
+        forEach (rules, refresh);
+      }
+    });
+    forEach (_rulesByTagName, function(rules, tagName) {
       var count = rules._nodeList.length;
       if (rules._count != count) {
-        console2.log("Found '" + tagName + "': " + (count-rules._count));
+        ;;; console2.log("Found '" + tagName.toUpperCase() + "': " + (count-rules._count));
         rules._count = count;
-        var i = rules.length, rule;
-        while (rule = rules[--i]) {
-          if (!refreshed[rule.base2ID]) {
-            refreshed[rule.base2ID] = true;
-            rule.refresh();
-          }
-        }
+        forEach (rules, refresh);
       }
-    }
+    });
   }
   if (ready) clearInterval(timer);
 };
 
-var _MSIE = detect("MSIE");
-
-var _ready;
-var _rulesAll = [];
-var _rulesByAttribute = {};
-var _rulesByTagName = {};
-
-var _ruleMapper = new RegGrp({
-  "(['\"])(\\\\.|[^\\1\\\\])*\\1": "",
-  "(^|([\s+~>,])|[#.\\[])([\\w-]+)": ""
-});
-
 function _addRule(rule) {
-  var tagName;
-  _ruleMapper.putAt(1, function(match, token, combinator, value) {
-    if (!token || combinator) {
-      if (token == ",") _addRuleByTagName(tagName, rule);
-      tagName = value;
-    } else {
-      if (!_rulesByAttribute[match]) {
-        _rulesByAttribute[match] = [];
-      }
-      _rulesByAttribute[match].push(rule);
+  forEach(_parser.escape(rule).split(","), function(selector) {
+    var id, tagName;
+    if (_ID.test(selector) && !_COMBINATOR.test(selector)) {
+      id = selector.match(_ID)[1];
+      _addRuleByAttribute(id, _rulesByID, rule);
     }
+    selector.replace(_SIMPLE, function(match, token, combinator, value) {
+      if (combinator) {
+        tagName = value;
+      } else {
+        _addRuleByAttribute(match, _rulesByAttribute, rule);
+      }
+    });
+    if (!id) _addRuleByTagName(tagName, rule);
   });
-  _ruleMapper.exec(rule);
-  _addRuleByTagName(tagName, rule);
   _rulesAll.push(rule);
   assignID(rule);
   rule.refresh();
 };
 
+function _addRuleByAttribute(attribute, rules, rule) {
+  if (!rules[attribute]) rules[attribute] = [];
+  rules[attribute].push(rule);
+};
+
 function _addRuleByTagName(tagName, rule) {
-  assert(tagName, "Wild card selectors not allowed in JSB (selector='" + rule + "').");
+  assert(tagName != "*", "Wild card selectors not allowed in JSB (selector='" + rule + "').");
   var rules = _rulesByTagName[tagName];
   if (!rules) rules = _rulesByTagName[tagName] = [];
   rules._count = 0;
@@ -66,17 +66,20 @@ function _addRuleByTagName(tagName, rule) {
 
 function _fireReady() {
   if (_ready) {
-    console2.log("ondocumentready");
+    ;;; console2.log("ondocumentready");
     Behavior.dispatchEvent(document, "ready");
-    console2.log("Total time: "+((new Date)-ss));
+    ;;; console2.log("Total time: "+((new Date)-ss));
+    ;;; console2.update();
   }
 };
 
 var timer = setInterval(JSB.refresh, 100);
-EventTarget.addEventListener(document, "mousemove", JSB.refresh, false);
+addEventListener(document, "mousemove", JSB.refresh, false);
+addEventListener(document, "keypress", JSB.refresh, false);
 
-EventTarget.addEventListener(document, "DOMContentLoaded", function() {
-  EventTarget.removeEventListener(document, "mousemove", JSB.refresh, false);
+addEventListener(document, "DOMContentLoaded", function() {
+  removeEventListener(document, "mousemove", JSB.refresh, false);
+  removeEventListener(document, "keypress", JSB.refresh, false);
   console2.log("DOMContentLoaded");
   JSB.refresh(true);
   JSB.refresh = function() {

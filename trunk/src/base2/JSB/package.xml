@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="JSB" requires="DOM">
   <include src="package.js"/>
+  <include src="header.js"/>
   <include src="Behavior.js"/>
   <include src="Rule.js"/>
   <include src="RuleList.js"/>
   <include src="MouseCapture.js"/>
+  <include src="ExtendedMouse.js"/>
   <include src="engine.js"/>
-  <include src="events.js"/>
   <include src="batch.js"/>
 </package>
