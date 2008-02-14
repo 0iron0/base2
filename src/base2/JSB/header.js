@@ -1,4 +1,18 @@
 
+var _MSIE = detect("MSIE");
+
+var _ready;
+var _rulesAll         = [];
+var _rulesByAttribute = {};
+var _rulesByID        = {};
+var _rulesByTagName   = {};
+
+var _ID         = /^\*#([\w-]+)$/;
+var _COMBINATOR = /[\s+~>]/;
+var _SIMPLE     = /(^|([\s+~>,])|[#.\[])([\w-]+)/g;
+
+var _parser = new CSSParser;
+
 var _MOUSE_BUTTON_LEFT = _MSIE ? 1 : 0;
 
 var _BUTTON         = /^mouse(up|down)|click$/,
@@ -9,8 +23,8 @@ var _BUTTON         = /^mouse(up|down)|click$/,
 
 var _EVENT_TYPE_MAP = extend({}, {
   "@MSIE": {
-    blur: "focusout",
-    focus: "focusin"
+    focus: "focusin",
+    blur: "focusout"
   },
   "@Gecko": {
     mousewheel: "DOMMouseScroll"
@@ -38,7 +52,7 @@ var _EventFixer = new Base({
   "@Gecko": {
     fix: function(event, type) {
       event.__defineGetter__("type", K(type));
-      event.wheelDelta = -event.detail * 40;
+      event.wheelDelta = (-event.detail * 40) || 0;
       return event;
     }
   }

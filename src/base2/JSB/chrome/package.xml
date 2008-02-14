@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="chrome" requires="DOM,JSB">
   <include src="package.js"/>
-  <include src="styles.js"/>
   <include src="Chrome.js"/>
   <include src="ComboBox.js"/>
   <include src="NumberControl.js"/>
@@ -9,5 +8,6 @@
   <include src="Slider.js"/>
   <include src="Spinner.js"/>
   <include src="Rect.js"/>
+  <include src="styleSheet.js"/>
   <include src="Theme.js"/>
 </package>

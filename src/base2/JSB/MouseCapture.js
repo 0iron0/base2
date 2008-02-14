@@ -1,29 +1,32 @@
 
+// Capture mouse events. Currently only "mousemove" and "mouseup".
+// Are any other events necessary?
+
 var MouseCapture = Behavior.extend(null, {
   setCapture: function(element) {
-    if (!MouseCapture._capture) {
+    if (!MouseCapture._handleEvent) {
       var behavior = this;
-      MouseCapture._capture = function(event) {
-        behavior.handleMouseEvent(element, event);
+      MouseCapture._handleEvent = function(event) {
+        behavior.handleMouseEvent(element, event, event.type);
       };
       MouseCapture._captureElement = element;
-      EventTarget.addEventListener(element, "mousemove", MouseCapture._capture, true);
-      EventTarget.addEventListener(element, "mouseup", MouseCapture._capture, true);
+      addEventListener(element, "mouseup", MouseCapture._handleEvent, true);
+      addEventListener(element, "mousemove", MouseCapture._handleEvent, true);
     }
   },
 
   releaseCapture: function(element) {
     if (element == MouseCapture._captureElement) {
-      EventTarget.removeEventListener(MouseCapture._captureElement, "mousemove", MouseCapture._capture, true);
-      EventTarget.removeEventListener(MouseCapture._captureElement, "mouseup", MouseCapture._capture, true);
-      delete MouseCapture._capture;
+      removeEventListener(MouseCapture._captureElement, "mousemove", MouseCapture._handleEvent, true);
+      removeEventListener(MouseCapture._captureElement, "mouseup", MouseCapture._handleEvent, true);
       delete MouseCapture._captureElement;
+      delete MouseCapture._handleEvent;
     }
   },
   
   "@(element.setCapture)": {
     setCapture: function(element) {
-      if (!MouseCapture._capture) {
+      if (!MouseCapture._handleEvent) {
         this.base(element);
         setTimeout(function() {
           element.setCapture();

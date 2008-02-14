@@ -1,6 +1,6 @@
 
 var Spinner = NumberControl.extend({
-  "@opera[91]": {
+  "@--opera[91]": {
     oncontentready: function(element) {
       if (element.nodeName == "INPUT" && element.type != "number") {
         element.type = "number";
@@ -55,8 +55,8 @@ var Spinner = NumberControl.extend({
     }
   },
 
-  onmousedown: function(element, event, x, y) {
-    this.base(element, event, x, y);
+  onmousedown: function(element) {
+    base(this, arguments);
     if (Chrome._activeThumb) {
       this.startTimer(element);
     }
@@ -75,6 +75,8 @@ var Spinner = NumberControl.extend({
     }
   }
 }, {
+  appearance: "spinner",
+  
   states: {
     normal:      0,
     up_hover:    1,
@@ -85,7 +87,7 @@ var Spinner = NumberControl.extend({
     length:      6
   },
 
-  "opera[91]": {
+  "@opera[91]": {
     isNativeControl: function(element) {
       return element.nodeName == "INPUT" && element.type == "number";
     }
@@ -115,9 +117,9 @@ var Spinner = NumberControl.extend({
       var state = "disabled";
     } else if (element.readOnly) {
       state = "normal";
-    } else if (Chrome._hover == element && Chrome._activeThumb) {
+    } else if (element == Chrome._hover && Chrome._activeThumb) {
       state = Chrome._activeThumb + "_active";
-    } else if (Chrome._hover == element && Chrome._hoverThumb) {
+    } else if (element == Chrome._hover && Chrome._hoverThumb) {
       state = Chrome._hoverThumb + "_hover";
     } else {
       state = "normal";
@@ -127,7 +129,6 @@ var Spinner = NumberControl.extend({
 
   hitTest: function(element, x, y) {
     if (!this.base(element, x)) return null;
-    //console2.log([element.clientWidth - this.imageWidth,x]);
     return y <= (element.clientHeight / 2) ? "up" : "down";
   },
 

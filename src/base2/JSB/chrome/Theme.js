@@ -26,7 +26,7 @@ var Theme = Base.extend({
       element.style.color = "";
       if (_MSIE) body.removeChild(element);
       if (/rgb/.test(chrome)) chrome = eval(chrome);
-      this.load(_XP_DETECT[chrome]);
+      this.load(_XP_DETECT[chrome] || "classic");
     }
   },
 
@@ -35,7 +35,7 @@ var Theme = Base.extend({
   },
   
   name: "royale",
-  host: "/base2/trunk/src/base2/JSB/chrome/",
+  host: "http://rekky.rosso.name/base2/trunk/src/base2/JSB/chrome/",
   prefix: "",
 
   "@Gecko": {
@@ -45,17 +45,10 @@ var Theme = Base.extend({
   "@Webkit": {
     prefix: "-webkit-"
   },
-
-  "@opera": {
-    prefix: "-op-"
-  },
   
   load: function(name) {
     if (name) this.name = name;
-    var theme = _THEMES[this.name];
-    if (theme) {
-      this.createStyleSheet(format(_STYLES, this, theme.padding || 1, theme.color, this.prefix));
-    }
+    this.createStyleSheet(format(_STYLES, this, this.prefix));
   },
 
   createStyleSheet: function(cssText) {
@@ -85,13 +78,6 @@ var _XP_DETECT = {
   "#8ba169": "luna/olive",
   "#c0c0c0": "luna/silver",
   "#335ea8": "royale"
-};
-var _THEMES = {
-  "classic": {color: "#fff", padding: 2},
-  "luna/blue": {color: "#7f9db9"},
-  "luna/olive": {color: "#a4b97f"},
-  "luna/silver": {color: "#a5acb2"},
-  "royale": {color: "#ebe9ed"}
 };
 
 var rgba = rgb;
