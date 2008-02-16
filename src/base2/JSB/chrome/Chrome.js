@@ -1,13 +1,13 @@
 
-var _timers = {}; // store for timeouts
-
 var Chrome = MouseCapture.extend({
-  oncontentready: function(element) {
+  onattach: function(element) {
+    element.onscroll = _resetScroll;
     this.layout(element, this.states[element.disabled ? "disabled" : "normal"]);
   },
 
   onmousedown: function(element, event, x, y) {
     Chrome._active = element;
+    Chrome._selected = element;
     
     if (!this.isEditable(element)) return;
 
@@ -19,7 +19,7 @@ var Chrome = MouseCapture.extend({
     }
   },
 
-  onmouseup: function(element) {
+  onmouseup: function(element, event) {
     if (Chrome._activeThumb) {
       delete Chrome._activeThumb;
       this.syncCursor(element);
@@ -30,7 +30,6 @@ var Chrome = MouseCapture.extend({
   },
 
   onmousemove: function(element, event, x, y) {
-            ///console2.log([x,y]);
     Chrome._hoverThumb = this.hitTest(element, x, y);
     this.delayRefresh(element);
   },
@@ -48,25 +47,16 @@ var Chrome = MouseCapture.extend({
 
   onfocus: function(element, event) {
     Chrome._focus = element;
-    event.preventDefault();
+    Chrome._selected = element;
     this.layout(element);
   },
 
   onblur: function(element) {
     delete Chrome._focus;
+    delete Chrome._selected;
+    this.removeClass(element, this.appearance + _FOCUS);
     this.layout(element);
   }
-
-/*  onresize: function(element) {
-    this.layout(element);
-  },, */
-
-/*  setAttribute: function(element, name, value) {
-    HTMLElement.setAttribute(element, name, value);
-    if (/^(disabled|readonly)$/.test(name.toLowerCase())) {
-      this.layout(element);
-    }
-  } */
 }, {
   HORIZONTAL: 0,
   VERTICAL: 1,
@@ -78,6 +68,8 @@ var Chrome = MouseCapture.extend({
     disabled: 3,
     length:   4
   },
+  
+  appearance: "",
   
   imageWidth: 17,
 
@@ -117,8 +109,13 @@ var Chrome = MouseCapture.extend({
     }
   },
 
-	startTimer: function(element, id) {
-    id = element.base2ID + (id || "_timer");
+	hasTimer: function(element, id) {
+    id = element.base2ID + (id || _TIMER);
+		return !!_timers[id];
+	},
+
+	startTimer: function(element, id, interval, repeat) {
+    id = element.base2ID + (id || _TIMER);
 		if (!_timers[id]) {
 		  var self = this;
 			_timers[id] = setInterval(function() {
@@ -128,7 +125,7 @@ var Chrome = MouseCapture.extend({
 	},
 
 	stopTimer: function(element, id) {
-    id = element.base2ID + (id || "_timer");
+    id = element.base2ID + (id || _TIMER);
 		if (_timers[id]) {
 			clearInterval(_timers[id]);
 			delete _timers[id];

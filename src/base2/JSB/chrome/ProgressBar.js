@@ -4,42 +4,22 @@
 
 // TODO: Right to left should invert horizontal
 
-var _vertical = {};
-
 var ProgressBar = NumberControl.extend({
   onfocus: function(element) {
-    if (element != Chrome._active) Chrome._focus = element;
-    //Chrome._focus = element;
+    if (element != Chrome._active) {
+      Chrome._selected = element;
+      this.addClass(element, this.appearance + _FOCUS);
+    }
+    Chrome._focus = element;
     this.layout(element);
   },
   
   onmousedown: function(element, event) {
     base(this, arguments);
-    event.preventDefault();
+    //event.preventDefault();
     if (Chrome._focus && element != Chrome._focus) {
       Chrome._focus.blur();
     }
-  },
-  
-  "@MSIE": {
-    onactivate: function(element) {
-      if (undefined === this._readOnly) {
-        this._readOnly = element.readOnly;
-        element.readOnly = true;
-      }
-    },
-
-    ondeactivate: function(element) {
-      if (undefined !== this._readOnly) {
-        element.readOnly = this._readOnly;
-        delete this._readOnly;
-      }
-    }
-  },
-
-  onscroll: function(element) {
-    alert(99);
-    element.scrollTop = 0;
   }
 }, {
   HEIGHT: 3000,
@@ -49,11 +29,9 @@ var ProgressBar = NumberControl.extend({
   
   appearance: "progressbar",
 
-  defaults: {
-    min:  0,
-    max:  100,
-    step: 1
-  },
+  min:  0,
+  max:  100,
+  step: 1,
 
   hitTest: False,
 
@@ -74,7 +52,7 @@ var ProgressBar = NumberControl.extend({
 		var clientHeight = element.clientHeight;
 		var base2ID = element.base2ID;
     if (clientWidth >= clientHeight) {
-		  var chunk = chrome.theme.name == "luna" ? this.CHUNK_WIDTH : 1;
+		  var chunk = /luna/.test(chrome.theme.name) ? this.CHUNK_WIDTH : 1;
       var left = Math.floor(clientWidth * _values[base2ID]) - this.WIDTH;
       left = Math.round(++left / chunk) * chunk;
       var top = (-clientHeight / 2) * (clientHeight + 3) - 2;
@@ -100,15 +78,5 @@ var ProgressBar = NumberControl.extend({
     this.base(element, min + (max - min) * value);
     _values[element.base2ID] = (element.value - min) / (max - min);
 		this.layout(element);
-  },
-
-  resetScroll: function(element) {
-    element.scrollTop = element.scrollHeight;
-  },
-
-  "@MSIE": {
-    isEditable: function(element) {
-      return !element.disabled && !this._readOnly;
-    }
   }
 });

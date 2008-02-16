@@ -12,4 +12,3 @@ var chrome = new base2.Package(this, {
 });
 
 eval(this.imports);
-

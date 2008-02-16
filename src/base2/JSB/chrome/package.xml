@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="chrome" requires="DOM,JSB">
   <include src="package.js"/>
+  <include src="header.js"/>
   <include src="Chrome.js"/>
   <include src="ComboBox.js"/>
   <include src="NumberControl.js"/>

@@ -5,6 +5,7 @@
   <include src="Behavior.js"/>
   <include src="Rule.js"/>
   <include src="RuleList.js"/>
+  <include src="EventListener.js"/>
   <include src="MouseCapture.js"/>
   <include src="ExtendedMouse.js"/>
   <include src="engine.js"/>
