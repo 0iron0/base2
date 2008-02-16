@@ -1,22 +1,20 @@
 
-var _values = {}; // store for computed values
-
 var NumberControl = Chrome.extend({
-  oncontentready: function(element) {
+  onattach: function(element) {
     // initialise min/max/step
-		for (var attr in this.defaults) {
+		for (var attr in _numberDefaults) {
   		var value = element[attr];
   		if (value === 0 || (value && !isNaN(value))) continue;
   		if (!value && element.hasAttribute && element.hasAttribute(attr)) {
         value = element.getAttribute(attr);
   		}
-  		if (!value || isNaN(value)) value = this.defaults[attr];
+  		if (!value || isNaN(value)) value = this[attr];
       element[attr] = value;
 		}
-
     // the following only applies to Slider/ProgressBar but we'll leave it here
 		var min = element.min, value = element.value;
     if (!value || isNaN(value)) value = min;
+    else if (element.step != 1) this.setValue(element, value);
     _values[element.base2ID] = (value - min) / (element.max - min);
 
     // default behaviour
@@ -24,10 +22,8 @@ var NumberControl = Chrome.extend({
   },
   
   onmousewheel: function(element, event, delta) {
-        console2.log(Chrome._active);
-    if (element == Chrome._active) {
-        console2.log(event.wheelDelta);
-      if (this.isEditable(element)) this.increment(element, parseInt(delta / 120));
+    if (element == Chrome._selected) {
+      if (this.isEditable(element)) this.increment(element, -parseInt(delta / 40));
       event.preventDefault();
     }
   }
@@ -39,11 +35,11 @@ var NumberControl = Chrome.extend({
     }
   }*/
 }, {
-  defaults: {
-    min:  "",
-    max:  "",
-    step: 1
-  },
+  min:  "",
+  max:  "",
+  step: 1,
+  
+  mask: /-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/,
 
   increment: function(element, amount, block) {
     var type = block ? "Block" : "Unit";
@@ -70,6 +66,7 @@ var NumberControl = Chrome.extend({
     value = value > max ? max : value < min ? min : value;
     // round to step
     value = Math.round(value / step) * step;
+    value = value.toFixed(String(step).replace(/^.*\.|^\d+$/, "").length);
     if (value != element.value) {
       element.value = value;
       this.dispatchEvent(element, "change");

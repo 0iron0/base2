@@ -7,7 +7,7 @@
 var ExtendedMouse = MouseCapture.extend(null, {
   handleMouseEvent: function(element, event) {
     var type = event.type;
-    if (_BUTTON.test(type)) {
+    if (_EVENT_BUTTON.test(type)) {
       var handler = this["on" + type];
       if (handler) {
         this[handler](element, event, event.button, event.offsetX, event.offsetY, event.screenX, event.screenY);

@@ -2,7 +2,7 @@
 var batch = [];
 ;;; var total=0;
 ;;; var ss = new Date;
-batch.forEach = function(elements, bind, i) {
+batch.forEach = function(elements, attach, i) {
   if (arguments.length < 3) {
     var args = Array2.slice(arguments);
     args[2] = 0;
@@ -15,7 +15,7 @@ batch.forEach = function(elements, bind, i) {
   var now = start;
   ;;; var j = i;
   while (i < length && (now - start) < 200) {
-    bind(elements[i++]);
+    attach(elements[i++]);
     if (i < 5 || i % 50 == 0) now = new Date;
   }
   ;;; total +=(i-j);

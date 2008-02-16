@@ -26,7 +26,7 @@ var Theme = Base.extend({
       element.style.color = "";
       if (_MSIE) body.removeChild(element);
       if (/rgb/.test(chrome)) chrome = eval(chrome);
-      this.load(_XP_DETECT[chrome] || "classic");
+      this.load(_XP_DETECT[chrome]);
     }
   },
 
@@ -34,7 +34,7 @@ var Theme = Base.extend({
     detect: _defaultTheme
   },
   
-  name: "royale",
+  name: "luna/blue",
   host: "http://rekky.rosso.name/base2/trunk/src/base2/JSB/chrome/",
   prefix: "",
 
@@ -48,7 +48,7 @@ var Theme = Base.extend({
   
   load: function(name) {
     if (name) this.name = name;
-    this.createStyleSheet(format(_STYLES, this, this.prefix));
+    this.createStyleSheet(format(_STYLES, this, _THEMES[this.name] || "", this.prefix));
   },
 
   createStyleSheet: function(cssText) {
@@ -80,6 +80,15 @@ var _XP_DETECT = {
   "#335ea8": "royale"
 };
 
+var _cssText = "padding:1px;border:1px solid ";
+var _THEMES = {
+  "classic": "",
+  "luna/blue": _cssText + "#7f9db9;",
+  "luna/olive": _cssText + "#a4b97f;",
+  "luna/silver": _cssText + "#a5acb2;",
+  "royale": _cssText + "#a7a6aa;"
+};
+
 var rgba = rgb;
 function rgb(r, g, b) {
   function toHex(value) {
@@ -96,4 +105,3 @@ chrome.theme = new Theme;
 /*chrome.setTheme = function(path) {
   this.theme = new Theme(path);
 };*/
-

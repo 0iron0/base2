@@ -1,40 +1,14 @@
 
 var Behavior = Module.extend(null, {
-  bind: I,
+  attach: I,
+  detach: I,
   
   extend: function(_interface, _static) {
     // Extend a behavior to create a new behavior.
     var behavior = this.base(_interface, _static);
-    var boundElementIDs = {};
+    var attachedElementIDs = {}; // base2IDs
     var events = {}, attributes = {}, methods;
-    
-    var eventListener = new Base({
-      handleEvent: function(event) {
-        var type = event.type;
-        var fixedType = _EVENT_TYPE_FIX[type];
-        if (_EVENT_MOUSE.test(fixedType || type) && MouseCapture._handleEvent) {
-          event.stopPropagation();
-          event.preventDefault();
-        } else {
-          var element = event.target;
-          if (element && boundElementIDs[element.base2ID]) {
-            if (fixedType) event = _EventFixer.fix(event, fixedType);
-            behavior.handleEvent(element, event, event.type);
-          }
-        }
-      },
-      
-      "@Gecko" : {
-        handleEvent: function(event) {
-          if (_EVENT_MOUSE.test(event.type)) {
-            var box = document.getBoxObjectFor(event.target);
-            event.offsetX = event.pageX - box.x;
-            event.offsetY = event.pageY - box.y;
-          }
-          this.base(event);
-        }
-      }
-    });
+    var eventListener = new EventListener(behavior, attachedElementIDs);
     
     // Extract behavior properties.
     behavior.forEach (function(property, name) {
@@ -55,33 +29,38 @@ var Behavior = Module.extend(null, {
       }
     });
 
-    behavior.bind = function(element) {
+    behavior.attach = function(element) {
       var base2ID = element.base2ID || assignID(element);
-      if (!boundElementIDs[base2ID]) { // Don't bind more than once.
-        boundElementIDs[base2ID] = true;
+      if (!attachedElementIDs[base2ID]) { // Don't attach more than once.
+        attachedElementIDs[base2ID] = true;
         // If the document is bound then bind the element.
         var docID = document.base2ID;
         if (DOM.bind[docID]) DOM.bind(element);
         // Add event handlers
         if (events) {
-          for (var type in events) {
-            addEventListener(document, type, eventListener, _CAPTURE.test(type));
-            if (type == "mousemove") {
-              addEventListener(document, type, eventListener, true);
-            }
-          }
+          forEach (events, bind(flip(eventListener.add), eventListener));
           events = null; // We are using event delegation. ;-)
         }
         // Extend the element.
         for (var name in attributes) {
-          if (element[name] === undefined) {
-            element.setAttribute(name, attributes[name])
+          var attribute = attributes[name];
+          if (element[name] === undefined && typeof attribute != "object") {
+            element.setAttribute(name, attribute)
           } else {
-            element[name] = attributes[name];
+            element[name] = attribute;
           }
         }
         if (methods) extend(element, methods);
-        if (behavior.oncontentready) behavior.oncontentready(element);
+        if (behavior.onattach) behavior.onattach(element);
+      }
+      return element;
+    };
+
+    behavior.detach = function(element) {
+      var base2ID = element.base2ID || assignID(element);
+      if (attachedElementIDs[base2ID]) { // Don't attach more than once.
+        if (behavior.ondetach) behavior.ondetach(element);
+        delete attachedElementIDs[base2ID];
       }
       return element;
     };
@@ -116,17 +95,22 @@ var Behavior = Module.extend(null, {
     }
   },
 
-  handleKeyEvent: function(element, event) {
-    var handler = "on" + event.type;
+  handleKeyEvent: function(element, event, type) {
+    type = event.type;
+    var handler = "on" + type;
     if (this[handler]) {
-      this[handler](element, event, event.keyCode, event.shiftKey, event.ctrlKey, event.altKey);
+      if (type == "keypress") {
+        this[handler](element, event, event.charCode);
+      } else {
+        this[handler](element, event, event.keyCode, event.shiftKey, event.ctrlKey, event.altKey);
+      }
     }
   },
 
   handleMouseEvent: function(element, event, type) {
     type = event.type;
     var handler = "on" + type;
-    if (this[handler] && (!_BUTTON.test(type) || event.button == _MOUSE_BUTTON_LEFT)) {
+    if (this[handler] && (!_EVENT_BUTTON.test(type) || event.button == _MOUSE_BUTTON_LEFT)) {
       if (type == "mousewheel") {
         this[handler](element, event, event.wheelDelta);
       } else {

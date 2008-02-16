@@ -1,7 +1,7 @@
 
 var Slider = ProgressBar.extend({
   "@KHTML--opera[91]": {
-    oncontentready: function(element) {
+    onattach: function(element) {
       if (element.nodeName == "INPUT" && element.type != "range") {
         element.type = "range";
       }
@@ -12,12 +12,10 @@ var Slider = ProgressBar.extend({
     base(this, arguments);
     if (!this.isEditable(element)) return;
     if (Chrome._activeThumb) {
-      var thumb = this.getThumbRect(element);
       Chrome._dragInfo = {
-        dx: screenX - thumb.left,
-        dy: screenY - thumb.top
+        dx: screenX - this._thumbLeft,
+        dy: screenY - this._thumbTop
       };
-      this.layout(element); // make thumb active
       Chrome._firedOnce = true;
     } else {
       this.startTimer(element);
@@ -58,29 +56,24 @@ var Slider = ProgressBar.extend({
     if (!this.isEditable(element)) return;
     if (keyCode < 33 || keyCode > 40) return;
     
+    event.preventDefault();
+    
     switch (keyCode) {
-      case 33: // page up
-        this.increment(element, 1, true);
-        break;
-      case 34: // page down
-        this.increment(element, -1, true);
-        break;
       case 35: // end
-        this.setValue(element, 1);
-        break;
+        var value = 1;
       case 36: // home
-        this.setValue(element, 0);
+        this.setValue(element, value || 0);
+        return;
+      case 34: // page down
+        var block = true;
         break;
+      case 33: // page up
+        block = true;
       case 38: // up
       case 39: // right
-        this.increment(element, 1);
-        break;
-      case 37: // left
-      case 40: // down
-        this.increment(element, -1);
-        break;
+        var amount = -1;
     }
-    event.preventDefault();
+    this.increment(element, amount || 1, block);
   }
 }, {
   HORIZONTAL_WIDTH: 3000,
@@ -105,53 +98,40 @@ var Slider = ProgressBar.extend({
 
 		var base2ID = element.base2ID;
 		
-		var availableWidth = element.clientWidth - this.VERTICAL_WIDTH;
-		var availableHeight = element.clientHeight - this.HORIZONTAL_HEIGHT;
-    if (availableWidth >= availableHeight) {
-      var left = (
-        Math.floor(availableWidth * _values[base2ID]) -
-        Math.ceil((this.HORIZONTAL_WIDTH - this.THUMB_WIDTH) / 2) -
-        state * this.HORIZONTAL_WIDTH
-      )
-      var top = availableHeight / 2;
+		var clientWidth = element.clientWidth;
+		var clientHeight = element.clientHeight;
+		var value = _values[base2ID];
+		
+    if (clientWidth >= clientHeight) { // horizontal
+			clientWidth -= this.THUMB_WIDTH;
+			clientHeight -= this.HORIZONTAL_HEIGHT;
+			var left = this._thumbLeft = Math.floor(clientWidth * value);
+			var top = this._thumbTop = Math.floor(clientHeight / 2);
+			left -= Math.ceil((this.HORIZONTAL_WIDTH - this.THUMB_WIDTH) / 2) +
+        state * this.HORIZONTAL_WIDTH;
       if (!_vertical[base2ID]) this.setOrientation(element, this.HORIZONTAL);
-    } else {
-      left = availableWidth / 2 ;
-      top = (
-        availableHeight - Math.floor(availableHeight * _values[base2ID]) -
-				Math.ceil((this.VERTICAL_HEIGHT - this.THUMB_HEIGHT) / 2) -
-        state * this.VERTICAL_HEIGHT
-      );
+    } else { // vertical
+      clientWidth -= this.VERTICAL_WIDTH;
+      clientHeight -= this.THUMB_HEIGHT;
+      left = this._thumbLeft = clientWidth / 2;
+      top = this._thumbTop = clientHeight - Math.floor(clientHeight * value);
+			top -= Math.ceil((this.VERTICAL_HEIGHT - this.THUMB_HEIGHT) / 2) +
+        state * this.VERTICAL_HEIGHT;
       if (!_vertical[base2ID]) this.setOrientation(element, this.VERTICAL);
     }
     element.style.backgroundPosition = left + PX + " " + top + PX;
   },
 
   getThumbRect: function(element) {
-		var clientWidth = element.clientWidth;
-		var clientHeight = element.clientHeight;
-		var value = _values[element.base2ID];
-    if (clientWidth >= clientHeight) {
-      return new Rect(
-        Math.floor((clientWidth - this.THUMB_WIDTH) * value),
-        Math.floor((clientHeight - this.HORIZONTAL_HEIGHT) / 2),
-        this.THUMB_WIDTH,
-        this.HORIZONTAL_HEIGHT
-      );
+    if (_vertical[element.base2ID]) {
+      return new Rect(this._thumbLeft, this._thumbTop, this.THUMB_WIDTH, this.HORIZONTAL_HEIGHT);
     } else {
-      clientHeight -= this.HORIZONTAL_HEIGHT;
-      return new Rect(
-        Math.floor((clientWidth - this.VERTICAL_WIDTH) / 2),
-        clientHeight - Math.floor(clientHeight * value),
-        this.VERTICAL_WIDTH,
-        this.THUMB_HEIGHT
-      );
+      return new Rect(this._thumbLeft, this._thumbTop, this.VERTICAL_WIDTH, this.THUMB_HEIGHT);
     }
   },
   
   hitTest: function(element, x, y) {
-    if (element.disabled) return null;
-    if (this.isNativeControl(element)) return null;
+    if (element.disabled || this.isNativeControl(element)) return null;
     return this.getThumbRect(element).contains(x, y);
   },
 
@@ -170,22 +150,22 @@ var Slider = ProgressBar.extend({
 
   tick: function(element) {
     var thumb = this.getThumbRect(element);
-    if (element.clientWidth >= element.clientHeight) {
+    if (element.clientWidth >= element.clientHeight) { // horizontal
       var mx = Chrome._eventX;
       // _increasing is true, false or null
-      if (mx < thumb.left && Chrome._increasing != true) {
+      if (mx < this._thumbLeft && true != Chrome._increasing) {
         this.increment(element, -1, true);
         Chrome._increasing = false;
-      } else if (mx > thumb.left + this.THUMB_WIDTH && Chrome._increasing != false) {
+      } else if (mx > this._thumbLeft + this.THUMB_WIDTH && false != Chrome._increasing) {
         this.increment(element, 1, true);
         Chrome._increasing = true;
       }
-    } else {
+    } else { // vertical
       var my = Chrome._eventY;
-      if (my < thumb.top && Chrome._increasing != false) {
+      if (my < this._thumTop && false != Chrome._increasing) {
         this.increment(element, 1, true);
         Chrome._increasing = true;
-      } else if (my > thumb.top + this.THUMB_HEIGHT && Chrome._increasing != true) {
+      } else if (my > this._thumbTop + this.THUMB_HEIGHT && true != Chrome._increasing) {
         this.increment(element, -1, true);
         Chrome._increasing = false;
       }

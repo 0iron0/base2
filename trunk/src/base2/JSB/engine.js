@@ -29,7 +29,10 @@ JSB.refresh = function(ready) {
   if (ready) clearInterval(timer);
 };
 
+var _NOT_ALLOWED = "%1 selectors not allowed in JSB (selector='%2').";
+
 function _addRule(rule) {
+  assert(!/:/.test(rule), format(_NOT_ALLOWED, "Pseudo class", rule));
   forEach(_parser.escape(rule).split(","), function(selector) {
     var id, tagName;
     if (_ID.test(selector) && !_COMBINATOR.test(selector)) {
@@ -56,7 +59,7 @@ function _addRuleByAttribute(attribute, rules, rule) {
 };
 
 function _addRuleByTagName(tagName, rule) {
-  assert(tagName != "*", "Wild card selectors not allowed in JSB (selector='" + rule + "').");
+  assert(tagName != "*", format(_NOT_ALLOWED, "Wild card", rule));
   var rules = _rulesByTagName[tagName];
   if (!rules) rules = _rulesByTagName[tagName] = [];
   rules._count = 0;
@@ -80,7 +83,7 @@ addEventListener(document, "keypress", JSB.refresh, false);
 addEventListener(document, "DOMContentLoaded", function() {
   removeEventListener(document, "mousemove", JSB.refresh, false);
   removeEventListener(document, "keypress", JSB.refresh, false);
-  console2.log("DOMContentLoaded");
+  ;;; console2.log("DOMContentLoaded");
   JSB.refresh(true);
   JSB.refresh = function() {
     invoke(arguments.length == 1 ? _rulesByAttribute[arguments[0]] : _rulesAll, "refresh");

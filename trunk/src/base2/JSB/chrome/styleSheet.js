@@ -1,11 +1,8 @@
 
-var PX = "px";
-var _MSIE = detect("MSIE");
-
 var _STYLES = '\
 .chrome\
 \
-{\
+{%2\
 ;background-position:9999px 9999px\
 ;background-attachment:scroll!important\
 ;background-repeat:no-repeat!important\
@@ -16,7 +13,7 @@ var _STYLES = '\
 ;cursor:default\
 }\
 \
-.progressbar:focus,.slider:focus\
+.progressbar_focus,.slider_focus\
 \
 {outline:1px dotted\
 }\
@@ -24,18 +21,20 @@ var _STYLES = '\
 .progressbar\
 \
 {border:2px solid ThreeDDarkShadow\
-;%4border-top-colors:ThreeDDarkShadow ThreeDHighlight\
-;%4border-right-colors:ThreeDDarkShadow ThreeDHighlight\
-;%4border-left-colors:ThreeDDarkShadow ThreeDHighlight\
-;%4border-bottom-colors:ThreeDDarkShadow ThreeDHighlight\
-;%4border-radius:2px\
+;%3border-top-colors:ThreeDDarkShadow ThreeDHighlight\
+;%3border-right-colors:ThreeDDarkShadow ThreeDHighlight\
+;%3border-left-colors:ThreeDDarkShadow ThreeDHighlight\
+;%3border-bottom-colors:ThreeDDarkShadow ThreeDHighlight\
+;%3border-radius:2px\
 ;background-image:url("%1progressbar.png")!important\
 }\
 \
 .slider\
 \
-{min-height:23px\
-;padding:1px 5px\
+{\
+_height:23px\
+;min-height:23px\
+;padding:2px\
 ;border:0\
 ;background-color:transparent\
 ;background-image:url("%1slider.png")!important\
@@ -56,4 +55,25 @@ if (detect("KHTML|opera[91]")) _STYLES += '\
 ;border:initial\
 }';
 
-if (_MSIE) _STYLES += ".progressbar,.slider{text-indent:0;line-height:80em}";
+if (_MSIE) _STYLES += "\
+\
+.progressbar,.slider\
+\
+{text-indent:0\
+;line-height:80em\
+}\
+\
+\.progressbar_focus\
+\
+{border-color:#000\
+}\
+\
+.slider_focus\
+\
+{border:1px dotted #000\
+;padding:1px\
+}\
+\
+.IE6.slider_focus\
+{border-color:#888\
+}";

@@ -1,26 +1,29 @@
 
-// Capture mouse events. Currently only "mousemove" and "mouseup".
-// Are any other events necessary?
+// Capture mouse events.
 
 var MouseCapture = Behavior.extend(null, {
   setCapture: function(element) {
     if (!MouseCapture._handleEvent) {
       var behavior = this;
+      MouseCapture._captureElement = element;
       MouseCapture._handleEvent = function(event) {
+        if (_OPERA) getSelection().collapse(document.body, 0); // prevent text selection
         behavior.handleMouseEvent(element, event, event.type);
       };
-      MouseCapture._captureElement = element;
-      addEventListener(element, "mouseup", MouseCapture._handleEvent, true);
-      addEventListener(element, "mousemove", MouseCapture._handleEvent, true);
+      forEach (_MOUSE_EVENTS, function(type) {
+        addEventListener(element, "mouse" + type, MouseCapture._handleEvent, true);
+      });
     }
   },
 
   releaseCapture: function(element) {
-    if (element == MouseCapture._captureElement) {
-      removeEventListener(MouseCapture._captureElement, "mousemove", MouseCapture._handleEvent, true);
-      removeEventListener(MouseCapture._captureElement, "mouseup", MouseCapture._handleEvent, true);
-      delete MouseCapture._captureElement;
+    if (MouseCapture._handleEvent) {
+      if (!element) element = MouseCapture._captureElement;
+      forEach (_MOUSE_EVENTS, function(type) {
+        removeEventListener(element, "mouse" + type, MouseCapture._handleEvent, true);
+      });
       delete MouseCapture._handleEvent;
+      delete MouseCapture._captureElement;
     }
   },
   
@@ -35,8 +38,11 @@ var MouseCapture = Behavior.extend(null, {
     },
 
     releaseCapture: function(element) {
-      if (element == MouseCapture._captureElement) {
-        element.releaseCapture();
+      if (MouseCapture._handleEvent) {
+        if (!element) element = MouseCapture._captureElement;
+        setTimeout(function() {
+          element.releaseCapture();
+        }, 0);
         this.base(element);
       }
     }
