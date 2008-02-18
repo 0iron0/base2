@@ -1,6 +1,4 @@
 
-var _currentEvent;
-
 var EventListener = Base.extend({
   constructor: function(behavior, attached) {
     this.behavior = behavior;
@@ -11,27 +9,28 @@ var EventListener = Base.extend({
   attached: null,
   
   add: function(type) {
-    addEventListener(document, type, this, _EVENT_CAPTURE.test(type));
+    addEventListener(document, type, this, _EVENT_CAPTURE.test(type)); // delegate
   },
   
   fixEvent: function(event, type) {
     // copy an event object so that we can mess with its properties
-    var fixed = copy(event);
-    fixed.type = type;
-    // map methods to the orginal event object
-    fixed.stopPropagation = function() {
-      event.stopPropagation();
-    };
-    fixed.preventDefault = function() {
-      event.preventDefault();
-    };
-    return fixed;
+    return extend(copy(event), {
+      type: type,
+
+      stopPropagation: function() {
+        event.stopPropagation();
+      },
+
+      preventDefault: function() {
+        event.preventDefault();
+      }
+    });
   },
   
   handleEvent: function(event) {
     var type = event.type;
     var fixedType = _EVENT_TYPE_FIX[type]; // non-JSB events mapped to supported JSB events
-    // Pass captured event to the MouseCapture object
+    // Pass captured events to the MouseCapture object
     if (_EVENT_MOUSE.test(fixedType || type) && MouseCapture._handleEvent) {
       MouseCapture._handleEvent(event);
     } else {
@@ -46,11 +45,12 @@ var EventListener = Base.extend({
 
   "@Gecko" : {
     fixEvent: function(event, type) {
+      event = copy(event);
       event.__defineGetter__("type", K(type));
       event.wheelDelta = (-event.detail * 40) || 0;
       return event;
     },
-    
+
     handleEvent: function(event) {
       if (_EVENT_MOUSE.test(event.type)) {
         var box = document.getBoxObjectFor(event.target);
@@ -61,7 +61,29 @@ var EventListener = Base.extend({
     }
   },
 
-  "@MSIE" : {
+  "@operaxxxxxxxxxxxxxxxxxxxxxxxxxxx" : {
+    handleEvent: function(event) {
+      var type = event.type;
+      if (type == "keydown") {
+        extend(event, "preventDefault", function() {
+          this.base();
+          this.cancelled = true;
+        });
+        this.keyCode = event.keyCode;
+      } if (type == "keypress") {
+        if (this.cancelled) {
+          event.preventDefault();
+          return;
+        }
+        event = this.fixEvent(event, "keydown");
+        event.keyCode = this.keyCode;
+      }
+      this.base(event);
+      this.cancelled = event.cancelled;
+    }
+  },
+
+  "@MSIE---------------------" : {
     fixEvent: function(event, type) {
       var fixed = this.base(event, type);
       for (var propertyName in event) {
@@ -79,7 +101,7 @@ var EventListener = Base.extend({
       //  beforedeactivate event.
       if (type == "beforedeactivate" && this.type == "mousedown" && element != this.target) {
         event.returnValue = this.returnValue;
-        return;
+        if (this.returnValue === false) return;
       }
       // quit if not an attached element
       if (!element || !this.attached[element.base2ID]) return;
@@ -105,8 +127,7 @@ var EventListener = Base.extend({
       }
       this.base(event);
       if (type == "mousedown") {
-        // store the state of the the event, the mousedown event may be
-        //  cancelled (see above)
+        // store the state of the the event, the mousedown event may be cancelled (see above)
         this.returnValue = event.returnValue;
         this.target = event.target;
       }

@@ -1,32 +1,32 @@
 
 var Chrome = MouseCapture.extend({
   onattach: function(element) {
-    element.onscroll = _resetScroll;
     this.layout(element, this.states[element.disabled ? "disabled" : "normal"]);
   },
 
   onmousedown: function(element, event, x, y) {
+    console2.log("onmousedown: "+ event.button);
     Chrome._active = element;
-    Chrome._selected = element;
     
     if (!this.isEditable(element)) return;
 
     Chrome._activeThumb = this.hitTest(element, x, y);
-    this.syncCursor(element);
-    this.layout(element);
     if (Chrome._activeThumb) {
       this.setCapture(element);
     }
+    this.syncCursor(element);
+    this.layout(element);
   },
 
   onmouseup: function(element, event) {
+    console2.log("onmouseup: "+ event.button);
+    delete Chrome._active;
     if (Chrome._activeThumb) {
       delete Chrome._activeThumb;
       this.syncCursor(element);
       this.layout(element);
     }
     this.releaseCapture(element);
-    delete Chrome._active;
   },
 
   onmousemove: function(element, event, x, y) {
@@ -46,16 +46,32 @@ var Chrome = MouseCapture.extend({
   },
 
   onfocus: function(element, event) {
+    console2.log("onfocus");
     Chrome._focus = element;
-    Chrome._selected = element;
     this.layout(element);
   },
 
   onblur: function(element) {
+    console2.log("onblur");
     delete Chrome._focus;
-    delete Chrome._selected;
     this.removeClass(element, this.appearance + _FOCUS);
     this.layout(element);
+  },
+
+  onkeyup: function(element, event, keyCode) {
+    console2.log("onkeyup: "+keyCode);
+  },
+
+  onkeypress: function(element, event, keyCode) {
+    console2.log("onkeypress: "+keyCode);
+  },
+
+  onclick: function(element, event) {
+    console2.log("onclick: "+ event.button);
+  },
+
+  ondblclick: function(element, event) {
+    console2.log("ondblclick: "+ event.button);
   }
 }, {
   HORIZONTAL: 0,
@@ -74,7 +90,7 @@ var Chrome = MouseCapture.extend({
   imageWidth: 17,
 
   isActive: function(element) {
-    return element == Chrome._hover && Chrome._activeThumb && (Chrome._activeThumb == Chrome._hoverThumb);
+		return Chrome._activeThumb && (Chrome._activeThumb == Chrome._hoverThumb);
   },
 
   isEditable: function(element) {
@@ -84,7 +100,7 @@ var Chrome = MouseCapture.extend({
   isNativeControl: False,
 
   getCursor: function(element) {
-    return element == Chrome._hover && (Chrome._activeThumb || Chrome._hoverThumb) ? "default" : "";
+		return (Chrome._activeThumb || Chrome._hoverThumb || element != Chrome._hover) ? "default" : "";
   },
 
   syncCursor: function(element) {
@@ -117,10 +133,7 @@ var Chrome = MouseCapture.extend({
 	startTimer: function(element, id, interval, repeat) {
     id = element.base2ID + (id || _TIMER);
 		if (!_timers[id]) {
-		  var self = this;
-			_timers[id] = setInterval(function() {
-        self.tick(element);
-      }, 100);
+			_timers[id] = setInterval(bind(this.tick, this, element), 100);
 		}
 	},
 

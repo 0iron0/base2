@@ -5,8 +5,8 @@
 // parameter as the first argument after the "event" parameter.
 
 var ExtendedMouse = MouseCapture.extend(null, {
-  handleMouseEvent: function(element, event) {
-    var type = event.type;
+  handleEvent: function(element, event, type) {
+    type = event.type;
     if (_EVENT_BUTTON.test(type)) {
       var handler = this["on" + type];
       if (handler) {

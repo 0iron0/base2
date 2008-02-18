@@ -42,7 +42,7 @@ var Spinner = NumberControl.extend({
       case 34: // page-down
       case 38: // up-arrow
       case 40: // down-arrow
-        event.preventDefault();
+        event.preventDefault(); // is this required?
         this.deactivate(element);
         break;
     }

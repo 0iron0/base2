@@ -1,4 +1,5 @@
 
+
 JSB.refresh = function(ready) {
   if (ready || !batch.timer) {
     ;;; console2.log("tick: " + (new Date().valueOf()));
@@ -84,6 +85,7 @@ addEventListener(document, "DOMContentLoaded", function() {
   removeEventListener(document, "mousemove", JSB.refresh, false);
   removeEventListener(document, "keypress", JSB.refresh, false);
   ;;; console2.log("DOMContentLoaded");
+  ;;; console2.log("Document load time: "+((new Date)-ss));
   JSB.refresh(true);
   JSB.refresh = function() {
     invoke(arguments.length == 1 ? _rulesByAttribute[arguments[0]] : _rulesAll, "refresh");

@@ -11,8 +11,7 @@ batch.forEach = function(elements, attach, i) {
   }
   if (!i) i = 0;
   var length = elements.length;
-  var start = new Date;
-  var now = start;
+  var start = now = new Date;
   ;;; var j = i;
   while (i < length && (now - start) < 200) {
     attach(elements[i++]);
@@ -39,5 +38,5 @@ batch.forEach = function(elements, attach, i) {
       batch.forEach(args[0], args[1], args[2]);
     }, 100);
   }
-  document.body.scrollTop = 1;
+  //document.body.scrollTop = 1;
 };

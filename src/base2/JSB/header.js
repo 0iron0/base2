@@ -8,7 +8,7 @@ var _ID         = /^\*#([\w-]+)$/,
 
 var _EVENT          = /^on[a-z]+$/,
     _EVENT_BUTTON   = /^mouse(up|down)|click$/,
-    _EVENT_CAPTURE  = /^(focus|blur|keypress)$/,
+    _EVENT_CAPTURE  = /^(focus|blur)$/,
     _EVENT_CLICK    = /click$/,
     _EVENT_KEYBOARD = /^key/,
     _EVENT_MOUSE    = /^(DOM)?mouse|click$/i;
