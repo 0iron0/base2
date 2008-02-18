@@ -14,16 +14,18 @@ var NumberControl = Chrome.extend({
     // the following only applies to Slider/ProgressBar but we'll leave it here
 		var min = element.min, value = element.value;
     if (!value || isNaN(value)) value = min;
-    else if (element.step != 1) this.setValue(element, value);
+    //else if (element.step != 1) this.setValue(element, value);
     _values[element.base2ID] = (value - min) / (element.max - min);
+    
+    element.onscroll = _resetScroll;
 
     // default behaviour
     this.base(element);
   },
   
   onmousewheel: function(element, event, delta) {
-    if (element == Chrome._selected) {
-      if (this.isEditable(element)) this.increment(element, -parseInt(delta / 40));
+    if (this.isEditable(element) && Chrome._focus == element) {
+      this.increment(element, -parseInt(delta / 40));
       event.preventDefault();
     }
   }

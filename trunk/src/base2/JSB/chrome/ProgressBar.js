@@ -7,19 +7,9 @@
 var ProgressBar = NumberControl.extend({
   onfocus: function(element) {
     if (element != Chrome._active) {
-      Chrome._selected = element;
       this.addClass(element, this.appearance + _FOCUS);
     }
-    Chrome._focus = element;
-    this.layout(element);
-  },
-  
-  onmousedown: function(element, event) {
-    base(this, arguments);
-    //event.preventDefault();
-    if (Chrome._focus && element != Chrome._focus) {
-      Chrome._focus.blur();
-    }
+    this.base(element);
   }
 }, {
   HEIGHT: 3000,

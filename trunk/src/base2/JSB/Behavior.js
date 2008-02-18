@@ -1,13 +1,18 @@
 
-var Behavior = Module.extend(null, {
+var Behavior = Module.extend({
+  "@MSIE": {
+    onfocus: Undefined,
+    onblur : Undefined
+  }
+}, {
   attach: I,
   detach: I,
   
   extend: function(_interface, _static) {
     // Extend a behavior to create a new behavior.
     var behavior = this.base(_interface, _static);
-    var attachedElementIDs = {}; // base2IDs
     var events = {}, attributes = {}, methods;
+    var attachedElementIDs = {}; // base2IDs
     var eventListener = new EventListener(behavior, attachedElementIDs);
     
     // Extract behavior properties.
@@ -28,14 +33,13 @@ var Behavior = Module.extend(null, {
         attributes[name] = property;
       }
     });
-
+    
     behavior.attach = function(element) {
       var base2ID = element.base2ID || assignID(element);
       if (!attachedElementIDs[base2ID]) { // Don't attach more than once.
         attachedElementIDs[base2ID] = true;
         // If the document is bound then bind the element.
-        var docID = document.base2ID;
-        if (DOM.bind[docID]) DOM.bind(element);
+        //if (_documentIsBound) DOM.bind(element);
         // Add event handlers
         if (events) {
           forEach (events, bind(flip(eventListener.add), eventListener));
@@ -58,7 +62,7 @@ var Behavior = Module.extend(null, {
 
     behavior.detach = function(element) {
       var base2ID = element.base2ID || assignID(element);
-      if (attachedElementIDs[base2ID]) { // Don't attach more than once.
+      if (attachedElementIDs[base2ID]) {
         if (behavior.ondetach) behavior.ondetach(element);
         delete attachedElementIDs[base2ID];
       }
@@ -84,37 +88,20 @@ var Behavior = Module.extend(null, {
     // We could use the passed event type but we can't trust the descendant
     // classes to always pass it. :-P
     type = event.type;
-    if (_EVENT_MOUSE.test(type)) {
-      this.handleMouseEvent(element, event, type);
-    } else if (_EVENT_KEYBOARD.test(type)) {
-      this.handleKeyEvent(element, event, type);
-    } else {
-      if (this["on" + type]) {
-        this["on" + type](element, event);
-      }
-    }
-  },
-
-  handleKeyEvent: function(element, event, type) {
-    type = event.type;
     var handler = "on" + type;
-    if (this[handler]) {
-      if (type == "keypress") {
-        this[handler](element, event, event.charCode);
-      } else {
+    if (handler) {
+      if (_EVENT_MOUSE.test(type)) {
+        //if (!_EVENT_BUTTON.test(type) || event.button == _MOUSE_BUTTON_LEFT) {
+          if (type == "mousewheel") {
+            this[handler](element, event, event.wheelDelta);
+          } else {
+            this[handler](element, event, event.offsetX, event.offsetY, event.screenX, event.screenY);
+          }
+        //}
+      } else if (_EVENT_KEYBOARD.test(type)) {
         this[handler](element, event, event.keyCode, event.shiftKey, event.ctrlKey, event.altKey);
-      }
-    }
-  },
-
-  handleMouseEvent: function(element, event, type) {
-    type = event.type;
-    var handler = "on" + type;
-    if (this[handler] && (!_EVENT_BUTTON.test(type) || event.button == _MOUSE_BUTTON_LEFT)) {
-      if (type == "mousewheel") {
-        this[handler](element, event, event.wheelDelta);
       } else {
-        this[handler](element, event, event.offsetX, event.offsetY, event.screenX, event.screenY);
+        this[handler](element, event);
       }
     }
   },

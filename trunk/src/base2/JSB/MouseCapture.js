@@ -8,7 +8,7 @@ var MouseCapture = Behavior.extend(null, {
       MouseCapture._captureElement = element;
       MouseCapture._handleEvent = function(event) {
         if (_OPERA) getSelection().collapse(document.body, 0); // prevent text selection
-        behavior.handleMouseEvent(element, event, event.type);
+        behavior.handleEvent(element, event, event.type);
       };
       forEach (_MOUSE_EVENTS, function(type) {
         addEventListener(element, "mouse" + type, MouseCapture._handleEvent, true);

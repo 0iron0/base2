@@ -11,11 +11,12 @@ var _STYLES = '\
 \
 {text-indent:-10em\
 ;cursor:default\
+;-webkit-user-select:none\
 }\
 \
 .progressbar_focus,.slider_focus\
 \
-{outline:1px dotted\
+{-moz-outline:1px dotted\
 }\
 \
 .progressbar\
@@ -32,9 +33,9 @@ var _STYLES = '\
 .slider\
 \
 {\
-_height:23px\
-;min-height:23px\
-;padding:2px\
+_height:17px\
+;min-height:17px\
+;padding:3px\
 ;border:0\
 ;background-color:transparent\
 ;background-image:url("%1slider.png")!important\
@@ -61,19 +62,4 @@ if (_MSIE) _STYLES += "\
 \
 {text-indent:0\
 ;line-height:80em\
-}\
-\
-\.progressbar_focus\
-\
-{border-color:#000\
-}\
-\
-.slider_focus\
-\
-{border:1px dotted #000\
-;padding:1px\
-}\
-\
-.IE6.slider_focus\
-{border-color:#888\
 }";

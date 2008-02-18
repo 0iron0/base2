@@ -13,8 +13,8 @@ var Slider = ProgressBar.extend({
     if (!this.isEditable(element)) return;
     if (Chrome._activeThumb) {
       Chrome._dragInfo = {
-        dx: screenX - this._thumbLeft,
-        dy: screenY - this._thumbTop
+        dx: screenX - Chrome._thumbLeft,
+        dy: screenY - Chrome._thumbTop
       };
       Chrome._firedOnce = true;
     } else {
@@ -53,10 +53,14 @@ var Slider = ProgressBar.extend({
   },
 
   onkeydown: function(element, event, keyCode) {
+    console2.log("onkeydown: "+keyCode);
     if (!this.isEditable(element)) return;
+
+    event.preventDefault();
+    
     if (keyCode < 33 || keyCode > 40) return;
     
-    event.preventDefault();
+    var amount = 1;
     
     switch (keyCode) {
       case 35: // end
@@ -64,16 +68,16 @@ var Slider = ProgressBar.extend({
       case 36: // home
         this.setValue(element, value || 0);
         return;
-      case 34: // page down
+      case 33: // page up
         var block = true;
         break;
-      case 33: // page up
+      case 34: // page down
         block = true;
-      case 38: // up
-      case 39: // right
-        var amount = -1;
+      case 37: // left
+      case 40: // down
+        amount = -1;
     }
-    this.increment(element, amount || 1, block);
+    this.increment(element, amount, block);
   }
 }, {
   HORIZONTAL_WIDTH: 3000,
@@ -85,15 +89,14 @@ var Slider = ProgressBar.extend({
 
   appearance: "slider",
   
-  "@KHTML--opera[91]": {
+  "@KHTML|opera[91]": {
     isNativeControl: function(element) {
       return element.nodeName == "INPUT" && element.type == "range";
     }
   },
-  
+
   layout: function(element, state) {
     // TODO: Right to left should invert horizontal
-    
     if (state == null) state = this.getState(element);
 
 		var base2ID = element.base2ID;
@@ -105,16 +108,16 @@ var Slider = ProgressBar.extend({
     if (clientWidth >= clientHeight) { // horizontal
 			clientWidth -= this.THUMB_WIDTH;
 			clientHeight -= this.HORIZONTAL_HEIGHT;
-			var left = this._thumbLeft = Math.floor(clientWidth * value);
-			var top = this._thumbTop = Math.floor(clientHeight / 2);
+			var left = Chrome._thumbLeft = Math.floor(clientWidth * value);
+			var top = Chrome._thumbTop = Math.floor(clientHeight / 2);
 			left -= Math.ceil((this.HORIZONTAL_WIDTH - this.THUMB_WIDTH) / 2) +
         state * this.HORIZONTAL_WIDTH;
       if (!_vertical[base2ID]) this.setOrientation(element, this.HORIZONTAL);
     } else { // vertical
       clientWidth -= this.VERTICAL_WIDTH;
       clientHeight -= this.THUMB_HEIGHT;
-      left = this._thumbLeft = clientWidth / 2;
-      top = this._thumbTop = clientHeight - Math.floor(clientHeight * value);
+      left = Chrome._thumbLeft = clientWidth / 2;
+      top = Chrome._thumbTop = clientHeight - Math.floor(clientHeight * value);
 			top -= Math.ceil((this.VERTICAL_HEIGHT - this.THUMB_HEIGHT) / 2) +
         state * this.VERTICAL_HEIGHT;
       if (!_vertical[base2ID]) this.setOrientation(element, this.VERTICAL);
@@ -124,9 +127,9 @@ var Slider = ProgressBar.extend({
 
   getThumbRect: function(element) {
     if (_vertical[element.base2ID]) {
-      return new Rect(this._thumbLeft, this._thumbTop, this.THUMB_WIDTH, this.HORIZONTAL_HEIGHT);
+      return new Rect(Chrome._thumbLeft, Chrome._thumbTop, this.VERTICAL_WIDTH, this.THUMB_HEIGHT);
     } else {
-      return new Rect(this._thumbLeft, this._thumbTop, this.VERTICAL_WIDTH, this.THUMB_HEIGHT);
+      return new Rect(Chrome._thumbLeft, Chrome._thumbTop, this.THUMB_WIDTH, this.HORIZONTAL_HEIGHT);
     }
   },
   
@@ -136,36 +139,36 @@ var Slider = ProgressBar.extend({
   },
 
   getState: function(element) {
-    if (element.disabled) {
-      var state = "disabled";
-    } else if (element == Chrome._hover && Chrome._activeThumb) {
-      state = "active";
-    } else if ((element == Chrome._hover && Chrome._hoverThumb) || (element == Chrome._focus && element != Chrome._active)) {
-      state = "hover";
-    } else {
-      state = "normal";
-    }
+		var state;
+		if (element.disabled) {
+			state = "disabled";
+		} else if (Chrome._activeThumb) {
+			state = "active";
+		} else if (element == Chrome._focus || Chrome._hoverThumb) {
+			state = "hover";
+		} else {
+			state = "normal";
+		}
     return this.states[state];
   },
 
   tick: function(element) {
-    var thumb = this.getThumbRect(element);
     if (element.clientWidth >= element.clientHeight) { // horizontal
       var mx = Chrome._eventX;
       // _increasing is true, false or null
-      if (mx < this._thumbLeft && true != Chrome._increasing) {
+      if (mx < Chrome._thumbLeft && true != Chrome._increasing) {
         this.increment(element, -1, true);
         Chrome._increasing = false;
-      } else if (mx > this._thumbLeft + this.THUMB_WIDTH && false != Chrome._increasing) {
+      } else if (mx > Chrome._thumbLeft + this.THUMB_WIDTH && false != Chrome._increasing) {
         this.increment(element, 1, true);
         Chrome._increasing = true;
       }
     } else { // vertical
       var my = Chrome._eventY;
-      if (my < this._thumTop && false != Chrome._increasing) {
+      if (my < Chrome._thumbTop && false != Chrome._increasing) {
         this.increment(element, 1, true);
         Chrome._increasing = true;
-      } else if (my > this._thumbTop + this.THUMB_HEIGHT && true != Chrome._increasing) {
+      } else if (my > Chrome._thumbTop + this.THUMB_HEIGHT && true != Chrome._increasing) {
         this.increment(element, -1, true);
         Chrome._increasing = false;
       }

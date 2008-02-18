@@ -47,6 +47,7 @@ var Theme = Base.extend({
   },
   
   load: function(name) {
+    //return;
     if (name) this.name = name;
     this.createStyleSheet(format(_STYLES, this, _THEMES[this.name] || "", this.prefix));
   },
@@ -80,7 +81,7 @@ var _XP_DETECT = {
   "#335ea8": "royale"
 };
 
-var _cssText = "padding:1px;border:1px solid ";
+var _cssText = "padding:2px;border:1px solid ";
 var _THEMES = {
   "classic": "",
   "luna/blue": _cssText + "#7f9db9;",
