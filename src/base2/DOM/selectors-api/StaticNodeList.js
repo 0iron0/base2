@@ -12,6 +12,12 @@ var StaticNodeList = Base.extend({
     this.item = function(index) {
       return nodes[index];
     };
+    // Sorting large node lists can be slow so only do it if necessary.
+    // You must still explicitly call sort() to get a sorted node list.
+    if (nodes.unsorted) this.sort = function() {
+      nodes.sort(_SORTER);
+      return this;
+    };
   },
   
   length: 0,
@@ -21,12 +27,12 @@ var StaticNodeList = Base.extend({
       block.call(context, this.item(i), i, this);
     }
   },
-  
+
   item: Undefined, // defined in the constructor function
-  
+  sort: This,
+
   "@(XPathResult)": {
     constructor: function(nodes) {
-  //- if (nodes instanceof XPathResult) { // doesn't work in Safari
       if (nodes && nodes.snapshotItem) {
         this.length = nodes.snapshotLength;
         this.item = function(index) {
@@ -38,3 +44,9 @@ var StaticNodeList = Base.extend({
 });
 
 StaticNodeList.implement(Enumerable);
+
+var _SORTER = _INDEXED ? function(node1, node2) {
+  return node2.sourceIndex - node2.sourceIndex;
+} : function(node1, node2) {
+  return (Node.compareDocumentPosition(node1, node2) & 2) - 1;
+};

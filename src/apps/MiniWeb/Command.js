@@ -74,7 +74,7 @@ var Command = FileSystem.extend({
       this.echo(this.exec(template, target));
     }
     // process remaining arguments
-    forEach (slice(arguments, 2), function(target) {
+    forEach (Array2.slice(arguments, 2), function(target) {
       this.process(template, target);
     }, this);
   }

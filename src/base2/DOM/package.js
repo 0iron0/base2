@@ -1,17 +1,18 @@
 
 var DOM = new base2.Package(this, {
   name:    "DOM",
-  version: "1.0 (beta 2)",
+  version: "1.0 (beta 3)",
+  imports: "Function2",
   exports:
     "Interface,Binding,Node,Document,Element,AbstractView,HTMLDocument,HTMLElement,"+
-    "Selector,Traversal,XPathParser,NodeSelector,DocumentSelector,ElementSelector,"+
-    "StaticNodeList,Event,EventTarget,DocumentEvent,ViewCSS,CSSStyleDeclaration",
+    "Selector,Traversal,CSSParser,XPathParser,NodeSelector,DocumentSelector,ElementSelector,"+
+    "StaticNodeList,Event,EventTarget,DocumentEvent,ViewCSS,CSSStyleDeclaration,ClassList",
   
   bind: function(node) {
     // Apply a base2 DOM Binding to a native DOM node.
     if (node && node.nodeType) {
-      var uid = assignID(node);
-      if (!DOM.bind[uid]) {
+      var base2ID = assignID(node);
+      if (!DOM.bind[base2ID]) {
         switch (node.nodeType) {
           case 1: // Element
             if (typeof node.className == "string") {
@@ -31,13 +32,13 @@ var DOM = new base2.Package(this, {
           default:
             Node.bind(node);
         }
-        DOM.bind[uid] = true;
+        DOM.bind[base2ID] = true;
       }
     }
     return node;
   },
   
-  "@MSIE5.+win": {  
+  "@MSIE5.+win": {
     bind: function(node) {
       if (node && node.writeln) {
         node.nodeType = 9;

@@ -26,3 +26,5 @@ var Aspect = Module.extend({
     });
   }
 });
+
+//Base.implement(Aspect); // all classes are AOP

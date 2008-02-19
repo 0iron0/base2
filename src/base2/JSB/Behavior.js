@@ -1,10 +1,5 @@
 
-var Behavior = Module.extend({
-  "@MSIE": {
-    onfocus: Undefined,
-    onblur : Undefined
-  }
-}, {
+var Behavior = Module.extend(null, {
   attach: I,
   detach: I,
   
@@ -34,12 +29,13 @@ var Behavior = Module.extend({
       }
     });
     
+    var docID = document.base2ID;
     behavior.attach = function(element) {
       var base2ID = element.base2ID || assignID(element);
       if (!attachedElementIDs[base2ID]) { // Don't attach more than once.
         attachedElementIDs[base2ID] = true;
         // If the document is bound then bind the element.
-        //if (_documentIsBound) DOM.bind(element);
+        if (DOM.bind[docID]) DOM.bind(element);
         // Add event handlers
         if (events) {
           forEach (events, bind(flip(eventListener.add), eventListener));
@@ -91,15 +87,15 @@ var Behavior = Module.extend({
     var handler = "on" + type;
     if (handler) {
       if (_EVENT_MOUSE.test(type)) {
-        //if (!_EVENT_BUTTON.test(type) || event.button == _MOUSE_BUTTON_LEFT) {
+        if (!_EVENT_BUTTON.test(type) || event.button == _MOUSE_BUTTON_LEFT) {
           if (type == "mousewheel") {
             this[handler](element, event, event.wheelDelta);
           } else {
             this[handler](element, event, event.offsetX, event.offsetY, event.screenX, event.screenY);
           }
-        //}
+        }
       } else if (_EVENT_KEYBOARD.test(type)) {
-        this[handler](element, event, event.keyCode, event.shiftKey, event.ctrlKey, event.altKey);
+        this[handler](element, event, event.keyCode, event.shiftKey, event.ctrlKey, event.altKey, event.metaKey);
       } else {
         this[handler](element, event);
       }

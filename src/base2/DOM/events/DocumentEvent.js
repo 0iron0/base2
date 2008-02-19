@@ -3,14 +3,26 @@
 
 var DocumentEvent = Interface.extend({  
   "@!(document.createEvent)": {
-    createEvent: function(document, type) {
+    createEvent: function() {
       return Event.bind({});
     },
   
     "@(document.createEventObject)": {
-      createEvent: function(document, type) {
+      createEvent: function(document) {
         return Event.bind(document.createEventObject());
       }
+    },
+
+    createEvent: function(document, type) {
+      var event = this.base(document);
+      event.bubbles = false;
+      event.cancelable = false;
+      event.eventPhase = 0;
+      event.target = document;
+      event.currentTarget = null;
+      event.relatedTarget = null;
+      event.timeStamp = new Date().valueOf();
+      return event;
     }
   },
   

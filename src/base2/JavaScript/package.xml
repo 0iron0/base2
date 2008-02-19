@@ -7,5 +7,5 @@
   <include src="Array2.js"/>
   <include src="Date2.js"/>
   <include src="String2.js"/>
-  <include src="functions.js"/>
+  <include src="Function2.js"/>
 </package>

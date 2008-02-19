@@ -18,13 +18,15 @@ var CSSParser = RegGrp.extend({
   
   cache: null,
   ignoreCase: true,
-  
-  escape: function(selector) {
+
+  escape: function(selector, simple) {
     // remove strings
     var strings = this._strings = [];
-    return this.optimise(this.format(String(selector).replace(_CSS_ESCAPE, function(string) {      
+    selector = this.optimise(this.format(String(selector).replace(_CSS_ESCAPE, function(string) {
       return "\x01" + strings.push(string.slice(1, -1).replace(_QUOTE, "\\'"));
     })));
+    if (simple) selector = selector.replace(/^ \*/, "");
+    return selector;
   },
   
   format: function(selector) {
@@ -39,9 +41,9 @@ var CSSParser = RegGrp.extend({
     return this.sorter.exec(selector.replace(_CSS_WILD_CARD, ">* "));
   },
   
-  parse: function(selector) {
+  parse: function(selector, simple) {
     return this.cache[selector] ||
-      (this.cache[selector] = this.unescape(this.exec(this.escape(selector))));
+      (this.cache[selector] = this.unescape(this.exec(this.escape(selector, simple))));
   },
   
   unescape: function(selector) {

@@ -74,7 +74,7 @@ function print_package($package, $pbase) {
 	$publish = $package->getAttribute('publish') != 'false';
 	$closure = $package->getAttribute('closure') != 'false';
 	
-	if ($closure) print("\r\nnew function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////\r\n");
+	if ($closure) print("\r\nnew function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////\r\n");
 	$includes = $package->getElementsByTagName('include');
 	foreach ($includes as $include) {
 		$src = path_resolve($include->getAttribute('src'), $pbase);

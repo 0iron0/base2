@@ -28,10 +28,10 @@ var Date2 = _createObject2(
   function(yy, mm, dd, h, m, s, ms) {
     switch (arguments.length) {
       case 0: return new Date;
-      case 1: return new Date(yy);
+      case 1: return typeof yy == "number" ? new Date(yy) : Date2.parse(yy);
       default: return new Date(yy, mm, arguments.length == 2 ? 1 : dd, h || 0, m || 0, s || 0, ms || 0);
     }
-  }, "", [{
+  }, "", {
     toISOString: function(date) {
       var string = "####-##-##T##:##:##.###";
       for (var part in _DATE_PARTS) {
@@ -44,8 +44,10 @@ var Date2 = _createObject2(
       // remove trailing zeroes, and remove UTC timezone, when time's absent
       return string.replace(_TRIM_ZEROES, "").replace(_TRIM_TIMEZONE, "$1Z");
     }
-  }]
+  }
 );
+
+delete Date2.forEach;
 
 Date2.now = function() {
   return (new Date).valueOf(); // milliseconds since the epoch
@@ -56,28 +58,28 @@ Date2.parse = function(string, defaultDate) {
     assertType(defaultDate, "number", "defaultDate should be of type 'number'.")
   }
   // parse ISO date
-  var match = String(string).match(_DATE_PATTERN);
-  if (match) {
-    if (match[_DATE_PARTS.Month]) match[_DATE_PARTS.Month]--; // js months start at zero
+  var parts = match(string, _DATE_PATTERN);
+  if (parts.length) {
+    if (parts[_DATE_PARTS.Month]) parts[_DATE_PARTS.Month]--; // js months start at zero
     // round milliseconds on 3 digits
-    if (match[_TIMEZONE_PARTS.Hectomicroseconds] >= 5) match[_DATE_PARTS.Milliseconds]++;
+    if (parts[_TIMEZONE_PARTS.Hectomicroseconds] >= 5) parts[_DATE_PARTS.Milliseconds]++;
     var date = new Date(defaultDate || 0);
-    var prefix = match[_TIMEZONE_PARTS.UTC] || match[_TIMEZONE_PARTS.Hours] ? "UTC" : "";
+    var prefix = parts[_TIMEZONE_PARTS.UTC] || parts[_TIMEZONE_PARTS.Hours] ? "UTC" : "";
     for (var part in _DATE_PARTS) {
-      var value = match[_DATE_PARTS[part]];
+      var value = parts[_DATE_PARTS[part]];
       if (!value) continue; // empty value
       // set a date part
       date["set" + prefix + part](value);
       // make sure that this setting does not overflow
-      if (date["get" + prefix + part]() != match[_DATE_PARTS[part]]) {
+      if (date["get" + prefix + part]() != parts[_DATE_PARTS[part]]) {
         return NaN;
       }
     }
     // timezone can be set, without time being available
     // without a timezone, local timezone is respected
-    if (match[_TIMEZONE_PARTS.Hours]) {
-      var Hours = Number(match[_TIMEZONE_PARTS.Sign] + match[_TIMEZONE_PARTS.Hours]);
-      var Minutes = Number(match[_TIMEZONE_PARTS.Sign] + (match[_TIMEZONE_PARTS.Minutes] || 0));
+    if (parts[_TIMEZONE_PARTS.Hours]) {
+      var Hours = Number(parts[_TIMEZONE_PARTS.Sign] + parts[_TIMEZONE_PARTS.Hours]);
+      var Minutes = Number(parts[_TIMEZONE_PARTS.Sign] + (parts[_TIMEZONE_PARTS.Minutes] || 0));
       date.setUTCMinutes(date.getUTCMinutes() + (Hours * 60) + Minutes);
     } 
     return date.valueOf();

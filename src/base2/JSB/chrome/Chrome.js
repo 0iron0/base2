@@ -5,28 +5,28 @@ var Chrome = MouseCapture.extend({
   },
 
   onmousedown: function(element, event, x, y) {
-    console2.log("onmousedown: "+ event.button);
+    console2.log("onmousedown: "+ event.eventPhase);
     Chrome._active = element;
     
     if (!this.isEditable(element)) return;
 
     Chrome._activeThumb = this.hitTest(element, x, y);
     if (Chrome._activeThumb) {
-      this.setCapture(element);
+      //this.setCapture(element);
     }
     this.syncCursor(element);
     this.layout(element);
   },
 
   onmouseup: function(element, event) {
-    console2.log("onmouseup: "+ event.button);
+    console2.log("onmouseup: "+ event.eventPhase);
     delete Chrome._active;
     if (Chrome._activeThumb) {
       delete Chrome._activeThumb;
       this.syncCursor(element);
       this.layout(element);
     }
-    this.releaseCapture(element);
+    //this.releaseCapture(element);
   },
 
   onmousemove: function(element, event, x, y) {
@@ -35,17 +35,18 @@ var Chrome = MouseCapture.extend({
   },
 
   onmouseover: function(element) {
+    //console2.log("HOVER: "+this.matchesSelector(element,":hover"));
     Chrome._hover = element;
-    this.delayRefresh(element);
+    this.layout(element);
   },
 
   onmouseout: function(element) {
     delete Chrome._hoverThumb;
     delete Chrome._hover;
-    this.delayRefresh(element);
+    this.layout(element);
   },
 
-  onfocus: function(element, event) {
+  onfocus: function(element) {
     console2.log("onfocus");
     Chrome._focus = element;
     this.layout(element);
@@ -58,8 +59,12 @@ var Chrome = MouseCapture.extend({
     this.layout(element);
   },
 
-  onkeyup: function(element, event, keyCode) {
+  onkeydown: function(element, event, keyCode) {
     console2.log("onkeyup: "+keyCode);
+  },
+
+  onkeyup: function(element, event, keyCode) {
+    console2.log("onkeydown: "+keyCode);
   },
 
   onkeypress: function(element, event, keyCode) {

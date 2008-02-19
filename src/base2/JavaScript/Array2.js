@@ -3,7 +3,7 @@ var Array2 = _createObject2(
   Array,
   Array,
   "concat,join,pop,push,reverse,shift,slice,sort,splice,unshift", // generics
-  [Enumerable, {
+  Enumerable, {
     combine: function(keys, values) {
       // Combine two arrays to make a hash.
       if (!values) values = keys;
@@ -80,7 +80,21 @@ var Array2 = _createObject2(
       });
       return result;
     },
-    
+
+/*  reduceRight: function(array, block, result, context) {
+      var length = array.length;
+      var initialised = arguments.length > 2;
+      this.forEach (this.reverse(array), function(value, index) {
+        if (initialised) {
+          result = block.call(context, result, value, length - index, array);
+        } else {
+          result = value;
+          initialised = true;
+        }
+      });
+      return result;
+    }, */
+
     remove: function(array, item) {
       var index = this.indexOf(array, item);
       if (index != -1) this.removeAt(array, index);
@@ -99,7 +113,7 @@ var Array2 = _createObject2(
       array[index2] = temp;
       return array;
     }
-  }]
+  }
 );
 
 Array2.reduce = Enumerable.reduce; // Mozilla does not implement the thisObj argument

@@ -53,12 +53,9 @@ var Slider = ProgressBar.extend({
   },
 
   onkeydown: function(element, event, keyCode) {
-    console2.log("onkeydown: "+keyCode);
     if (!this.isEditable(element)) return;
-
-    event.preventDefault();
-    
     if (keyCode < 33 || keyCode > 40) return;
+    event.preventDefault();
     
     var amount = 1;
     
@@ -144,7 +141,7 @@ var Slider = ProgressBar.extend({
 			state = "disabled";
 		} else if (Chrome._activeThumb) {
 			state = "active";
-		} else if (element == Chrome._focus || Chrome._hoverThumb) {
+		} else if (element == Chrome._focus || (element == Chrome._hover && Chrome._hoverThumb)) {
 			state = "hover";
 		} else {
 			state = "normal";

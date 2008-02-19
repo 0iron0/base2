@@ -7,6 +7,7 @@
 
 var JSON = new base2.Package(this, {
   name:    "JSON",
+  imports: "Enumerable",
   version: "0.9",
 
   // IE5.0 doesn't like non-greedy RegExps

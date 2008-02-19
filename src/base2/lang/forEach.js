@@ -8,7 +8,7 @@ if (typeof StopIteration == "undefined") {
 function forEach(object, block, context, fn) {
   if (object == null) return;
   if (!fn) {
-    if (typeof object == "function" && object.call) {
+    if (typeof object == "function" && object.call && !_ancestorOf(Module, object)) {
       // Functions are a special case.
       fn = Function;
     } else if (typeof object.forEach == "function" && object.forEach != arguments.callee) {

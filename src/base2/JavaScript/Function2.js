@@ -1,60 +1,146 @@
 
+var _ = {toString: K("_")};
+
 var Function2 = _createObject2(
   Function,
-  "",
-  [{
+  Function,
+  "apply,call", {
+    _: _,
+    I: I,
+    II: II,
+    K: K,
+//  EQ: EQ,
     bind: bind,
-    curry: curry,
+    compose: compose,
     delegate: delegate,
-    forEach: _Function_forEach,
+    flip: flip,
     not: not,
-    unbind: unbind
-  }, {
-    partial: function(fn) {
-    //-  var partial = arguments.callee;
-      return function() {
-        if (arguments.length >= fn.length) {
-          return fn.apply(this, arguments);
-        } else if (arguments.length == 0) {
-          return arguments.callee;
-        } else {
-          var supplied = slice(arguments);
-          var remaining = [];
-          for (var i = supplied.length; i < fn.length; i++) {
-            remaining.push("_" + i);
-          }
-          eval("var f=function(" + 
-            remaining.join(",") + 
-          "){return fn.apply(this,supplied.concat(slice(arguments)))}");
-          return f;
-        }
-      };
-    },
-    
-    reverse: function(fn) {
-      // call the supplied function with its *defined* arguments reversed
-      return function() {
-        return fn.apply(this, slice(arguments, 0, fn.length).reverse());
-      };
-    },
-    
-    shift: function(fn) {
-      return function() {
-        fn.apply(this, slice(arguments, 1));
-      };
-    },
-    
-    slice: function(fn) {
-      return function() {
-        fn.apply(this, slice.apply(arguments, slice(arguments, 1)));
-      };
-    },
-    
-    unshift: function(fn) {
-      var args = slice(arguments, 1);
-      return function() {
-        fn.apply(this, args.concat(slice(arguments)));
-      };
-    }
-  }]
+    partial: partial,
+    unbind: unbind,
+    unshift: unshift
+  }
 );
+
+function I(i) { // return first argument
+  return i;
+};
+
+function II(i, ii) { // return second argument
+  return ii;
+};
+
+function K(k) {
+  return function() {
+    return k;
+  };
+};
+
+function bind(fn, context) {
+  var args = _slice.call(arguments, 2);
+  var lateBound = typeOf(fn) != "function";
+  return args.length == 0 ? function() { // faster if there are no additional arguments
+    return (lateBound ? context[fn] : fn).apply(context, arguments);
+  } : function() {
+    return (lateBound ? context[fn] : fn).apply(context, args.concat.apply(args, arguments));
+  };
+};
+
+function compose() {
+  var fns = _slice.call(arguments);
+  return function() {
+    var i = fns.length, result = fns[--i].apply(this, arguments);
+    while (i--) result = fns[i].call(this, result);
+    return result;
+  };
+};
+
+function delegate(fn, context) {
+  return function() {
+    var args = _slice.call(arguments);
+    args.unshift(this);
+    return fn.apply(context, args);
+  };
+};
+
+function flip(fn) {
+  return function() {
+    return fn.apply(this, Array2.swap(arguments, 0, 1));
+  };
+};
+
+function not(fn) {
+  return function() {
+    return !fn.apply(this, arguments);
+  };
+};
+
+function partial(fn) { // "hard" partial
+  // based on Oliver Steele's version
+  var args = _slice.call(arguments, 1);
+  return function() {
+    var specialised = args.concat(), i = 0, j = 0;
+    while (i < args.length && j < arguments.length) {
+      if (specialised[i] === _) specialised[i] = arguments[j++];
+      i++;
+    }
+    while (j < arguments.length) {
+      specialised[i++] = arguments[j++];
+    }
+    if (Array2.contains(specialised, _)) {
+      specialised.unshift(fn);
+      return partial.apply(null, specialised);
+    }
+    return fn.apply(this, specialised);
+  };
+};
+
+function unbind(fn) {
+  return function(context) {
+    return fn.apply(context, _slice.call(arguments, 1));
+  };
+};
+
+function unshift(fn) { // "soft" partial
+  var args = _slice.call(arguments, 1);
+  return function() {
+    return fn.apply(this, args.concat.apply(args, arguments));
+  };
+};
+
+/*
+function EQ(v) {
+  return function(value) {
+    return v === value;
+  };
+};
+
+function reverse(fn) {
+  var length = fn.length;
+  return function() {
+    // reverse named arguments..
+    var args = _slice.call(arguments, 0, length).reverse();
+    // ..don't reverse the remaining arguments
+    if (arguments.length > length) args = args.concat(_slice.call(arguments, length));
+    return fn.apply(this, args);
+  };
+};
+
+function shift(fn) {
+  return function() {
+    fn.apply(this, _slice.call(arguments, 1));
+  };
+};
+
+function slice(fn) {
+  var args = _slice.call(arguments, 1);
+  return function() {
+    fn.apply(this, _slice.apply(arguments, args));
+  };
+},
+
+function swap(fn, arg1, arg2) {
+  return function() {
+    return fn.apply(this, Array2.swap(arguments, arg1, arg2));
+  };
+};
+*/

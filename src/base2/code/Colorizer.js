@@ -1,5 +1,7 @@
 
 eval(base2.namespace);
+eval(Enumerable.namespace);
+eval(lang.namespace);
 
 var DEFAULT = "@0";
 var IGNORE  = RegGrp.IGNORE;

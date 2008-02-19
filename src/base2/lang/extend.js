@@ -1,4 +1,8 @@
 
+function base(object, args) {
+  return object.base.apply(object, args);
+};
+
 function extend(object, source) { // or extend(object, key, value)
   if (object && source) {
     if (arguments.length > 2) { // Extending with a key/value pair.
@@ -10,7 +14,7 @@ function extend(object, source) { // or extend(object, key, value)
     // Add constructor, toString etc
     var i = _HIDDEN.length, key;
     if (base2.__prototyping) {
-      while (key = _HIDDEN[--i]) {
+      while ((key = _HIDDEN[--i])) {
         var value = source[key];
         if (value != proto[key]) {
           if (_BASE.test(value)) {
@@ -33,7 +37,7 @@ function extend(object, source) { // or extend(object, key, value)
         // Check for method overriding.
         var ancestor = object[key];
         if (ancestor && typeof value == "function") {
-          if (value != ancestor && (!ancestor.method || !_ancestorOf(value, ancestor))) {
+          if (value != ancestor) {
             if (_BASE.test(value)) {
               _override(object, key, value);
             } else {
@@ -63,7 +67,7 @@ function _ancestorOf(ancestor, fn) {
 function _override(object, name, method) {
   // Override an existing method.
   var ancestor = object[name];
-  var superObject = base2.__prototyping; // late binding for classes
+  var superObject = base2.__prototyping; // late binding for prototypes
   if (superObject && ancestor != superObject[name]) superObject = null;
   function _base() {
     var previous = this.base;
@@ -75,5 +79,5 @@ function _override(object, name, method) {
   _base.ancestor = ancestor;
   object[name] = _base;
   // introspection (removed when packed)
-  ;;; _base.toString = K(String(method));
+  ;;; _base.toString = K(method + "");
 };

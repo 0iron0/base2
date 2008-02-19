@@ -14,10 +14,10 @@ var _EVENT          = /^on[a-z]+$/,
     _EVENT_MOUSE    = /^(DOM)?mouse|click$/i;
 
 var _EVENT_TYPE_MAP = extend({}, {
-  "@MSIE": {
-    focus: "beforeactivate",
-    blur:  "beforedeactivate"
-  },
+/*  "@MSIE": {
+    focus: "focusin",
+    blur:  "focusout"
+  }, */
 
   "@Gecko": {
     mousewheel: "DOMMouseScroll"
@@ -30,9 +30,9 @@ var _EVENT_TYPE_FIX = reduce(_EVENT_TYPE_MAP, function(fixed, type, fixedType) {
 }, {});
 
 
-var _MOUSE_EVENTS = String2.csv("over,out,move,down,up,wheel");
+//var _MOUSE_EVENTS = String2.csv("over,out,move,down,up,wheel");
 
-var _MOUSE_BUTTON_LEFT = _MSIE ? 1 : 0;
+var _MOUSE_BUTTON_LEFT = 0;
 
 var _ready;
 

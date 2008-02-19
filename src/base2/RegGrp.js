@@ -10,47 +10,38 @@ var _RG_BACK_REF        = /\\(\d+)/g,
     _RG_LOOKUP_SIMPLE   = /^\$\d+$/;
 
 var RegGrp = Collection.extend({
-  constructor: function(values, flags) {
+  constructor: function(values, ignoreCase) {
     this.base(values);
-    if (typeof flags == "string") {
-      this.global = /g/.test(flags);
-      this.ignoreCase = /i/.test(flags);
-    }
+    this.ignoreCase = !!ignoreCase;
   },
 
-  global: true, // global is the default setting
   ignoreCase: false,
 
-  exec: function(string, replacement) { // optimised (refers to _HASH/_KEYS)
-    var flags = (this.global ? "g" : "") + (this.ignoreCase ? "i" : "");
-    string = String(string) + ""; // type-safe
-    if (arguments.length == 1) {
-      var self = this;
-      var keys = this[_KEYS];
-      replacement = function(match) {
-        if (match) {
-          var item, offset = 1, i = 0;
-          // Loop through the RegGrp items.
-          while ((item = self[_HASH + keys[i++]])) {
-            var next = offset + item.length + 1;
-            if (arguments[offset]) { // do we have a result?
-              var replacement = item.replacement;
-              switch (typeof replacement) {
-                case "function":
-                  return replacement.apply(self, _slice.call(arguments, offset, next));
-                case "number":
-                  return arguments[offset + replacement];
-                default:
-                  return replacement;
-              }
-            }
-            offset = next;
+  exec: function(string, override) { // optimised (refers to _HASH/_KEYS)
+    string += ""; // type-safe
+    var items = this, keys = this[_KEYS];
+    if (!keys.length) return string;
+    if (override == RegGrp.IGNORE) override = 0;
+    return string.replace(new RegExp(this, this.ignoreCase ? "gi" : "g"), function(match) {
+      var item, offset = 1, i = 0;
+      // Loop through the RegGrp items.
+      while ((item = items[_HASH + keys[i++]])) {
+        var next = offset + item.length + 1;
+        if (arguments[offset]) { // do we have a result?
+          var replacement = override == null ? item.replacement : override;
+          switch (typeof replacement) {
+            case "function":
+              return replacement.apply(items, _slice.call(arguments, offset, next));
+            case "number":
+              return arguments[offset + replacement];
+            default:
+              return replacement;
           }
         }
-        return "";
-      };
-    }
-    return string.replace(new RegExp(this, flags), replacement);
+        offset = next;
+      }
+      return match;
+    });
   },
 
   insertAt: function(index, expression, replacement) {
@@ -65,14 +56,14 @@ var RegGrp = Collection.extend({
   },
   
   toString: function() {
-    var length = 0;
+    var offset = 1;
     return "(" + this.map(function(item) {
       // Fix back references.
-      var ref = String(item).replace(_RG_BACK_REF, function(match, index) {
-        return "\\" + (1 + Number(index) + length);
+      var expression = (item + "").replace(_RG_BACK_REF, function(match, index) {
+        return "\\" + (offset + Number(index));
       });
-      length += item.length + 1;
-      return ref;
+      offset += item.length + 1;
+      return expression;
     }).join(")|(") + ")";
   }
 }, {
@@ -91,8 +82,8 @@ var RegGrp = Collection.extend({
   
   Item: {
     constructor: function(expression, replacement) {
-      if (typeof replacement == "number") replacement = String(replacement);
-      else if (replacement == null) replacement = "";    
+      if (replacement == null) replacement = RegGrp.IGNORE;
+      else if (typeof replacement != "function") replacement = String(replacement);
       
       // does the pattern use sub-expressions?
       if (typeof replacement == "string" && _RG_LOOKUP.test(replacement)) {
@@ -111,7 +102,7 @@ var RegGrp = Collection.extend({
       
       this.length = RegGrp.count(expression);
       this.replacement = replacement;
-      this.toString = K(String(expression));
+      this.toString = K(expression + "");
     },
     
     length: 0,
@@ -120,7 +111,7 @@ var RegGrp = Collection.extend({
   
   count: function(expression) {
     // Count the number of sub-expressions in a RegExp/RegGrp.Item.
-    expression = String(expression).replace(_RG_ESCAPE_CHARS, "").replace(_RG_ESCAPE_BRACKETS, "");
+    expression = (expression + "").replace(_RG_ESCAPE_CHARS, "").replace(_RG_ESCAPE_BRACKETS, "");
     return match(expression, _RG_BRACKETS).length;
   }
 });

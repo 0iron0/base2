@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package publish="false" closure="false" requires="DOM,JSB">
+<package publish="false">
   <include src="~/base2/code/Colorizer.js"/>
   <include src="~/base2/code/Colorizer/web.xml"/>
   <include src="~/base2/code/Colorizer/base2.js"/>
-  <include src="behaviors.js"/>
-  <include src="colorize.js"/>
-  <include src="required.js"/>
+  <include src="my.js"/>
 </package>

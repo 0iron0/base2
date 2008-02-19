@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="base2" publish="false">
-  <include src="lang/header.js"/>
+  <include src="header.js"/>
   <include src="Base.js"/>
   <include src="Package.js"/>
   <include src="Abstract.js"/>
@@ -11,5 +11,6 @@
   <include src="RegGrp.js"/>
   <include src="JavaScript/package.xml"/>
   <include src="lang/package.xml"/>
+  <include src="detect.js"/>
   <include src="init.js"/>
 </package>

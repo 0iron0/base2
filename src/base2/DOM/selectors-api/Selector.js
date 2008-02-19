@@ -9,52 +9,64 @@ var Selector = Base.extend({
     this.toString = K(trim(selector));
   },
   
-  exec: function(context, single) {
-    return Selector.parse(this)(context, single);
+  exec: function(context, single, simple) {
+    return Selector.parse(this, simple)(context, single);
   },
-  
-  test: function(element) {
-    //-dean: improve this for simple selectors
-    var selector = new Selector(this + "[b2-test]");
-    element.setAttribute("b2-test", true);
-    var result = selector.exec(Traversal.getOwnerDocument(element), true);
-    element.removeAttribute("b2-test");
+
+  isSimple: function() {
+    return !_COMBINATOR.test(trim(_parser.escape(this)));
+  },
+
+ test: function(element) {
+    var selector = this;
+    var context = element;
+    var simple = selector.isSimple();
+    if (!simple) {
+      context = Traversal.getOwnerDocument(element);
+      selector += "[b2-test]";
+      element.setAttribute("b2-test", true);
+    }
+    var result = new Selector(selector).exec(context, 1, simple);
+    if (!simple) element.removeAttribute("b2-test");
     return result == element;
   },
   
-  toXPath: function() {
-    return Selector.toXPath(this);
+  toXPath: function(simple) {
+    return Selector.toXPath(this, simple);
   },
   
   "@(XPathResult)": {
-    exec: function(context, single) {
+    exec: function(context, single, simple) {
       // use DOM methods if the XPath engine can't be used
       if (_NOT_XPATH.test(this)) {
-        return this.base(context, single);
+        return this.base(context, single, simple);
       }
       var document = Traversal.getDocument(context);
       var type = single
         ? 9 /* FIRST_ORDERED_NODE_TYPE */
         : 7 /* ORDERED_NODE_SNAPSHOT_TYPE */;
-      var result = document.evaluate(this.toXPath(), context, null, type, null);
+      var result = document.evaluate(this.toXPath(simple), context, null, type, null);
       return single ? result.singleNodeValue : result;
     }
   },
   
   "@MSIE": {
-    exec: function(context, single) {
+    exec: function(context, single, simple) {
       if (typeof context.selectNodes != "undefined" && !_NOT_XPATH.test(this)) { // xml
         var method = single ? "selectSingleNode" : "selectNodes";
-        return context[method](this.toXPath());
+        return context[method](this.toXPath(simple));
       }
-      return this.base(context, single);
+      return this.base(context, single, simple);
     }
   },
   
   "@(true)": {
-    exec: function(context, single) {
+    exec: function(context, single, simple) {
       try {
-        var result = this.base(context || document, single);
+        // TO DO: more efficient selectors for:
+        //   #ID
+        //   :hover/active/focus/target
+        var result = this.base(context || document, single, simple);
       } catch (error) { // probably an invalid selector =)
         throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
       }
@@ -64,11 +76,13 @@ var Selector = Base.extend({
 }, {  
   toXPath: function(selector) {
     if (!_xpathParser) _xpathParser = new XPathParser;
-    return _xpathParser.parse(selector);
+    return _xpathParser.parse(selector, simple);
   }
 });
 
-var _NOT_XPATH = ":(checked|disabled|enabled|contains)|^(#[\\w-]+\\s*)?\\w+$";
+var _COMBINATOR = /[\s+>~]/;
+
+var _NOT_XPATH = ":(checked|disabled|enabled|contains|hover|active|focus)|^(#[\\w-]+\\s*)?\\w+$";
 if (detect("KHTML")) {
   if (detect("WebKit5")) {
     _NOT_XPATH += "|nth\\-|,";
@@ -83,18 +97,18 @@ _NOT_XPATH = new RegExp(_NOT_XPATH);
 // Hideous code but it produces fast DOM queries.
 // Respect due to Alex Russell and Jack Slocum for inspiration.
 
-var _OPERATORS = {
+Selector.operators = {
   "=":  "%1=='%2'",
-  "!=": "%1!='%2'", //  not standard but other libraries support it
+//"!=": "%1!='%2'", //  not standard but other libraries support it
   "~=": /(^| )%1( |$)/,
   "|=": /^%1(-|$)/,
   "^=": /^%1/,
   "$=": /%1$/,
   "*=": /%1/
 };
-_OPERATORS[""] = "%1!=null";
+Selector.operators[""] = "%1!=null";
 
-var _PSEUDO_CLASSES = { //-dean: lang()
+Selector.pseudoClasses = { //-dean: lang()
   "checked":     "e%1.checked",
   "contains":    "e%1[TEXT].indexOf('%2')!=-1",
   "disabled":    "e%1.disabled",
@@ -103,23 +117,22 @@ var _PSEUDO_CLASSES = { //-dean: lang()
   "first-child": "!Traversal.getPreviousElementSibling(e%1)",
   "last-child":  "!Traversal.getNextElementSibling(e%1)",
   "only-child":  "!Traversal.getPreviousElementSibling(e%1)&&!Traversal.getNextElementSibling(e%1)",
-  "root":        "e%1==Traversal.getDocument(e%1).documentElement"
+  "root":        "e%1==Traversal.getDocument(e%1).documentElement",
+  "target":      "e%1.id&&e%1.id==location.hash.slice(1)",
+  "link":        "d.links&&Array2.indexOf(d.links,e%1)!=-1",
+  "hover":       "_documentState.hover(d,e%1)",
+  "active":      "_documentState.active(d,e%1)",
+  "focus":       "_documentState.focus(d,e%1)"
 };
 
 var _INDEXED = detect("(element.sourceIndex)") ;
 var _VAR = "var p%2=0,i%2,e%2,n%2=e%1.";
 var _ID = _INDEXED ? "e%1.sourceIndex" : "assignID(e%1)";
 var _TEST = "var g=" + _ID + ";if(!p[g]){p[g]=1;";
-var _STORE = "r[r.length]=e%1;if(s)return e%1;";
-//var _SORT = "r.sort(sorter);";
-var _FN = "var _selectorFunction=function(e0,s){_indexed++;var r=[],p={},reg=[%1]," +
-  "d=Traversal.getDocument(e0),c=d.body?'toUpperCase':'toString';";
-  
-var _xpathParser;
+var _STORE = "r[k++]=e%1;if(s==1)return e%1;";
+var _FN = "var _selectorFunction=function(e0,s%1){_indexed++;var r=[],p={},reg=[%2],d=Traversal.getDocument(e0),c=d.writeln?'toUpperCase':'toString',k=0;";
 
-//var sorter = _INDEXED ? function(a, b) {
-//  return a.sourceIndex - b.sourceIndex;
-//} : Node.compareDocumentPosition;
+var _xpathParser;
 
 // variables used by the parser
 
@@ -153,7 +166,7 @@ var _parser = new CSSParser({
     var replacement = _VAR;
     // IE5.x does not support getElementsByTagName("*");
     replacement += (_wild && _MSIE5) ? "all" : "getElementsByTagName('%3')";
-    replacement += ";for(i%2=0;(e%2=n%2[i%2]);i%2++){";
+    replacement += ";for(i%2=a%2||0;(e%2=n%2[i%2]);i%2++){";
     return format(replacement, _index++, _list = _index, tagName);
   },
   
@@ -166,7 +179,7 @@ var _parser = new CSSParser({
     // the document object does not have a children collection
     replacement += children ? "children": "childNodes";
     if (!_wild && children) replacement += ".tags('%3')";
-    replacement += ";for(i%2=0;(e%2=n%2[i%2]);i%2++){";
+    replacement += ";for(i%2=a%2||0;(e%2=n%2[i%2]);i%2++){";
     if (_wild) {
       replacement += "if(e%2.nodeType==1){";
       _wild = _MSIE5;
@@ -229,31 +242,31 @@ var _parser = new CSSParser({
   },
   
   ":([\\w-]+)(\\(([^)]+)\\))?": function(match, pseudoClass, $2, args) { // other pseudo class selectors
-    return "if(" + format(_PSEUDO_CLASSES[pseudoClass] || "throw", _index, args || "") + "){";
+    return "if(" + format(Selector.pseudoClasses[pseudoClass] || "throw", _index, args || "") + "){";
   },
   
   "\\[([\\w-]+)\\s*([^=]?=)?\\s*([^\\]]*)\\]": function(match, attr, operator, value) { // attribute selectors
     var alias = _ATTRIBUTES[attr] || attr;
+    var getAttribute = "e%1.getAttribute('%2',2)";
     if (operator) {
-      var getAttribute = "e%1.getAttribute('%2',2)";
       if (!_EVALUATED.test(attr)) {
         getAttribute = "e%1.%3||" + getAttribute;
       }
-      attr = format("(" + getAttribute + ")", _index, attr, alias);
     } else {
-      attr = format("Element.getAttribute(e%1,'%2')", _index, attr);
+      getAttribute = "Element.getAttribute(e%1,'%2')";
     }
-    var replacement = _OPERATORS[operator || ""];
+    getAttribute = format(getAttribute, _index, attr, alias);
+    var replacement = Selector.operators[operator || ""];
     if (instanceOf(replacement, RegExp)) {
       _reg.push(new RegExp(format(replacement.source, rescape(_parser.unescape(value)))));
       replacement = "reg[%2].test(%1)";
       value = _reg.length - 1;
     }
-    return "if(" + format(replacement, attr, value) + "){";
+    return "if(" + format(replacement, getAttribute, value) + "){";
   }
 });
 
-new function(_) {
+(function(_no_shrink_) {
   // IE confuses the name attribute with id for form elements,
   // use document.all to retrieve all elements with name/id instead
   var _byId = _MSIE ? function(document, id) {
@@ -294,13 +307,14 @@ new function(_) {
     return element;
   };
   
-  Selector.parse = function(selector) {
+  Selector.parse = function(selector, simple) {
     if (!_cache[selector]) {
       _reg = []; // store for RegExp objects
+      _index = 0;
       var fn = "";
-      var selectors = _parser.escape(selector).split(",");
+      var selectors = _parser.escape(selector, simple).split(",");
       for (var i = 0; i < selectors.length; i++) {
-        _wild = _index = _list = 0; // reset
+        _wild = _list = 0; // reset
         _duplicate = selectors.length > 1 ? 2 : 0; // reset
         var block = _parser.exec(selectors[i]) || "throw;";
         if (_wild && _MSIE) { // IE's pesky comment nodes
@@ -313,10 +327,18 @@ new function(_) {
         block += Array(match(block, /\{/g).length + 1).join("}");
         fn += block;
       }
-//    if (selectors.length > 1) fn += _SORT;
-      eval(format(_FN, _reg) + _parser.unescape(fn) + "return s?null:r}");
+      fn = _parser.unescape(fn);
+      if (selectors.length > 1) fn += "r.unsorted=1;";
+      var args = "";
+      var state = [];
+      for (var i = 1; i <= _index; i++) {
+        args += ",a" + i;
+        state.push(format("i%1?i%1-1:0", i));
+      }
+      fn += format("_selectorFunction.state=[%1];return s?null:r}", state.join(","));
+      eval(format(_FN, args, _reg) + fn);
       _cache[selector] = _selectorFunction;
     }
     return _cache[selector];
   };
-};
+})();
