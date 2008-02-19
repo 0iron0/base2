@@ -12,6 +12,6 @@ var Command = Base.extend({
   },
 
   toString: function() {
-    return this[STDOUT].join('');
+    return this[STDOUT].join("");
   }
 });

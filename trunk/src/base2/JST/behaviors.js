@@ -13,7 +13,7 @@ new JSB.RuleList({
     
     ondocumentready: function() {
       this.clear();
-      this.removeClass("disabled");
+      this.classList.remove("disabled");
     },
     
     clear: function(all) {

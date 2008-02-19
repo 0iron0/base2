@@ -12,4 +12,5 @@
   <include src="style/module.xml"/>
   <include src="selectors-api/module.xml"/>
   <include src="html/module.xml"/>
+  <include src="state.js"/>
 </package>

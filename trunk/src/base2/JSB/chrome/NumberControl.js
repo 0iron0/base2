@@ -22,7 +22,15 @@ var NumberControl = Chrome.extend({
     // default behaviour
     this.base(element);
   },
-  
+
+  onchange: function(element) {
+    console2.log("onchange");
+    if (isNaN(element.value)) {
+      this.setValue(element, element.defaultValue);
+    }
+    this.layout(element);
+  },
+
   onmousewheel: function(element, event, delta) {
     if (this.isEditable(element) && Chrome._focus == element) {
       this.increment(element, -parseInt(delta / 40));
@@ -69,6 +77,7 @@ var NumberControl = Chrome.extend({
     // round to step
     value = Math.round(value / step) * step;
     value = value.toFixed(String(step).replace(/^.*\.|^\d+$/, "").length);
+    console2.log([value, element.value])
     if (value != element.value) {
       element.value = value;
       this.dispatchEvent(element, "change");

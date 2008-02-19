@@ -1,5 +1,5 @@
 /*
-  MiniWeb - copyright 2007, Dean Edwards
+  MiniWeb - copyright 2007-2008, Dean Edwards
   http://www.opensource.org/licenses/mit-license.php
 */
 
@@ -28,7 +28,7 @@ var MiniWeb = new base2.Package(this, {
     
     // delegate some methods to the client
     var methods = "navigateTo,refresh,reload,submit".split(",");
-    base2.forEach (methods, function(method) {
+    base2.lang.forEach (methods, function(method) {
       this[method] = function() {
         var args = arguments;
         var client = MiniWeb.client;

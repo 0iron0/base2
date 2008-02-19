@@ -37,9 +37,9 @@ function instanceOf(object, klass) {
     case Date:
       return !!object.getTimezoneOffset;
     case String:
-    case Number:  // These are bullet-proof.
+    case Number:
     case Boolean:
-      return typeof object == typeof klass.prototype.valueOf();
+      return typeOf(object) == typeof klass.prototype.valueOf();
     case Object:
       return true;
   }

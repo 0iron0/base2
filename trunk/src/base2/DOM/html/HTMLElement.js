@@ -1,56 +1,28 @@
 
-// The className methods are not standard but are extremely handy. :-)
-
-var HTMLElement = Element.extend({
-  addClass: function(element, className) {
-    if (!this.hasClass(element, className)) {
-      element.className += (element.className ? " " : "") + className;
-    }
-  },
-  
-  hasClass: function(element, className) {
-    var regexp = new RegExp("(^|\\s)" + className + "(\\s|$)");
-    return regexp.test(element.className);
-  },
-
-  removeClass: function(element, className) {
-    var regexp = new RegExp("(^|\\s)" + className + "(\\s|$)", "g");
-    element.className = trim(element.className.replace(regexp, "$2"));
-  },
-
-  toggleClass: function(element, className) {
-    if (this.hasClass(element, className)) {
-      this.removeClass(element, className);
-    } else {
-      this.addClass(element, className);
-    }
-  }
-}, {
+var HTMLElement = Element.extend(null, {
   bindings: {},
   tags: "*",
   
   bind: function(element) {
-    CSSStyleDeclaration.bind(element.style);
+    if (!element.classList) {
+      element.classList = new _ElementClassList(element);
+    }
+    if (!element.ownerDocument) {
+      element.ownerDocument = Traversal.getOwnerDocument(element);
+    }
     return this.base(element);
   },
-  
+
   extend: function() {
     // Maintain HTML element bindings.
     // This allows us to map specific interfaces to elements by reference
     // to tag name.
     var binding = base(this, arguments);
-    var tags = (binding.tags || "").toUpperCase().split(",");
+    var tags = String2.csv(binding.tags);
     forEach (tags, function(tagName) {
       HTMLElement.bindings[tagName] = binding;
     });
     return binding;
-  },
-  
-  "@!(element.ownerDocument)": {
-    bind: function(element) {
-      element.ownerDocument = Traversal.getOwnerDocument(element);
-      return this.base(element);
-    }
   }
 });
 

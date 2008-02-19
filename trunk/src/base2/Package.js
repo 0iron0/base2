@@ -7,22 +7,20 @@ var Package = Base.extend({
     if (this.name != "base2") {
       if (!this.parent) this.parent = base2;
       this.parent.addName(this.name, this);
-      this.namespace = format("var %1=%2;", this.name, String(this).slice(1, -1));
+      this.namespace = format("var %1=%2;", this.name, String2.slice(this, 1, -1));
     }
-    
-    var LIST = /[^\s,]+/g; // pattern for comma separated list
     
     if (_private) {
       // This string should be evaluated immediately after creating a Package object.
-      _private.imports = Array2.reduce(this.imports.match(LIST), function(namespace, name) {
-        eval("var ns=base2." + name);
-        assert(ns, format("Package not found: '%1'.", name), ReferenceError);
+      _private.imports = Array2.reduce(csv(this.imports), function(namespace, name) {
+        eval(format("var ns=(base2.%1||JavaScript.%1)", name));
+        ;;; assert(ns, format("Package not found: '%1'.", name), ReferenceError);
         return namespace += ns.namespace;
-      }, _namespace + base2.namespace + JavaScript.namespace);
+      }, _namespace + base2.namespace + JavaScript.namespace) + lang.namespace;
       
       // This string should be evaluated after you have created all of the objects
       // that are being exported.
-      _private.exports = Array2.reduce(this.exports.match(LIST), function(namespace, name) {
+      _private.exports = Array2.reduce(csv(this.exports), function(namespace, name) {
         var fullName = this.name + "." + name;
         this.namespace += "var " + name + "=" + fullName + ";";
         return namespace += "if(!" + fullName + ")" + fullName + "=" + name + ";";
@@ -49,6 +47,6 @@ var Package = Base.extend({
   },
   
   toString: function() {
-    return format("[%1]", this.parent ? String(this.parent).slice(1, -1) + "." + this.name : this.name);
+    return format("[%1]", this.parent ? String2.slice(this.parent, 1, -1) + "." + this.name : this.name);
   }
 });

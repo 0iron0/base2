@@ -12,7 +12,7 @@ var Spinner = NumberControl.extend({
     if (!this.isEditable(element)) return;
     if (!/^(3[34568]|40)$/.test(keyCode)) return;
 
-    event.preventDefault();;
+    event.preventDefault();
 
     switch (keyCode) {
       case 35: // end

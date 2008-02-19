@@ -4,6 +4,7 @@
 var _PIXEL   = /^\d+(px)?$/i;
 var _METRICS = /(width|height|top|bottom|left|right|fontSize)$/;
 var _COLOR   = /^(color|backgroundColor)$/;
+var _RUBY    = /^ruby/;
 
 var ViewCSS = Interface.extend({
   "@!(document.defaultView.getComputedStyle)": {
@@ -13,11 +14,9 @@ var ViewCSS = Interface.extend({
         var currentStyle = element.currentStyle;
         var computedStyle = {};
         for (var i in currentStyle) {
-          if (_METRICS.test(i)) {
-            computedStyle[i] = _MSIE_getPixelValue(element, computedStyle[i]) + "px";
-          } else if (_COLOR.test(i)) {
-            computedStyle[i] = _MSIE_getColorValue(element, i == "color" ? "ForeColor" : "BackColor");
-          } else {
+          if (_METRICS.test(i) || _COLOR.test(i)) {
+            computedStyle[i] = this.getComputedPropertyValue(view, element, i);
+          } else if (!_RUBY.test(i)) {
             computedStyle[i] = currentStyle[i];
           }
         }
@@ -30,10 +29,23 @@ var ViewCSS = Interface.extend({
     return _CSSStyleDeclaration_ReadOnly.bind(this.base(view, element, pseudoElement));
   }
 }, {
+  getComputedPropertyValue: function(view, element, propertyName) {
+    return CSSStyleDeclaration.getPropertyValue(this.getComputedStyle(view, element, null), propertyName);
+  },
+  
+  "@MSIE": {
+    getComputedPropertyValue: function(view, element, propertyName) {
+      propertyName = this.toCamelCase(propertyName);
+      if (_METRICS.test(propertyName))
+        return _MSIE_getPixelValue(element, element.currentStyle[propertyName]) + "px";
+      if (_COLOR.test(propertyName))
+        return _MSIE_getColorValue(element, propertyName == "color" ? "ForeColor" : "BackColor");
+      return element.currentStyle[propertyName];
+    }
+  },
+  
   toCamelCase: function(string) {
-    return string.replace(/\-([a-z])/g, function(match, chr) {
-      return chr.toUpperCase();
-    });
+    return string.replace(/\-([a-z])/g, flip(String2.toUpperCase));
   }
 });
 
@@ -50,8 +62,9 @@ function _MSIE_getPixelValue(element, value) {
 };
 
 function _MSIE_getColorValue(element, value) {
+  // -dean: elements need to have "layout" for this to work.
   var range = element.document.body.createTextRange();
   range.moveToElementText(element);
   var color = range.queryCommandValue(value);
-  return format("rgb(%1,%2,%3)", color & 0xff, (color & 0xff00) >> 8,  (color & 0xff0000) >> 16);
+  return format("rgb(%1, %2, %3)", color & 0xff, (color & 0xff00) >> 8,  (color & 0xff0000) >> 16);
 };

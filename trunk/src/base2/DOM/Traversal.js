@@ -35,8 +35,8 @@ var Traversal = Module.extend({
     return node;
   },
 
-  getTextContent: function(node) {
-    return node[TEXT];
+  getTextContent: function(node, isHTML) {
+    return node[isHTML ? "innerHTML" : TEXT];
   },
 
   isEmpty: function(node) {
@@ -48,10 +48,18 @@ var Traversal = Module.extend({
     return true;
   },
 
-  setTextContent: function(node, text) {
-    return node[TEXT] = text;
+  setTextContent: function(node, text, isHTML) {
+    return node[isHTML ? "innerHTML" : TEXT] = text;
   },
-  
+
+  "@!MSIE": {
+    setTextContent: function(node, text, isHTML) {
+      // Destroy the DOM (slightly faster for non-MISE browsers)
+      with (node) while (lastChild) parentNode.removeChild(lastChild);
+      return this.base(node, text, isHTML);
+    }
+  },
+
   "@MSIE": {
     getDefaultView: function(node) {
       return (node.document || node).parentWindow;
@@ -66,6 +74,7 @@ var Traversal = Module.extend({
   }
 }, {
   contains: function(node, target) {
+    node.nodeType; // throw an error if no node supplied
     while (target && (target = target.parentNode) && node != target) continue;
     return !!target;
   },

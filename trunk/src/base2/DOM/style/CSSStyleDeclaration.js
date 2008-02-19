@@ -14,8 +14,8 @@ var _CSSStyleDeclaration_ReadOnly = Binding.extend({
 });
 
 var CSSStyleDeclaration = _CSSStyleDeclaration_ReadOnly.extend({
-  setProperty: function(style, propertyName, value, important) {
-    return this.base(style, _CSSPropertyNameMap[propertyName] || propertyName, value, important);
+  setProperty: function(style, propertyName, value, priority) {
+    return this.base(style, _CSSPropertyNameMap[propertyName] || propertyName, value, priority);
   },
   
   "@MSIE.+win": {
@@ -26,7 +26,11 @@ var CSSStyleDeclaration = _CSSStyleDeclaration_ReadOnly.extend({
         style.zoom = 1;
         style.filter = "Alpha(opacity=" + value + ")";
       } else {
-        style.setAttribute(propertyName, value);
+        if (priority == "important") {
+          style.cssText += format(";%1:%2!important;", propertyName, value);
+        } else {
+          style.setAttribute(propertyName, value);
+        }
       }
     }
   }
@@ -50,6 +54,4 @@ var _CSSPropertyNameMap = new Base({
   }
 });
 
-with (CSSStyleDeclaration.prototype) getPropertyValue.toString = setProperty.toString = function() {
-  return "[base2]";
-};
+with (CSSStyleDeclaration.prototype) getPropertyValue.toString = setProperty.toString = K("[base2]");

@@ -1,14 +1,12 @@
 
-base2 = new Package(this, base2);
+base2 = global.base2 = new Package(this, base2);
 eval(this.exports);
 
-base2.extend = extend;
+lang = new Package(this, lang);
+eval(this.exports);
 
-// the enumerable methods are extremely useful so we'll add them to the base2
-//  namespace for convenience
-forEach (Enumerable, function(method, name) {
-  if (!Module[name]) base2.addName(name, bind(method, Enumerable));
-});
+lang.base = base;
+lang.extend = extend;
 
 JavaScript = new Package(this, JavaScript);
 eval(this.exports);

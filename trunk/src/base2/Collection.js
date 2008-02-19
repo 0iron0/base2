@@ -116,7 +116,7 @@ var Collection = Map.extend({
   },
 
   toString: function() {
-    return String(this[_KEYS]);
+    return "(" + String(this[_KEYS]) + ")";
   }
 }, {
   Item: null, // If specified, all members of the collection must be instances of Item.

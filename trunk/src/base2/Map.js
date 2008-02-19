@@ -5,7 +5,7 @@ var _HASH = "#";
 
 var Map = Base.extend({
   constructor: function(values) {
-    this.merge(values);
+    if (values) this.merge(values);
   },
 
   copy: delegate(copy),
@@ -21,7 +21,7 @@ var Map = Base.extend({
   },
 
   getKeys: function() {
-    return this.map(flip(I));
+    return this.map(II);
   },
 
   getValues: function() {
@@ -46,14 +46,14 @@ var Map = Base.extend({
     return this;
   },
 
-  remove: function(key) {
-    delete this[_HASH + key];
-  },
-
   put: function(key, value) {
     if (arguments.length == 1) value = key;
     // create the new entry (or overwrite the old entry).
     this[_HASH + key] = value;
+  },
+
+  remove: function(key) {
+    delete this[_HASH + key];
   },
 
   size: function() {

@@ -1,6 +1,8 @@
 
 // http://dean.edwards.name/weblog/2006/06/again
 
+// TO DO: copy jQuery's technique for witing for style sheets to be loaded (opera/safari).
+
 var DOMContentLoadedEvent = Base.extend({
   constructor: function(document) {
     var fired = false;
@@ -11,7 +13,7 @@ var DOMContentLoadedEvent = Base.extend({
         //  to drop out of any current event
         setTimeout(function() {
           var event = DocumentEvent.createEvent(document, "Events");
-          Event.initEvent(event, "DOMContentLoaded", false, false);
+          Event.initEvent(event, "DOMContentLoaded", true, true);
           EventTarget.dispatchEvent(document, event);
         }, 1);
       }
@@ -30,16 +32,12 @@ var DOMContentLoadedEvent = Base.extend({
 
   "@MSIE.+win": {
     listen: function(document) {
-      if (document.readyState != "complete") {
-        // Matthias Miller/Mark Wubben/Paul Sowden/Me
-        var event = this;
-        document.write("<script id=__ready defer src=//:><\/script>");
-        document.all.__ready.onreadystatechange = function() {
-          if (this.readyState == "complete") {
-            this.removeNode(); // tidy
-            event.fire();
-          }
-        };
+      // http://javascript.nwbox.com/IEContentLoaded/
+      try {
+        document.body.doScroll("left");
+        if (!this.__constructing) this.fire();
+      } catch (e) {
+        setTimeout(bind(this.listen, this, document), 10);
       }
     }
   },
@@ -47,14 +45,10 @@ var DOMContentLoadedEvent = Base.extend({
   "@KHTML": {
     listen: function(document) {
       // John Resig
-      if (document.readyState != "complete") {
-        var event = this;
-        var timer = setInterval(function() {
-          if (/loaded|complete/.test(document.readyState)) {
-            clearInterval(timer);
-            event.fire();
-          }
-        }, 100);
+      if (/loaded|complete/.test(document.readyState)) { // loaded
+        if (!this.__constructing) this.fire();
+      } else {
+        setTimeout(bind(this.listen, this, document), 10);
       }
     }
   }

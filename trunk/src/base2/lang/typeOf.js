@@ -5,7 +5,13 @@ function typeOf(object) {
   var type = typeof object;
   switch (type) {
     case "object":
-      return object === null ? "null" : typeof object.call == "function" || _MSIE_NATIVE_FUNCTION.test(object) ? "function" : type;
+      return object == null
+        ? "null"
+        : typeof object.constructor == "undefined" // COM object
+          ? _MSIE_NATIVE_FUNCTION.test(object)
+            ? "function"
+            : type
+          : typeof object.constructor.prototype.valueOf(); // underlying type
     case "function":
       return typeof object.call == "function" ? type : "object";
     default:
