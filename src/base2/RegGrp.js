@@ -93,6 +93,18 @@ var RegGrp = Collection.extend({
           replacement = parseInt(replacement.slice(1));
         } else { // a complicated lookup (e.g. "Hello $2 $1")
           // build a function to do the lookup
+          // Improved version by Alexei Gorkov:
+         /* var Q = '"';
+          replacement = replacement
+            .replace(/\\/g, "\\\\")
+            .replace(/"/g, "\\x22")
+            .replace(/\n/g, "\\n")
+            .replace(/\r/g, "\\r")
+            .replace(/\$(\d+)/g, Q + "+(arguments[$1]||" + Q+Q + ")+" + Q)
+            .replace(/(['"])\1\+(.*)\+\1\1$/, "$1");
+          replacement = new Function("return " + Q + replacement + Q);*/
+          
+          // My old crappy version:
           var Q = /'/.test(replacement.replace(/\\./g, "")) ? '"' : "'";
           replacement = replacement.replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\$(\d+)/g, Q +
             "+(arguments[$1]||" + Q+Q + ")+" + Q);

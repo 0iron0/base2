@@ -50,31 +50,6 @@ var Slider = ProgressBar.extend({
     } else {
       base(this, arguments);
     }
-  },
-
-  onkeydown: function(element, event, keyCode) {
-    if (!this.isEditable(element)) return;
-    if (keyCode < 33 || keyCode > 40) return;
-    event.preventDefault();
-    
-    var amount = 1;
-    
-    switch (keyCode) {
-      case 35: // end
-        var value = 1;
-      case 36: // home
-        this.setValue(element, value || 0);
-        return;
-      case 33: // page up
-        var block = true;
-        break;
-      case 34: // page down
-        block = true;
-      case 37: // left
-      case 40: // down
-        amount = -1;
-    }
-    this.increment(element, amount, block);
   }
 }, {
   HORIZONTAL_WIDTH: 3000,

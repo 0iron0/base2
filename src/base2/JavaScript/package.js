@@ -6,7 +6,7 @@ var JavaScript = {
   namespace: "", // fixed later
   
   bind: function(host) {
-    forEach (csv(this.exports), function(name2) {
+    forEach.csv(this.exports, function(name2) {
       var name = name2.slice(0, -1);
       extend(host[name], this[name2]);
       this[name2](host[name].prototype); // cast
@@ -21,7 +21,7 @@ function _createObject2(Native, constructor, generics, extensions) {
   // Create a Module that will contain all the new methods.
   var INative = Module.extend();
   // http://developer.mozilla.org/en/docs/New_in_JavaScript_1.6#Array_and_String_generics
-  forEach (csv(generics), function(name) {
+  forEach.csv(generics, function(name) {
     INative[name] = unbind(Native.prototype[name]);
   });
   forEach (_slice.call(arguments, 3), INative.implement, INative);
@@ -43,5 +43,7 @@ function _createObject2(Native, constructor, generics, extensions) {
   Native2.ancestor = Object;
   delete Native2.extend;
 
+  Native2.namespace = Native2.namespace.replace(/(var (\w+)=)[^,;]+,([^\)]+)\)/g, "$1$3.$2");
+  
   return Native2;
 };

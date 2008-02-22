@@ -5,66 +5,69 @@ var Chrome = MouseCapture.extend({
   },
 
   onmousedown: function(element, event, x, y) {
-    console2.log("onmousedown: "+ event.eventPhase);
+    console2.log("onmousedown(" + event.eventPhase + "): " + event.button);
     Chrome._active = element;
     
     if (!this.isEditable(element)) return;
 
     Chrome._activeThumb = this.hitTest(element, x, y);
     if (Chrome._activeThumb) {
-      //this.setCapture(element);
+      this.setCapture(element);
     }
     this.syncCursor(element);
     this.layout(element);
   },
 
   onmouseup: function(element, event) {
-    console2.log("onmouseup: "+ event.eventPhase);
+    console2.log("onmouseup(" + event.eventPhase + "): " + event.button);
     delete Chrome._active;
     if (Chrome._activeThumb) {
       delete Chrome._activeThumb;
       this.syncCursor(element);
       this.layout(element);
     }
-    //this.releaseCapture(element);
+    this.releaseCapture(element);
   },
 
   onmousemove: function(element, event, x, y) {
+    //console2.log("onmousemove");
     Chrome._hoverThumb = this.hitTest(element, x, y);
     this.delayRefresh(element);
   },
 
   onmouseover: function(element) {
+    //console2.log("onmouseover");
     //console2.log("HOVER: "+this.matchesSelector(element,":hover"));
     Chrome._hover = element;
     this.layout(element);
   },
 
   onmouseout: function(element) {
+    //console2.log("onmouseout");
     delete Chrome._hoverThumb;
     delete Chrome._hover;
     this.layout(element);
   },
 
   onfocus: function(element) {
-    console2.log("onfocus");
+    console2.log("onfocus(" + arguments[1].eventPhase + ")");
     Chrome._focus = element;
     this.layout(element);
   },
 
   onblur: function(element) {
-    console2.log("onblur");
+    console2.log("onblur(" + arguments[1].eventPhase + ")");
     delete Chrome._focus;
     this.removeClass(element, this.appearance + _FOCUS);
     this.layout(element);
   },
 
   onkeydown: function(element, event, keyCode) {
-    console2.log("onkeyup: "+keyCode);
+    console2.log("onkeydown: "+keyCode);
   },
 
   onkeyup: function(element, event, keyCode) {
-    console2.log("onkeydown: "+keyCode);
+    console2.log("onkeyup: "+keyCode);
   },
 
   onkeypress: function(element, event, keyCode) {
@@ -72,11 +75,11 @@ var Chrome = MouseCapture.extend({
   },
 
   onclick: function(element, event) {
-    console2.log("onclick: "+ event.button);
+    console2.log("onclick(" + event.eventPhase + "): " + event.button);
   },
 
   ondblclick: function(element, event) {
-    console2.log("ondblclick: "+ event.button);
+    console2.log("ondblclick(" + event.eventPhase + "): " + event.button);
   }
 }, {
   HORIZONTAL: 0,

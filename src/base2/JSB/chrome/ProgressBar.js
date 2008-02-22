@@ -9,7 +9,35 @@ var ProgressBar = NumberControl.extend({
     if (element != Chrome._active) {
       this.addClass(element, this.appearance + _FOCUS);
     }
-    this.base(element);
+    this.base(element, arguments[1]); /////////////////////////////////////
+  },
+
+  onkeydown: function(element, event, keyCode) {
+    console2.log("onkeydown: "+keyCode);
+    if (!this.isEditable(element)) return;
+
+    event.preventDefault();
+
+    if (keyCode < 33 || keyCode > 40) return;
+
+    var amount = 1;
+
+    switch (keyCode) {
+      case 35: // end
+        var value = 1;
+      case 36: // home
+        this.setValue(element, value || 0);
+        return;
+      case 33: // page up
+        var block = true;
+        break;
+      case 34: // page down
+        block = true;
+      case 37: // left
+      case 40: // down
+        amount = -1;
+    }
+    this.increment(element, amount, block);
   }
 }, {
   HEIGHT: 3000,

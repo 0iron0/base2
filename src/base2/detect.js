@@ -13,7 +13,8 @@ function detect(_no_shrink_) {
   if (global.navigator) {
     var MSIE = /MSIE[\d.]+/g;
     var element = document.createElement("span");
-    element._expando = true;
+    element.expando = true;
+    //var event = document.createEvent ? document.createEvent("UIEvents") : document.createEventObject ? document.createEventObject() : {};
     // Close up the space between name and version number.
     //  e.g. MSIE 6 -> MSIE6
     var userAgent = navigator.userAgent.replace(/([a-z])[\s\/](\d)/gi, "$1$2");
@@ -44,13 +45,4 @@ function detect(_no_shrink_) {
   };
   
   return detect(arguments[0]);
-};
-
-forEach.detect = function(object, block, context) {
-  forEach (object, function(value, key) {
-    if (key.charAt(0) == "@") { // object detection
-      if (detect(name.slice(1))) forEach (value, arguments.callee);
-      else block.call(context, value, key, object);
-    }
-  });
 };
