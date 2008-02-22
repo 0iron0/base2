@@ -5,7 +5,7 @@ var MouseEvent = UIEvent.extend({
   "@!(document.createEvent)": {
     initMouseEvent: function(event, type, bubbles, cancelable, view, detail, screenX, screenY,
                              clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) {
-      this.base(event, type, bubbles, cancelable, view, detail);
+      this.initUIEvent(event, type, bubbles, cancelable, view, detail);
       event.screenX = screenX;
       event.screenY = screenY;
       event.clientX = clientX;
@@ -21,7 +21,7 @@ var MouseEvent = UIEvent.extend({
   "@!(document.createEvent)": {
     "@MSIE": {
       bind: function(event) {
-        event.relatedTarget = event[(event.type == "mouseout" ? "to" : "from") + "Element"];
+        event.relatedTarget = event[(event.target == event.fromElement ? "to" : "from") + "Element"];
         return this.base(event);
       }
     }

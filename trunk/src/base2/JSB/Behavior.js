@@ -31,9 +31,11 @@ var Behavior = Module.extend(null, {
     
     var docID = document.base2ID;
     behavior.attach = function(element) {
+      if (!element) return;
       var base2ID = element.base2ID || assignID(element);
       if (!attachedElementIDs[base2ID]) { // Don't attach more than once.
         attachedElementIDs[base2ID] = true;
+        if (element.id) global["$" + ViewCSS.toCamelCase(element.id)] = element;
         // If the document is bound then bind the element.
         if (DOM.bind[docID]) DOM.bind(element);
         // Add event handlers
@@ -87,13 +89,13 @@ var Behavior = Module.extend(null, {
     var handler = "on" + type;
     if (handler) {
       if (_EVENT_MOUSE.test(type)) {
-        if (!_EVENT_BUTTON.test(type) || event.button == _MOUSE_BUTTON_LEFT) {
+        //if (!_EVENT_BUTTON.test(type) || event.button == _MOUSE_BUTTON_LEFT) {
           if (type == "mousewheel") {
             this[handler](element, event, event.wheelDelta);
           } else {
             this[handler](element, event, event.offsetX, event.offsetY, event.screenX, event.screenY);
           }
-        }
+        //}
       } else if (_EVENT_KEYBOARD.test(type)) {
         this[handler](element, event, event.keyCode, event.shiftKey, event.ctrlKey, event.altKey, event.metaKey);
       } else {

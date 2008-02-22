@@ -1,6 +1,8 @@
 
 // Capture mouse events.
 
+var _MOUSE_EVENTS = String2.csv("over,out,move,down,up,wheel");
+
 var MouseCapture = Behavior.extend(null, {
   setCapture: function(element) {
     if (!MouseCapture._handleEvent) {
@@ -9,7 +11,6 @@ var MouseCapture = Behavior.extend(null, {
       MouseCapture._handleEvent = function(event) {
         if (event.currentTarget == element) {
           if (_OPERA) getSelection().collapse(document.body, 0); // prevent text selection
-          if (_MSIE) event.eventPhase = 1; // CAPTURING_PHASE
           behavior.handleEvent(element, event, event.type);
         }
       };
@@ -27,27 +28,6 @@ var MouseCapture = Behavior.extend(null, {
       });
       delete MouseCapture._handleEvent;
       delete MouseCapture._captureElement;
-    }
-  },
-  
-  "@(element.setCapture)": {
-    setCapture: function(element) {
-      if (!MouseCapture._handleEvent) {
-        this.base(element);
-        setTimeout(function() {
-          element.setCapture();
-        }, 0);
-      }
-    },
-
-    releaseCapture: function(element) {
-      if (MouseCapture._handleEvent) {
-        if (!element) element = MouseCapture._captureElement;
-        setTimeout(function() {
-          element.releaseCapture();
-        }, 0);
-        this.base(element);
-      }
     }
   }
 });

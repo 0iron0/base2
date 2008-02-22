@@ -14,11 +14,6 @@ var _EVENT          = /^on[a-z]+$/,
     _EVENT_MOUSE    = /^(DOM)?mouse|click$/i;
 
 var _EVENT_TYPE_MAP = extend({}, {
-/*  "@MSIE": {
-    focus: "focusin",
-    blur:  "focusout"
-  }, */
-
   "@Gecko": {
     mousewheel: "DOMMouseScroll"
   }
@@ -28,9 +23,6 @@ var _EVENT_TYPE_FIX = reduce(_EVENT_TYPE_MAP, function(fixed, type, fixedType) {
   fixed[type] = fixedType;
   return fixed;
 }, {});
-
-
-//var _MOUSE_EVENTS = String2.csv("over,out,move,down,up,wheel");
 
 var _MOUSE_BUTTON_LEFT = 0;
 

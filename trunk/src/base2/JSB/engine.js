@@ -1,9 +1,8 @@
 
-
 JSB.refresh = function(ready) {
   if (ready || !batch.timer) {
-    ;;; console2.log("tick: " + (new Date().valueOf()));
     // This method is overridden once the document has loaded.
+    ;;; console2.log("tick: " + (new Date().valueOf()));
     var refreshed = {};
     function refresh(rule) {
       if (!refreshed[rule.base2ID]) {
@@ -12,36 +11,39 @@ JSB.refresh = function(ready) {
       }
     };
     forEach (_rulesByID, function(rules, id) {
-      if (!rules._found && NodeSelector.querySelector(document, "#" + id)) {
-        ;;; console2.log("Found " + id);
-        rules._found = true;
-        forEach (rules, refresh);
+      if (!rules._found) {
+        var element = NodeSelector.querySelector(document, "#" + id);
+        if (element) {
+          ;;; console2.log("Found #" + id);
+          rules._found = true;
+          forEach (rules, refresh);
+        }
       }
     });
     forEach (_rulesByTagName, function(rules, tagName) {
       var count = rules._nodeList.length;
       if (rules._count != count) {
-        ;;; console2.log("Found '" + tagName.toUpperCase() + "': " + (count-rules._count));
+        ;;; console2.log("Found <" + tagName + ">: " + (count-rules._count));
         rules._count = count;
         forEach (rules, refresh);
       }
     });
   }
-  if (ready) clearInterval(timer);
+  if (ready) clearInterval(_tick);
 };
 
 var _NOT_ALLOWED = "%1 selectors not allowed in JSB (selector='%2').";
 
 function _addRule(rule) {
   assert(!/:/.test(rule), format(_NOT_ALLOWED, "Pseudo class", rule));
-  forEach(_parser.escape(rule).split(","), function(selector) {
+  forEach(String2.csv(_parser.escape(rule)), function(selector) {
     var id, tagName;
     if (_ID.test(selector) && !_COMBINATOR.test(selector)) {
       id = selector.match(_ID)[1];
       _addRuleByAttribute(id, _rulesByID, rule);
     }
     selector.replace(_SIMPLE, function(match, token, combinator, value) {
-      if (combinator) {
+      if (combinator || !token) {
         tagName = value;
       } else {
         _addRuleByAttribute(match, _rulesByAttribute, rule);
@@ -71,19 +73,28 @@ function _addRuleByTagName(tagName, rule) {
 function _fireReady() {
   if (_ready) {
     ;;; console2.log("ondocumentready");
-    Behavior.dispatchEvent(document, "ready");
+    Behavior.dispatchEvent(document, "documentready");
     ;;; console2.log("Total time: "+((new Date)-ss));
     ;;; console2.update();
   }
 };
 
-var timer = setInterval(JSB.refresh, 100);
-addEventListener(document, "mousemove", JSB.refresh, false);
-addEventListener(document, "keypress", JSB.refresh, false);
+var _tick = setInterval(JSB.refresh, 100);
+function _delayRefresh() {
+  if (!_delayRefresh.id) {
+    var self = this;
+    _delayRefresh.id = setTimeout(function() {
+      if (!_ready) JSB.refresh();
+      delete _delayRefresh.id;
+    }, 100);
+  }
+};
+addEventListener(document, "mousemove", _delayRefresh, false);
+addEventListener(document, "keypress", _delayRefresh, false);
 
 addEventListener(document, "DOMContentLoaded", function() {
-  removeEventListener(document, "mousemove", JSB.refresh, false);
-  removeEventListener(document, "keypress", JSB.refresh, false);
+  removeEventListener(document, "mousemove", _delayRefresh, false);
+  removeEventListener(document, "keypress", _delayRefresh, false);
   ;;; console2.log("DOMContentLoaded");
   ;;; console2.log("Document load time: "+((new Date)-ss));
   JSB.refresh(true);

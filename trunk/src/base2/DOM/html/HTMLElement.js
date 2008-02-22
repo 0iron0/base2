@@ -18,8 +18,7 @@ var HTMLElement = Element.extend(null, {
     // This allows us to map specific interfaces to elements by reference
     // to tag name.
     var binding = base(this, arguments);
-    var tags = String2.csv(binding.tags);
-    forEach (tags, function(tagName) {
+    forEach.csv(binding.tags, function(tagName) {
       HTMLElement.bindings[tagName] = binding;
     });
     return binding;

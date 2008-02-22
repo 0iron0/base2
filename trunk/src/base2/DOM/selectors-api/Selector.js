@@ -62,19 +62,19 @@ var Selector = Base.extend({
   
   "@(true)": {
     exec: function(context, single, simple) {
-      try {
+      //try {
         // TO DO: more efficient selectors for:
         //   #ID
         //   :hover/active/focus/target
         var result = this.base(context || document, single, simple);
-      } catch (error) { // probably an invalid selector =)
-        throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
-      }
+      //} catch (error) { // probably an invalid selector =)
+      //  throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
+      //}
       return single ? result : new StaticNodeList(result);
     }
   }
 }, {  
-  toXPath: function(selector) {
+  toXPath: function(selector, simple) {
     if (!_xpathParser) _xpathParser = new XPathParser;
     return _xpathParser.parse(selector, simple);
   }
@@ -120,9 +120,9 @@ Selector.pseudoClasses = { //-dean: lang()
   "root":        "e%1==Traversal.getDocument(e%1).documentElement",
   "target":      "e%1.id&&e%1.id==location.hash.slice(1)",
   "link":        "d.links&&Array2.indexOf(d.links,e%1)!=-1",
-  "hover":       "_documentState.hover(d,e%1)",
-  "active":      "_documentState.active(d,e%1)",
-  "focus":       "_documentState.focus(d,e%1)"
+  "hover":       "DocumentState.getInstance(d).isHover(e%1)",
+  "active":      "DocumentState.getInstance(d).isActive(e%1)",
+  "focus":       "DocumentState.getInstance(d).hasFocus(e%1)"
 };
 
 var _INDEXED = detect("(element.sourceIndex)") ;
@@ -314,7 +314,7 @@ var _parser = new CSSParser({
       var fn = "";
       var selectors = _parser.escape(selector, simple).split(",");
       for (var i = 0; i < selectors.length; i++) {
-        _wild = _list = 0; // reset
+        _wild = _index = _list = 0; // reset
         _duplicate = selectors.length > 1 ? 2 : 0; // reset
         var block = _parser.exec(selectors[i]) || "throw;";
         if (_wild && _MSIE) { // IE's pesky comment nodes
@@ -331,7 +331,7 @@ var _parser = new CSSParser({
       if (selectors.length > 1) fn += "r.unsorted=1;";
       var args = "";
       var state = [];
-      for (var i = 1; i <= _index; i++) {
+      for (var i = 1; i <= _list; i++) {
         args += ",a" + i;
         state.push(format("i%1?i%1-1:0", i));
       }

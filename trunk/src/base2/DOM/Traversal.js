@@ -1,9 +1,6 @@
 
 // DOM Traversal. Just the basics.
 
-// Loosely based on this:
-// http://www.w3.org/TR/2007/WD-ElementTraversal-20070727/
-
 var TEXT = _MSIE ? "innerText" : "textContent";
 
 var Traversal = Module.extend({

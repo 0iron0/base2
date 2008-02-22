@@ -7,32 +7,32 @@ var Array2 = _createObject2(
     combine: function(keys, values) {
       // Combine two arrays to make a hash.
       if (!values) values = keys;
-      return this.reduce(keys, function(hash, key, index) {
+      return Array2.reduce(keys, function(hash, key, index) {
         hash[key] = values[index];
         return hash;
       }, {});
     },
 
     contains: function(array, item) {
-      return this.indexOf(array, item) != -1;
+      return Array2.indexOf(array, item) != -1;
     },
 
     copy: function(array) {
       var copy = _slice.call(array);
-      if (!copy.swap) this(copy); // cast to Array2
+      if (!copy.swap) Array2(copy); // cast to Array2
       return copy;
     },
 
     flatten: function(array) {
       var length = 0;
-      return this.reduce(array, function(result, item) {
-        if (this.like(item)) {
-          this.reduce(item, arguments.callee, result, this);
+      return Array2.reduce(array, function(result, item) {
+        if (Array2.like(item)) {
+          Array2.reduce(item, arguments.callee, result);
         } else {
           result[length++] = item;
         }
         return result;
-      }, [], this);
+      }, []);
     },
     
     forEach: _Array_forEach,
@@ -51,7 +51,7 @@ var Array2 = _createObject2(
     },
     
     insertAt: function(array, index, item) {
-      this.splice(array, index, 0, item);
+      Array2.splice(array, index, 0, item);
       return item;
     },
     
@@ -75,7 +75,7 @@ var Array2 = _createObject2(
   
     map: function(array, block, context) {
       var result = [];
-      this.forEach (array, function(item, index) {
+      Array2.forEach (array, function(item, index) {
         result[index] = block.call(context, item, index, array);
       });
       return result;
@@ -84,7 +84,7 @@ var Array2 = _createObject2(
 /*  reduceRight: function(array, block, result, context) {
       var length = array.length;
       var initialised = arguments.length > 2;
-      this.forEach (this.reverse(array), function(value, index) {
+      this.forEach (Array2.reverse(array), function(value, index) {
         if (initialised) {
           result = block.call(context, result, value, length - index, array);
         } else {
@@ -96,13 +96,13 @@ var Array2 = _createObject2(
     }, */
 
     remove: function(array, item) {
-      var index = this.indexOf(array, item);
-      if (index != -1) this.removeAt(array, index);
+      var index = Array2.indexOf(array, item);
+      if (index != -1) Array2.removeAt(array, index);
       return item;
     },
 
     removeAt: function(array, index) {
-      return this.splice(array, index, 1);
+      return Array2.splice(array, index, 1);
     },
 
     swap: function(array, index1, index2) {

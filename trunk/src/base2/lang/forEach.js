@@ -24,6 +24,18 @@ function forEach(object, block, context, fn) {
   _Function_forEach(fn || Object, object, block, context);
 };
 
+forEach.csv = function(string, block, context) {
+  forEach (csv(string), block, context);
+};
+
+forEach.detect = function(object, block, context) {
+  forEach (object, function(value, key) {
+    if (key.charAt(0) == "@") { // object detection
+      if (detect(name.slice(1))) forEach (value, arguments.callee);
+    } else block.call(context, value, key, object);
+  });
+};
+
 // These are the two core enumeration methods. All other forEach methods
 //  eventually call one of these two.
 

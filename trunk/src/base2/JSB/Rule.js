@@ -19,7 +19,7 @@ var Rule = Base.extend({
         batch.forEach (elements, behavior.attach);
       } else {
         var state = domQuery.state || [];
-        state.unshift(document, false);
+        state.unshift(document, 0);
         elements = domQuery.apply(null, state);
         if (elements.length) {
           ;;; console2.log("batch("+assignID(this)+"): "+elements.length);

@@ -53,5 +53,3 @@ var DOMContentLoadedEvent = Base.extend({
     }
   }
 });
-
-new DOMContentLoadedEvent(document);
