@@ -7,6 +7,7 @@ var _ID         = /^\*#([\w-]+)$/,
     _SIMPLE     = /(^|([\s+~>,])|[#.\[])([\w-]+)/g;
 
 var _EVENT          = /^on[a-z]+$/,
+    _EVENT_BUSY     = /^(mouseover|mousemove|mousedown|keydown)$/,
     _EVENT_BUTTON   = /^mouse(up|down)|click$/,
     _EVENT_CAPTURE  = /^(focus|blur)$/,
     _EVENT_CLICK    = /click$/,
@@ -25,12 +26,3 @@ var _EVENT_TYPE_FIX = reduce(_EVENT_TYPE_MAP, function(fixed, type, fixedType) {
 }, {});
 
 var _MOUSE_BUTTON_LEFT = 0;
-
-var _ready;
-
-var _rulesAll         = [],
-    _rulesByAttribute = {},
-    _rulesByID        = {},
-    _rulesByTagName   = {};
-
-var _parser = new CSSParser;

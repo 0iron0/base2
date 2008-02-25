@@ -13,24 +13,12 @@ var Rule = Base.extend({
     var domQuery = Selector.parse(selector);
     
     this.refresh = function() {
-      if (_ready) {
-        var elements = selector.exec(document);
-        ;;; console2.log("final("+assignID(this)+"): "+elements.length);
-        batch.forEach (elements, behavior.attach);
-      } else {
-        var state = domQuery.state || [];
-        state.unshift(document, 0);
-        elements = domQuery.apply(null, state);
-        if (elements.length) {
-          ;;; console2.log("batch("+assignID(this)+"): "+elements.length);
-          batch.forEach(elements, behavior.attach);
-        }
-      }
+      selector.exec(document).forEach(behavior.attach);
     };
 
     this.toString = selector.toString;
     
-    _addRule(this);
+    _addRule(selector, behavior);
   },
   
   refresh: Undefined // defined in the constructor function

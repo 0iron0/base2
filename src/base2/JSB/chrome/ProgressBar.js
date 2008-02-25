@@ -9,11 +9,11 @@ var ProgressBar = NumberControl.extend({
     if (element != Chrome._active) {
       this.addClass(element, this.appearance + _FOCUS);
     }
-    this.base(element, arguments[1]); /////////////////////////////////////
+    this.base(element);
   },
 
   onkeydown: function(element, event, keyCode) {
-    console2.log("onkeydown: "+keyCode);
+    //;;; console2.log("onkeydown: "+keyCode);
     if (!this.isEditable(element)) return;
 
     event.preventDefault();
@@ -92,7 +92,8 @@ var ProgressBar = NumberControl.extend({
   },
 
   setValue: function(element, value) {
-    var min = Number(element.min), max = Number(element.max);
+    this.getValues(element);
+    var min = Number(_numberValues.min), max = Number(_numberValues.max);
     this.base(element, min + (max - min) * value);
     _values[element.base2ID] = (element.value - min) / (max - min);
 		this.layout(element);
