@@ -1,12 +1,12 @@
 
 var Slider = ProgressBar.extend({
-  "@KHTML--opera[91]": {
+/*"@KHTML|opera[91]": {
     onattach: function(element) {
       if (element.nodeName == "INPUT" && element.type != "range") {
         element.type = "range";
       }
     }
-  },
+  },*/
   
   onmousedown: function(element, event, x, y, screenX, screenY) {
     base(this, arguments);
@@ -61,11 +61,11 @@ var Slider = ProgressBar.extend({
 
   appearance: "slider",
   
-  "@KHTML|opera[91]": {
+/*"@KHTML|opera[91]": {
     isNativeControl: function(element) {
       return element.nodeName == "INPUT" && element.type == "range";
     }
-  },
+  },*/
 
   layout: function(element, state) {
     // TODO: Right to left should invert horizontal

@@ -36,14 +36,15 @@ var EventListener = Base.extend({
       MouseCapture._handleEvent(event);
     } else if (type == "documentready") {
       if (behavior.ondocumentready) {
-        forEach (this.attached, bind(behavior.ondocumentready, behavior));
+        forEach (this.attached, bind(behavior.ondocumentready, behavior, event));
       }
     } else {
-       var element = event.target;
+      var element = event.target;
       // make sure it's an attached element
       if (element && this.attached[element.base2ID]) {
         if (fixedType) event = this.fixEvent(event, fixedType);
         behavior.handleEvent(element, event, event.type);
+        _busy = MouseCapture._handleEvent || _EVENT_BUSY.test(event.type);
       }
     }
   },

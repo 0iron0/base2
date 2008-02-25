@@ -9,5 +9,4 @@
   <include src="MouseCapture.js"/>
   <include src="ExtendedMouse.js"/>
   <include src="engine.js"/>
-  <include src="batch.js"/>
 </package>
