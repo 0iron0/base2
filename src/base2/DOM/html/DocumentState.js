@@ -45,6 +45,10 @@ var DocumentState = Base.extend({
     this._hoverElement = event.target;
   },
 
+  onmouseout: function(event) {
+    delete this._hoverElement;
+  },
+
   onmousedown: function(event) {
     this._activeElement = event.target;
   },
@@ -189,8 +193,8 @@ var DocumentState = Base.extend({
 }, {
   init: function() {
     assignID(document);
+    DocumentState = this;
     this.createState(document);
-    DocumentState = this; // a flaw in base2 :-)
     new DOMContentLoadedEvent(document);
   },
 
@@ -206,4 +210,3 @@ var DocumentState = Base.extend({
     return this[Traversal.getDocument(target).base2ID];
   }
 });
-

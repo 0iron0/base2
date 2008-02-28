@@ -1,51 +1,28 @@
 
 var EventListener = Base.extend({
-  constructor: function(behavior, attached) {
-    this.behavior = behavior;
-    this.attached = attached;
+  constructor: function(listener) {
+    this.listener = listener;
   },
-
-  behavior: null,
-  attached: null,
   
+  listener: null,
+
   add: function(type) {
-    addEventListener(document, type, this, _EVENT_CAPTURE.test(type)); // delegate
-  },
-  
-  fixEvent: function(event, type) {
-    // copy an event object so that we can mess with its properties
-    return extend(copy(event), {
-      type: type,
-
-      stopPropagation: function() {
-        event.stopPropagation();
-      },
-
-      preventDefault: function() {
-        event.preventDefault();
-      }
-    });
+    addEventListener(document, type, this, _EVENT_CAPTURE.test(type));
   },
   
   handleEvent: function(event) {
-    var type = event.type;
-    var behavior = this.behavior;
-    var fixedType = _EVENT_TYPE_FIX[type]; // non-JSB events mapped to supported JSB events
-    // Pass captured events to the MouseCapture object
-    if (_EVENT_MOUSE.test(fixedType || type) && MouseCapture._handleEvent) {
-      MouseCapture._handleEvent(event);
-    } else if (type == "documentready") {
-      if (behavior.ondocumentready) {
-        forEach (this.attached, bind(behavior.ondocumentready, behavior, event));
+    this.listener.handleEvent(event);
+  },
+
+  "@MSIE" : {
+    handleEvent: function(event) {
+      var target = event.target;
+      if (_EVENT_MOUSE.test(event.type) && !target.currentStyle.hasLayout) {
+        event = extend({}, event);
+        event.offsetX -= target.offsetLeft;
+        event.offsetY -= target.offsetTop;
       }
-    } else {
-      var element = event.target;
-      // make sure it's an attached element
-      if (element && this.attached[element.base2ID]) {
-        if (fixedType) event = this.fixEvent(event, fixedType);
-        behavior.handleEvent(element, event, event.type);
-        _busy = MouseCapture._handleEvent || _EVENT_BUSY.test(event.type);
-      }
+      this.listener.handleEvent(event);
     }
   },
 
@@ -63,7 +40,7 @@ var EventListener = Base.extend({
         event.offsetX = event.pageX - box.x;
         event.offsetY = event.pageY - box.y;
       }
-      this.base(event);
+      this.listener.handleEvent(event);
     }
   }
 });

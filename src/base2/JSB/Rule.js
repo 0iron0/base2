@@ -10,15 +10,13 @@ var Rule = Base.extend({
       behavior = Behavior.extend(behavior);
     }
     
-    var domQuery = Selector.parse(selector);
-    
     this.refresh = function() {
       selector.exec(document).forEach(behavior.attach);
     };
 
     this.toString = selector.toString;
     
-    _addRule(selector, behavior);
+    DocumentState.addRule(selector, behavior);
   },
   
   refresh: Undefined // defined in the constructor function

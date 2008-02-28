@@ -1,8 +1,13 @@
 
 var NumberControl = Chrome.extend({
   onattach: function(element) {
-    this.getValues(element);
-    this.layout(element);
+    var attributes = this.getAttributes(element);
+    // the following only applies to Slider/ProgressBar but we'll leave it here
+    var value = element.value, min = attributes.min;
+    if (!value || isNaN(value)) value = min;
+    //else if (_numberAttributes.step != 1) this.setValue(element, value);
+    _values[element.base2ID] = (value - min) / (attributes.max - min);
+    element.onscroll = _resetScroll;
   },
 
   onmousewheel: function(element, event, delta) {
@@ -12,28 +17,26 @@ var NumberControl = Chrome.extend({
     }
   }
 }, {
-  min:  "",
-  max:  "",
-  step: 1,
-  
+  ATTRIBUTES: {
+    min:  "",
+    max:  "",
+    step: 1
+  },
+
   mask: /-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/,
-  
-  getValues: function(element) {
+
+  getAttributes: function(element) {
     // initialise min/max/step
-		for (var attr in _numberValues) {
-  		var value = element[attr];
-  		if (value == null && element.hasAttribute && element.hasAttribute(attr)) {
+    var attributes = {};
+    for (var attr in this.ATTRIBUTES) {
+      var value = element[attr];
+      if (value == null && element.hasAttribute && element.hasAttribute(attr)) {
         value = element.getAttribute(attr);
-  		}
-  		if (!value || isNaN(value)) value = this[attr];
-      _numberValues[attr] = value;
-		}
-    // the following only applies to Slider/ProgressBar but we'll leave it here
-		var min = _numberValues.min;
-    if (!value || isNaN(value)) value = min;
-    //else if (_numberValues.step != 1) this.setValue(element, value);
-    _values[element.base2ID] = (value - min) / (_numberValues.max - min);
-    element.onscroll = _resetScroll;
+      }
+      if (!value || isNaN(value)) value = this.ATTRIBUTES[attr];
+      attributes[attr] = value;
+    }
+    return attributes;
   },
 
   increment: function(element, amount, block) {
@@ -47,7 +50,7 @@ var NumberControl = Chrome.extend({
   },
 
   getUnitIncrement: function(element) {
-    return element.step || 1;
+    return this.getAttributes(element).step || 1;
   },
 
   getValue: function(element) {
@@ -55,10 +58,9 @@ var NumberControl = Chrome.extend({
   },
 
   setValue: function(element, value) {
-    this.getValues(element);
+    var attributes = this.getAttributes(element);
     if (isNaN(value)) value = 0;
-    //console2.log(value);
-    var min = parseFloat(_numberValues.min), max = parseFloat(_numberValues.max), step = parseFloat(_numberValues.step) || 1;
+    var min = parseFloat(attributes.min), max = parseFloat(attributes.max), step = parseFloat(attributes.step) || 1;
     // check min/max
     value = value > max ? max : value < min ? min : value;
     // round to step

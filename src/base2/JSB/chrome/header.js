@@ -14,8 +14,4 @@ function _resetScroll() {
   this.scrollTop = 0;
 };
 
-var _numberValues = {min:"", max:"", step:"", value:""}; // these values are for enumeration only
-
 var _MSIE = detect("MSIE");
-
-var _backgrounds = {};

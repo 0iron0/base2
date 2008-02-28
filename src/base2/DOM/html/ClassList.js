@@ -26,7 +26,17 @@ var ClassList = Module.extend({
 });
 
 function _ElementClassList(element) {
-  ClassList.forEach(function(method, name, module) {
-    this[name] = bind(method, module, element);
-  }, this);
+  this.add = function(token) {
+    ClassList.add(element, token);
+  };
+  this.has = function(token) {
+    ClassList.has(element, token);
+  };
+  this.remove = function(token) {
+    ClassList.remove(element, token);
+  };
+};
+
+_ElementClassList.prototype.toggle = function(token) {
+  this[this.has(token) ? "remove" : "add"](token);
 };

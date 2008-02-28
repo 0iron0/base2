@@ -57,15 +57,13 @@ var Template = Behavior.extend({
   /* PRE-DEFINED BEHAVIOR METHODS */
   
   // You do not need to define these, they are already defined on the Behavior
-  // module and will be inherited by any all Behaviors. You may override them
-  // if you wish. Otherwise they are just here for illustration.
+  // module and will be inherited by all Behaviors. You may override them if
+  // you wish.
   
   attach: function(element){},
   detach: function(element){},
 
   handleEvent:      function(element, event, type){},
-  handleKeyEvent:   function(element, event, type){},
-  handleMouseEvent: function(element, event, type){},
 
   addEventListener:    function(target, type, listener, useCapture){},
   removeEventListener: function(target, type, listener, useCapture){},
@@ -101,6 +99,8 @@ var Template = Behavior.extend({
   setCSSProperty: function(element, propertyName, value) {
     if (propertyName == "opacity") {
       // do something different
+      
+      // opacity is supported by base2.DOM, this is just an example
     } else {
       // use the default behavior
       this.base(element, propertyName, value);

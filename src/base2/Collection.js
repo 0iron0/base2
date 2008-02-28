@@ -128,13 +128,13 @@ var Collection = Map.extend({
   extend: function(_instance, _static) {
     var klass = this.base(_instance);
     klass.create = this.create;
-    extend(klass, _static);
+    if (_static) extend(klass, _static);
     if (!klass.Item) {
       klass.Item = this.Item;
     } else if (typeof klass.Item != "function") {
       klass.Item = (this.Item || Base).extend(klass.Item);
     }
-    klass.init();
+    if (klass.init) klass.init();
     return klass;
   }
 });

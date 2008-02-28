@@ -6,7 +6,7 @@
 
 var XPathParser = CSSParser.extend({
   constructor: function() {
-    this.base(XPathParser.rules);
+    this.base(XPathParser.build());
     // The sorter sorts child selectors to the end because they are slow.
     // For XPath we need the child selectors to be sorted to the beginning,
     // so we reverse the sort order. That's what this line does:
@@ -35,12 +35,14 @@ var XPathParser = CSSParser.extend({
     }
   }
 }, {
-  init: function() {
-    // build the prototype
+  build: function() {
+    // build the rules collection
     this.values.attributes[""] = "[@$1]";
     forEach (this.types, function(add, type) {
       forEach (this.values[type], add, this.rules);
     }, this);
+    this.build = K(this.rules);
+    return this.rules;
   },
   
   optimised: {    
@@ -123,17 +125,18 @@ var XPathParser = CSSParser.extend({
   },
   
   "@opera": {  
-    init: function() {
+    build: function() {
       this.optimised.pseudoClasses["last-child"] = this.values.pseudoClasses["last-child"];
       this.optimised.pseudoClasses["only-child"] = this.values.pseudoClasses["only-child"];
-      this.base();
+      return this.base();
     }
   }
 });
 
 // these functions defined here to make the code more readable
-var _notParser = new XPathParser;
+var _notParser;
 function _xpath_not(match, args) {
+  if (!_notParser) _notParser = new XPathParser;
   return "[not(" + _notParser.exec(trim(args))
     .replace(/\[1\]/g, "") // remove the "[1]" introduced by ID selectors
     .replace(/^(\*|[\w-]+)/, "[self::$1]") // tagName test

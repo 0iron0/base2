@@ -5,7 +5,7 @@ var _subclass = function(_instance, _static) {
   // Build the prototype.
   base2.__prototyping = this.prototype;
   var _prototype = new this;
-  extend(_prototype, _instance);
+  if (_instance) extend(_prototype, _instance);
   delete base2.__prototyping;
   
   // Create the wrapper for the constructor function.
@@ -31,10 +31,10 @@ var _subclass = function(_instance, _static) {
   for (var i in Base) _class[i] = this[i];
   _class.ancestor = this;
   _class.base = Undefined;
-  _class.init = Undefined;
-  extend(_class, _static);
+  //_class.init = Undefined;
+  if (_static) extend(_class, _static);
   _class.prototype = _prototype;
-  _class.init();
+  if (_class.init) _class.init();
   
   // introspection (removed when packed)
   ;;; _class.toString = K(String(_constructor));
@@ -55,28 +55,29 @@ var Base = _subclass.call(Object, {
     // Call this method from any other method to invoke the current method's ancestor (super).
   },
   
-  extend: delegate(extend)  
+  extend: delegate(extend)
 }, Base = {
-  ancestorOf: delegate(_ancestorOf),
+  ancestorOf: function(klass) {
+    return _ancestorOf(this, klass);
+  },
   
   extend: _subclass,
     
-  forEach: delegate(_Function_forEach),
+  forEach: function(object, block, context) {
+    _Function_forEach(this, object, block, context);
+  },
   
   implement: function(source) {
     if (typeof source == "function") {
-      // If we are implementing another classs/module then we can use
-      // casting to apply the interface.
-      if (_ancestorOf(Base, source)) {
-        source(this.prototype); // cast
+      ;;; if (_ancestorOf(Base, source)) {
         // introspection (removed when packed)
         ;;; this["#implements"].push(source);
         ;;; source["#implemented_by"].push(this);
-      }
-    } else {
-      // Add the interface using the extend() function.
-      extend(this.prototype, source);
+      ;;; }
+      source = source.prototype;
     }
+    // Add the interface using the extend() function.
+    extend(this.prototype, source);
     return this;
   }
 });

@@ -29,9 +29,9 @@ var EventTarget = Interface.extend({
     },
     
     removeEventListener: function(target, type, listener, useCapture) {
-      var map = DocumentState.getInstance(target).events;
+      var events = DocumentState.getInstance(target).events;
       // delete the event listener from the hash table
-      var typeMap = map[type];
+      var typeMap = events[type];
       if (typeMap) {
         var phaseMap = typeMap[useCapture ? _CAPTURING_PHASE : _BUBBLING_PHASE];
         if (phaseMap) {

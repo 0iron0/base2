@@ -10,9 +10,11 @@ function detect(_no_shrink_) {
 
   var jscript = NaN/*@cc_on||@_jscript_version@*/; // http://dean.edwards.name/weblog/2007/03/sniff/#comment85164
   var java = global.java ? true : false;
+  var _lookup = {};
   if (global.navigator) {
     var MSIE = /MSIE[\d.]+/g;
-    var element = document.createElement("span");
+    _lookup.document = document;
+    var element = _lookup.element = document.createElement("span");
     element.expando = true;
     //var event = document.createEvent ? document.createEvent("UIEvents") : document.createEventObject ? document.createEventObject() : {};
     // Close up the space between name and version number.
@@ -26,22 +28,32 @@ function detect(_no_shrink_) {
     java &= navigator.javaEnabled();
   }
 
+  var _cache = {};
   detect = function(expression) {
-    var _returnValue = false;
-    var not = expression.charAt(0) == "!";
-    if (not) expression = expression.slice(1);
-    if (expression.charAt(0) == "(") {
-      // Object detection.
-      try {
-        eval("_returnValue=!!" + expression);
-      } catch (x) {
-        // the test failed
+    if (_cache[expression] == null) {
+      var returnValue = false, test = expression;
+      var not = test.charAt(0) == "!";
+      if (not) test = test.slice(1);
+      if (test.charAt(0) == "(") {
+        // Object detection.
+        if (/^\((element|document)\.\w+\)$/.test(test)) {
+          test = test.slice(1, -1).split(".");
+          returnValue = !!_lookup[test[0]][test[1]];
+        } else {
+          try {
+            eval("var _returnValue=!!" + test);
+            returnValue = _returnValue;
+          } catch (x) {
+            // the test failed
+          }
+        }
+      } else {
+        // Browser sniffing.
+        returnValue = new RegExp("(" + test + ")", "i").test(userAgent);
       }
-    } else {
-      // Browser sniffing.
-      _returnValue = new RegExp("(" + expression + ")", "i").test(userAgent);
+      _cache[expression] = !!(not ^ returnValue);
     }
-    return !!(not ^ _returnValue);
+    return _cache[expression];
   };
   
   return detect(arguments[0]);

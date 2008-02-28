@@ -1,6 +1,9 @@
 
 var Chrome = MouseCapture.extend({
-  onattach: function(element) {
+  oncontentready: function(element) {
+		if (element.clientHeight > element.clientWidth) {
+      this.setOrientation(element, this.VERTICAL);
+    }
     this.layout(element, this.states[element.disabled ? "disabled" : "normal"]);
   },
 
@@ -30,32 +33,36 @@ var Chrome = MouseCapture.extend({
   },
 
   onmousemove: function(element, event, x, y) {
-    //console2.log("onmousemove");
-    Chrome._hoverThumb = this.hitTest(element, x, y);
-    this.delayRefresh(element);
+    //console2.log("onmousemove: "+[x,y]);
+    var thumb = this.hitTest(element, x, y);
+    if (thumb != Chrome._hoverThumb) {
+      Chrome._hoverThumb = thumb;
+      this.layout(element);
+      this.syncCursor(element);
+    }
   },
 
-  onmouseover: function(element) {
+  onmouseover: function(element, event, x, y) {
     //console2.log("onmouseover");
     Chrome._hover = element;
+    Chrome._hoverThumb = this.hitTest(element, x, y);
     this.layout(element);
   },
 
   onmouseout: function(element) {
     //console2.log("onmouseout");
+    delete Chrome._activeThumb;
     delete Chrome._hoverThumb;
     delete Chrome._hover;
     this.layout(element);
   },
 
   onfocus: function(element) {
-    //;;; console2.log("onfocus(" + arguments[1].eventPhase + ")");
     Chrome._focus = element;
     this.layout(element);
   },
 
   onblur: function(element) {
-    //;;; console2.log("onblur(" + arguments[1].eventPhase + ")");
     delete Chrome._focus;
     this.removeClass(element, this.appearance + _FOCUS);
     this.layout(element);
@@ -63,7 +70,7 @@ var Chrome = MouseCapture.extend({
 }, {
   HORIZONTAL: 0,
   VERTICAL: 1,
-  
+
   states: {
     normal:   0,
     hover:    1,
@@ -71,13 +78,13 @@ var Chrome = MouseCapture.extend({
     disabled: 3,
     length:   4
   },
-  
+
   appearance: "",
-  
+
   imageWidth: 17,
 
   isActive: function(element) {
-		return Chrome._activeThumb && (Chrome._activeThumb == Chrome._hoverThumb);
+    return Chrome._activeThumb && (Chrome._activeThumb == Chrome._hoverThumb);
   },
 
   isEditable: function(element) {
@@ -87,13 +94,13 @@ var Chrome = MouseCapture.extend({
   isNativeControl: False,
 
   getCursor: function(element) {
-		return (Chrome._activeThumb || Chrome._hoverThumb || element != Chrome._hover) ? "default" : "";
+    return (Chrome._activeThumb || Chrome._hoverThumb || element != Chrome._hover) ? "default" : "";
   },
 
   syncCursor: function(element) {
     element.style.cursor = this.getCursor(element);
   },
-  
+
   getState: K(0),
 
   hitTest: function(element, x) {
@@ -112,27 +119,27 @@ var Chrome = MouseCapture.extend({
     }
   },
 
-	hasTimer: function(element, id) {
+  hasTimer: function(element, id) {
     id = element.base2ID + (id || _TIMER);
-		return !!_timers[id];
-	},
+    return !!_timers[id];
+  },
 
-	startTimer: function(element, id, interval, repeat) {
+  startTimer: function(element, id, interval, repeat) {
     id = element.base2ID + (id || _TIMER);
-		if (!_timers[id]) {
-			_timers[id] = setInterval(bind(this.tick, this, element), 100);
-		}
-	},
+    if (!_timers[id]) {
+      _timers[id] = setInterval(bind(this.tick, this, element), 100);
+    }
+  },
 
 	stopTimer: function(element, id) {
     id = element.base2ID + (id || _TIMER);
-		if (_timers[id]) {
-			clearInterval(_timers[id]);
-			delete _timers[id];
-		}
-	},
-	
-	tick: Undefined,
+    if (_timers[id]) {
+      clearInterval(_timers[id]);
+      delete _timers[id];
+    }
+  },
+
+  tick: Undefined,
 
   delayRefresh: function(element) {
     // use a timer delay to prevent excess mouse movement

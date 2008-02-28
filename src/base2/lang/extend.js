@@ -12,8 +12,8 @@ function extend(object, source) { // or extend(object, key, value)
     }
     var proto = (typeof source == "function" ? Function : Object).prototype;
     // Add constructor, toString etc
-    var i = _HIDDEN.length, key;
     if (base2.__prototyping) {
+      var i = _HIDDEN.length, key;
       while ((key = _HIDDEN[--i])) {
         var value = source[key];
         if (value != proto[key]) {
@@ -31,7 +31,7 @@ function extend(object, source) { // or extend(object, key, value)
         var value = source[key];
         // Object detection.
         if (key.charAt(0) == "@") {
-          if (detect(key.slice(1))) arguments.callee(object, value);
+          if (detect(key.slice(1))) extend(object, value);
           continue;
         }
         // Check for method overriding.
@@ -76,6 +76,7 @@ function _override(object, name, method) {
     this.base = previous;
     return returnValue;
   };
+  _base.method = method;
   _base.ancestor = ancestor;
   object[name] = _base;
   // introspection (removed when packed)

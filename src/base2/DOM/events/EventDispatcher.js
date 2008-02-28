@@ -1,10 +1,4 @@
 
-var _CAPTURING_PHASE = 1,
-    _AT_TARGET       = 2,
-    _BUBBLING_PHASE  = 3;
-
-var _CAPTURE_TYPE = _MSIE ? {focus: "focusin", blur: "focusout"} : {};
-
 var EventDispatcher = Base.extend({
   constructor: function(state) {
     this.state = state;
@@ -20,9 +14,7 @@ var EventDispatcher = Base.extend({
         var target = nodes[i];
         var listeners = map[target.base2ID];
         if (listeners) {
-          if (target == event.target) {
-            event.eventPhase = _AT_TARGET;
-          }
+          event.eventPhase = target == event.target ? _AT_TARGET : phase;
           event.currentTarget = target;
           for (var listenerID in listeners) {
             var listener = listeners[listenerID];

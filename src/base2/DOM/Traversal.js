@@ -78,7 +78,7 @@ var Traversal = Module.extend({
   
   getDocument: function(node) {
     // return the document object
-    return this.isDocument(node) ? node : this.getOwnerDocument(node);
+    return this.isDocument(node) ? node : node.ownerDocument || node.document;
   },
   
   isDocument: function(node) {

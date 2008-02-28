@@ -21,8 +21,10 @@ function _createObject2(Native, constructor, generics, extensions) {
   // Create a Module that will contain all the new methods.
   var INative = Module.extend();
   // http://developer.mozilla.org/en/docs/New_in_JavaScript_1.6#Array_and_String_generics
+  var index = INative.toString("index");
   forEach.csv(generics, function(name) {
     INative[name] = unbind(Native.prototype[name]);
+    INative.namespace += format("var %1=base2.Module[%2].%1;", name, index);
   });
   forEach (_slice.call(arguments, 3), INative.implement, INative);
 
@@ -33,16 +35,16 @@ function _createObject2(Native, constructor, generics, extensions) {
   Native2.prototype = INative.prototype;
 
   // Remove methods that are already implemented.
-  _Function_forEach (Function, INative, function(method, name) {
-    if (Native[name]) {
+  for (var name in INative) {
+    if (name != "prototype" && Native[name]) {
       INative[name] = Native[name];
       delete INative.prototype[name];
     }
     Native2[name] = INative[name];
-  });
+  }
   Native2.ancestor = Object;
   delete Native2.extend;
-
+  
   Native2.namespace = Native2.namespace.replace(/(var (\w+)=)[^,;]+,([^\)]+)\)/g, "$1$3.$2");
   
   return Native2;
