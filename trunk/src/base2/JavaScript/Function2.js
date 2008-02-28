@@ -1,15 +1,11 @@
 
-var _ = {toString: K("_")};
-
 var Function2 = _createObject2(
   Function,
   Function,
-  "apply,call", {
-    _: _,
+  "", {
     I: I,
     II: II,
     K: K,
-//  EQ: EQ,
     bind: bind,
     compose: compose,
     delegate: delegate,
@@ -20,6 +16,15 @@ var Function2 = _createObject2(
     unshift: unshift
   }
 );
+
+Function2.apply = function(fn, context, args) {
+  return fn.apply(context, args);
+};
+Function2.call  = function(fn, context) {
+  return fn.apply(context, _slice.call(arguments, 2));
+};
+
+Function2.namespace += "var apply=base2.JavaScript.Function2.apply,call=base2.JavaScript.Function2.call;";
 
 function I(i) { // return first argument
   return i;
@@ -37,7 +42,7 @@ function K(k) {
 
 function bind(fn, context) {
   var args = _slice.call(arguments, 2);
-  var lateBound = typeOf(fn) != "function";
+  var lateBound = typeof fn != "function";
   return args.length == 0 ? function() { // faster if there are no additional arguments
     return (lateBound ? context[fn] : fn).apply(context, arguments);
   } : function() {
@@ -80,13 +85,13 @@ function partial(fn) { // "hard" partial
   return function() {
     var specialised = args.concat(), i = 0, j = 0;
     while (i < args.length && j < arguments.length) {
-      if (specialised[i] === _) specialised[i] = arguments[j++];
+      if (specialised[i] === undefined) specialised[i] = arguments[j++];
       i++;
     }
     while (j < arguments.length) {
       specialised[i++] = arguments[j++];
     }
-    if (Array2.contains(specialised, _)) {
+    if (Array2.contains(specialised, undefined)) {
       specialised.unshift(fn);
       return partial.apply(null, specialised);
     }

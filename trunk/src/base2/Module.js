@@ -17,10 +17,12 @@ var Module = Abstract.extend(null, {
     // Inherit class methods.
     module.implement(this);
     // Implement module (instance AND static) methods.
-    module.implement(_interface);
+    if (_interface) module.implement(_interface);
     // Implement static properties and methods.
-    extend(module, _static);
-    module.init();
+    if (_static) {
+      extend(module, _static);
+      if (module.init) module.init();
+    }
     return module;
   },
 
@@ -41,42 +43,22 @@ var Module = Abstract.extend(null, {
       }
       if (_ancestorOf(Module, _interface)) {
         // Implement static methods.
-        _Function_forEach (Module, _interface, function(property, name) {
-          if (typeof module[name] == "undefined") {
-            if (typeOf(property) == "function" && _interface.prototype[name]) {
-              property = function() {
-                return _interface[name].apply(this, arguments);
-              };
+        for (var name in _interface) {
+          if (module[name] === undefined) {
+            var property = _interface[name];
+            if (typeof property == "function" && property.call && _interface.prototype[name]) {
+              property = _staticModuleMethod(_interface, name);
             }
             module[name] = property;
           }
-        });
+        }
         module.namespace += _interface.namespace.replace(/\b\d+\b/g, index);
       }
     } else {
       // Add static interface.
       extend(module, _interface);
       // Add instance interface.
-      var proto = module.prototype;
-      _Function_forEach (Object, _interface, function(property, name) {
-        if (name.charAt(0) == "@") { // object detection
-          if (detect(name.slice(1))) {
-            _Function_forEach (Object, property, arguments.callee);
-          }
-        } else if (!proto[name]) {
-          if (name == name.toUpperCase()) {
-            module.namespace += format("var %1=base2.Module[%2].%1;", name, index);
-          } else if (typeOf(property) == "function") {
-            module.namespace += format("var %1=base2.JavaScript.Function2.bind('%1',base2.Module[%2]);", name, index);
-            proto[name] = function() {
-              var args = _slice.call(arguments);
-              args.unshift(this);
-              return module[name].apply(module, args); // Late binding.
-            };
-            ;;; proto[name]._module = module; // introspection
-          }
-        }
-      });
+      _extendModule(module, _interface, index);
     }
     return module;
   },
@@ -92,3 +74,38 @@ var Module = Abstract.extend(null, {
     return module;
   }
 });
+
+function _extendModule(module, _interface, index) {
+  var proto = module.prototype;
+  for (var name in _interface) {
+    var property = _interface[name], namespace = "";
+    if (name.charAt(0) == "@") { // object detection
+      if (detect(name.slice(1))) _extendModule(module, property, index);
+    } else if (!proto[name]) {
+      if (name == name.toUpperCase()) {
+        namespace = "var " + name + "=base2.Module[" + index + "]." + name + ";";
+      } else if (typeof property == "function" && property.call) {
+        namespace = "var " + name + "=base2.JavaScript.Function2.bind('" + name + "',base2.Module[" + index + "]);";
+        proto[name] = _moduleMethod(module, name);
+        ;;; proto[name]._module = module; // introspection
+      }
+      if (module.namespace.indexOf(namespace) == -1) {
+        module.namespace += namespace;
+      }
+    }
+  }
+};
+
+function _staticModuleMethod(module, name) {
+  return function _staticModuleMethod() {
+    return module[name].apply(this, arguments);
+  };
+};
+
+function _moduleMethod(module, name) {
+  return function _moduleMethod() {
+    var args = _slice.call(arguments);
+    args.unshift(this);
+    return module[name].apply(this, args);
+  };
+};

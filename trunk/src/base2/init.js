@@ -1,12 +1,12 @@
 
 base2 = global.base2 = new Package(this, base2);
-eval(this.exports);
+var exports = this.exports;
 
 lang = new Package(this, lang);
-eval(this.exports);
+exports += this.exports;
+
+JavaScript = new Package(this, JavaScript);
+eval(exports + this.exports);
 
 lang.base = base;
 lang.extend = extend;
-
-JavaScript = new Package(this, JavaScript);
-eval(this.exports);

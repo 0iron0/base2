@@ -45,11 +45,13 @@ var ProgressBar = NumberControl.extend({
   CHUNK_WIDTH: 10,
   CHUNK_HEIGHT: 10,
   
-  appearance: "progressbar",
+  ATTRIBUTES: {
+    min:  0,
+    max:  100,
+    step: 1
+  },
 
-  min:  0,
-  max:  100,
-  step: 1,
+  appearance: "progressbar",
 
   hitTest: False,
 
@@ -62,25 +64,25 @@ var ProgressBar = NumberControl.extend({
   },
 
   getUnitIncrement: function(element) {
-    return element.step / (element.max - element.min) || this.base(element);
+    var attributes = this.getAttributes(element);
+    return attributes.step / (attributes.max - attributes.min) || this.base(element);
   },
 
   layout: function(element) {
 		var clientWidth = element.clientWidth;
 		var clientHeight = element.clientHeight;
 		var base2ID = element.base2ID;
-    if (clientWidth >= clientHeight) {
+
+    if (_vertical[base2ID]) {
+      left = (-clientWidth / 2) * (clientWidth + 3) - 2;
+      top = Math.floor(clientHeight * _values[base2ID]);
+      top = clientHeight - Math.round(top / this.CHUNK_HEIGHT) * this.CHUNK_HEIGHT;
+    } else {
 		  var chunk = /luna/.test(chrome.theme.name) ? this.CHUNK_WIDTH : 1;
       var left = Math.floor(clientWidth * _values[base2ID]) - this.WIDTH;
       left = Math.round(++left / chunk) * chunk;
       var top = (-clientHeight / 2) * (clientHeight + 3) - 2;
       //var top = (-clientHeight / 2) * (clientHeight - 1);
-      if (_vertical[base2ID]) this.setOrientation(element, this.HORIZONTAL);
-    } else {
-      left = (-clientWidth / 2) * (clientWidth + 3) - 2;
-      top = Math.floor(clientHeight * _values[base2ID]);
-      top = clientHeight - Math.round(top / this.CHUNK_HEIGHT) * this.CHUNK_HEIGHT;
-      if (!_vertical[base2ID]) this.setOrientation(element, this.VERTICAL);
     }
     element.style.backgroundPosition = left + PX + " " + top + PX;
   },
@@ -92,8 +94,8 @@ var ProgressBar = NumberControl.extend({
   },
 
   setValue: function(element, value) {
-    this.getValues(element);
-    var min = Number(_numberValues.min), max = Number(_numberValues.max);
+    var attributes = this.getAttributes(element);
+    var min = Number(attributes.min), max = Number(attributes.max);
     this.base(element, min + (max - min) * value);
     _values[element.base2ID] = (element.value - min) / (max - min);
 		this.layout(element);

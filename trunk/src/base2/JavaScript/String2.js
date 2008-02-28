@@ -21,7 +21,7 @@ function trim(string) {
 };
 
 function csv(string) {
-  return match(string, /[^\s,]+/g);
+  return string ? String(string).split(/\s*,\s*/) : [];
 };
 
 function format(string) {

@@ -50,17 +50,3 @@ var Event = Binding.extend({
     }
   }
 });
-
-var _CAPTURE_TYPE = {};
-if (_MSIE) {
-  var _MOUSE_BUTTON   = /^mouse(up|down)|click$/,
-      _MOUSE_CLICK    = /click$/,
-      _BUBBLES        = "abort|error|select|change|resize|scroll|", // + _CANCELABLE
-      _CANCELABLE     = "(dbl)?click|mouse(down|up|over|move|out|wheel)|key(down|up)|submit|reset";
-
-  var _W3C_EVENT_TYPE = {focusin: "focus", focusout: "blur"};
-      _CAPTURE_TYPE   = {focus: "focusin", blur: "focusout"};
-
-  _BUBBLES = new RegExp("^(" +_BUBBLES + _CANCELABLE + ")$");
-  _CANCELABLE = new RegExp("^(" + _CANCELABLE + ")$");
-}

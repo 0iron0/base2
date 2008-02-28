@@ -13,38 +13,49 @@ var Interface = Module.extend(null, {
   },
   
   implement: function(_interface) {
-    if (Interface.ancestorOf(_interface)) {
-      forEach (_interface, function(property, name) {
-        if (_interface[name]._delegate) {
+    if (typeof _interface == "object") {
+      _extendModule(this, _interface);
+    } else if (Interface.ancestorOf(_interface)) {
+      for (var name in _interface) {
+        if (_interface[name] && _interface[name]._delegate) {
           this[name] = bind(name, _interface);
           this[name]._delegate = name;
         }
-      }, this, this);
-    } else if (typeof _interface == "object") {
-      var detected = true;
-      forEach (_interface, function(source, name) {
-        if (name.charAt(0) == "@") {
-          detected = detect(name.slice(1));
-          forEach (source, arguments.callee, this, this);
-          detected = true;
-        } else if (typeOf(source) == "function") {
-          // delegate a static method to the bound object
-          //  e.g. for most browsers:
-          //    EventTarget.addEventListener(element, type, listener, capture) 
-          //  forwards to:
-          //    element.addEventListener(type, listener, capture)
-          if (!this[name]) {
-            var FN = "var fn=function _%1(%2){%3.base=%3.%1.ancestor;var m=%3.base?'base':'%1';return %3[m](%4)};";
-            var args = "abcdefghij".slice(-source.length).split("");
-            eval(FN = format(FN, name, args, args[0], args.slice(1)));
-            fn._delegate = name;
-            this[name] = fn;
-            if (!detected)
-              this.namespace += format("var %1=base2.JavaScript.Function2.bind('%1',base2.Module[%2]);", name, this.toString("index"));
-          }
-        }
-      }, this, this);
+      }
     }
     return this.base(_interface);
   }
 });
+
+function _extendModule(module, _interface) {
+  for (var name in _interface) {
+    var property = _interface[name];
+    if (name.charAt(0) == "@") {
+      _extendModule(module, property);
+    } else if (!module[name] && typeof property == "function" && property.call) {
+      // delegate a static method to the bound object
+      //  e.g. for most browsers:
+      //    EventTarget.addEventListener(element, type, listener, capture)
+      //  forwards to:
+      //    element.addEventListener(type, listener, capture)
+      var fn = _createDelegate(name);
+      fn._delegate = name;
+      module[name] = fn;
+      module.namespace += "var " + name + "=base2.JavaScript.Function2.bind('" + name + "',base2.Module[" + module.toString("index") + "]);";
+    }
+  }
+};
+
+var _createDelegate = _MSIE ? function(name) {
+  return function _staticModuleMethod(element, a,b,c,d,e,f,g,h,i,j,k,l,m,n,o) {
+    element.base = element[name].ancestor;
+    var method = element.base ? 'base' : name;
+    return element[method](a,b,c,d,e,f,g,h,i,j,k,l,m,n,o);
+  };
+} : function(name) {
+  return function _staticModuleMethod(element) {
+    element.base = element[name].ancestor;
+    var method = element.base ? 'base' : name;
+    return element[method].apply(element, Array2.slice(arguments, 1));
+  };
+};

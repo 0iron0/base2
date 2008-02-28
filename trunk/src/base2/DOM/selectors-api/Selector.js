@@ -9,15 +9,15 @@ var Selector = Base.extend({
     this.toString = K(trim(selector));
   },
   
-  exec: function(context, single, simple) {
-    return Selector.parse(this, simple)(context, single);
+  exec: function(context, count, simple) {
+    return Selector.parse(this, simple)(context, count);
   },
 
   isSimple: function() {
     return !_COMBINATOR.test(trim(_parser.escape(this)));
   },
 
- test: function(element) {
+  test: function(element) {
     var selector = this;
     var context = element;
     var simple = selector.isSimple();
@@ -36,41 +36,41 @@ var Selector = Base.extend({
   },
   
   "@(XPathResult)": {
-    exec: function(context, single, simple) {
+    exec: function(context, count, simple) {
       // use DOM methods if the XPath engine can't be used
       if (_NOT_XPATH.test(this)) {
-        return this.base(context, single, simple);
+        return this.base(context, count, simple);
       }
       var document = Traversal.getDocument(context);
-      var type = single
+      var type = count == 1
         ? 9 /* FIRST_ORDERED_NODE_TYPE */
         : 7 /* ORDERED_NODE_SNAPSHOT_TYPE */;
       var result = document.evaluate(this.toXPath(simple), context, null, type, null);
-      return single ? result.singleNodeValue : result;
+      return count == 1 ? result.singleNodeValue : result;
     }
   },
   
   "@MSIE": {
-    exec: function(context, single, simple) {
+    exec: function(context, count, simple) {
       if (typeof context.selectNodes != "undefined" && !_NOT_XPATH.test(this)) { // xml
         var method = single ? "selectSingleNode" : "selectNodes";
         return context[method](this.toXPath(simple));
       }
-      return this.base(context, single, simple);
+      return this.base(context, count, simple);
     }
   },
   
   "@(true)": {
-    exec: function(context, single, simple) {
+    exec: function(context, count, simple) {
       //try {
         // TO DO: more efficient selectors for:
         //   #ID
         //   :hover/active/focus/target
-        var result = this.base(context || document, single, simple);
+        var result = this.base(context || document, count, simple);
       //} catch (error) { // probably an invalid selector =)
       //  throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
       //}
-      return single ? result : new StaticNodeList(result);
+      return count == 1 ? result : new StaticNodeList(result);
     }
   }
 }, {  
@@ -129,8 +129,8 @@ var _INDEXED = detect("(element.sourceIndex)") ;
 var _VAR = "var p%2=0,i%2,e%2,n%2=e%1.";
 var _ID = _INDEXED ? "e%1.sourceIndex" : "assignID(e%1)";
 var _TEST = "var g=" + _ID + ";if(!p[g]){p[g]=1;";
-var _STORE = "r[k++]=e%1;if(s==1)return e%1;";
-var _FN = "var _selectorFunction=function(e0,s%1){_indexed++;var r=[],p={},reg=[%2],d=Traversal.getDocument(e0),c=d.writeln?'toUpperCase':'toString',k=0;";
+var _STORE = "r[k++]=e%1;if(s==1)return e%1;if(k===s){_selectorFunction.state=[%2];return r;";
+var _FN = "var _selectorFunction=function(e0,s%1){_indexed++;var r=[],p={},reg=[%3],d=Traversal.getDocument(e0),c=d.writeln?'toUpperCase':'toString',k=0;";
 
 var _xpathParser;
 
@@ -144,7 +144,7 @@ var _duplicate; // possible duplicates?
 var _cache = {}; // store parsed selectors
 
 // a hideous parser
-var _parser = new CSSParser({
+var _parser = {
   "^ \\*:root": function(match) { // :root pseudo class
     _wild = false;
     var replacement = "e%2=d.documentElement;if(Traversal.contains(e%1,e%2)){";
@@ -264,7 +264,7 @@ var _parser = new CSSParser({
     }
     return "if(" + format(replacement, getAttribute, value) + "){";
   }
-});
+};
 
 (function(_no_shrink_) {
   // IE confuses the name attribute with id for form elements,
@@ -309,6 +309,7 @@ var _parser = new CSSParser({
   
   Selector.parse = function(selector, simple) {
     if (!_cache[selector]) {
+      if (!_parser.exec) _parser = new CSSParser(_parser);
       _reg = []; // store for RegExp objects
       _index = 0;
       var fn = "";
@@ -322,7 +323,7 @@ var _parser = new CSSParser({
         }
         // check for duplicates before storing results
         var store = (_duplicate > 1) ? _TEST : "";
-        block += format(store + _STORE, _index);
+        block += format(store + _STORE, _index, "%2");
         // add closing braces
         block += Array(match(block, /\{/g).length + 1).join("}");
         fn += block;
@@ -335,8 +336,9 @@ var _parser = new CSSParser({
         args += ",a" + i;
         state.push(format("i%1?i%1-1:0", i));
       }
-      fn += format("_selectorFunction.state=[%1];return s?null:r}", state.join(","));
-      eval(format(_FN, args, _reg) + fn);
+      state.push(_list ? format("i%1==n%1.length", i - 1) : true); // complete
+      fn += "_selectorFunction.state=[%2];return s==1?null:r}";
+      eval(format(_FN + fn, args, state.join(","), _reg));
       _cache[selector] = _selectorFunction;
     }
     return _cache[selector];
