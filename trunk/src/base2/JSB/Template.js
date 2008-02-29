@@ -6,7 +6,7 @@ var Template = Behavior.extend({
   onattach: function(element){},
   ondetach: function(element){},
 
-  oncontentready:  function(element, event){}, // not implemented
+  oncontentready:  function(element, event){},
   ondocumentready: function(element, event){},
 
   onclick:      function(element, event, offsetX, offsetY, screenX, screenY){},
@@ -24,8 +24,6 @@ var Template = Behavior.extend({
 
   onkeydown:  function(element, event, keyCode, shiftKey, ctrlKey, altKey){},
   onkeyup:    function(element, event, keyCode, shiftKey, ctrlKey, altKey){},
-  
-  onkeypress: function(element, event, charCode){}, // not tested
   
   onfocus: function(element, event){},
   onblur:  function(element, event){},
@@ -60,35 +58,35 @@ var Template = Behavior.extend({
   // module and will be inherited by all Behaviors. You may override them if
   // you wish.
   
-  attach: function(element){},
-  detach: function(element){},
+  attach: function(element){return element;},
+  detach: function(element){return element;},
 
-  handleEvent:      function(element, event, type){},
+  handleEvent:   function(element, event, type){return undefined;},
 
-  addEventListener:    function(target, type, listener, useCapture){},
-  removeEventListener: function(target, type, listener, useCapture){},
+  addEventListener:    function(target, type, listener, useCapture){return undefined;},
+  removeEventListener: function(target, type, listener, useCapture){return undefined;},
   
-  dispatchEvent: function(target, event|type){},
+  dispatchEvent: function(target, event|type){return undefined;},
 
   compareDocumentPosition: function(node1, node2){},
 
-  hasAttribute:    function(element, name){},
-  getAttribute:    function(element, name){},
-  setAttribute:    function(element, name, value){},
-  removeAttribute: function(element, name){},
+  hasAttribute:    function(element, name){return Boolean;},
+  getAttribute:    function(element, name){return String || null;},
+  setAttribute:    function(element, name, value){return undefined;},
+  removeAttribute: function(element, name){return undefined;},
 
-  hasClass:    function(element, className){},
-  addClass:    function(element, className){},
-  removeClass: function(element, className){},
-  toggleClass: function(element, className){},
+  hasClass:    function(element, className){return Boolean;},
+  addClass:    function(element, className){return undefined;},
+  removeClass: function(element, className){return undefined;},
+  toggleClass: function(element, className){return undefined;},
 
-  querySelector:    function(context, selector){},
-  querySelectorAll: function(context, selector){},
+  querySelector:    function(context, selector){return Object;}, // return Element
+  querySelectorAll: function(context, selector){return Object;}, // return StaticNodeList
 
-  getComputedStyle: function(element, /* optional */ propertyName){},
+  getComputedStyle: function(element, /* optional */ propertyName){return Object || String;},
 
-  getCSSProperty: function(element, propertyName){},
-  setCSSProperty: function(element, propertyName, value, /* optional */ important){},
+  getCSSProperty: function(element, propertyName){return String;},
+  setCSSProperty: function(element, propertyName, value, /* optional */ important){return undefined;},
   
   /* USER DEFINED METHODS */
   

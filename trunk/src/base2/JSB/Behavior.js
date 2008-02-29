@@ -56,7 +56,7 @@ var Behavior = Module.extend(null, {
           }
         }
         if (methods) extend(element, methods);
-        //;;;console2.log("beforeattach: "+behavior.onattach);
+        // Call pseudo events.
         if (behavior.onattach) behavior.onattach(element);
         if (behavior.oncontentready) {
           if (DocumentState.isContentReady(element)) {
@@ -85,24 +85,19 @@ var Behavior = Module.extend(null, {
 
   EventDelegator: null,
 
-  dispatchEvent: function(element, event) {
+  dispatchEvent: function(element, event, data) {
     if (typeof event == "string") {
       var type = event;
       event = DocumentEvent.createEvent(document, "Events");
       Event.initEvent(event, type, true, false);
-      //forEach.detect (data, function(property, name) {
-      //  event[name] = property;
-      //});
     }
-    EventTarget.dispatchEvent(element, event);
+    EventTarget.dispatchEvent(element, extend(event, data));
   },
 
   handleEvent: function(element, event, type) {
     // We could use the passed event type but we can't trust the descendant
     // classes to always pass it. :-)
     type = event.type;
-    if (element == document) console2.log(type);
-    //;;; if(!/mouse(move|over|out)/.test(type)) console2.log(type+" :" +event.button);
     var handler = "on" + type;
     if (handler) {
       if (_EVENT_MOUSE.test(type)) {
@@ -113,7 +108,7 @@ var Behavior = Module.extend(null, {
             this[handler](element, event, event.offsetX, event.offsetY, event.screenX, event.screenY);
           }
         }
-      } else if (_EVENT_KEYBOARD.test(type)) {
+      } else if (_EVENT_TEXT.test(type)) {
         this[handler](element, event, event.keyCode, event.shiftKey, event.ctrlKey, event.altKey, event.metaKey);
       } else {
         this[handler](element, event);
@@ -136,10 +131,15 @@ var Behavior = Module.extend(null, {
   }
 });
 
-forEach ([EventTarget, NodeSelector, Node, Element], function(module) {
-  module.forEach(function(method, name) {
+forEach ([
+  EventTarget,
+  NodeSelector,
+  Node,
+  Element
+], function(_interface) {
+  _interface.forEach(function(method, name) {
     if (!Behavior[name]) {
-      Behavior[name] = bind(method, module);
+      Behavior[name] = bind(method, _interface);
     }
   });
 });

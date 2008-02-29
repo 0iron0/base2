@@ -22,11 +22,11 @@ var Theme = Base.extend({
       } else element = document.documentElement;
       // detect XP theme by inspecting the ActiveCaption colour
       element.style.color = "ActiveCaption";
-      var chrome = Chrome.getComputedStyle(element, "color");
+      var color = Chrome.getComputedStyle(element, "color");
       element.style.color = "";
       if (_MSIE) body.removeChild(element);
-      if (/rgb/.test(chrome)) chrome = eval(chrome);
-      this.load(_XP_DETECT[chrome]);
+      if (/rgb/.test(color)) color = eval(color);
+      this.load(_XP_DETECT[color]);
     }
   },
 
@@ -49,7 +49,7 @@ var Theme = Base.extend({
   load: function(name) {
     //return;
     if (name) this.name = name;
-    this.createStyleSheet(format(_STYLES, this, _THEMES[this.name] || "", this.prefix));
+    this.createStyleSheet(format(_STYLES, this, _THEMES[this.name] || "", this.prefix, _BORDER_COLORS[this.name] || ""));
   },
 
   createStyleSheet: function(cssText) {
@@ -75,20 +75,31 @@ var Theme = Base.extend({
 });
 
 var _XP_DETECT = {
+  "#0a246a": "classic",
   "#0054e3": "luna/blue",
   "#8ba169": "luna/olive",
   "#c0c0c0": "luna/silver",
   "#335ea8": "royale"
 };
 
-var _cssText = "padding:2px;border:1px solid ";
-var _THEMES = {
-  "classic": "",
-  "luna/blue": _cssText + "#7f9db9;",
-  "luna/olive": _cssText + "#a4b97f;",
-  "luna/silver": _cssText + "#a5acb2;",
-  "royale": _cssText + "#a7a6aa;"
+var _BORDER_COLORS = {
+  "classic": "#000000",
+  "luna/blue": "#7f9db9",
+  "luna/olive": "#a4b97f",
+  "luna/silver": "#a5acb2",
+  "royale": "#a7a6aa"
 };
+
+var _THEMES = reduce(_BORDER_COLORS, function(themes, color, theme) {
+  themes[theme] = "padding:2px;border:1px solid " + color;
+  return themes;
+}, {});
+_THEMES.classic = "padding:1px 0;-moz-border-top-colors:ThreeDShadow ThreeDDarkShadow\
+;-moz-border-right-colors:ThreeDHighlight ThreeDLightShadow\
+;-moz-border-left-colors:ThreeDShadow ThreeDDarkShadow\
+;-moz-border-bottom-colors:ThreeDHighlight ThreeDLightShadow\
+";
+if (detect("WebKit")) _THEMES.classic += ";padding:1px;border-style:solid;border-width:2px 1px 1px 2px;border-color:#444 #ddd #ddd #444";
 
 var rgba = rgb;
 function rgb(r, g, b) {
@@ -102,7 +113,7 @@ function _defaultTheme() {
   this.load(this.name);
 };
 
-chrome.theme = new Theme;
+chrome.theme = new Theme("aqua");
 /*chrome.setTheme = function(path) {
   this.theme = new Theme(path);
 };*/

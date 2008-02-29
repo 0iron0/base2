@@ -69,20 +69,21 @@ var ProgressBar = NumberControl.extend({
   },
 
   layout: function(element) {
-		var clientWidth = element.clientWidth;
-		var clientHeight = element.clientHeight;
-		var base2ID = element.base2ID;
+    var clientWidth = element.clientWidth;
+    var clientHeight = element.clientHeight;
+    var base2ID = element.base2ID;
 
     if (_vertical[base2ID]) {
-      left = (-clientWidth / 2) * (clientWidth + 3) - 2;
-      top = Math.floor(clientHeight * _values[base2ID]);
+      var left = (-clientWidth / 2) * (clientWidth + 3) - 2;
+      //var left = (-clientWidth / 2) * (clientWidth - 1);
+      var top = Math.floor(clientHeight * _values[base2ID]);
       top = clientHeight - Math.round(top / this.CHUNK_HEIGHT) * this.CHUNK_HEIGHT;
     } else {
-		  var chunk = /luna/.test(chrome.theme.name) ? this.CHUNK_WIDTH : 1;
-      var left = Math.floor(clientWidth * _values[base2ID]) - this.WIDTH;
+      var chunk = /luna/.test(chrome.theme.name) ? this.CHUNK_WIDTH : 1;
+      left = Math.floor(clientWidth * _values[base2ID]) - this.WIDTH;
       left = Math.round(++left / chunk) * chunk;
-      var top = (-clientHeight / 2) * (clientHeight + 3) - 2;
-      //var top = (-clientHeight / 2) * (clientHeight - 1);
+      top = (-clientHeight / 2) * (clientHeight + 3) - 2;
+      //top = (-clientHeight / 2) * (clientHeight - 1);
     }
     element.style.backgroundPosition = left + PX + " " + top + PX;
   },
@@ -98,6 +99,6 @@ var ProgressBar = NumberControl.extend({
     var min = Number(attributes.min), max = Number(attributes.max);
     this.base(element, min + (max - min) * value);
     _values[element.base2ID] = (element.value - min) / (max - min);
-		this.layout(element);
+    this.layout(element);
   }
 });

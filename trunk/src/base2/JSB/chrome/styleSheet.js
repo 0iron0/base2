@@ -37,8 +37,18 @@ _height:17px\
 ;min-height:17px\
 ;padding:3px\
 ;border:0\
-;background-color:transparent\
 ;background-image:url("%1slider.png")!important\
+}\
+\
+.popup\
+{display:none\
+;position:absolute!important\
+;z-index:999999!important\
+;cursor:default!important\
+;padding:0!important\
+;margin:0;!important\
+;border:1px solid black!important\
+;border-style:outset\
 }\
 \
 .spinner\
@@ -49,6 +59,13 @@ _height:17px\
 ;background-image:url("%1spinner.png")!important\
 }';
 
+_STYLES += '\n.combobox{' + (detect("WebKit") ?
+'%3appearance:menulist!important}' :
+'padding-right:19px!important\
+;width:8em\
+;background-image:url("%1menulist.png")!important\
+}');
+
 if (detect("KHTML|opera[91]")) _STYLES += '\
 [type=range]\
 {height:initial\
@@ -58,8 +75,14 @@ if (detect("KHTML|opera[91]")) _STYLES += '\
 
 if (_MSIE) _STYLES += "\
 \
+.popup\
+{border-color:%4!important\
+}\
+\
 .progressbar,.slider\
 \
 {text-indent:0\
 ;line-height:80em\
 }";
+
+if (detect("Gecko")) _STYLES += ".popup{border-style:outset!important}";

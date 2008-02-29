@@ -115,7 +115,7 @@ var Spinner = NumberControl.extend({
   },
 
   startTimer: function(element) {
-		if (!_timers[element.base2ID + _TIMER]) {
+    if (!_timers[element.base2ID + _TIMER]) {
       Chrome._direction = (Chrome._activeThumb == "up") ? 1 : -1;
       Chrome._steps = 1;
       this.base(element);
@@ -123,7 +123,7 @@ var Spinner = NumberControl.extend({
   },
 
   stopTimer: function(element) {
-		if (_timers[element.base2ID + _TIMER]) {
+    if (_timers[element.base2ID + _TIMER]) {
       this.base(element);
       if (!Chrome._firedOnce) this.increment(element);
       delete Chrome._firedOnce;
@@ -139,7 +139,7 @@ var Spinner = NumberControl.extend({
   increment: function(element, amount, block) {
     if (amount == undefined) {
       amount = parseInt(Chrome._steps * Chrome._direction);
-      block = Chrome._block;
+      block = !!Chrome._block;
     }
     this.base(element, amount, block);
     Chrome._firedOnce = true;
