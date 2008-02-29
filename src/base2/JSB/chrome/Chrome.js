@@ -1,7 +1,7 @@
 
 var Chrome = MouseCapture.extend({
   oncontentready: function(element) {
-		if (element.clientHeight > element.clientWidth) {
+    if (element.clientHeight > element.clientWidth) {
       this.setOrientation(element, this.VERTICAL);
     }
     this.layout(element, this.states[element.disabled ? "disabled" : "normal"]);
@@ -17,7 +17,6 @@ var Chrome = MouseCapture.extend({
     if (Chrome._activeThumb) {
       this.setCapture(element);
     }
-    this.syncCursor(element);
     this.layout(element);
   },
 
@@ -26,7 +25,6 @@ var Chrome = MouseCapture.extend({
     delete Chrome._active;
     if (Chrome._activeThumb) {
       delete Chrome._activeThumb;
-      this.syncCursor(element);
       this.layout(element);
     }
     this.releaseCapture(element);
@@ -38,7 +36,6 @@ var Chrome = MouseCapture.extend({
     if (thumb != Chrome._hoverThumb) {
       Chrome._hoverThumb = thumb;
       this.layout(element);
-      this.syncCursor(element);
     }
   },
 
@@ -80,6 +77,8 @@ var Chrome = MouseCapture.extend({
   },
 
   appearance: "",
+  
+  cssText: "%2;background-position:9999px 9999px;background-attachment:scroll!important;background-repeat:no-repeat!important",
 
   imageWidth: 17,
 
@@ -131,7 +130,7 @@ var Chrome = MouseCapture.extend({
     }
   },
 
-	stopTimer: function(element, id) {
+  stopTimer: function(element, id) {
     id = element.base2ID + (id || _TIMER);
     if (_timers[id]) {
       clearInterval(_timers[id]);
@@ -141,26 +140,13 @@ var Chrome = MouseCapture.extend({
 
   tick: Undefined,
 
-  delayRefresh: function(element) {
-    // use a timer delay to prevent excess mouse movement
-    //  from causing cursor flicker (hourglass)
-    var id = element.base2ID + "_delay";
-    if (!_timers[id]) {
-      var self = this;
-      _timers[id] = setTimeout(function() {
-        self.syncCursor(element);
-        self.layout(element);
-        delete _timers[id];
-      }, 50);
-    }
-  },
-
   layout: function(element, state) {
     if (state == null) state = this.getState(element);
     var clientHeight = element.clientHeight;
     var top = - this.states.length * (clientHeight / 2 * (clientHeight - 1));
     top -= clientHeight * state;
     element.style.backgroundPosition = "right " + top + PX;
+    this.syncCursor(element);
   },
 
   handleEvent: function(element, event) {

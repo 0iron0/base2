@@ -115,16 +115,16 @@ var Slider = ProgressBar.extend({
   },
 
   getState: function(element) {
-		var state;
-		if (element.disabled) {
-			state = "disabled";
-		} else if (element == Chrome._active && Chrome._activeThumb) {
-			state = "active";
-		} else if (element == Chrome._focus || (element == Chrome._hover && Chrome._hoverThumb)) {
-			state = "hover";
-		} else {
-			state = "normal";
-		}
+    var state;
+    if (element.disabled) {
+      state = "disabled";
+    } else if (element == Chrome._active && Chrome._activeThumb) {
+      state = "active";
+    } else if (element == Chrome._focus || (element == Chrome._hover && Chrome._hoverThumb)) {
+      state = "hover";
+    } else {
+      state = "normal";
+    }
     return this.states[state];
   },
 
