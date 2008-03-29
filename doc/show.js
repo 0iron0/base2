@@ -8,4 +8,3 @@ base2.doc.show = {
   chrome:     true
 };
 
-if (typeof console2 == "undefined") console2={log:function(){},update:function(){}};
