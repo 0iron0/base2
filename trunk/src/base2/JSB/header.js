@@ -1,6 +1,5 @@
 
-var _MSIE  = detect("MSIE"),
-    _OPERA = detect("opera");
+var _MSIE  = detect("MSIE");
 
 // Max time for hogging the processor.
 var _MAX_PROCESSING_TIME = 200; // milliseconds

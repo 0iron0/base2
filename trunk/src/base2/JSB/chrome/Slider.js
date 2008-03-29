@@ -1,13 +1,5 @@
 
 var Slider = ProgressBar.extend({
-/*"@KHTML|opera[91]": {
-    onattach: function(element) {
-      if (element.nodeName == "INPUT" && element.type != "range") {
-        element.type = "range";
-      }
-    }
-  },*/
-
   onmousedown: function(element, event, x, y, screenX, screenY) {
     base(this, arguments);
     event.preventDefault();
@@ -25,6 +17,20 @@ var Slider = ProgressBar.extend({
       Chrome._eventY = y;
     }
     element.focus();
+  },
+
+  "@theme=aqua": {
+    onblur: function(element) {
+      if (element == Slider._activeElement) {
+        delete Slider._activeElement;
+      }
+      base(this, arguments);
+    },
+
+    onmousedown: function(element) {
+      Slider._activeElement = element;
+      base(this, arguments);
+    }
   },
 
   onmouseup: function(element, event) {
@@ -64,11 +70,11 @@ var Slider = ProgressBar.extend({
 
   appearance: "slider",
 
-/*"@KHTML|opera[91]": {
+  "@KHTML|opera[91]": {
     isNativeControl: function(element) {
       return element.nodeName == "INPUT" && element.type == "range";
     }
-  },*/
+  },
 
   layout: function(element, state) {
     // TODO: Right to left should invert horizontal
@@ -115,9 +121,8 @@ var Slider = ProgressBar.extend({
   },
 
   getState: function(element) {
-    var state;
     if (element.disabled) {
-      state = "disabled";
+      var state = "disabled";
     } else if (element == Chrome._active && Chrome._activeThumb) {
       state = "active";
     } else if (element == Chrome._focus || (element == Chrome._hover && Chrome._hoverThumb)) {
@@ -126,6 +131,27 @@ var Slider = ProgressBar.extend({
       state = "normal";
     }
     return this.states[state];
+  },
+  
+  "@theme=aqua": {
+    getState: function(element) {
+      if (element.disabled) {
+        var state = "disabled";
+      } else if (element == Chrome._active && Chrome._activeThumb) {
+        state = "active";
+      } else if (element == Chrome._focus && element != Slider._activeElement) {
+        state = "hover";
+      } else {
+        state = "normal";
+      }
+      return this.states[state];
+    },
+
+    startTimer: function(element) {
+      // the aqua slider jumps immediatley to wherever you click
+    },
+
+    tick: Undefined
   },
 
   tick: function(element) {

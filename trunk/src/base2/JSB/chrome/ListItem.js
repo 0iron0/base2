@@ -6,8 +6,8 @@ var ListItem = Behavior.extend({
   },
 
   onmouseout: function(element) {
-    element.style.backgroundColor = "";
     element.style.color = "";
+    element.style.backgroundColor = "";
   },
 
   onclick: function(element) {

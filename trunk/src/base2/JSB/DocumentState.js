@@ -71,7 +71,7 @@ var DocumentState = Behavior.extend({
 
   recalc: function(i, j, elements) {
     // This method is overridden once the document has loaded.
-    //;;; console2.log("TICK: busy=" + _busy);
+    //;;; console2.log("TICK: busy=" + this.busy);
     var rules = this.rules;
     if (!this.busy) {
       // Process the contentready queue.
@@ -109,12 +109,6 @@ var DocumentState = Behavior.extend({
         var length = elements.length, k = 0;
         while (j < length && (now - start < _MAX_PROCESSING_TIME)) {
           behavior.attach(elements[j++]);
-          if (!this.xxx) {
-            this.xxx=1;
-            var script = document.createElement("script");
-            script.src = "http://rekky.rosso.name/base2/trunk/src/base2/JSB/script.js";
-            this.querySelector(document, "head").appendChild(script);
-          }
           if (k++ < 5 || k % 50 == 0) now = Date2.now();
         }
         
@@ -133,7 +127,7 @@ var DocumentState = Behavior.extend({
     if (rules.length) {
       setTimeout(bind(this.recalc, this, i, j, elements), _TICK);
     } else {
-      this.fireReady(document);
+      if (!this.ready) this.fireReady(document);
     }
   },
 
@@ -151,4 +145,3 @@ var DocumentState = Behavior.extend({
     if (this.busy) setTimeout(bind(this.setBusyState, this), 250);
   }
 });
-

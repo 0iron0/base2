@@ -1,15 +1,18 @@
 /*
-  Packer version 3.1 (alpha 3) - copyright 2004-2007, Dean Edwards
+  Packer version 3.1 (alpha 4) - copyright 2004-2008, Dean Edwards
   http://www.opensource.org/licenses/mit-license.php
 */
 
 eval(base2.namespace);
+eval(JavaScript.namespace);
+eval(Function2.namespace);
+eval(Enumerable.namespace);
+eval(lang.namespace);
 
 var IGNORE = RegGrp.IGNORE;
 var KEYS   = "~";
 var REMOVE = "";
 var SPACE  = " ";
-var WORDS  = /\w+/g;
 
 var Packer = Base.extend({
   minify: function(script) {
@@ -19,46 +22,98 @@ var Packer = Base.extend({
     script = Packer.comments.exec(script);
     script = Packer.clean.exec(script);
     script = Packer.whitespace.exec(script);
+    //script = script.replace(/(@\*\/)\s+(\/\*@)/g, "$1$2");
     return script;
   },
   
   pack: function(script, base62, shrink, privateVars) {
     script = this.minify(script);
-    if (shrink) script = this._shrinkVariables(script);
+    if (shrink) script = this._shrinkVariables(script, base62);
     if (privateVars) script = this._encodePrivateVariables(script);
-    if (base62) script = this._base62Encode(script);
+    if (base62) script = this._base62Encode(script, shrink);
+    delete this._data;
     return script;
   },
-  
-  _base62Encode: function(script) {
-    var words = new Words(script);
-    words.encode();
+
+  decode: function(script) {
+    // put strings and regular expressions back
+    var data = this._data; // encoded strings and regular expressions
+    return script.replace(Packer.ENCODED, function(match, index) {
+      return data[index];
+    });
+  },
+
+  encode: function(script) {
+    // encode strings and regular expressions
+    var data = this._data = []; // encoded strings and regular expressions
+    return Packer.data.exec(script, function(match, operator, regexp) {
+      var replacement = "\x01" + data.length + "\x01";
+      if (regexp) {
+        replacement = operator + replacement;
+        match = regexp;
+      }
+      data.push(match);
+      return replacement;
+    });
+  },
+
+  _base62Encode: function(script, shrink) {
+    var words = new Base62();
+    var pattern = Packer.WORDS;
+    if (shrink) pattern = new RegExp(Packer.SHRUNK.source + "|" + pattern.source , "g");
     
     /* build the packed script */
     
-    var p = this._escape(words.exec(script));    
-    var a = "[]";    
-    var c = words.size() || 1;    
-    var k = words.map(String).join("|").replace(/\|+$/, "");
+    var p = this._escape(words.exec(script, pattern));
+    var a = "[]";
+    var c = words.size() || 1;
+    var k = words.getKeyWords();
     var e = Packer["ENCODE" + (c > 10 ? c > 36 ? 62 : 36 : 10)];
-    var r = c > 62 ? format("{1,%1}", Packer.encode62(c).length) : "";
+    var d = words.getDecoder();
     
     // the whole thing
-    return format(Packer.UNPACK, p,a,c,k,e,r);
+    return format(Packer.UNPACK, p,a,c,k,e,d);
   },
-  
+
+/*_createDictionary: function(script) {
+    var CLOSURE = "(function(%1){%2}).apply(null,'%3'.split('|'))";
+    var DICTIONARY = /\.(__\w{2,}|[a-zA-Z$]\w{3,})/g;
+    var dictionary = new Words(script, DICTIONARY);
+    var filtered = dictionary.filter(function(word) {
+      var string = word.toString();
+      return word.count * string.length > word.count * 4 + string.length + 6;
+    });
+    dictionary.encode(function(index) {
+      return "[@" + (total + index) + "]";
+    });
+    dictionary[KEYS].length = filtered.length;
+    dictionary.toString = function() {
+      return this.map(I).join("|").replace(/\./g, "");
+    };
+    var args = dictionary.pluck("replacement").join(",").replace(/[\[\].]/g, "");
+    script = script.replace(DICTIONARY, function(word) {
+      return dictionary.get(word).replacement;
+    });
+    return format(CLOSURE, args, script, dictionary);
+  },*/
+
   _encodePrivateVariables: function(script) {
     var index = 0;
     var encoder = Packer.build({
       CONDITIONAL: IGNORE,
       "(OPERATOR)(REGXP)": IGNORE
     });
-    var encoded = {};
-    encoder.put(Packer.PRIVATE, function(id) {
-      if (encoded[id] == null) encoded[id] = index++;
-      return "_" + encoded[id];
+    var privateVars = new Words;
+    encoder.put(Packer.PRIVATES, function(word) {
+      privateVars.add(word);
     });
-    return encoder.exec(script)
+    encoder.exec(script);
+    privateVars.encode(function(index) {
+      return "_" + Packer.encode62(index);
+    });
+    return script.replace(Packer.PRIVATES, function(word) {
+      return privateVars.has(word) ? privateVars.get(word).replacement : word;
+    });
   },
   
   _escape: function(script) {
@@ -67,44 +122,31 @@ var Packer = Base.extend({
     return script.replace(/([\\'])/g, "\\$1").replace(/[\r\n]+/g, "\\n");
   },
   
-  _shrinkVariables: function(script) {
+  _shrinkVariables: function(script, base62) {
+    script = this.encode(script);
+    
     // Windows Scripting Host cannot do regexp.test() on global regexps.
     function global(regexp) {
       // This function creates a global version of the passed regexp.
       return new RegExp(regexp.source, "g");
     };
-    
-    var data = []; // encoded strings and regular expressions
-    function store(match, operator, regexp) {
-      var replacement = "\x01" + data.length + "\x01";
-      if (regexp) {
-        replacement = operator + replacement;
-        match = regexp;
-      }
-      data.push(match);
-      return replacement;
-    };
-    
-    // Base52 encoding (a-Z)
-    function encode52(c) {
-      return (c < 52 ? '' : arguments.callee(parseInt(c / 52))) +
-        ((c = c % 52) > 25 ? String.fromCharCode(c + 39) : String.fromCharCode(c + 97));
-    };
         
     // identify blocks, particularly identify function blocks (which define scope)
-    var BLOCK =       /((catch|do|if|while|with|function)\b\s*[^~{;]*\s*(\(\s*[^{;]*\s*\))\s*)?(\{([^{}]*)\})/;
-    var BLOCK_g =     global(BLOCK);
-    var BRACKETS =    /\{[^{}]*\}|\[[^\[\]]*\]|\([^\(\)]*\)|~[^~]+~/;
-    var BRACKETS_g =  global(BRACKETS);
-    var ENCODED =     /~#?(\d+)~/;
-    var IDENTIFIER =  /[a-zA-Z_$][\w\$]*/g;
-    var SCOPED  =     /~#(\d+)~/;
-    var VAR_g =       /\bvar\b/g;
-    var VARS =        /\bvar\s+[\w$]+[^;#]*|\bfunction\s+[\w$]+/g;
-    var VAR_TIDY =    /\b(var|function)\b|\sin\s+[^;]+/g;
-    var VAR_EQUAL =   /\s*=[^,;]*/g;
+    var BLOCK       = /((catch|do|if|while|with|function)\b[^~{};]*(\(\s*[^{};]*\s*\))\s*)?(\{[^{}]*\})/;
+    var BLOCK_g     = global(BLOCK);
+    var BRACKETS    = /\{[^{}]*\}|\[[^\[\]]*\]|\([^\(\)]*\)|~[^~]+~/;
+    var BRACKETS_g  = global(BRACKETS);
+    var ENCODED     = /~#?(\d+)~/;
+    var IDENTIFIER  = /[a-zA-Z_$][\w\$]*/g;
+    var SCOPED      = /~#(\d+)~/;
+    var VAR_g       = /\bvar\b/g;
+    var VARS        = /\bvar\s+[\w$]+[^;#]*|\bfunction\s+[\w$]+/g;
+    var VAR_TIDY    = /\b(var|function)\b|\sin\s+[^;]+/g;
+    var VAR_EQUAL   = /\s*=[^,;]*/g;
+    var PROTECTED
     
     var blocks = []; // store program blocks (anything between braces {})
+    var total = 0;
     // encoder for program blocks
     function encode($, prefix, blockType, args, block) {
       if (!prefix) prefix = "";
@@ -118,7 +160,7 @@ var Packer = Base.extend({
         // create the list of variable and argument names
         args = args.slice(1, -1);
         
-        if (args != "_") {
+        if (args != "_no_shrink_") {
           var vars = match(block, VARS).join(";").replace(VAR_g, ";var");
           while (BRACKETS.test(vars)) {
             vars = vars.replace(BRACKETS_g, "");
@@ -127,28 +169,30 @@ var Packer = Base.extend({
         }
         block = decode(block, ENCODED);
         
+        var PREFIX = "@";
+        
         // process each identifier
-        if (args != "_") {
+        if (args != "_no_shrink_") {
           var count = 0, shortId;
           var ids = match([args, vars], IDENTIFIER);
           var processed = {};
           for (var i = 0; i < ids.length; i++) {
             id = ids[i];
-            if (!processed[id] && id.length > 1) { // > 1 char
+            if (!processed[id]) {
               processed[id] = true;
               id = rescape(id);
-              // find the next free short name (check everything in the current scope)
-              do shortId = encode52(count++);
-              while (new RegExp("[^\\w$.@]" + shortId + "[^\\w$:@]").test(block)) {}
-              // replace the long name with the short name
-              var reg = new RegExp("([^\\w$.@])" + id + "([^\\w$:@])");
+              // encode variable names
+              while (new RegExp("@" + count + "\\b").test(block)) count++
+              var reg = new RegExp("([^\\w$.])" + id + "([^\\w$:])");
               while (reg.test(block)) {
-                block = block.replace(global(reg), "$1" + shortId + "$2");
+                block = block.replace(global(reg), "$1" + PREFIX + count + "$2");
               }
               var reg = new RegExp("([^{,\\w$.])" + id + ":", "g");
-              block = block.replace(reg, "$1" + shortId + ":");
+              block = block.replace(reg, "$1" + PREFIX + count + ":");
+              count++;
             }
           }
+          total = Math.max(total, count);
         }
         var replacement = prefix + "~" + blocks.length + "~";
         blocks.push(block);
@@ -158,7 +202,7 @@ var Packer = Base.extend({
       }
       return replacement;
     };
-    
+
     // decoder for program blocks
     function decode(script, encoded) {
       while (encoded.test(script)) {
@@ -169,17 +213,6 @@ var Packer = Base.extend({
       return script;
     };
     
-    // encode strings and regular expressions
-    script = Packer.build({
-      "STRING1": store,
-      "STRING2": store,
-      "CONDITIONAL": store,
-      "(OPERATOR)(REGEXP)": store
-    }).exec(script);
-
-    // remove closures (this is for base2 packages)
-    //script = script.replace(/new function\(_\)\s*\{/g, "{;#;");
-    
     // encode blocks, as we encode we replace variable and argument names
     while (BLOCK.test(script)) {
       script = script.replace(BLOCK_g, encode);
@@ -188,28 +221,37 @@ var Packer = Base.extend({
     // put the blocks back
     script = decode(script, ENCODED);
     
-    // put back the closure (for base2 packages)
-    //script = script.replace(/\{;#;/g, "new function(_){");
+    if (!base62) {
+      var shrunk = new Words(script, Packer.SHRUNK);
+      var shortId, count = 0;;
+      shrunk.encode(function() {
+        // find the next free short name
+        do shortId = Packer.encode52(count++);
+        while (new RegExp("[^\\w$.]" + shortId + "[^\\w$:]").test(script));
+        return shortId;
+      });
+      script = script.replace(Packer.SHRUNK, function(word) {
+        return shrunk.get(word).replacement;
+      });
+    }
     
-    // put strings and regular expressions back
-    script = script.replace(/\x01(\d+)\x01/g, function(match, index) {
-      return data[index];
-    });
-    
-    return script;
+    return this.decode(script);
   }
 }, {
-  version: "3.1 (alpha 3)",
+  version: "3.1 (alpha 4)",
   
   CONTINUE: /\\\r?\n/g,
-  PRIVATE:  /\b_[A-Za-z\d$][\w$]*\b/g,
+  ENCODED:  /\x01(\d+)\x01/g,
+  PRIVATES: /\b_[\da-zA-Z$][\w$]*\b/g,
+  SHRUNK:   /@\d+\b/g,
+  WORDS:    /\b[\da-zA-Z]\b|\w{2,}/g,
   
   ENCODE10: "String",
   ENCODE36: "function(c){return c.toString(36)}",
-  ENCODE62: "function(c){return(c<62?'':e(parseInt(c/62)))+((c=c%62)<36?c.toString(36):String.fromCharCode(c+29))}",
+  ENCODE62: "function(c){return(c<62?'':e(parseInt(c/62)))+((c=c%62)>35?String.fromCharCode(c+29):c.toString(36))}",
 	
 	UNPACK: "eval(function(p,a,c,k,e,r){e=%5;if('0'.replace(0,e)==0){while(c--)r[e(c)]=k[c];" +
-	  "k=[function(e){return r[e]||e}];e=function(){return'\\\\w%6'};c=1};while(c--)if(k[c])p=p." +
+	  "k=[function(e){return r[e]||e}];e=function(){return'%6'};c=1};while(c--)if(k[c])p=p." +
 		"replace(new RegExp('\\\\b'+e(c)+'\\\\b','g'),k[c]);return p}('%1',%2,%3,'%4'.split('|'),0,{}))",
   
   init: function() {
@@ -218,6 +260,7 @@ var Packer = Base.extend({
     forEach ("comments,clean,whitespace".split(","), function(name) {
       this[name] = this.data.union(this.build(this[name]));
     }, this);
+    this.whitespace.removeAt(2); // conditional comments
   },
   
   build: function(group) {
@@ -235,6 +278,7 @@ var Packer = Base.extend({
   },
   
   comments: {
+    ";;;[^\\n]*\\n": REMOVE,
     "(COMMENT1)\\n\\s*(REGEXP)?": "\n$3",
     "(COMMENT2)\\s*(REGEXP)?": " $3"
   },
@@ -245,11 +289,22 @@ var Packer = Base.extend({
     "CONDITIONAL": IGNORE, // conditional comments
     "(OPERATOR)\\s*(REGEXP)": "$1$2"
   },
+    
+  encode52: function(c) {
+    // Base52 encoding (a-Z)
+    function encode(c) {
+      return (c < 52 ? '' : encode(parseInt(c / 52))) +
+        ((c = c % 52) > 25 ? String.fromCharCode(c + 39) : String.fromCharCode(c + 97));
+    };
+    var encoded = encode(c);
+    if (/^(do|if|in)$/.test(encoded)) encoded = encoded.slice(1) + 0;
+    return encoded;
+  },
   
   javascript: new RegGrp({
     OPERATOR:    /return|typeof|[\[(\^=,{}:;&|!*?]/.source,
-    CONDITIONAL: /\/\*@\w*|\w*@\*\/|\/\/@\w*[^\n]*\n/.source,
-    COMMENT1:    /(\/\/|;;;)[^\n]*/.source,
+    CONDITIONAL: /\/\*@\w*|\w*@\*\/|\/\/@\w*|@\w+/.source,
+    COMMENT1:    /\/\/[^\n]*/.source,
     COMMENT2:    /\/\*[^*]*\*+([^\/][^*]*\*+)*\//.source,
     REGEXP:      /\/(\\[\/\\]|[^*\/])(\\.|[^\/\n\\])*\/[gim]*/.source,
     STRING1:     /'(\\.|[^'\\])*'/.source,
@@ -257,12 +312,15 @@ var Packer = Base.extend({
   }),
   
   whitespace: {
+    "/\\/\\/@[^\\n]*\\n": IGNORE,
+    "@\\s+\\b": "@ ", // protect conditional comments
+    "\\b\\s+@": " @",
     "(\\d)\\s+(\\.\\s*[a-z\\$_\\[(])": "$1 $2", // http://dean.edwards.name/weblog/2007/04/packer3/#comment84066
     "([+-])\\s+([+-])": "$1 $2", // c = a++ +b;
     "\\b\\s+\\$\\s+\\b": " $ ", // var $ in
     "\\$\\s+\\b": "$ ", // object$ in
     "\\b\\s+\\$": " $", // return $object
-    "\\b\\s+#": " #",
+//  "\\b\\s+#": " #",   // CSS
     "\\b\\s+\\b": SPACE,
     "\\s+": REMOVE
   }

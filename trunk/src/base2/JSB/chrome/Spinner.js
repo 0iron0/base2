@@ -1,13 +1,5 @@
 
-var Spinner = NumberControl.extend({
-/*"@opera[91]": {
-    onattach: function(element) {
-      if (element.nodeName == "INPUT" && element.type != "number") {
-        element.type = "number";
-      }
-    }
-  },*/
-
+var Spinner = Range.extend({
   onkeydown: function(element, event, keyCode) {
     if (!this.isEditable(element)) return;
     if (!/^(3[34568]|40)$/.test(keyCode)) return;
@@ -73,11 +65,11 @@ var Spinner = NumberControl.extend({
     length:      6
   },
 
-/*"@opera[91]": {
+  "@opera[91]": {
     isNativeControl: function(element) {
       return element.nodeName == "INPUT" && element.type == "number";
     }
-  },*/
+  },
 
   activate: function(element, direction, block) {
     Chrome._activeThumb = Chrome._hoverThumb = direction;

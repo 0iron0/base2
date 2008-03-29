@@ -13,8 +13,8 @@ var XPathParser = CSSParser.extend({
     this.sorter.putAt(1, "$1$4$3$6");
   },
   
-  escape: function(selector) {
-    return this.base(selector).replace(/,/g, "\x02");
+  escape: function(selector, simple) {
+    return this.base(selector, simple).replace(/,/g, "\x02");
   },
   
   unescape: function(selector) {
@@ -25,15 +25,15 @@ var XPathParser = CSSParser.extend({
     ).replace(/'[^'\\]*\\'(\\.|[^'\\])*'/g, function(match) { // escape single quotes
       return "concat(" + match.split("\\'").join("',\"'\",'") + ")";
     });
-  },
+  }
   
-  "@opera": {
+/*"@opera": {
     unescape: function(selector) {
       // opera does not seem to support last() but I can't find any 
       //  documentation to confirm this
       return this.base(selector.replace(/last\(\)/g, "count(preceding-sibling::*)+count(following-sibling::*)+1"));
     }
-  }
+  }*/
 }, {
   build: function() {
     // build the rules collection
@@ -45,7 +45,7 @@ var XPathParser = CSSParser.extend({
     return this.rules;
   },
   
-  optimised: {    
+  optimised: {
     pseudoClasses: {
       "first-child": "[1]",
       "last-child":  "[last()]",
@@ -122,15 +122,15 @@ var XPathParser = CSSParser.extend({
       "only-child":       "[not(preceding-sibling::*) and not(following-sibling::*)]",
       "root":             "[not(parent::*)]"
     }
-  },
+  }
   
-  "@opera": {  
+/*"@opera": {
     build: function() {
       this.optimised.pseudoClasses["last-child"] = this.values.pseudoClasses["last-child"];
       this.optimised.pseudoClasses["only-child"] = this.values.pseudoClasses["only-child"];
       return this.base();
     }
-  }
+  }*/
 });
 
 // these functions defined here to make the code more readable

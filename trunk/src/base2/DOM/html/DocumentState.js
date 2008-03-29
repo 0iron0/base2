@@ -8,7 +8,7 @@ var DocumentState = Base.extend({
     this.events = {};
     this._hoverElement = document.documentElement;
     this.isBound = function() {
-      return DOM.bind[document.base2ID];
+      return !!DOM.bind[document.base2ID];
     };
     forEach (this, function(method, name, documentState) {
       if (/^on((DOM)?\w+|[a-z]+)$/.test(name)) {
@@ -34,7 +34,7 @@ var DocumentState = Base.extend({
   },
   
   handleEvent: function(event) {
-    this["on" + event.type](event);
+    return this["on" + event.type](event);
   },
 
   onblur: function(event) {
@@ -100,7 +100,7 @@ var DocumentState = Base.extend({
         if (this["on" + event.type]) {
           this["on" + event.type](event);
         }
-        dispatcher.handleEvent(event);
+        return dispatcher.handleEvent(event);
       };
     },
     

@@ -1,6 +1,6 @@
-// timestamp: Sat, 29 Dec 2007 20:48:25
+// timestamp: Sat, 29 Mar 2008 20:55:00
 
-new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
+new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
 // =========================================================================
 // JSON/package.js
@@ -14,6 +14,7 @@ new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
 var JSON = new base2.Package(this, {
   name:    "JSON",
+  imports: "Enumerable",
   version: "0.9",
 
   // IE5.0 doesn't like non-greedy RegExps

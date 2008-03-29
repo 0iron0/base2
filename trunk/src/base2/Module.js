@@ -85,7 +85,7 @@ function _extendModule(module, _interface, index) {
       if (name == name.toUpperCase()) {
         namespace = "var " + name + "=base2.Module[" + index + "]." + name + ";";
       } else if (typeof property == "function" && property.call) {
-        namespace = "var " + name + "=base2.JavaScript.Function2.bind('" + name + "',base2.Module[" + index + "]);";
+        namespace = "var " + name + "=base2.lang.bind('" + name + "',base2.Module[" + index + "]);";
         proto[name] = _moduleMethod(module, name);
         ;;; proto[name]._module = module; // introspection
       }

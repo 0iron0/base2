@@ -15,16 +15,14 @@ function detect(_no_shrink_) {
     var MSIE = /MSIE[\d.]+/g;
     _lookup.document = document;
     var element = _lookup.element = document.createElement("span");
-    element.expando = true;
     //var event = document.createEvent ? document.createEvent("UIEvents") : document.createEventObject ? document.createEventObject() : {};
     // Close up the space between name and version number.
     //  e.g. MSIE 6 -> MSIE6
     var userAgent = navigator.userAgent.replace(/([a-z])[\s\/](\d)/gi, "$1$2");
     // Fix opera's (and others) user agent string.
     if (!jscript) userAgent = userAgent.replace(MSIE, "");
-    if (/KHTML/.test(userAgent)) userAgent = userAgent.replace("Gecko", "");
     if (MSIE.test(userAgent)) userAgent = userAgent.match(MSIE)[0] + " " + userAgent.replace(MSIE, "");
-    userAgent = navigator.platform + " " + userAgent;
+    base2.userAgent = navigator.platform + " " + userAgent.replace(/like \w+/i, "");
     java &= navigator.javaEnabled();
   }
 
@@ -49,7 +47,7 @@ function detect(_no_shrink_) {
         }
       } else {
         // Browser sniffing.
-        returnValue = new RegExp("(" + test + ")", "i").test(userAgent);
+        returnValue = new RegExp("(" + test + ")", "i").test(base2.userAgent);
       }
       _cache[expression] = !!(not ^ returnValue);
     }

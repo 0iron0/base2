@@ -8,7 +8,9 @@ var chrome = new base2.Package(this, {
   name:    "chrome",
   version: "0.2",
   imports: "Enumerable,Function2,DOM,JSB",
-  exports: "Chrome,ComboBox,ProgressBar,Slider,Spinner,Rect"
+  exports: "Chrome,ComboBox,Range,ProgressBar,Slider,Spinner,Rect",
+  
+  host:    "http://base2.googlecode.com/svn/trunk/src/base2/JSB/chrome/"
 });
 
 eval(this.imports);

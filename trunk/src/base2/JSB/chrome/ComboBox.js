@@ -46,9 +46,7 @@ var ComboBox = Chrome.extend({
 }, {
   appearance: "menulist",
   
-  "@WebKit": {
-    cssText: "-webkit-appearance:menulist",
-    
+  "@Safari.+theme=aqua": {
     layout: function(element) {
       this.syncCursor(element);
     }

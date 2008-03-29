@@ -25,6 +25,11 @@ var Collection = Map.extend({
     this.put.apply(this, arguments);
   },
 
+  clear: function() {
+    this.base();
+    this[_KEYS].length = 0;
+  },
+
   copy: function() {
     var copy = this.base();
     copy[_KEYS] = this[_KEYS].copy();

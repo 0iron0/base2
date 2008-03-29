@@ -38,7 +38,7 @@ var Behavior = Module.extend(null, {
       var base2ID = element.base2ID || assignID(element);
       if (!attachedElementIDs[base2ID]) { // Don't attach more than once.
         attachedElementIDs[base2ID] = true;
-        //if (element.id) global["$" + ViewCSS.toCamelCase(element.id)] = element;
+        if (element.id) global["$" + ViewCSS.toCamelCase(element.id)] = element;
         // If the document is bound then bind the element.
         if (DOM.bind[docID]) DOM.bind(element);
         // Add event handlers

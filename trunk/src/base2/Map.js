@@ -8,6 +8,12 @@ var Map = Base.extend({
     if (values) this.merge(values);
   },
 
+  clear: function() {
+    for (var key in this) if (key.charAt(0) == _HASH) {
+      delete this[key];
+    }
+  },
+
   copy: delegate(copy),
 
   forEach: function(block, context) {

@@ -31,7 +31,7 @@ forEach.csv = function(string, block, context) {
 forEach.detect = function(object, block, context) {
   forEach (object, function(value, key) {
     if (key.charAt(0) == "@") { // object detection
-      if (detect(name.slice(1))) forEach (value, arguments.callee);
+      if (detect(key.slice(1))) forEach (value, arguments.callee);
     } else block.call(context, value, key, object);
   });
 };
@@ -40,8 +40,8 @@ forEach.detect = function(object, block, context) {
 //  eventually call one of these two.
 
 function _Array_forEach(array, block, context) {
-  if (array == null) return;
-  var length = array.length, i; // preserve length
+  if (array == null) array = global;
+  var length = array.length || 0, i; // preserve length
   if (typeof array == "string") {
     for (i = 0; i < length; i++) {
       block.call(context, array.charAt(i), i, array);

@@ -1,5 +1,7 @@
 
-var NumberControl = Chrome.extend({
+// For numeric controls
+
+var Range = Chrome.extend({
   onattach: function(element) {
     var attributes = this.getAttributes(element);
     // the following only applies to Slider/ProgressBar but we'll leave it here
@@ -23,7 +25,7 @@ var NumberControl = Chrome.extend({
     step: 1
   },
 
-  mask: /-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/,
+/*MASK: /-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/,*/
 
   getAttributes: function(element) {
     // initialise min/max/step

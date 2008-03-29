@@ -4,7 +4,7 @@
 //  * IE5.x (Mac)
 //  * Safari 1.x
 
-window.undefined = window.undefined;
+window.undefined = void(0);
 
 new function() {
   var slice = Array.prototype.slice;

@@ -1,6 +1,6 @@
-// timestamp: Sat, 29 Dec 2007 20:48:25
+// timestamp: Sat, 29 Mar 2008 20:55:00
 
-new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
+new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
 // =========================================================================
 // JST/package.js
@@ -35,6 +35,10 @@ var Command = Base.extend({
   
   echo: function(string) {
     this[STDOUT].push(string);
+  },
+
+  toString: function() {
+    return this[STDOUT].join("");
   }
 });
 
@@ -71,7 +75,7 @@ var Interpreter = Base.extend({
     var command = new Command(this.command);
     var code = base2.namespace + "\nwith(arguments[0])with(arguments[1]){\n" +
       this.parser.parse(template) + 
-    "}\nreturn arguments[0][1].join('')";
+    "}\nreturn arguments[0].toString()";
     // use new Function() instead of eval() so that the script is evaluated in the global scope
     return new Function(code)(command, this.environment);
   }

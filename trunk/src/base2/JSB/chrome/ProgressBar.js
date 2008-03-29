@@ -4,19 +4,21 @@
 
 // TODO: Right to left should invert horizontal
 
-var ProgressBar = NumberControl.extend({
-  onfocus: function(element) {
-    if (element != Chrome._active) {
-      this.addClass(element, this.appearance + _FOCUS);
+var ProgressBar = Range.extend({
+  "@!theme=aqua": {
+    onfocus: function(element) {
+      if (element != Chrome._active) {
+        this.addClass(element, this.appearance + _FOCUS);
+      }
+      this.base(element);
     }
-    this.base(element);
   },
-
+  
   onkeydown: function(element, event, keyCode) {
     //;;; console2.log("onkeydown: "+keyCode);
     if (!this.isEditable(element)) return;
 
-    event.preventDefault();
+    //event.preventDefault();
 
     if (keyCode < 33 || keyCode > 40) return;
 
@@ -79,7 +81,7 @@ var ProgressBar = NumberControl.extend({
       var top = Math.floor(clientHeight * _values[base2ID]);
       top = clientHeight - Math.round(top / this.CHUNK_HEIGHT) * this.CHUNK_HEIGHT;
     } else {
-      var chunk = /luna/.test(chrome.theme.name) ? this.CHUNK_WIDTH : 1;
+      var chunk = /luna/.test(chrome.theme) ? this.CHUNK_WIDTH : 1;
       left = Math.floor(clientWidth * _values[base2ID]) - this.WIDTH;
       left = Math.round(++left / chunk) * chunk;
       top = (-clientHeight / 2) * (clientHeight + 3) - 2;
