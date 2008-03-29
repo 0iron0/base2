@@ -20,8 +20,8 @@ function _createObject2(Native, constructor, generics, extensions) {
 
   // Create a Module that will contain all the new methods.
   var INative = Module.extend();
-  // http://developer.mozilla.org/en/docs/New_in_JavaScript_1.6#Array_and_String_generics
   var index = INative.toString("index");
+  // http://developer.mozilla.org/en/docs/New_in_JavaScript_1.6#Array_and_String_generics
   forEach.csv(generics, function(name) {
     INative[name] = unbind(Native.prototype[name]);
     INative.namespace += format("var %1=base2.Module[%2].%1;", name, index);

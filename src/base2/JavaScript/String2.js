@@ -30,7 +30,7 @@ function format(string) {
   // ==> "she sells sea shells"
   // Only %1 - %9 supported.
   var args = arguments;
-  var pattern = new RegExp("%([1-" + arguments.length + "])", "g");
+  var pattern = new RegExp("%([1-" + (arguments.length - 1) + "])", "g");
   return String(string).replace(pattern, function(match, index) {
     return args[index];
   });

@@ -38,20 +38,19 @@ function _extendModule(module, _interface) {
       //    EventTarget.addEventListener(element, type, listener, capture)
       //  forwards to:
       //    element.addEventListener(type, listener, capture)
-      var fn = _createDelegate(name);
+      var fn = _createDelegate(name, property.length);
       fn._delegate = name;
       module[name] = fn;
-      module.namespace += "var " + name + "=base2.JavaScript.Function2.bind('" + name + "',base2.Module[" + module.toString("index") + "]);";
+      module.namespace += "var " + name + "=base2.lang.bind('" + name + "',base2.Module[" + module.toString("index") + "]);";
     }
   }
 };
 
-var _createDelegate = _MSIE ? function(name) {
-  return function _staticModuleMethod(element, a,b,c,d,e,f,g,h,i,j,k,l,m,n,o) {
-    element.base = element[name].ancestor;
-    var method = element.base ? 'base' : name;
-    return element[method](a,b,c,d,e,f,g,h,i,j,k,l,m,n,o);
-  };
+var _createDelegate = _MSIE ? function(name, length) {
+  var FN = "function _staticModuleMethod(%2){%3.base=%3.%1.ancestor;var m=%3.base?'base':'%1';return %3[m](%4)}";
+  var args = "abcdefghij".slice(-length).split("");
+  eval(format(FN, name, args, args[0], args.slice(1)));
+  return _staticModuleMethod;
 } : function(name) {
   return function _staticModuleMethod(element) {
     element.base = element[name].ancestor;

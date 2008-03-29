@@ -1,5 +1,5 @@
 
-var Chrome = MouseCapture.extend({
+var Chrome = Behavior.extend({
   oncontentready: function(element) {
     if (element.clientHeight > element.clientWidth) {
       this.setOrientation(element, this.VERTICAL);
@@ -40,7 +40,6 @@ var Chrome = MouseCapture.extend({
   },
 
   onmouseover: function(element, event, x, y) {
-    //console2.log("onmouseover");
     Chrome._hover = element;
     Chrome._hoverThumb = this.hitTest(element, x, y);
     this.layout(element);
@@ -77,8 +76,6 @@ var Chrome = MouseCapture.extend({
   },
 
   appearance: "",
-  
-  cssText: "%2;background-position:9999px 9999px;background-attachment:scroll!important;background-repeat:no-repeat!important",
 
   imageWidth: 17,
 
@@ -111,7 +108,7 @@ var Chrome = MouseCapture.extend({
   setOrientation: function(element, orientation) {
     if (orientation == this.VERTICAL) {
       _vertical[element.base2ID] = true;
-      this.setCSSProperty(element, "background-image", "url(" + chrome.theme + this.appearance + "-vertical.png)", true);
+      this.setCSSProperty(element, "background-image", "url(" + chrome.host + chrome.theme + "/" + this.appearance + "-vertical.png)", true);
     } else {
       delete _vertical[element.base2ID];
       element.style.backgroundImage = "";
@@ -149,9 +146,52 @@ var Chrome = MouseCapture.extend({
     this.syncCursor(element);
   },
 
-  handleEvent: function(element, event) {
-    if (!this.isNativeControl(element)) {
+  handleEvent: function(element, event, type) {
+    if (Chrome._captureMouse) {
+      if (/^mouse(up|move)$/.test(type)) {
+        this.base(Chrome._captureElement, event);
+      }
+    } else if (!this.isNativeControl(element)) {
       this.base(element, event);
+    }
+  },
+
+  setCapture: function(element) {
+    if (!Chrome._captureMouse) {
+      var behavior = this;
+      Chrome._captureElement = element;
+      Chrome._captureMouse = function(event) {
+        if (_OPERA) getSelection().collapse(document.body, 0); // prevent text selection
+        behavior.handleEvent(element, event, event.type);
+      };
+      this.addEventListener(document, "mouseup", Chrome._captureMouse, true);
+      this.addEventListener(document, "mousemove", Chrome._captureMouse, true);
+    }
+  },
+
+  releaseCapture: function() {
+    if (Chrome._captureMouse) {
+      this.removeEventListener(document, "mouseup", Chrome._captureMouse, true);
+      this.removeEventListener(document, "mousemove", Chrome._captureMouse, true);
+      delete Chrome._captureMouse;
+      delete Chrome._captureElement;
+    }
+  },
+
+  "@MSIE": {
+    setCapture: function(element) {
+      element.setCapture();
+      behavior = this;
+      element.attachEvent("onlosecapture", function() {
+        if (Chrome._captureMouse) behavior.onmouseup(element);
+        element.detachEvent("onlosecapture", arguments.callee);
+      });
+      this.base(element);
+    },
+
+    releaseCapture: function() {
+      this.base();
+      document.releaseCapture();
     }
   }
 });

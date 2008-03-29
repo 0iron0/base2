@@ -14,21 +14,19 @@ var Selector = Base.extend({
   },
 
   isSimple: function() {
+    if (!_parser.exec) _parser = new CSSParser(_parser);
     return !_COMBINATOR.test(trim(_parser.escape(this)));
   },
 
   test: function(element) {
-    var selector = this;
-    var context = element;
-    var simple = selector.isSimple();
-    if (!simple) {
-      context = Traversal.getOwnerDocument(element);
-      selector += "[b2-test]";
+    if (this.isSimple()) {
+      return Selector.parse(this, true)(element, 1);
+    } else {
       element.setAttribute("b2-test", true);
+      var result = new Selector(this + "[b2-test]").exec(Traversal.getOwnerDocument(element), 1);
+      element.removeAttribute("b2-test");
+      return result == element;
     }
-    var result = new Selector(selector).exec(context, 1, simple);
-    if (!simple) element.removeAttribute("b2-test");
-    return result == element;
   },
   
   toXPath: function(simple) {
@@ -62,14 +60,14 @@ var Selector = Base.extend({
   
   "@(true)": {
     exec: function(context, count, simple) {
-      //try {
+      try {
         // TO DO: more efficient selectors for:
         //   #ID
         //   :hover/active/focus/target
         var result = this.base(context || document, count, simple);
-      //} catch (error) { // probably an invalid selector =)
-      //  throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
-      //}
+      } catch (error) { // probably an invalid selector =)
+        throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
+      }
       return count == 1 ? result : new StaticNodeList(result);
     }
   }
@@ -119,10 +117,11 @@ Selector.pseudoClasses = { //-dean: lang()
   "only-child":  "!Traversal.getPreviousElementSibling(e%1)&&!Traversal.getNextElementSibling(e%1)",
   "root":        "e%1==Traversal.getDocument(e%1).documentElement",
   "target":      "e%1.id&&e%1.id==location.hash.slice(1)",
-  "link":        "d.links&&Array2.indexOf(d.links,e%1)!=-1",
   "hover":       "DocumentState.getInstance(d).isHover(e%1)",
   "active":      "DocumentState.getInstance(d).isActive(e%1)",
   "focus":       "DocumentState.getInstance(d).hasFocus(e%1)"
+//"link":        "d.links&&Array2.indexOf(d.links,e%1)!=-1", // not implemented (security)
+// nth-child     defined below
 };
 
 var _INDEXED = detect("(element.sourceIndex)") ;
@@ -145,6 +144,10 @@ var _cache = {}; // store parsed selectors
 
 // a hideous parser
 var _parser = {
+  "^(\\*|[\\w-]+)": function(match, tagName) {
+    return tagName == "*" ? "" : format("if(e0.nodeName=='%1'[c]()){", tagName);
+  },
+  
   "^ \\*:root": function(match) { // :root pseudo class
     _wild = false;
     var replacement = "e%2=d.documentElement;if(Traversal.contains(e%1,e%2)){";
@@ -269,7 +272,7 @@ var _parser = {
 (function(_no_shrink_) {
   // IE confuses the name attribute with id for form elements,
   // use document.all to retrieve all elements with name/id instead
-  var _byId = _MSIE ? function(document, id) {
+  var _byId = detect("MSIE[5-7]") ? function(document, id) {
     var result = document.all[id] || null;
     // returns a single element or a collection
     if (!result || result.id == id) return result;

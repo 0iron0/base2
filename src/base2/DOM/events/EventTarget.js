@@ -2,6 +2,10 @@
 // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-Registration-interfaces
 
 var EventTarget = Interface.extend({
+  removeEventListener: function(target, type, listener, useCapture) {
+    this.base(target, type, DocumentState[listener.base2ID] || listener, useCapture);
+  },
+  
   "@!(element.addEventListener)": {
     addEventListener: function(target, type, listener, useCapture) {
       var documentState = DocumentState.getInstance(target);
@@ -49,6 +53,26 @@ var EventTarget = Interface.extend({
     }
   },
 
+  "@Gecko": {
+    addEventListener: function(target, type, listener, useCapture) {
+      if (type == "mousewheel") {
+        var onmousewheel = DocumentState[assignID(listener)] = listener;
+        listener = function(event) {
+          event = copy(event);
+          event.__defineGetter__("type", K("mousewheel"));
+          event.wheelDelta = (-event.detail * 40) || 0;
+          if (typeof onmousewheel == "function") {
+            onmousewheel.call(event.target, event);
+          } else {
+            onmousewheel.handleEvent(event);
+          }
+        };
+        type = "DOMMouseScroll";
+      }
+      this.base(target, type, listener, useCapture);
+    }
+  },
+
   // http://unixpapa.com/js/key.html
   "@Linux|Mac|opera": {
     addEventListener: function(target, type, listener, useCapture) {
@@ -84,10 +108,6 @@ var EventTarget = Interface.extend({
         };
       }
       this.base(target, type, listener, useCapture);
-    },
-
-    removeEventListener: function(target, type, listener, useCapture) {
-      this.base(target, type, DocumentState[listener.base2ID] || listener, useCapture);
     }
   }
 });

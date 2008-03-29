@@ -21,7 +21,7 @@ var base2 = {
   namespace: "var global=base2.global;function base(o,a){return o.base.apply(o,a)};",
   
   // this is defined here because it must be defined in the global scope
-  detect: new function(_) {  
+  detect: new function(_no_shrink_) {  
     // Two types of detection:
     //  1. Object detection
     //    e.g. detect("(java)");
@@ -64,7 +64,7 @@ var base2 = {
   }(this)
 };
 
-new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
+new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
 // =========================================================================
 // base2/lang/header.js

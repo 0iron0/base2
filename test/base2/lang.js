@@ -1,6 +1,8 @@
+
+eval(base2.lang.namespace);
+
 var langTests = {};
 langTests.testInstanceOfNative = function() {
-  var instanceOf=base2.instanceOf;
   assertEqual(instanceOf(null, Object), false, "null");
   assertEqual(instanceOf(void 0, Object), false, "undefined");
   assertEqual(instanceOf("string", String), true, "string");

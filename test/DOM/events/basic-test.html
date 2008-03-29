@@ -17,11 +17,11 @@
  	};
 	function addListener() {
 		clickable.addEventListener("click", youClickedMe, false);
-		clickable.addClass("active");
+		clickable.classList.add("active");
 	};
 	function removeListener() {
 		clickable.removeEventListener("click", youClickedMe, false);
-		clickable.removeClass("active");
+		clickable.classList.remove("active");
 	};
 	function dispatch() {
 		var event = document.createEvent("MouseEvents");

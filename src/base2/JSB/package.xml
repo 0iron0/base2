@@ -7,7 +7,6 @@
   <include src="RuleList.js"/>
   <include src="EventListener.js"/>
   <include src="EventDelegator.js"/>
-  <include src="MouseCapture.js"/>
   <include src="ExtendedMouse.js"/>
   <include src="DocumentState.js"/>
 </package>

@@ -2,15 +2,15 @@
 <package name="chrome" requires="DOM,JSB">
   <include src="package.js"/>
   <include src="header.js"/>
+  <include src="Theme.js"/>
+  <include src="styleSheet.js"/>
   <include src="Chrome.js"/>
   <include src="ComboBox.js"/>
-  <include src="NumberControl.js"/>
+  <include src="Range.js"/>
   <include src="ProgressBar.js"/>
   <include src="Slider.js"/>
   <include src="Spinner.js"/>
   <include src="Popup.js"/>
   <include src="Rect.js"/>
-  <include src="styleSheet.js"/>
-  <include src="Theme.js"/>
   <include src="rules.js"/>
 </package>

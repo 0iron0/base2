@@ -7,7 +7,7 @@
 
 var MiniWeb = new base2.Package(this, {
   name:    "MiniWeb",
-  exports: "Client, Server, FileSystem, Command, Interpreter, Terminal, Request, History",
+  exports: "Client,Server,FileSystem,Command,Interpreter,Terminal,Request,History",
   imports: "IO",
   version: "0.7",
   

@@ -25,7 +25,7 @@ var CSSParser = RegGrp.extend({
     selector = this.optimise(this.format(String(selector).replace(_CSS_ESCAPE, function(string) {
       return "\x01" + strings.push(string.slice(1, -1).replace(_QUOTE, "\\'"));
     })));
-    if (simple) selector = selector.replace(/^ \*/, "");
+    if (simple) selector = selector.replace(/^ \*?/, "");
     return selector;
   },
   

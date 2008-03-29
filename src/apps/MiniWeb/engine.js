@@ -1,12 +1,12 @@
-// timestamp: Sun, 06 Jan 2008 18:17:46
+// timestamp: Sat, 29 Mar 2008 20:55:00
 
-new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
+new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
 // =========================================================================
 // MiniWeb/package.js
 // =========================================================================
 /*
-  MiniWeb - copyright 2007, Dean Edwards
+  MiniWeb - copyright 2007-2008, Dean Edwards
   http://www.opensource.org/licenses/mit-license.php
 */
 
@@ -14,7 +14,7 @@ new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
 
 var MiniWeb = new base2.Package(this, {
   name:    "MiniWeb",
-  exports: "Client, Server, FileSystem, Command, Interpreter, Terminal, Request, History",
+  exports: "Client,Server,FileSystem,Command,Interpreter,Terminal,Request,History",
   imports: "IO",
   version: "0.7",
   
@@ -35,7 +35,7 @@ var MiniWeb = new base2.Package(this, {
     
     // delegate some methods to the client
     var methods = "navigateTo,refresh,reload,submit".split(",");
-    base2.forEach (methods, function(method) {
+    base2.lang.forEach (methods, function(method) {
       this[method] = function() {
         var args = arguments;
         var client = MiniWeb.client;
@@ -230,7 +230,7 @@ var Client = Base.extend({
     
     // insert a script
     var script = "parent.MiniWeb.register(this);var base2=parent.base2;" + 
-      base2.namespace + "JavaScript.bind(this);";
+      base2.namespace + lang.namespace + "JavaScript.bind(this);";
     script = format(MiniWeb.SCRIPT, script);
     var html = this.response.replace(/(<head[^>]*>)/i, "$1\n" + script);
     
@@ -661,7 +661,7 @@ var Command = FileSystem.extend({
       this.echo(this.exec(template, target));
     }
     // process remaining arguments
-    forEach (slice(arguments, 2), function(target) {
+    forEach (Array2.slice(arguments, 2), function(target) {
       this.process(template, target);
     }, this);
   }

@@ -15,7 +15,7 @@ var MouseCapture = Behavior.extend(null, {
         }
       };
       forEach (_MOUSE_EVENTS, function(type) {
-        addEventListener(element, "mouse" + type, MouseCapture._handleEvent, true);
+        EventTarget.addEventListener(element, "mouse" + type, MouseCapture._handleEvent, true);
       });
     }
   },
@@ -24,7 +24,7 @@ var MouseCapture = Behavior.extend(null, {
     if (MouseCapture._handleEvent) {
       if (!element) element = MouseCapture._captureElement;
       forEach (_MOUSE_EVENTS, function(type) {
-        removeEventListener(element, "mouse" + type, MouseCapture._handleEvent, true);
+        EventTarget.removeEventListener(element, "mouse" + type, MouseCapture._handleEvent, true);
       });
       delete MouseCapture._handleEvent;
       delete MouseCapture._captureElement;

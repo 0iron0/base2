@@ -9,21 +9,21 @@ var Template = Behavior.extend({
   oncontentready:  function(element, event){},
   ondocumentready: function(element, event){},
 
-  onclick:      function(element, event, offsetX, offsetY, screenX, screenY){},
-  ondblclick:   function(element, event, offsetX, offsetY, screenX, screenY){},
-  onmousedown:  function(element, event, offsetX, offsetY, screenX, screenY){},
-  onmouseup:    function(element, event, offsetX, offsetY, screenX, screenY){},
-  onmousemove:  function(element, event, offsetX, offsetY, screenX, screenY){},
-  onmouseover:  function(element, event, offsetX, offsetY, screenX, screenY){},
-  onmouseout:   function(element, event, offsetX, offsetY, screenX, screenY){},
+  onclick:     function(element, event, offsetX, offsetY, screenX, screenY){},
+  ondblclick:  function(element, event, offsetX, offsetY, screenX, screenY){},
+  onmousedown: function(element, event, offsetX, offsetY, screenX, screenY){},
+  onmouseup:   function(element, event, offsetX, offsetY, screenX, screenY){},
+  onmousemove: function(element, event, offsetX, offsetY, screenX, screenY){},
+  onmouseover: function(element, event, offsetX, offsetY, screenX, screenY){},
+  onmouseout:  function(element, event, offsetX, offsetY, screenX, screenY){},
   
   onmousewheel: function(element, event, delta){},
   
   // ExtendedMouse
   // on((dbl)?click|mouse(up|down)): function(element, event, button, offsetX, offsetY, screenX, screenY)
 
-  onkeydown:  function(element, event, keyCode, shiftKey, ctrlKey, altKey){},
-  onkeyup:    function(element, event, keyCode, shiftKey, ctrlKey, altKey){},
+  onkeydown: function(element, event, keyCode, shiftKey, ctrlKey, altKey){},
+  onkeyup:   function(element, event, keyCode, shiftKey, ctrlKey, altKey){},
   
   onfocus: function(element, event){},
   onblur:  function(element, event){},
@@ -49,7 +49,7 @@ var Template = Behavior.extend({
   
   /* ATTRIBUTES */
 
-  // attributes defined here willbe added to any attached element
+  // attributes defined here will be added to any attached element
   sampleAttribute: "value"
 }, {
   /* PRE-DEFINED BEHAVIOR METHODS */
@@ -66,9 +66,9 @@ var Template = Behavior.extend({
   addEventListener:    function(target, type, listener, useCapture){return undefined;},
   removeEventListener: function(target, type, listener, useCapture){return undefined;},
   
-  dispatchEvent: function(target, event|type){return undefined;},
+  dispatchEvent: function(target, event|type, /* optional */ eventProperties){return Boolean;},
 
-  compareDocumentPosition: function(node1, node2){},
+  compareDocumentPosition: function(node1, node2){return Number;},
 
   hasAttribute:    function(element, name){return Boolean;},
   getAttribute:    function(element, name){return String || null;},

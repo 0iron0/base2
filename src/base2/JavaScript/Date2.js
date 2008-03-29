@@ -55,7 +55,7 @@ Date2.now = function() {
 
 Date2.parse = function(string, defaultDate) {
   if (arguments.length > 1) {
-    assertType(defaultDate, "number", "defaultDate should be of type 'number'.")
+    assertType(defaultDate, "number", "default date should be of type 'number'.")
   }
   // parse ISO date
   var parts = match(string, _DATE_PATTERN);
@@ -78,9 +78,9 @@ Date2.parse = function(string, defaultDate) {
     // timezone can be set, without time being available
     // without a timezone, local timezone is respected
     if (parts[_TIMEZONE_PARTS.Hours]) {
-      var Hours = Number(parts[_TIMEZONE_PARTS.Sign] + parts[_TIMEZONE_PARTS.Hours]);
-      var Minutes = Number(parts[_TIMEZONE_PARTS.Sign] + (parts[_TIMEZONE_PARTS.Minutes] || 0));
-      date.setUTCMinutes(date.getUTCMinutes() + (Hours * 60) + Minutes);
+      var hours = Number(parts[_TIMEZONE_PARTS.Sign] + parts[_TIMEZONE_PARTS.Hours]);
+      var minutes = Number(parts[_TIMEZONE_PARTS.Sign] + (parts[_TIMEZONE_PARTS.Minutes] || 0));
+      date.setUTCMinutes(date.getUTCMinutes() + (hours * 60) + minutes);
     } 
     return date.valueOf();
   } else {

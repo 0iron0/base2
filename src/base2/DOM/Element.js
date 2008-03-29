@@ -11,7 +11,7 @@ var _ATTRIBUTES = {
 };
 
 var Element = Node.extend({
-  "@(element.getAttribute('expando'))": { // MSIE
+  "@^Win.+MSIE[5-7]": { // MSIE
     getAttribute: function(element, name) {
       if (element.className === undefined) { // XML
         return this.base(element, name);

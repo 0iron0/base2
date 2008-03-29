@@ -27,9 +27,9 @@ var Enumerable = Module.extend({
     // Apply a method to each item in the enumerated object.
     var args = _slice.call(arguments, 2);
     return this.map(object, (typeof method == "function") ? function(item) {
-      return (item == null) ? undefined : method.apply(item, args);
+      return item == null ? undefined : method.apply(item, args);
     } : function(item) {
-      return (item == null) ? undefined : item[method].apply(item, args);
+      return item == null ? undefined : item[method].apply(item, args);
     });
   },
   
@@ -43,7 +43,7 @@ var Enumerable = Module.extend({
   
   pluck: function(object, key) {
     return this.map(object, function(item) {
-      return (item == null) ? undefined : item[key];
+      return item == null ? undefined : item[key];
     });
   },
   

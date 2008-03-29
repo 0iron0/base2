@@ -1,6 +1,6 @@
-// timestamp: Sun, 06 Jan 2008 18:17:46
+// timestamp: Sat, 29 Mar 2008 20:55:00
 
-new function(_) { ////////////////////  BEGIN: CLOSURE  ////////////////////
+new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
 // =========================================================================
 // doc/package.js

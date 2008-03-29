@@ -25,9 +25,13 @@ var DOMContentLoadedEvent = Base.extend({
     this.listen(document);
   },
   
-  listen: function(document) {
-    // if all else fails fall back on window.onload
-    EventTarget.addEventListener(Traversal.getDefaultView(document), "load", this.fire, false);
+  listen: Undefined,
+
+  "@!Gecko": {
+    listen: function(document) {
+      // if all else fails fall back on window.onload
+      EventTarget.addEventListener(Traversal.getDefaultView(document), "load", this.fire, false);
+    }
   },
 
   "@MSIE.+win": {
