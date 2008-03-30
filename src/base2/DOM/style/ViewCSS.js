@@ -62,9 +62,13 @@ function _MSIE_getPixelValue(element, value) {
 };
 
 function _MSIE_getColorValue(element, value) {
-  // -dean: elements need to have "layout" for this to work.
-  var range = element.document.body.createTextRange();
-  range.moveToElementText(element);
+  // elements need to have "layout" for this to work.
+  if (element.createTextRange) {
+    var range = element.createTextRange();
+  } else {
+    element.document.body.createTextRange();
+    range.moveToElementText(element);
+  }
   var color = range.queryCommandValue(value);
   return format("rgb(%1, %2, %3)", color & 0xff, (color & 0xff00) >> 8,  (color & 0xff0000) >> 16);
 };
