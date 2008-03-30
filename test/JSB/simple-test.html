@@ -11,32 +11,27 @@
  <script type="text/javascript">
   base2.DOM.bind(document)
 	var MyBehavior = base2.JSB.Behavior.extend({
-		ondocumentready: function(event) {
-		  //alert(event.type);
-			this.innerHTML = "ondocumentready!";
+		ondocumentready: function(element) {
+			element.innerHTML = "ondocumentready!";
 		},
 		
-		ondocumentclick: function() {
-			this.innerHTML = "ondocumentclick!";
+		onmouseover: function(element) {
+			this.addClass(element, "binding2");
 		},
 		
-		onmouseover: function() {
-			this.addClass("binding2");
-		},
-		
-		onmouseout: function() {
-			this.removeClass("binding2");
+		onmouseout: function(element) {
+			this.removeClass(element, "binding2");
 		}
 	});
 	
 	new base2.JSB.RuleList({
 		"p": {
-			onmouseover: function() {
-				this.addClass("binding1");
+			onmouseover: function(element) {
+				this.addClass(element, "binding1");
 			},
 			
-			onmouseout: function() {
-				this.removeClass("binding1");
+			onmouseout: function(element) {
+				this.removeClass(element, "binding1");
 			}
 		},
 		"body > p": MyBehavior
