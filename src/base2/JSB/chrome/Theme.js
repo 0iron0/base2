@@ -37,16 +37,8 @@ var Theme = Base.extend({
 
   "@Windows": {
     detect: function() {
-      var body = document.body;
-      if (body) {
-        var element = document.createElement("span");
-        element.style.display = "none";
-        element.style.zoom = 1;
-        body.appendChild(element);
-      } else {
-        setTimeout(bind(arguments.callee, this), 1);
-        return "";
-      }
+      document.write("<span id=b2_tmp style='display:none;zoom:1'></span>");
+      var element = document.getElementById("b2_tmp");
       // detect XP theme by inspecting the ActiveCaption colour
       element.style.color = "ActiveCaption";
       var color = element.style.color;
@@ -54,7 +46,7 @@ var Theme = Base.extend({
         color = ViewCSS.getComputedStyle(document.defaultView, element, null).color;
         if (/rgb/.test(color)) color = eval(color);
       }
-      body.removeChild(element);
+      element.parentNode.removeChild(element);
       return _XP_DETECT[color];
     },
 
