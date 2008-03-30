@@ -1,4 +1,4 @@
-// timestamp: Sat, 29 Mar 2008 20:54:59
+// timestamp: Sun, 30 Mar 2008 19:29:12
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -847,9 +847,13 @@ function _MSIE_getPixelValue(element, value) {
 };
 
 function _MSIE_getColorValue(element, value) {
-  // -dean: elements need to have "layout" for this to work.
-  var range = element.document.body.createTextRange();
-  range.moveToElementText(element);
+  // elements need to have "layout" for this to work.
+  if (element.createTextRange) {
+    var range = element.createTextRange();
+  } else {
+    element.document.body.createTextRange();
+    range.moveToElementText(element);
+  }
   var color = range.queryCommandValue(value);
   return format("rgb(%1, %2, %3)", color & 0xff, (color & 0xff00) >> 8,  (color & 0xff0000) >> 16);
 };
