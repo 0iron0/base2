@@ -30,7 +30,7 @@ function _ElementClassList(element) {
     ClassList.add(element, token);
   };
   this.has = function(token) {
-    ClassList.has(element, token);
+    return ClassList.has(element, token);
   };
   this.remove = function(token) {
     ClassList.remove(element, token);
