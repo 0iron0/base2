@@ -61,10 +61,10 @@ var Template = Behavior.extend({
   attach: function(element){return element;},
   detach: function(element){return element;},
 
-  handleEvent:   function(element, event, type){return undefined;},
+  handleEvent:   function(element, event, type){},
 
-  addEventListener:    function(target, type, listener, useCapture){return undefined;},
-  removeEventListener: function(target, type, listener, useCapture){return undefined;},
+  addEventListener:    function(target, type, listener, useCapture){},
+  removeEventListener: function(target, type, listener, useCapture){},
   
   dispatchEvent: function(target, event|type, /* optional */ eventProperties){return Boolean;},
 
@@ -72,13 +72,13 @@ var Template = Behavior.extend({
 
   hasAttribute:    function(element, name){return Boolean;},
   getAttribute:    function(element, name){return String || null;},
-  setAttribute:    function(element, name, value){return undefined;},
-  removeAttribute: function(element, name){return undefined;},
+  setAttribute:    function(element, name, value){},
+  removeAttribute: function(element, name){},
 
   hasClass:    function(element, className){return Boolean;},
-  addClass:    function(element, className){return undefined;},
-  removeClass: function(element, className){return undefined;},
-  toggleClass: function(element, className){return undefined;},
+  addClass:    function(element, className){},
+  removeClass: function(element, className){},
+  toggleClass: function(element, className){},
 
   querySelector:    function(context, selector){return Object;}, // return Element
   querySelectorAll: function(context, selector){return Object;}, // return StaticNodeList
@@ -86,7 +86,7 @@ var Template = Behavior.extend({
   getComputedStyle: function(element, /* optional */ propertyName){return Object || String;},
 
   getCSSProperty: function(element, propertyName){return String;},
-  setCSSProperty: function(element, propertyName, value, /* optional */ important){return undefined;},
+  setCSSProperty: function(element, propertyName, value, /* optional */ important){},
   
   /* USER DEFINED METHODS */
   
