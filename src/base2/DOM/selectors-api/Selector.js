@@ -339,7 +339,7 @@ var _parser = {
         args += ",a" + i;
         state.push(format("i%1?i%1-1:0", i));
       }
-      state.push(_list ? format("i%1==n%1.length", i - 1) : true); // complete
+      state.push(_list ? format("!!(n%1&&i%1==n%1.length)", i - 1) : true); // complete
       fn += "_selectorFunction.state=[%2];return s==1?null:r}";
       eval(format(_FN + fn, args, state.join(","), _reg));
       _cache[selector] = _selectorFunction;
