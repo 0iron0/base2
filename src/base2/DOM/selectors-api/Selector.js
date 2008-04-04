@@ -60,14 +60,14 @@ var Selector = Base.extend({
   
   "@(true)": {
     exec: function(context, count, simple) {
-      try {
+      //try {
         // TO DO: more efficient selectors for:
         //   #ID
         //   :hover/active/focus/target
         var result = this.base(context || document, count, simple);
-      } catch (error) { // probably an invalid selector =)
-        throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
-      }
+      //} catch (error) { // probably an invalid selector =)
+      //  throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
+      //}
       return count == 1 ? result : new StaticNodeList(result);
     }
   }
@@ -135,11 +135,11 @@ var _xpathParser;
 
 // variables used by the parser
 
-var _reg; // a store for RexExp objects
+var _reg;        // a store for RexExp objects
 var _index;
-var _wild; // need to flag certain _wild card selectors as _MSIE includes comment nodes
-var _list; // are we processing a node _list?
-var _duplicate; // possible duplicates?
+var _wild;       // need to flag certain wild card selectors as MSIE includes comment nodes
+var _list;       // are we processing a node list?
+var _duplicate;  // possible duplicates?
 var _cache = {}; // store parsed selectors
 
 // a hideous parser
@@ -337,7 +337,7 @@ var _parser = {
       var state = [];
       for (var i = 1; i <= _list; i++) {
         args += ",a" + i;
-        state.push(format("i%1?i%1-1:0", i));
+        state.push(format("typeof i%1!='undefined'&&i%1?i%1-1:0", i));
       }
       state.push(_list ? format("!!(n%1&&i%1==n%1.length)", i - 1) : true); // complete
       fn += "_selectorFunction.state=[%2];return s==1?null:r}";
