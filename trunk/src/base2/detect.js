@@ -22,7 +22,7 @@ function detect(_no_shrink_) {
     // Fix opera's (and others) user agent string.
     if (!jscript) userAgent = userAgent.replace(MSIE, "");
     if (MSIE.test(userAgent)) userAgent = userAgent.match(MSIE)[0] + " " + userAgent.replace(MSIE, "");
-    base2.userAgent = navigator.platform + " " + userAgent.replace(/like \w+/i, "");
+    base2.userAgent = navigator.platform + " " + userAgent.replace(/like \w+/gi, "");
     java &= navigator.javaEnabled();
   }
 

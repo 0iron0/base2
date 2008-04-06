@@ -1,4 +1,4 @@
-// timestamp: Fri, 04 Apr 2008 03:10:30
+// timestamp: Sun, 06 Apr 2008 17:27:28
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -1743,7 +1743,7 @@ _ElementClassList.prototype.toggle = function(token) {
 };
 
 // =========================================================================
-// DOM/html/DocumentState.js
+// DOM/DocumentState.js
 // =========================================================================
 
 // Store some state for HTML documents.
@@ -1841,6 +1841,7 @@ var DocumentState = Base.extend({
       this.base(document);
       var dispatcher = new EventDispatcher(this);
       this._dispatch = function(event) {
+        event.target = event.target || event.srcElement || state.document;
         dispatcher.handleEvent(event);
       };
       this.handleEvent = function(event) {
