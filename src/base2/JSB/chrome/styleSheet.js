@@ -121,6 +121,7 @@ var styleSheet = {
   },
 
   "progressbar_focus,slider_focus": {
+    outline:    "none",
     MozOutline: "1px dotted"
   },
   
@@ -137,8 +138,9 @@ var styleSheet = {
       borderColor: "red"
     },
 
-    "@Gecko": {
-      MozBorder: "initial",
+    "@Gecko|opera": {
+      MozBorder:   "initial",
+      borderColor: "black",
       borderStyle: "outset!important"
     }
   },

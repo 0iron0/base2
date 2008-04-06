@@ -3,5 +3,4 @@
   <include src="HTMLDocument.js"/>
   <include src="HTMLElement.js"/>
   <include src="ClassList.js"/>
-	<include src="DocumentState.js"/>
 </package>
