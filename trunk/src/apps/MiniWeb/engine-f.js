@@ -1,4 +1,4 @@
-// timestamp: Sun, 06 Apr 2008 17:27:29
+// timestamp: Tue, 15 Apr 2008 15:04:13
 /*
   base2 - copyright 2007-2008, Dean Edwards
   http://code.google.com/p/base2/
@@ -1737,9 +1737,10 @@ var Interpreter = Base.extend({
   
   interpret: function(template) {
     var command = new Command(this.command);
-    var code = base2.namespace + "\nwith(arguments[0])with(arguments[1]){\n" +
-      this.parser.parse(template) + 
-    "}\nreturn arguments[0].toString()";
+    var code = base2.namespace + JavaScript.namespace + lang.namespace +
+      "\nwith(arguments[0])with(arguments[1]){\n" +
+        this.parser.parse(template) +
+      "}\nreturn arguments[0].toString()";
     // use new Function() instead of eval() so that the script is evaluated in the global scope
     return new Function(code)(command, this.environment);
   }
