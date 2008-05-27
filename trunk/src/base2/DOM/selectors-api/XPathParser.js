@@ -54,9 +54,12 @@ var XPathParser = CSSParser.extend({
   },
   
   rules: extend({}, {
-    "@!KHTML": { // these optimisations do not work on Safari
+    "@!KHTML|opera": { // this optimisation does not work on Safari/opera
       // fast id() search
-      "(^|\\x02) (\\*|[\\w-]+)#([\\w-]+)": "$1id('$3')[self::$2]",
+      "(^|\\x02) (\\*|[\\w-]+)#([\\w-]+)": "$1id('$3')[self::$2]"
+    },
+    
+    "@!KHTML": { // this optimisation does not work on Safari
       // optimise positional searches
       "([ >])(\\*|[\\w-]+):([\\w-]+-child(\\(([^)]+)\\))?)": function(match, token, tagName, pseudoClass, $4, args) {
         var replacement = (token == " ") ? "//*" : "/*";
@@ -122,15 +125,15 @@ var XPathParser = CSSParser.extend({
       "only-child":       "[not(preceding-sibling::*) and not(following-sibling::*)]",
       "root":             "[not(parent::*)]"
     }
-  }
+  },
   
-/*"@opera": {
+  "@opera(7|8|9\\.[1-4])": {
     build: function() {
       this.optimised.pseudoClasses["last-child"] = this.values.pseudoClasses["last-child"];
       this.optimised.pseudoClasses["only-child"] = this.values.pseudoClasses["only-child"];
       return this.base();
     }
-  }*/
+  }
 });
 
 // these functions defined here to make the code more readable

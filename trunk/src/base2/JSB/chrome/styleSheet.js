@@ -70,14 +70,13 @@ var css = {
 var styleSheet = {
   combobox: {
     paddingRight:    "19px!important",
-    width:           "8em",
     backgroundImage: "url(%1menulist.png)!important",
+    width:           "8em",
 
     "@Safari.+theme=aqua": {
         WebkitAppearance: "menulist!important",
         background:       "initial",
-        border:           "initial",
-        padding:          "initial"
+        border:           "initial"
     }
   },
   
@@ -121,7 +120,10 @@ var styleSheet = {
   },
 
   "progressbar_focus,slider_focus": {
-    outline:    "none",
+    background: "initial",
+    padding:    "initial",
+    border:     "initial",
+    outline:    "1px dotted",
     MozOutline: "1px dotted"
   },
   
@@ -138,7 +140,7 @@ var styleSheet = {
       borderColor: "red"
     },
 
-    "@Gecko|opera": {
+    "@Gecko|opera|theme=aqua": {
       MozBorder:   "initial",
       borderColor: "black",
       borderStyle: "outset!important"

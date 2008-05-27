@@ -1,4 +1,4 @@
-// timestamp: Sat, 29 Mar 2008 20:55:00
+// timestamp: Tue, 27 May 2008 15:00:20
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -73,9 +73,10 @@ var Interpreter = Base.extend({
   
   interpret: function(template) {
     var command = new Command(this.command);
-    var code = base2.namespace + "\nwith(arguments[0])with(arguments[1]){\n" +
-      this.parser.parse(template) + 
-    "}\nreturn arguments[0].toString()";
+    var code = base2.namespace + JavaScript.namespace + lang.namespace +
+      "\nwith(arguments[0])with(arguments[1]){\n" +
+        this.parser.parse(template) +
+      "}\nreturn arguments[0].toString()";
     // use new Function() instead of eval() so that the script is evaluated in the global scope
     return new Function(code)(command, this.environment);
   }

@@ -1,4 +1,4 @@
-// timestamp: Tue, 15 Apr 2008 15:04:13
+// timestamp: Tue, 27 May 2008 15:00:20
 /*
   base2 - copyright 2007-2008, Dean Edwards
   http://code.google.com/p/base2/

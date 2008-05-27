@@ -6,7 +6,7 @@ Base
 ....JSB.MouseCapture
 .....chrome.Chrome
 ......chrome.ComboBox
-......chrome.NumberControl
+......chrome.Range
 .......chrome.ProgressBar
 ........chrome.Slider
 .......chrome.Spinner

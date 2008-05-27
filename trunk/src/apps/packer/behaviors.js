@@ -1,12 +1,12 @@
 
-base2.DOM.bind(document);
+base2.JSB.globalize = "$";
 
 var packer = new Packer;
 
 new base2.JSB.RuleList({
   "#form": {
-    ondocumentready: function() {
-      $form.classList.remove("disabled");
+    ondocumentready: function(element) {
+      this.removeClass($form, "disabled");
       $output.value = "";
       $form.ready();
     },

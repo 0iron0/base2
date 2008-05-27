@@ -10,15 +10,25 @@ var Behavior = Module.extend(null, {
     if (_static && _static.EventDelegator) {
       behavior.EventDelegator = behavior.EventDelegator.extend(_static.EventDelegator);
     }
-    var events = {}, attributes = {}, methods;
+    var events, delegatedEvents = [], attributes = {}, methods;
     var attachedElementIDs = {}; // base2IDs
     var eventListener = new EventListener(new behavior.EventDelegator(behavior, attachedElementIDs));
+    
+    if (behavior.ondocumentready) {
+      behavior._readyQueue = [];
+    }
 
     // Extract behavior properties.
     behavior.forEach (function(property, name) {
       if (_EVENT.test(name)) {
+        var type = name.slice(2);
         // Store event handlers.
-        events[name.slice(2)] = property;
+        if (_CAN_DELEGATE.test(type)) {
+          delegatedEvents.push(type);
+        } else {
+          if (!events) events = [];
+          events.push(type);
+        }
       } else {
         // Store methods.
         if (!methods) methods = {};
@@ -38,25 +48,28 @@ var Behavior = Module.extend(null, {
       var base2ID = element.base2ID || assignID(element);
       if (!attachedElementIDs[base2ID]) { // Don't attach more than once.
         attachedElementIDs[base2ID] = true;
-        if (element.id) global["$" + ViewCSS.toCamelCase(element.id)] = element;
+        if (JSB.globalize && element.id) global[JSB.globalize + ViewCSS.toCamelCase(element.id)] = element;
         // If the document is bound then bind the element.
         if (DOM.bind[docID]) DOM.bind(element);
         // Add event handlers
+        if (delegatedEvents) {
+          forEach (delegatedEvents, bind(eventListener.delegate, eventListener));
+          delegatedEvents = null;
+        }
         if (events) {
-          forEach (events, bind(flip(eventListener.add), eventListener));
-          events = null; // We are using event delegation. ;-)
+          forEach (events, bind(eventListener.add, eventListener, element));
         }
         // Extend the element.
         for (var name in attributes) {
-          var attribute = attributes[name];
-          if (element[name] === undefined && typeof attribute != "object") {
-            element.setAttribute(name, attribute)
+          var value = attributes[name];
+          if (element[name] === undefined && typeof value != "object") {
+            element.setAttribute(name, value)
           } else {
-            element[name] = attribute;
+            element[name] = value;
           }
         }
         if (methods) extend(element, methods);
-        // Call pseudo events.
+        // Pseudo events.
         if (behavior.onattach) behavior.onattach(element);
         if (behavior.oncontentready) {
           if (DocumentState.isContentReady(element)) {
@@ -64,6 +77,12 @@ var Behavior = Module.extend(null, {
           } else {
             DocumentState.readyQueue.push({element: element, behavior: behavior});
           }
+        }
+        if (behavior._readyQueue) {
+          behavior._readyQueue.push(element);
+        }
+        if (element == document.activeElement && behavior.onfocus) {
+          behavior.dispatchEvent(element, "focus");
         }
       }
       return element;
@@ -99,7 +118,7 @@ var Behavior = Module.extend(null, {
     // classes to always pass it. :-)
     type = event.type;
     var handler = "on" + type;
-    if (handler) {
+    if (this[handler]) {
       if (_EVENT_MOUSE.test(type)) {
         if (!_EVENT_BUTTON.test(type) || _MOUSE_BUTTON_LEFT.test(event.button)) {
           if (type == "mousewheel") {

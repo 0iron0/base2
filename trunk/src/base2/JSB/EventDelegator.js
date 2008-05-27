@@ -12,12 +12,10 @@ var EventDelegator = Base.extend({
     var type = event.type;
     var behavior = this.behavior;
     if (type == "documentready") {
-      if (behavior.ondocumentready) {
-        forEach (this.attached, bind(behavior.ondocumentready, behavior, event));
+      if (behavior._readyQueue) {
+        forEach (behavior._readyQueue, bind(behavior.ondocumentready, behavior));
+        delete behavior._readyQueue;
       }
-  //} else if (_EVENT_MOUSE.test(type) && MouseCapture._handleEvent) {
-  //  // Pass captured events to the MouseCapture object
-  //  MouseCapture._handleEvent(event);
     } else {
       var target = event.target;
       // make sure it's an attached element

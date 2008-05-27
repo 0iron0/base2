@@ -1,4 +1,4 @@
-// timestamp: Sun, 30 Mar 2008 19:29:12
+// timestamp: Tue, 27 May 2008 15:00:20
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -206,14 +206,13 @@ var css = {
 var styleSheet = {
   combobox: {
     paddingRight:    "19px!important",
-    width:           "8em",
     backgroundImage: "url(%1menulist.png)!important",
+    width:           "8em",
 
     "@Safari.+theme=aqua": {
         WebkitAppearance: "menulist!important",
         background:       "initial",
-        border:           "initial",
-        padding:          "initial"
+        border:           "initial"
     }
   },
   
@@ -257,6 +256,10 @@ var styleSheet = {
   },
 
   "progressbar_focus,slider_focus": {
+    background: "initial",
+    padding:    "initial",
+    border:     "initial",
+    outline:    "1px dotted",
     MozOutline: "1px dotted"
   },
   
@@ -273,8 +276,9 @@ var styleSheet = {
       borderColor: "red"
     },
 
-    "@Gecko": {
-      MozBorder: "initial",
+    "@Gecko|opera|theme=aqua": {
+      MozBorder:   "initial",
+      borderColor: "black",
       borderStyle: "outset!important"
     }
   },
@@ -570,6 +574,22 @@ var ComboBox = Chrome.extend({
 
   onkeyup: function(element) {
     if (this.isActive(element)) Chrome._popup.onkeyup();
+  },
+  
+  "@MSIE": {
+    onfocus: function(element) {
+      base(this, arguments);
+      element.attachEvent("onpropertychange", change);
+      element.attachEvent("onblur", function() {
+        element.detachEvent("onpropertychange", change);
+        element.detachEvent("onblur", arguments.callee);
+      });
+      function change(event) {
+        if (event.propertyName == "value") {
+          element.scrollLeft = 9999;
+        }
+      };
+    }
   }
 }, {
   appearance: "menulist",
@@ -1200,7 +1220,7 @@ var Rect = Base.extend({
   },
   
   toString: function() {
-    return [this.left, this.top, this.width, this.height].join(",");
+    with (this) return [left, top, width, height].join(",");
   }
 });
 

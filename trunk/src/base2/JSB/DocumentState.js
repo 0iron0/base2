@@ -100,7 +100,7 @@ var DocumentState = Behavior.extend({
           var state = query.state || [];
           state.unshift(document, _MAX_ELEMENTS);
           elements = query.apply(null, state);
-          queryComplete = Array2.item(query.state, -1);
+          queryComplete = query.complete;
         }
         
         now = Date2.now(); // update the clock

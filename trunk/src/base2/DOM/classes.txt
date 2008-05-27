@@ -17,6 +17,8 @@ Base
 .....DOM.DocumentSelector
 .....DOM.ElementSelector
 ....DOM.ViewCSS
+.DOM.DocumentState
+.DOM.EventDispatcher
 .DOM.Selector
 .DOM.StaticNodeList
 .DOM.Traversal

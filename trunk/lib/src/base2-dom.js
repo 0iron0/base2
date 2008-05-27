@@ -1,4 +1,4 @@
-// timestamp: Sun, 06 Apr 2008 17:27:28
+// timestamp: Tue, 27 May 2008 15:00:20
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -117,10 +117,10 @@ var _createDelegate = _MSIE ? function(name, length) {
   eval(format(FN, name, args, args[0], args.slice(1)));
   return _staticModuleMethod;
 } : function(name) {
-  return function _staticModuleMethod(element) {
-    element.base = element[name].ancestor;
-    var method = element.base ? 'base' : name;
-    return element[method].apply(element, Array2.slice(arguments, 1));
+  return function _staticModuleMethod(object) {
+    object.base = object[name].ancestor;
+    var method = object.base ? 'base' : name;
+    return object[method].apply(object, Array2.slice(arguments, 1));
   };
 };
 
@@ -274,8 +274,7 @@ var Element = Node.extend({
 // remove the base2ID for clones
 extend(Element.prototype, "cloneNode", function(deep) {
   var clone = this.base(deep || false);
-  clone.removeAttribute("base2ID");
-  if (clone.base2ID) delete clone.base2ID;
+  clone.base2ID = undefined;
   return clone;
 });
 
@@ -406,6 +405,10 @@ var AbstractView = Binding.extend();
 // DOM/events/header.js
 // =========================================================================
 
+// TO DO
+
+// textInput event
+
 var _CAPTURE_TYPE = {};
 
 var _CAPTURING_PHASE = 1,
@@ -424,6 +427,8 @@ if (_MSIE) {
   var _W3C_EVENT_TYPE = {focusin: "focus", focusout: "blur"};
       _CAPTURE_TYPE   = {focus: "focusin", blur: "focusout"};
 }
+
+var _CAN_DELEGATE = /^(blur|submit|reset|change)$|^(mouse|key|focus)|click$/;
 
 // =========================================================================
 // DOM/events/Event.js
@@ -500,6 +505,7 @@ var EventDispatcher = Base.extend({
         var target = nodes[i];
         var listeners = map[target.base2ID];
         if (listeners) {
+          listeners = copy(listeners);
           event.eventPhase = target == event.target ? _AT_TARGET : phase;
           event.currentTarget = target;
           for (var listenerID in listeners) {
@@ -515,7 +521,13 @@ var EventDispatcher = Base.extend({
     }
   },
 
-  handleEvent: function(event) {
+  handleEvent: function(event, fixed) {
+    if (!fixed && event.type == "scroll") {
+      // horrible IE bug with scroll events
+      // the scroll event can't be cancelled so it's not a problem to use a timer
+      setTimeout(bind(arguments.callee, this, extend({}, event), true), 0);
+      return true;
+    }
     Event.bind(event);
     var type = event.type;
     var w3cType = _W3C_EVENT_TYPE[type];
@@ -526,10 +538,7 @@ var EventDispatcher = Base.extend({
     if (this.events[type]) {
       // Fix the mouse button (left=0, middle=1, right=2)
       if (_MOUSE_BUTTON.test(type)) {
-        var button = event.button;
-        if (_MOUSE_CLICK.test(type)) {
-          button = this.state._button;
-        }
+        var button = _MOUSE_CLICK.test(type) ? this.state._button : event.button;
         if (button != 2) button = button == 4 ? 1 : 0;
         if (event.button != button) {
           event = extend({}, event);
@@ -544,6 +553,7 @@ var EventDispatcher = Base.extend({
         target = target.parentNode;
       }
       this.dispatch(nodes, event, _CAPTURING_PHASE);
+      if (!event.bubbles) nodes.length = 1;
       nodes.reverse();
       this.dispatch(nodes, event, _BUBBLING_PHASE);
     }
@@ -558,10 +568,6 @@ var EventDispatcher = Base.extend({
 // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-Registration-interfaces
 
 var EventTarget = Interface.extend({
-  removeEventListener: function(target, type, listener, useCapture) {
-    this.base(target, type, DocumentState[listener.base2ID] || listener, useCapture);
-  },
-  
   "@!(element.addEventListener)": {
     addEventListener: function(target, type, listener, useCapture) {
       var documentState = DocumentState.getInstance(target);
@@ -572,7 +578,7 @@ var EventTarget = Interface.extend({
 
       // create a hash table of event types for the target object
       var phase = useCapture ? _CAPTURING_PHASE : _BUBBLING_PHASE;
-      var typeMap = documentState.registerEvent(type);
+      var typeMap = documentState.registerEvent(type, target);
       var phaseMap = typeMap[phase];
       if (!phaseMap) phaseMap = typeMap[phase] = {};
       // focus/blur (MSIE)
@@ -612,6 +618,7 @@ var EventTarget = Interface.extend({
   "@Gecko": {
     addEventListener: function(target, type, listener, useCapture) {
       if (type == "mousewheel") {
+        // this event cannot be removed
         var onmousewheel = DocumentState[assignID(listener)] = listener;
         listener = function(event) {
           event = copy(event);
@@ -664,6 +671,10 @@ var EventTarget = Interface.extend({
         };
       }
       this.base(target, type, listener, useCapture);
+    },
+
+    removeEventListener: function(target, type, listener, useCapture) {
+      this.base(target, type, DocumentState[listener.base2ID] || listener, useCapture);
     }
   }
 });
@@ -714,8 +725,6 @@ var DocumentEvent = Interface.extend({
 
 // http://dean.edwards.name/weblog/2006/06/again
 
-// TO DO: copy jQuery's technique for witing for style sheets to be loaded (opera/safari).
-
 var DOMContentLoadedEvent = Base.extend({
   constructor: function(document) {
     var fired = false;
@@ -726,7 +735,7 @@ var DOMContentLoadedEvent = Base.extend({
         //  to drop out of any current event
         setTimeout(function() {
           var event = DocumentEvent.createEvent(document, "Events");
-          Event.initEvent(event, "DOMContentLoaded", true, true);
+          Event.initEvent(event, "DOMContentLoaded", true, false);
           EventTarget.dispatchEvent(document, event);
         }, 1);
       }
@@ -740,32 +749,32 @@ var DOMContentLoadedEvent = Base.extend({
   
   listen: Undefined,
 
-  "@!Gecko": {
+  "@!Gecko|Webkit(4[2-9]|5-9)|Opera[19]": {
     listen: function(document) {
       // if all else fails fall back on window.onload
       EventTarget.addEventListener(Traversal.getDefaultView(document), "load", this.fire, false);
-    }
-  },
+    },
 
-  "@MSIE.+win": {
-    listen: function(document) {
-      // http://javascript.nwbox.com/IEContentLoaded/
-      try {
-        document.body.doScroll("left");
-        if (!this.__constructing) this.fire();
-      } catch (e) {
-        setTimeout(bind(this.listen, this, document), 10);
+    "@MSIE.+win": {
+      listen: function(document) {
+        // http://javascript.nwbox.com/IEContentLoaded/
+        try {
+          document.body.doScroll("left");
+          if (!this.__constructing) this.fire();
+        } catch (e) {
+          setTimeout(bind(this.listen, this, document), 10);
+        }
       }
-    }
-  },
-  
-  "@KHTML": {
-    listen: function(document) {
-      // John Resig
-      if (/loaded|complete/.test(document.readyState)) { // loaded
-        if (!this.__constructing) this.fire();
-      } else {
-        setTimeout(bind(this.listen, this, document), 10);
+    },
+
+    "@KHTML": {
+      listen: function(document) {
+        // John Resig
+        if (/loaded|complete/.test(document.readyState)) { // loaded
+          if (!this.__constructing) this.fire();
+        } else {
+          setTimeout(bind(this.listen, this, document), 10);
+        }
       }
     }
   }
@@ -1135,9 +1144,12 @@ var XPathParser = CSSParser.extend({
   },
   
   rules: extend({}, {
-    "@!KHTML": { // these optimisations do not work on Safari
+    "@!KHTML|opera": { // this optimisation does not work on Safari/opera
       // fast id() search
-      "(^|\\x02) (\\*|[\\w-]+)#([\\w-]+)": "$1id('$3')[self::$2]",
+      "(^|\\x02) (\\*|[\\w-]+)#([\\w-]+)": "$1id('$3')[self::$2]"
+    },
+    
+    "@!KHTML": { // this optimisation does not work on Safari
       // optimise positional searches
       "([ >])(\\*|[\\w-]+):([\\w-]+-child(\\(([^)]+)\\))?)": function(match, token, tagName, pseudoClass, $4, args) {
         var replacement = (token == " ") ? "//*" : "/*";
@@ -1203,15 +1215,15 @@ var XPathParser = CSSParser.extend({
       "only-child":       "[not(preceding-sibling::*) and not(following-sibling::*)]",
       "root":             "[not(parent::*)]"
     }
-  }
+  },
   
-/*"@opera": {
+  "@opera(7|8|9\\.[1-4])": {
     build: function() {
       this.optimised.pseudoClasses["last-child"] = this.values.pseudoClasses["last-child"];
       this.optimised.pseudoClasses["only-child"] = this.values.pseudoClasses["only-child"];
       return this.base();
     }
-  }*/
+  }
 });
 
 // these functions defined here to make the code more readable
@@ -1359,23 +1371,33 @@ Selector.pseudoClasses = { //-dean: lang()
 // nth-child     defined below
 };
 
-var _INDEXED = detect("(element.sourceIndex)") ;
-var _VAR = "var p%2=0,i%2,e%2,n%2=e%1.";
-var _ID = _INDEXED ? "e%1.sourceIndex" : "assignID(e%1)";
-var _TEST = "var g=" + _ID + ";if(!p[g]){p[g]=1;";
-var _STORE = "r[k++]=e%1;if(s==1)return e%1;if(k===s){_selectorFunction.state=[%2];return r;";
-var _FN = "var _selectorFunction=function(e0,s%1){_indexed++;var r=[],p={},reg=[%3],d=Traversal.getDocument(e0),c=d.writeln?'toUpperCase':'toString',k=0;";
+var _INDEXED = detect("(element.sourceIndex)"),
+    _VAR = "var p%2=0,i%2,e%3,n%2=e%1.",
+    _ID = _INDEXED ? "e%1.sourceIndex" : "assignID(e%1)",
+    _TEST = "var g=" + _ID + ";if(!p[g]){p[g]=1;",
+    _STORE = "r[k++]=e%1;if(s==1)return e%1;if(k===s){_query.state=[%2];_query.complete=%3;return r;",
+    _FN = "var _query=function(e0,s%1){_indexed++;var r=[],p={},reg=[%4],d=Traversal.getDocument(e0),c=d.writeln?'toUpperCase':'toString',k=0;";
 
 var _xpathParser;
 
 // variables used by the parser
 
-var _reg;        // a store for RexExp objects
-var _index;
-var _wild;       // need to flag certain wild card selectors as MSIE includes comment nodes
-var _list;       // are we processing a node list?
-var _duplicate;  // possible duplicates?
-var _cache = {}; // store parsed selectors
+var _reg,        // a store for RexExp objects
+    _index,
+    _wild,       // need to flag certain wild card selectors as MSIE includes comment nodes
+    _list,       // are we processing a node list?
+    _group,
+    _listAll,
+    _duplicate,  // possible duplicates?
+    _cache = {}; // store parsed selectors
+
+function sum(list) {
+  var total = 0;
+  for (var i = 0; i < list.length; i++) {
+    total += list[i];
+  }
+  return total;
+};
 
 // a hideous parser
 var _parser = {
@@ -1394,37 +1416,36 @@ var _parser = {
     var replacement = "var e%2=_byId(d,'%4');if(e%2&&";
     if (tagName != "*") replacement += "e%2.nodeName=='%3'[c]()&&";
     replacement += "Traversal.contains(e%1,e%2)){";
-    if (_list) replacement += format("i%1=n%1.length;", _list);
+    if (_list[_group]) replacement += format("i%1=n%1.length;", sum(_list));
     return format(replacement, _index++, _index, tagName, id);
   },
   
   " (\\*|[\\w-]+)": function(match, tagName) { // descendant selector
     _duplicate++; // this selector may produce duplicates
     _wild = tagName == "*";
-    var replacement = _VAR;
+    var replacement = format(_VAR, _index++, "%2", _index);
     // IE5.x does not support getElementsByTagName("*");
     replacement += (_wild && _MSIE5) ? "all" : "getElementsByTagName('%3')";
-    replacement += ";for(i%2=a%2||0;(e%2=n%2[i%2]);i%2++){";
-    return format(replacement, _index++, _list = _index, tagName);
+    replacement += ";for(i%2=a%2||0;(e%1=n%2[i%2]);i%2++){";
+    _list[_group]++;
+    return format(replacement, _index, sum(_list), tagName);
   },
   
   ">(\\*|[\\w-]+)": function(match, tagName) { // child selector
-    var children = _MSIE && _list;
+    var children = document.documentElement.children && _index;
     _wild = tagName == "*";
-    var replacement = _VAR;
-    // use the children property for _MSIE as it does not contain text nodes
-    //  (but the children collection still includes comments).
-    // the document object does not have a children collection
-    replacement += children ? "children": "childNodes";
-    if (!_wild && children) replacement += ".tags('%3')";
-    replacement += ";for(i%2=a%2||0;(e%2=n%2[i%2]);i%2++){";
+    var replacement = _VAR + (children ? "children" : "childNodes");
+    replacement = format(replacement, _index++, "%2", _index);
+    if (!_wild && _MSIE && children) replacement += ".tags('%3')";
+    replacement += ";for(i%2=a%2||0;(e%1=n%2[i%2]);i%2++){";
     if (_wild) {
-      replacement += "if(e%2.nodeType==1){";
+      replacement += "if(e%1.nodeType==1){";
       _wild = _MSIE5;
     } else {
-      if (!children) replacement += "if(e%2.nodeName=='%3'[c]()){";
+      if (!_MSIE || !children) replacement += "if(e%1.nodeName=='%3'[c]()){";
     }
-    return format(replacement, _index++, _list = _index, tagName);
+    _list[_group]++;
+    return format(replacement, _index, sum(_list), tagName);
   },
   
   "\\+(\\*|[\\w-]+)": function(match, tagName) { // direct adjacent selector
@@ -1454,7 +1475,7 @@ var _parser = {
   "#([\\w-]+)": function(match, id) { // ID selector
     _wild = false;
     var replacement = "if(e%1.id=='%2'){";
-    if (_list) replacement += format("i%1=n%1.length;", _list);
+    if (_list[_group]) replacement += format("i%1=n%1.length;", sum(_list));
     return format(replacement, _index, id);
   },
   
@@ -1549,13 +1570,13 @@ var _parser = {
     if (!_cache[selector]) {
       if (!_parser.exec) _parser = new CSSParser(_parser);
       _reg = []; // store for RegExp objects
-      _index = 0;
+      _list = [];
       var fn = "";
       var selectors = _parser.escape(selector, simple).split(",");
-      for (var i = 0; i < selectors.length; i++) {
-        _wild = _index = _list = 0; // reset
+      for (_group = 0; _group < selectors.length; _group++) {
+        _wild = _index = _list[_group] = 0; // reset
         _duplicate = selectors.length > 1 ? 2 : 0; // reset
-        var block = _parser.exec(selectors[i]) || "throw;";
+        var block = _parser.exec(selectors[_group]) || "throw;";
         if (_wild && _MSIE) { // IE's pesky comment nodes
           block += format("if(e%1.nodeName!='!'){", _index);
         }
@@ -1570,14 +1591,21 @@ var _parser = {
       if (selectors.length > 1) fn += "r.unsorted=1;";
       var args = "";
       var state = [];
-      for (var i = 1; i <= _list; i++) {
+      var total = sum(_list);
+      for (var i = 1; i <= total; i++) {
         args += ",a" + i;
-        state.push(format("typeof i%1!='undefined'&&i%1?i%1-1:0", i));
+        state.push("i" + i);
       }
-      state.push(_list ? format("!!(n%1&&i%1==n%1.length)", i - 1) : true); // complete
-      fn += "_selectorFunction.state=[%2];return s==1?null:r}";
-      eval(format(_FN + fn, args, state.join(","), _reg));
-      _cache[selector] = _selectorFunction;
+      if (total) {
+        var complete = [], k = 0;
+        for (var i = 0; i < _group; i++) {
+          k += _list[i];
+          if (_list[i]) complete.push(format("n%1&&i%1==n%1.length", k));
+        }
+      }
+      fn += "_query.state=[%2];_query.complete=%3;return s==1?null:r}";
+      eval(format(_FN + fn, args, state.join(","), total ? complete.join("&&") : true, _reg));
+      _cache[selector] = _query;
     }
     return _cache[selector];
   };
@@ -1841,7 +1869,7 @@ var DocumentState = Base.extend({
       this.base(document);
       var dispatcher = new EventDispatcher(this);
       this._dispatch = function(event) {
-        event.target = event.target || event.srcElement || state.document;
+        event.target = event.target || event.srcElement || document;
         dispatcher.handleEvent(event);
       };
       this.handleEvent = function(event) {
@@ -1852,17 +1880,19 @@ var DocumentState = Base.extend({
       };
     },
     
-    registerEvent: function(type) {
+    registerEvent: function(type, target) {
       var events = this.events[type];
-      if (!events) {
+      var canDelegate = _CAN_DELEGATE.test(type);
+      if (!events || !canDelegate) {
+        if (!events) events = this.events[type] = {};
+        if (canDelegate || !target) target = this.document;
         var state = this;
-        state.document["on" + type] = function(event) {
+        target["on" + type] = function(event) {
           if (!event) {
             event = Traveral.getDefaultiew(this).event;
           }
           if (event) state.handleEvent(event);
         };
-        events = this.events[type] = {};
       }
       return events;
     }
@@ -1882,15 +1912,17 @@ var DocumentState = Base.extend({
       };
     },
     
-    registerEvent: function(type) {
+    registerEvent: function(type, target) {
       var events = this.events[type];
-      if (!events) {
+      var canDelegate = _CAN_DELEGATE.test(type);
+      if (!events || !canDelegate) {
+        if (!events) events = this.events[type] = {};
+        if (canDelegate || !target) target = this.document;
         var state = this;
-        state.document.attachEvent("on" + type, function(event) {
+        target.attachEvent("on" + type, function(event) {
           event.target = event.srcElement || state.document;
           state.handleEvent(event);
         });
-        events = this.events[type] = {};
       }
       return events;
     },
@@ -1913,16 +1945,15 @@ var DocumentState = Base.extend({
     },
 
     onfocusin: function(event) {
-      this.onfocus(event);
-      var target = event.target;
-      if (target.value !== undefined) {
-        var dispatch = this._dispatch;
+      var target = event.target, dispatch = this._dispatch;
+      if (this.events.change && target.form !== undefined) {
         target.attachEvent("onchange", dispatch);
         target.attachEvent("onblur", function() {
           target.detachEvent("onblur", arguments.callee);
           target.detachEvent("onchange", dispatch);
         });
       }
+      this.onfocus(event);
     },
 
     onfocusout: function(event) {

@@ -52,9 +52,9 @@ var _createDelegate = _MSIE ? function(name, length) {
   eval(format(FN, name, args, args[0], args.slice(1)));
   return _staticModuleMethod;
 } : function(name) {
-  return function _staticModuleMethod(element) {
-    element.base = element[name].ancestor;
-    var method = element.base ? 'base' : name;
-    return element[method].apply(element, Array2.slice(arguments, 1));
+  return function _staticModuleMethod(object) {
+    object.base = object[name].ancestor;
+    var method = object.base ? 'base' : name;
+    return object[method].apply(object, Array2.slice(arguments, 1));
   };
 };
