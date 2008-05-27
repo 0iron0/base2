@@ -20,3 +20,5 @@ var _EVENT          = /^on(DOM\w+|[a-z]+)$/,
     _EVENT_TEXT     = /^(key|text)/;
 
 var _MOUSE_BUTTON_LEFT = /^[^12]$/;
+
+var _CAN_DELEGATE = /^(blur|submit|reset|change)$|^(focus|mouse|key)|(click|ready)$/;

@@ -105,17 +105,19 @@ var DocumentState = Base.extend({
       };
     },
     
-    registerEvent: function(type) {
+    registerEvent: function(type, target) {
       var events = this.events[type];
-      if (!events) {
+      var canDelegate = _CAN_DELEGATE.test(type);
+      if (!events || !canDelegate) {
+        if (!events) events = this.events[type] = {};
+        if (canDelegate || !target) target = this.document;
         var state = this;
-        state.document["on" + type] = function(event) {
+        target["on" + type] = function(event) {
           if (!event) {
             event = Traveral.getDefaultiew(this).event;
           }
           if (event) state.handleEvent(event);
         };
-        events = this.events[type] = {};
       }
       return events;
     }
@@ -135,15 +137,17 @@ var DocumentState = Base.extend({
       };
     },
     
-    registerEvent: function(type) {
+    registerEvent: function(type, target) {
       var events = this.events[type];
-      if (!events) {
+      var canDelegate = _CAN_DELEGATE.test(type);
+      if (!events || !canDelegate) {
+        if (!events) events = this.events[type] = {};
+        if (canDelegate || !target) target = this.document;
         var state = this;
-        state.document.attachEvent("on" + type, function(event) {
+        target.attachEvent("on" + type, function(event) {
           event.target = event.srcElement || state.document;
           state.handleEvent(event);
         });
-        events = this.events[type] = {};
       }
       return events;
     },
@@ -163,17 +167,6 @@ var DocumentState = Base.extend({
         event.target.fireEvent("onmousedown", event);
       }
       delete this._button;
-    },
-
-    onbeforeactivate: function(event) {
-      var target = event.target, dispatch = this._dispatch;
-      if (this.events.scroll) {
-        target.attachEvent("onscroll", dispatch);
-        target.attachEvent("onblur", function() {
-          target.detachEvent("onblur", arguments.callee);
-          //target.detachEvent("onscroll", dispatch);
-        });
-      }
     },
 
     onfocusin: function(event) {

@@ -16,7 +16,7 @@ var MouseEvent = UIEvent.extend({
       event.metaKey = metaKey;
       event.button = button;
       event.relatedTarget = relatedTarget;
-    },
+    }
 }, {
   "@!(document.createEvent)": {
     "@MSIE": {

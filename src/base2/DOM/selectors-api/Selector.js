@@ -124,23 +124,33 @@ Selector.pseudoClasses = { //-dean: lang()
 // nth-child     defined below
 };
 
-var _INDEXED = detect("(element.sourceIndex)") ;
-var _VAR = "var p%2=0,i%2,e%2,n%2=e%1.";
-var _ID = _INDEXED ? "e%1.sourceIndex" : "assignID(e%1)";
-var _TEST = "var g=" + _ID + ";if(!p[g]){p[g]=1;";
-var _STORE = "r[k++]=e%1;if(s==1)return e%1;if(k===s){_selectorFunction.state=[%2];return r;";
-var _FN = "var _selectorFunction=function(e0,s%1){_indexed++;var r=[],p={},reg=[%3],d=Traversal.getDocument(e0),c=d.writeln?'toUpperCase':'toString',k=0;";
+var _INDEXED = detect("(element.sourceIndex)"),
+    _VAR = "var p%2=0,i%2,e%3,n%2=e%1.",
+    _ID = _INDEXED ? "e%1.sourceIndex" : "assignID(e%1)",
+    _TEST = "var g=" + _ID + ";if(!p[g]){p[g]=1;",
+    _STORE = "r[k++]=e%1;if(s==1)return e%1;if(k===s){_query.state=[%2];_query.complete=%3;return r;",
+    _FN = "var _query=function(e0,s%1){_indexed++;var r=[],p={},reg=[%4],d=Traversal.getDocument(e0),c=d.writeln?'toUpperCase':'toString',k=0;";
 
 var _xpathParser;
 
 // variables used by the parser
 
-var _reg;        // a store for RexExp objects
-var _index;
-var _wild;       // need to flag certain wild card selectors as MSIE includes comment nodes
-var _list;       // are we processing a node list?
-var _duplicate;  // possible duplicates?
-var _cache = {}; // store parsed selectors
+var _reg,        // a store for RexExp objects
+    _index,
+    _wild,       // need to flag certain wild card selectors as MSIE includes comment nodes
+    _list,       // are we processing a node list?
+    _group,
+    _listAll,
+    _duplicate,  // possible duplicates?
+    _cache = {}; // store parsed selectors
+
+function sum(list) {
+  var total = 0;
+  for (var i = 0; i < list.length; i++) {
+    total += list[i];
+  }
+  return total;
+};
 
 // a hideous parser
 var _parser = {
@@ -159,37 +169,36 @@ var _parser = {
     var replacement = "var e%2=_byId(d,'%4');if(e%2&&";
     if (tagName != "*") replacement += "e%2.nodeName=='%3'[c]()&&";
     replacement += "Traversal.contains(e%1,e%2)){";
-    if (_list) replacement += format("i%1=n%1.length;", _list);
+    if (_list[_group]) replacement += format("i%1=n%1.length;", sum(_list));
     return format(replacement, _index++, _index, tagName, id);
   },
   
   " (\\*|[\\w-]+)": function(match, tagName) { // descendant selector
     _duplicate++; // this selector may produce duplicates
     _wild = tagName == "*";
-    var replacement = _VAR;
+    var replacement = format(_VAR, _index++, "%2", _index);
     // IE5.x does not support getElementsByTagName("*");
     replacement += (_wild && _MSIE5) ? "all" : "getElementsByTagName('%3')";
-    replacement += ";for(i%2=a%2||0;(e%2=n%2[i%2]);i%2++){";
-    return format(replacement, _index++, _list = _index, tagName);
+    replacement += ";for(i%2=a%2||0;(e%1=n%2[i%2]);i%2++){";
+    _list[_group]++;
+    return format(replacement, _index, sum(_list), tagName);
   },
   
   ">(\\*|[\\w-]+)": function(match, tagName) { // child selector
-    var children = _MSIE && _list;
+    var children = document.documentElement.children && _index;
     _wild = tagName == "*";
-    var replacement = _VAR;
-    // use the children property for _MSIE as it does not contain text nodes
-    //  (but the children collection still includes comments).
-    // the document object does not have a children collection
-    replacement += children ? "children": "childNodes";
-    if (!_wild && children) replacement += ".tags('%3')";
-    replacement += ";for(i%2=a%2||0;(e%2=n%2[i%2]);i%2++){";
+    var replacement = _VAR + (children ? "children" : "childNodes");
+    replacement = format(replacement, _index++, "%2", _index);
+    if (!_wild && _MSIE && children) replacement += ".tags('%3')";
+    replacement += ";for(i%2=a%2||0;(e%1=n%2[i%2]);i%2++){";
     if (_wild) {
-      replacement += "if(e%2.nodeType==1){";
+      replacement += "if(e%1.nodeType==1){";
       _wild = _MSIE5;
     } else {
-      if (!children) replacement += "if(e%2.nodeName=='%3'[c]()){";
+      if (!_MSIE || !children) replacement += "if(e%1.nodeName=='%3'[c]()){";
     }
-    return format(replacement, _index++, _list = _index, tagName);
+    _list[_group]++;
+    return format(replacement, _index, sum(_list), tagName);
   },
   
   "\\+(\\*|[\\w-]+)": function(match, tagName) { // direct adjacent selector
@@ -219,7 +228,7 @@ var _parser = {
   "#([\\w-]+)": function(match, id) { // ID selector
     _wild = false;
     var replacement = "if(e%1.id=='%2'){";
-    if (_list) replacement += format("i%1=n%1.length;", _list);
+    if (_list[_group]) replacement += format("i%1=n%1.length;", sum(_list));
     return format(replacement, _index, id);
   },
   
@@ -314,13 +323,13 @@ var _parser = {
     if (!_cache[selector]) {
       if (!_parser.exec) _parser = new CSSParser(_parser);
       _reg = []; // store for RegExp objects
-      _index = 0;
+      _list = [];
       var fn = "";
       var selectors = _parser.escape(selector, simple).split(",");
-      for (var i = 0; i < selectors.length; i++) {
-        _wild = _index = _list = 0; // reset
+      for (_group = 0; _group < selectors.length; _group++) {
+        _wild = _index = _list[_group] = 0; // reset
         _duplicate = selectors.length > 1 ? 2 : 0; // reset
-        var block = _parser.exec(selectors[i]) || "throw;";
+        var block = _parser.exec(selectors[_group]) || "throw;";
         if (_wild && _MSIE) { // IE's pesky comment nodes
           block += format("if(e%1.nodeName!='!'){", _index);
         }
@@ -335,14 +344,21 @@ var _parser = {
       if (selectors.length > 1) fn += "r.unsorted=1;";
       var args = "";
       var state = [];
-      for (var i = 1; i <= _list; i++) {
+      var total = sum(_list);
+      for (var i = 1; i <= total; i++) {
         args += ",a" + i;
-        state.push(format("typeof i%1!='undefined'&&i%1?i%1-1:0", i));
+        state.push("i" + i);
       }
-      state.push(_list ? format("!!(n%1&&i%1==n%1.length)", i - 1) : true); // complete
-      fn += "_selectorFunction.state=[%2];return s==1?null:r}";
-      eval(format(_FN + fn, args, state.join(","), _reg));
-      _cache[selector] = _selectorFunction;
+      if (total) {
+        var complete = [], k = 0;
+        for (var i = 0; i < _group; i++) {
+          k += _list[i];
+          if (_list[i]) complete.push(format("n%1&&i%1==n%1.length", k));
+        }
+      }
+      fn += "_query.state=[%2];_query.complete=%3;return s==1?null:r}";
+      eval(format(_FN + fn, args, state.join(","), total ? complete.join("&&") : true, _reg));
+      _cache[selector] = _query;
     }
     return _cache[selector];
   };

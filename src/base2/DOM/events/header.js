@@ -1,4 +1,8 @@
 
+// TO DO
+
+// textInput event
+
 var _CAPTURE_TYPE = {};
 
 var _CAPTURING_PHASE = 1,
@@ -17,3 +21,5 @@ if (_MSIE) {
   var _W3C_EVENT_TYPE = {focusin: "focus", focusout: "blur"};
       _CAPTURE_TYPE   = {focus: "focusin", blur: "focusout"};
 }
+
+var _CAN_DELEGATE = /^(blur|submit|reset|change)$|^(mouse|key|focus)|click$/;

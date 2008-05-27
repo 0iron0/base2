@@ -6,8 +6,12 @@ var EventListener = Base.extend({
   
   delegator: null,
 
-  add: function(type) {
-    EventTarget.addEventListener(document, type, this, _EVENT_CAPTURE.test(type));
+  add: function(target, type) {
+    EventTarget.addEventListener(target, type, this, _EVENT_CAPTURE.test(type));
+  },
+
+  delegate: function(type) {
+    this.add(document, type);
   },
   
   handleEvent: function(event) {

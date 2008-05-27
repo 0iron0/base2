@@ -9,4 +9,5 @@ Object
 ....RegGrp
 ..Package
 .Date2
+.Function2
 .String2

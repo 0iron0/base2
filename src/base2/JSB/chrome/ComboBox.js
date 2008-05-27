@@ -42,6 +42,22 @@ var ComboBox = Chrome.extend({
 
   onkeyup: function(element) {
     if (this.isActive(element)) Chrome._popup.onkeyup();
+  },
+  
+  "@MSIE": {
+    onfocus: function(element) {
+      base(this, arguments);
+      element.attachEvent("onpropertychange", change);
+      element.attachEvent("onblur", function() {
+        element.detachEvent("onpropertychange", change);
+        element.detachEvent("onblur", arguments.callee);
+      });
+      function change(event) {
+        if (event.propertyName == "value") {
+          element.scrollLeft = 9999;
+        }
+      };
+    }
   }
 }, {
   appearance: "menulist",

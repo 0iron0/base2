@@ -70,8 +70,7 @@ var Element = Node.extend({
 // remove the base2ID for clones
 extend(Element.prototype, "cloneNode", function(deep) {
   var clone = this.base(deep || false);
-  clone.removeAttribute("base2ID");
-  if (clone.base2ID) delete clone.base2ID;
+  clone.base2ID = undefined;
   return clone;
 });
 

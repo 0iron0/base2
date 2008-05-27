@@ -14,6 +14,6 @@ var Rect = Base.extend({
   },
   
   toString: function() {
-    return [this.left, this.top, this.width, this.height].join(",");
+    with (this) return [left, top, width, height].join(",");
   }
 });
