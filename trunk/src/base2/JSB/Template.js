@@ -1,13 +1,12 @@
 
-var Template = Behavior.extend({
-
+var Template = Behavior.modify({
   /* EVENT HANDLERS */
 
   onattach: function(element){},
   ondetach: function(element){},
 
-  oncontentready:  function(element, event){},
-  ondocumentready: function(element, event){},
+  oncontentready:  function(element){},
+  ondocumentready: function(element){},
 
   onclick:     function(element, event, offsetX, offsetY, screenX, screenY){},
   ondblclick:  function(element, event, offsetX, offsetY, screenX, screenY){},
@@ -28,30 +27,6 @@ var Template = Behavior.extend({
   onfocus: function(element, event){},
   onblur:  function(element, event){},
   
-  /* METHODS */
-  
-  // methods defined here will be added to any attached element
-
-  instanceMethod1: function(element, param1, param2){},
-  
-  instanceMethod2: function(element, param1) {
-    // because instanceMethod1 is defined in the "instance" namespace so we can call
-    // it as a method of the element:
-    element.instanceMethod1(param1, "data"); // no need to pass the element
-    
-    // we can also call instanceMethod1 as a behavior method:
-    this.instanceMethod1(element, param1, "data"); // this time we must pass the element
-    
-    // staticMethod1 is defined on the static interface so we *must* call it
-    // as a method of the behavior:
-    this.staticMethod1(element, param1, "data");
-  },
-  
-  /* ATTRIBUTES */
-
-  // attributes defined here will be added to any attached element
-  sampleAttribute: "value"
-}, {
   /* PRE-DEFINED BEHAVIOR METHODS */
   
   // You do not need to define these, they are already defined on the Behavior
@@ -87,9 +62,17 @@ var Template = Behavior.extend({
 
   getCSSProperty: function(element, propertyName){return String;},
   setCSSProperty: function(element, propertyName, value, /* optional */ important){},
-  
+
+  // capture mousemove and mouseup events
+  setCapture:     function(element){},
+  releaseCapture: function(){},
+
+  // bind a timer function to a behavior object
+  setInterval: function(callback, delay, /* optional */ arg1, arg2, argN){return Number;}, // return timer id
+  setTimeout:  function(callback, delay, /* optional */ arg1, arg2, argN){return Number;},
+
   /* USER DEFINED METHODS */
-  
+
   staticMethod1: function(element, param1, param2){},
 
   /* OVERRIDE EXISTING BEHAVIOR METHODS */
@@ -98,7 +81,7 @@ var Template = Behavior.extend({
     if (propertyName == "opacity") {
       // do something different
       
-      // opacity is supported by base2.DOM, this is just an example
+      // NB: opacity is already supported by base2.DOM, this is just an example
     } else {
       // use the default behavior
       this.base(element, propertyName, value);

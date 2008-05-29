@@ -1,5 +1,14 @@
 
-var Slider = ProgressBar.extend({
+var Slider = ProgressBar.modify({
+  HORIZONTAL_WIDTH: 3000,
+  HORIZONTAL_HEIGHT: 21,
+  VERTICAL_WIDTH: 22,
+  VERTICAL_HEIGHT: 3000,
+  THUMB_WIDTH: 11,
+  THUMB_HEIGHT: 11,
+
+  appearance: "slider",
+
   onmousedown: function(element, event, x, y, screenX, screenY) {
     base(this, arguments);
     event.preventDefault();
@@ -59,17 +68,8 @@ var Slider = ProgressBar.extend({
     } else {
       base(this, arguments);
     }
-  }
-}, {
-  HORIZONTAL_WIDTH: 3000,
-  HORIZONTAL_HEIGHT: 21,
-  VERTICAL_WIDTH: 22,
-  VERTICAL_HEIGHT: 3000,
-  THUMB_WIDTH: 11,
-  THUMB_HEIGHT: 11,
-
-  appearance: "slider",
-
+  },
+ 
   "@KHTML|opera[91]": {
     isNativeControl: function(element) {
       return element.nodeName == "INPUT" && element.type == "range";

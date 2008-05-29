@@ -1,7 +1,15 @@
 
 // For numeric controls
 
-var Range = Chrome.extend({
+var Range = Chrome.modify({
+  ATTRIBUTES: {
+    min:  "",
+    max:  "",
+    step: 1
+  },
+
+/*MASK: /-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/,*/
+
   onattach: function(element) {
     var attributes = this.getAttributes(element);
     // the following only applies to Slider/ProgressBar but we'll leave it here
@@ -17,15 +25,7 @@ var Range = Chrome.extend({
       this.increment(element, -parseInt(delta / 40));
       event.preventDefault();
     }
-  }
-}, {
-  ATTRIBUTES: {
-    min:  "",
-    max:  "",
-    step: 1
   },
-
-/*MASK: /-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/,*/
 
   getAttributes: function(element) {
     // initialise min/max/step

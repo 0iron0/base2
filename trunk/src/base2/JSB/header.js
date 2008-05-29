@@ -1,5 +1,6 @@
 
-var _MSIE  = detect("MSIE");
+var _MSIE  = detect("MSIE"),
+    _OPERA = detect("opera");
 
 // Max time for hogging the processor.
 var _MAX_PROCESSING_TIME = 200; // milliseconds
@@ -19,6 +20,7 @@ var _EVENT          = /^on(DOM\w+|[a-z]+)$/,
     _EVENT_MOUSE    = /^mouse|click$/,
     _EVENT_TEXT     = /^(key|text)/;
 
-var _MOUSE_BUTTON_LEFT = /^[^12]$/;
+var _MOUSE_BUTTON_LEFT = /^[^12]$/,
+    _MOUSE_CAPTURE     = /^mouse(up|move)$/;
 
 var _CAN_DELEGATE = /^(blur|submit|reset|change)$|^(focus|mouse|key)|(click|ready)$/;

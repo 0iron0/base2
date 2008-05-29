@@ -1,26 +1,22 @@
 
-var Behavior = Module.extend(null, {
+var Behavior = global.Behavior = new Base({
   attach: I,
   detach: I,
 
-  extend: function(_interface, _static) {
+  modify: function(_interface) {
     // Extend a behavior to create a new behavior.
-    var behavior = this.base(_interface, _static);
+    var behavior = copy(this).extend(_interface);
     behavior.EventDelegator = this.EventDelegator || EventDelegator;
-    if (_static && _static.EventDelegator) {
-      behavior.EventDelegator = behavior.EventDelegator.extend(_static.EventDelegator);
+    if (_interface && _interface.EventDelegator) {
+      behavior.EventDelegator = behavior.EventDelegator.extend(_interface.EventDelegator);
     }
-    var events, delegatedEvents = [], attributes = {}, methods;
+    var events, delegatedEvents = [];
     var attachedElementIDs = {}; // base2IDs
     var eventListener = new EventListener(new behavior.EventDelegator(behavior, attachedElementIDs));
-    
-    if (behavior.ondocumentready) {
-      behavior._readyQueue = [];
-    }
 
-    // Extract behavior properties.
-    behavior.forEach (function(property, name) {
-      if (_EVENT.test(name)) {
+    // Extract events.
+    forEach (behavior, function(property, name) {
+      if (typeof property == "function" && _EVENT.test(name)) {
         var type = name.slice(2);
         // Store event handlers.
         if (_CAN_DELEGATE.test(type)) {
@@ -29,46 +25,23 @@ var Behavior = Module.extend(null, {
           if (!events) events = [];
           events.push(type);
         }
-      } else {
-        // Store methods.
-        if (!methods) methods = {};
-        methods[name] = behavior.prototype[name];
-      }
-    });
-    forEach.detect (_interface, function(property, name) {
-      // Store attributes.
-      if (typeOf(property) != "function") {
-        attributes[name] = property;
       }
     });
 
-    var docID = document.base2ID;
     behavior.attach = function(element) {
       //if (!element) return;
       var base2ID = element.base2ID || assignID(element);
       if (!attachedElementIDs[base2ID]) { // Don't attach more than once.
         attachedElementIDs[base2ID] = true;
         if (JSB.globalize && element.id) global[JSB.globalize + ViewCSS.toCamelCase(element.id)] = element;
-        // If the document is bound then bind the element.
-        if (DOM.bind[docID]) DOM.bind(element);
         // Add event handlers
         if (delegatedEvents) {
-          forEach (delegatedEvents, bind(eventListener.delegate, eventListener));
+          forEach (delegatedEvents, eventListener.delegate, eventListener);
           delegatedEvents = null;
         }
         if (events) {
           forEach (events, bind(eventListener.add, eventListener, element));
         }
-        // Extend the element.
-        for (var name in attributes) {
-          var value = attributes[name];
-          if (element[name] === undefined && typeof value != "object") {
-            element.setAttribute(name, value)
-          } else {
-            element[name] = value;
-          }
-        }
-        if (methods) extend(element, methods);
         // Pseudo events.
         if (behavior.onattach) behavior.onattach(element);
         if (behavior.oncontentready) {
@@ -77,9 +50,6 @@ var Behavior = Module.extend(null, {
           } else {
             DocumentState.readyQueue.push({element: element, behavior: behavior});
           }
-        }
-        if (behavior._readyQueue) {
-          behavior._readyQueue.push(element);
         }
         if (element == document.activeElement && behavior.onfocus) {
           behavior.dispatchEvent(element, "focus");
@@ -147,7 +117,63 @@ var Behavior = Module.extend(null, {
 
   setCSSProperty: function(element, propertyName, value, important) {
     CSSStyleDeclaration.setProperty(element.style, propertyName, value, important ? "important" : "");
+  },
+
+  setCapture: function(element) {
+    if (!Behavior._captureMouse) {
+      var behavior = this;
+      Behavior._captureElement = element;
+      Behavior._captureMouse = function(event) {
+        if (_OPERA) getSelection().collapse(document.body, 0); // prevent text selection
+        if (event.type == "mousemove" || event.eventPhase == 3) {
+          behavior.handleEvent(element, event, event.type);
+        }
+      };
+      this.addEventListener(document, "mouseup", Behavior._captureMouse, true);
+      this.addEventListener(document, "mousemove", Behavior._captureMouse, true);
+    }
+  },
+
+  releaseCapture: function() {
+    if (Behavior._captureMouse) {
+      this.removeEventListener(document, "mouseup", Behavior._captureMouse, true);
+      this.removeEventListener(document, "mousemove", Behavior._captureMouse, true);
+      delete Behavior._captureMouse;
+      delete Behavior._captureElement;
+    }
+  },
+
+  "@MSIE": {
+    setCapture: function(element) {
+      element.setCapture();
+      behavior = this;
+      element.attachEvent("onlosecapture", function() {
+        if (Behavior._captureMouse) {
+          element.fireEvent("onmouseup");
+        }
+        element.detachEvent("onlosecapture", arguments.callee);
+      });
+      this.base(element);
+    },
+
+    releaseCapture: function() {
+      this.base();
+      document.releaseCapture();
+    }
   }
+});
+
+// Additional methods (all the good ones)
+
+forEach.csv("setInterval,setTimeout", function(name) {
+  Behavior[name] = function(callback, delay) {
+    if (typeof callback == "string") callback = this[callback];
+    var args = Array2.slice(arguments, 2);
+    var self = this;
+    return global[name](function() {
+      callback.apply(self, args);
+    }, delay || 0);
+  };
 });
 
 forEach ([

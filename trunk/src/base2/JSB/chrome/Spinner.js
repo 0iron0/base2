@@ -1,5 +1,17 @@
 
-var Spinner = Range.extend({
+var Spinner = Range.modify({
+  appearance: "spinner",
+
+  states: {
+    normal:      0,
+    up_hover:    1,
+    up_active:   2,
+    down_hover:  3,
+    down_active: 4,
+    disabled:    5,
+    length:      6
+  },
+  
   onkeydown: function(element, event, keyCode) {
     if (!this.isEditable(element)) return;
     if (!/^(3[34568]|40)$/.test(keyCode)) return;
@@ -51,18 +63,6 @@ var Spinner = Range.extend({
     this.stopTimer(element);
     // call afterward because we don't want to clear the state yet
     this.base(element, event);
-  }
-}, {
-  appearance: "spinner",
-  
-  states: {
-    normal:      0,
-    up_hover:    1,
-    up_active:   2,
-    down_hover:  3,
-    down_active: 4,
-    disabled:    5,
-    length:      6
   },
 
   "@opera[91]": {

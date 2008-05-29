@@ -1,5 +1,20 @@
 
-var Chrome = Behavior.extend({
+var Chrome = Behavior.modify({
+  HORIZONTAL: 0,
+  VERTICAL: 1,
+
+  states: {
+    normal:   0,
+    hover:    1,
+    active:   2,
+    disabled: 3,
+    length:   4
+  },
+
+  appearance: "",
+
+  imageWidth: 17,
+  
   oncontentready: function(element) {
     if (element.clientHeight > element.clientWidth) {
       this.setOrientation(element, this.VERTICAL);
@@ -21,7 +36,7 @@ var Chrome = Behavior.extend({
   },
 
   onmouseup: function(element, event) {
-    //;;; console2.log("onmouseup(" + event.eventPhase + "): " + event.button);
+    ;;; console2.log("onmouseup(" + event.eventPhase + "): " + event.button);
     delete Chrome._active;
     if (Chrome._activeThumb) {
       delete Chrome._activeThumb;
@@ -62,22 +77,7 @@ var Chrome = Behavior.extend({
     delete Chrome._focus;
     this.removeClass(element, this.appearance + _FOCUS);
     this.layout(element);
-  }
-}, {
-  HORIZONTAL: 0,
-  VERTICAL: 1,
-
-  states: {
-    normal:   0,
-    hover:    1,
-    active:   2,
-    disabled: 3,
-    length:   4
   },
-
-  appearance: "",
-
-  imageWidth: 17,
 
   isActive: function(element) {
     return Chrome._activeThumb && (Chrome._activeThumb == Chrome._hoverThumb);
@@ -123,7 +123,7 @@ var Chrome = Behavior.extend({
   startTimer: function(element, id, interval, repeat) {
     id = element.base2ID + (id || _TIMER);
     if (!_timers[id]) {
-      _timers[id] = setInterval(bind(this.tick, this, element), 100);
+      _timers[id] = this.setInterval(this.tick, 100, element);
     }
   },
 
@@ -144,54 +144,5 @@ var Chrome = Behavior.extend({
     top -= clientHeight * state;
     element.style.backgroundPosition = "right " + top + PX;
     this.syncCursor(element);
-  },
-
-  handleEvent: function(element, event, type) {
-    if (Chrome._captureMouse) {
-      if (/^mouse(up|move)$/.test(type)) {
-        this.base(Chrome._captureElement, event);
-      }
-    } else if (!this.isNativeControl(element)) {
-      this.base(element, event);
-    }
-  },
-
-  setCapture: function(element) {
-    if (!Chrome._captureMouse) {
-      var behavior = this;
-      Chrome._captureElement = element;
-      Chrome._captureMouse = function(event) {
-        if (_OPERA) getSelection().collapse(document.body, 0); // prevent text selection
-        behavior.handleEvent(element, event, event.type);
-      };
-      this.addEventListener(document, "mouseup", Chrome._captureMouse, true);
-      this.addEventListener(document, "mousemove", Chrome._captureMouse, true);
-    }
-  },
-
-  releaseCapture: function() {
-    if (Chrome._captureMouse) {
-      this.removeEventListener(document, "mouseup", Chrome._captureMouse, true);
-      this.removeEventListener(document, "mousemove", Chrome._captureMouse, true);
-      delete Chrome._captureMouse;
-      delete Chrome._captureElement;
-    }
-  },
-
-  "@MSIE": {
-    setCapture: function(element) {
-      element.setCapture();
-      behavior = this;
-      element.attachEvent("onlosecapture", function() {
-        if (Chrome._captureMouse) behavior.onmouseup(element);
-        element.detachEvent("onlosecapture", arguments.callee);
-      });
-      this.base(element);
-    },
-
-    releaseCapture: function() {
-      this.base();
-      document.releaseCapture();
-    }
   }
 });

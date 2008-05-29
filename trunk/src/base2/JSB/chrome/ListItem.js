@@ -1,5 +1,5 @@
 
-var ListItem = Behavior.extend({
+var ListItem = Behavior.modify({
   onmouseover: function(element) {
     element.style.backgroundColor = "Highlight";
     element.style.color = "HighlightText";
