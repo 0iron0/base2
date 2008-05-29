@@ -1,5 +1,7 @@
 
-var ComboBox = Chrome.extend({
+var ComboBox = Chrome.modify({
+  appearance: "menulist",
+  
   onmousedown: function(element, event, x) {
     base(this, arguments);
     if (this.isEditable(element)) {
@@ -58,9 +60,7 @@ var ComboBox = Chrome.extend({
         }
       };
     }
-  }
-}, {
-  appearance: "menulist",
+  },
   
   "@Safari.+theme=aqua": {
     layout: function(element) {

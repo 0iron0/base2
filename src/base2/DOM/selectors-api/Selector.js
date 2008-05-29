@@ -71,14 +71,14 @@ var Selector = Base.extend({
       return count == 1 ? result : new StaticNodeList(result);
     }
   }
-}, {  
+}, {
   toXPath: function(selector, simple) {
     if (!_xpathParser) _xpathParser = new XPathParser;
     return _xpathParser.parse(selector, simple);
   }
 });
 
-var _COMBINATOR = /[\s+>~]/;
+var _COMBINATOR = /[^,]\s|[+>~]/;
 
 var _NOT_XPATH = ":(checked|disabled|enabled|contains|hover|active|focus)|^(#[\\w-]+\\s*)?\\w+$";
 if (detect("KHTML")) {

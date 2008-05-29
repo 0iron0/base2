@@ -6,12 +6,16 @@ var Rule = Base.extend({
     if (!instanceOf(selector, Selector)) {
       selector = new Selector(selector);
     }
-    if (!Behavior.ancestorOf(behavior)) {
-      behavior = Behavior.extend(behavior);
+    if (typeof behavior == "string") {
+      behavior = new External(behavior, function(external) {
+        behavior = external;
+      });
+    } else if (!behavior || Behavior.constructor != behavior.constructor) {
+      behavior = Behavior.modify(behavior);
     }
     
     this.refresh = function() {
-      selector.exec(document).forEach(behavior.attach);
+      if (behavior.attach) selector.exec(document).forEach(behavior.attach);
     };
 
     this.toString = selector.toString;

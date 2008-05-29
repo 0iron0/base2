@@ -4,7 +4,20 @@
 
 // TODO: Right to left should invert horizontal
 
-var ProgressBar = Range.extend({
+var ProgressBar = Range.modify({
+  HEIGHT: 3000,
+  WIDTH: 3000,
+  CHUNK_WIDTH: 10,
+  CHUNK_HEIGHT: 10,
+
+  ATTRIBUTES: {
+    min:  0,
+    max:  100,
+    step: 1
+  },
+
+  appearance: "progressbar",
+
   "@!theme=aqua": {
     onfocus: function(element) {
       if (element != Chrome._active) {
@@ -40,20 +53,7 @@ var ProgressBar = Range.extend({
         amount = -1;
     }
     this.increment(element, amount, block);
-  }
-}, {
-  HEIGHT: 3000,
-  WIDTH: 3000,
-  CHUNK_WIDTH: 10,
-  CHUNK_HEIGHT: 10,
-  
-  ATTRIBUTES: {
-    min:  0,
-    max:  100,
-    step: 1
   },
-
-  appearance: "progressbar",
 
   hitTest: False,
 

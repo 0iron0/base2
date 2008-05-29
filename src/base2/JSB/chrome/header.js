@@ -1,6 +1,5 @@
 
-var _MSIE  = detect("MSIE"),
-    _OPERA = detect("opera");
+var _MSIE  = detect("MSIE");
 
 var PX = "px";
 

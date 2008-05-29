@@ -4,7 +4,7 @@
 // This behavior allows any button click. Relevant events get the "button"
 // parameter as the first argument after the "event" parameter.
 
-var ExtendedMouse = Behavior.extend(null, {
+var ExtendedMouse = Behavior.modify({
   handleEvent: function(element, event, type) {
     type = event.type;
     if (_EVENT_BUTTON.test(type)) {

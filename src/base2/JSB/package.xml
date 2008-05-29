@@ -9,4 +9,5 @@
   <include src="EventDelegator.js"/>
   <include src="ExtendedMouse.js"/>
   <include src="DocumentState.js"/>
+  <include src="External.js"/>
 </package>
