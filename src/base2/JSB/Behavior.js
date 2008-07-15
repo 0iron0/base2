@@ -1,11 +1,11 @@
 
-var Behavior = global.Behavior = new Base({
-  attach: I,
-  detach: I,
+var Behavior = new Base({
+  attach: Function2.I,
+  detach: Function2.I,
 
   modify: function(_interface) {
     // Extend a behavior to create a new behavior.
-    var behavior = copy(this).extend(_interface);
+    var behavior = pcopy(this).extend(_interface);
     behavior.EventDelegator = this.EventDelegator || EventDelegator;
     if (_interface && _interface.EventDelegator) {
       behavior.EventDelegator = behavior.EventDelegator.extend(_interface.EventDelegator);
@@ -13,17 +13,21 @@ var Behavior = global.Behavior = new Base({
     var events, delegatedEvents = [];
     var attachedElementIDs = {}; // base2IDs
     var eventListener = new EventListener(new behavior.EventDelegator(behavior, attachedElementIDs));
+    
+    if (behavior.ondocumentready) {
+      behavior._documentReadyQueue = [];
+    }
 
     // Extract events.
     forEach (behavior, function(property, name) {
       if (typeof property == "function" && _EVENT.test(name)) {
         var type = name.slice(2);
         // Store event handlers.
-        if (_CAN_DELEGATE.test(type)) {
-          delegatedEvents.push(type);
-        } else {
+        if (_CANNOT_DELEGATE.test(type)) {
           if (!events) events = [];
           events.push(type);
+        } else {
+          delegatedEvents.push(type);
         }
       }
     });
@@ -33,7 +37,6 @@ var Behavior = global.Behavior = new Base({
       var base2ID = element.base2ID || assignID(element);
       if (!attachedElementIDs[base2ID]) { // Don't attach more than once.
         attachedElementIDs[base2ID] = true;
-        if (JSB.globalize && element.id) global[JSB.globalize + ViewCSS.toCamelCase(element.id)] = element;
         // Add event handlers
         if (delegatedEvents) {
           forEach (delegatedEvents, eventListener.delegate, eventListener);
@@ -48,8 +51,11 @@ var Behavior = global.Behavior = new Base({
           if (DocumentState.isContentReady(element)) {
             behavior.oncontentready(element);
           } else {
-            DocumentState.readyQueue.push({element: element, behavior: behavior});
+            DocumentState.contentReadyQueue.push({element: element, behavior: behavior});
           }
+        }
+        if (behavior._documentReadyQueue) {
+          behavior._documentReadyQueue.push(element);
         }
         if (element == document.activeElement && behavior.onfocus) {
           behavior.dispatchEvent(element, "focus");
@@ -59,11 +65,7 @@ var Behavior = global.Behavior = new Base({
     };
 
     behavior.detach = function(element) {
-      var base2ID = element.base2ID || assignID(element);
-      if (attachedElementIDs[base2ID]) {
-        if (behavior.ondetach) behavior.ondetach(element);
-        delete attachedElementIDs[base2ID];
-      }
+      delete attachedElementIDs[element.base2ID];
       return element;
     };
     
@@ -80,7 +82,8 @@ var Behavior = global.Behavior = new Base({
       event = DocumentEvent.createEvent(document, "Events");
       Event.initEvent(event, type, true, false);
     }
-    EventTarget.dispatchEvent(element, extend(event, data));
+    if (data) extend(event, data);
+    EventTarget.dispatchEvent(element, event);
   },
 
   handleEvent: function(element, event, type) {
@@ -105,6 +108,17 @@ var Behavior = global.Behavior = new Base({
     }
   },
 
+  getProperty: function(element, name) {
+    var defaultValue = this[name];
+    var value = Element.getAttribute(element, name);
+    if (value == null) {
+      value = defaultValue;
+    } else {
+      value = defaultValue.constructor(value); // cast
+    }
+    return value;
+  },
+
   getComputedStyle: function(element, propertyName) {
     var view = document.defaultView;
     if (propertyName) return ViewCSS.getComputedPropertyValue(view, element, propertyName);
@@ -125,7 +139,7 @@ var Behavior = global.Behavior = new Base({
       Behavior._captureElement = element;
       Behavior._captureMouse = function(event) {
         if (_OPERA) getSelection().collapse(document.body, 0); // prevent text selection
-        if (event.type == "mousemove" || event.eventPhase == 3) {
+        if (event.type == "mousemove" || event.eventPhase == Event.BUBBLING_PHASE) {
           behavior.handleEvent(element, event, event.type);
         }
       };
@@ -149,7 +163,8 @@ var Behavior = global.Behavior = new Base({
       behavior = this;
       element.attachEvent("onlosecapture", function() {
         if (Behavior._captureMouse) {
-          element.fireEvent("onmouseup");
+          // element.fireEvent("onmouseup");
+          behavior.dispatchEvent(element, "mouseup");
         }
         element.detachEvent("onlosecapture", arguments.callee);
       });

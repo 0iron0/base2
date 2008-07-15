@@ -2,21 +2,19 @@
 // For numeric controls
 
 var Range = Chrome.modify({
-  ATTRIBUTES: {
-    min:  "",
-    max:  "",
-    step: 1
-  },
+  min:  "",
+  max:  "",
+  step: 1,
 
 /*MASK: /-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/,*/
 
   onattach: function(element) {
-    var attributes = this.getAttributes(element);
+    var properties = this.getProperties(element);
     // the following only applies to Slider/ProgressBar but we'll leave it here
-    var value = element.value, min = attributes.min;
+    var value = element.value, min = properties.min;
     if (!value || isNaN(value)) value = min;
     //else if (_numberAttributes.step != 1) this.setValue(element, value);
-    _values[element.base2ID] = (value - min) / (attributes.max - min);
+    _values[element.base2ID] = (value - min) / (properties.max - min);
     element.onscroll = _resetScroll;
   },
 
@@ -27,18 +25,19 @@ var Range = Chrome.modify({
     }
   },
 
-  getAttributes: function(element) {
+  getProperties: function(element) {
     // initialise min/max/step
-    var attributes = {};
-    for (var attr in this.ATTRIBUTES) {
+    var properties = {min: this.min, max: this.max, step: this.step};
+    for (var attr in properties) {
       var value = element[attr];
       if (value == null && element.hasAttribute && element.hasAttribute(attr)) {
         value = element.getAttribute(attr);
       }
-      if (!value || isNaN(value)) value = this.ATTRIBUTES[attr];
-      attributes[attr] = value;
+      if (value && !isNaN(value)) {
+        properties[attr] = value;
+      }
     }
-    return attributes;
+    return properties;
   },
 
   increment: function(element, amount, block) {
@@ -52,7 +51,7 @@ var Range = Chrome.modify({
   },
 
   getUnitIncrement: function(element) {
-    return this.getAttributes(element).step || 1;
+    return this.getProperty(element, "step") || 1;
   },
 
   getValue: function(element) {
@@ -60,9 +59,9 @@ var Range = Chrome.modify({
   },
 
   setValue: function(element, value) {
-    var attributes = this.getAttributes(element);
+    var properties = this.getProperties(element);
     if (isNaN(value)) value = 0;
-    var min = parseFloat(attributes.min), max = parseFloat(attributes.max), step = parseFloat(attributes.step) || 1;
+    var min = parseFloat(properties.min), max = parseFloat(properties.max), step = parseFloat(properties.step) || 1;
     // check min/max
     value = value > max ? max : value < min ? min : value;
     // round to step

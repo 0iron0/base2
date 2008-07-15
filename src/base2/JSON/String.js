@@ -3,7 +3,7 @@ JSON.String = JSON.Object.extend({
   parseJSON: function(string) {
     try {
       if (JSON.VALID.test(string)) {
-        return eval("(" + string + ")");
+        return new Function("return " + string)();
       }
     } catch (error) {
       throw new SyntaxError("parseJSON");

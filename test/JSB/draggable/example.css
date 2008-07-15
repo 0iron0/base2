@@ -1,0 +1,67 @@
+
+html {
+	background: #eef;
+}
+
+body {
+	font-family: verdana, arial, sans-serif;
+	color: #000;
+}
+
+.box {
+	border: 25px #000 solid;
+	background: #fff;
+	position: absolute;
+	display: block;
+	width: 50px;
+	height: 50px;
+	cursor: default;
+}
+
+#red {
+	left: 100px;
+	top: 200px;
+	border-color: #a00;
+}
+
+#green {
+	left: 275px;
+	top: 225px;
+	border-color: #0a0;
+}
+
+#blue {
+	left: 480px;
+	top: 175px;
+	border-color: #00a;
+}
+
+#me {
+	left: 20px;
+	top: 20px;
+	width: 70px;
+	height: 96px;
+	background: url(me_left.jpg) no-repeat;
+	border-color: #002;
+}
+
+#pointer {
+	position: absolute;
+	font-size: 18px;
+	font-weight: bold;
+	top: 95px;
+	left: 142px;
+}
+
+#bubble {
+	position: absolute;
+	top: 85px;
+	left: 169px;
+	background-color: #fff;
+	border: 2px #000 dashed;
+	font-size: 14px;
+	padding: 10px 20px 10px 20px;
+	min-height: 17px;
+	width: 330px;
+	white-space: normal;
+}

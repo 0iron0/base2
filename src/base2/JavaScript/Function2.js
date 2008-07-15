@@ -41,13 +41,17 @@ function K(k) {
 };
 
 function bind(fn, context) {
-  var args = _slice.call(arguments, 2);
   var lateBound = typeof fn != "function";
-  return args.length == 0 ? function() { // faster if there are no additional arguments
-    return (lateBound ? context[fn] : fn).apply(context, arguments);
-  } : function() {
-    return (lateBound ? context[fn] : fn).apply(context, args.concat.apply(args, arguments));
-  };
+  if (arguments.length > 2) {
+    var args = _slice.call(arguments, 2);
+    return function() {
+      return (lateBound ? context[fn] : fn).apply(context, args.concat.apply(args, arguments));
+    };
+  } else { // faster if there are no additional arguments
+    return function() {
+      return (lateBound ? context[fn] : fn).apply(context, arguments);
+    };
+  }
 };
 
 function compose() {
@@ -111,41 +115,3 @@ function unshift(fn) { // "soft" partial
     return fn.apply(this, args.concat.apply(args, arguments));
   };
 };
-
-/*
-function EQ(v) {
-  return function(value) {
-    return v === value;
-  };
-};
-
-function reverse(fn) {
-  var length = fn.length;
-  return function() {
-    // reverse named arguments..
-    var args = _slice.call(arguments, 0, length).reverse();
-    // ..don't reverse the remaining arguments
-    if (arguments.length > length) args = args.concat(_slice.call(arguments, length));
-    return fn.apply(this, args);
-  };
-};
-
-function shift(fn) {
-  return function() {
-    fn.apply(this, _slice.call(arguments, 1));
-  };
-};
-
-function slice(fn) {
-  var args = _slice.call(arguments, 1);
-  return function() {
-    fn.apply(this, _slice.apply(arguments, args));
-  };
-},
-
-function swap(fn, arg1, arg2) {
-  return function() {
-    return fn.apply(this, Array2.swap(arguments, arg1, arg2));
-  };
-};
-*/

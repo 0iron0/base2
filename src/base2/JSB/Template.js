@@ -3,7 +3,6 @@ var Template = Behavior.modify({
   /* EVENT HANDLERS */
 
   onattach: function(element){},
-  ondetach: function(element){},
 
   oncontentready:  function(element){},
   ondocumentready: function(element){},

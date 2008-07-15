@@ -28,20 +28,6 @@ var Slider = ProgressBar.modify({
     element.focus();
   },
 
-  "@theme=aqua": {
-    onblur: function(element) {
-      if (element == Slider._activeElement) {
-        delete Slider._activeElement;
-      }
-      base(this, arguments);
-    },
-
-    onmousedown: function(element) {
-      Slider._activeElement = element;
-      base(this, arguments);
-    }
-  },
-
   onmouseup: function(element, event) {
     this.base(element, event);
     delete Chrome._dragInfo;
@@ -55,8 +41,8 @@ var Slider = ProgressBar.modify({
 
   onmousemove: function(element, event, x, y, screenX, screenY) {
     if (Chrome._dragInfo) {
-      var clientWidth = element.clientWidth;
-      var clientHeight = element.clientHeight;
+      var clientWidth = element[_WIDTH];
+      var clientHeight = element[_HEIGHT];
       if (clientWidth >= clientHeight) {
         var size = clientWidth - this.THUMB_WIDTH;
         var pos = screenX - Chrome._dragInfo.dx;
@@ -67,12 +53,6 @@ var Slider = ProgressBar.modify({
       this.setValue(element, pos / size);
     } else {
       base(this, arguments);
-    }
-  },
- 
-  "@KHTML|opera[91]": {
-    isNativeControl: function(element) {
-      return element.nodeName == "INPUT" && element.type == "range";
     }
   },
 
@@ -94,8 +74,8 @@ var Slider = ProgressBar.modify({
   },
 
   getThumbRect: function(element) {
-    var clientWidth = element.clientWidth,
-        clientHeight = element.clientHeight,
+    var clientWidth = element[_WIDTH],
+        clientHeight = element[_HEIGHT],
         value = _values[element.base2ID];
         
     if (_vertical[element.base2ID]) {
@@ -132,27 +112,6 @@ var Slider = ProgressBar.modify({
     }
     return this.states[state];
   },
-  
-  "@theme=aqua": {
-    getState: function(element) {
-      if (element.disabled) {
-        var state = "disabled";
-      } else if (element == Chrome._active && Chrome._activeThumb) {
-        state = "active";
-      } else if (element == Chrome._focus && element != Slider._activeElement) {
-        state = "hover";
-      } else {
-        state = "normal";
-      }
-      return this.states[state];
-    },
-
-    startTimer: function(element) {
-      // the aqua slider jumps immediatley to wherever you click
-    },
-
-    tick: Undefined
-  },
 
   tick: function(element) {
     var thumb = this.getThumbRect(element);
@@ -177,5 +136,44 @@ var Slider = ProgressBar.modify({
       }
     }
     Chrome._firedOnce = true;
+  },
+
+  "@KHTML|opera[91]": {
+    isNativeControl: function(element) {
+      return element.nodeName == "INPUT" && element.type == "range";
+    }
+  },
+
+  "@theme=aqua": {
+    onblur: function(element) {
+      if (element == Slider._activeElement) {
+        delete Slider._activeElement;
+      }
+      base(this, arguments);
+    },
+
+    onmousedown: function(element) {
+      Slider._activeElement = element;
+      base(this, arguments);
+    },
+
+    getState: function(element) {
+      if (element.disabled) {
+        var state = "disabled";
+      } else if (element == Chrome._active && Chrome._activeThumb) {
+        state = "active";
+      } else if (element == Chrome._focus && element != Slider._activeElement) {
+        state = "hover";
+      } else {
+        state = "normal";
+      }
+      return this.states[state];
+    },
+
+    startTimer: function(element) {
+      // the aqua slider jumps immediatley to wherever you click
+    },
+
+    tick: Undefined
   }
 });

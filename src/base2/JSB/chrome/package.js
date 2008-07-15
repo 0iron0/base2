@@ -10,8 +10,14 @@ var chrome = new base2.Package(this, {
   imports: "Enumerable,Function2,DOM,JSB",
   exports: "Chrome,ComboBox,Range,ProgressBar,Slider,Spinner,Rect",
 
-  //host:    "http://base2.googlecode.com/svn/trunk/src/base2/JSB/chrome/"
-  host:    ""
+  //host:    ""
+  host:    "http://base2.googlecode.com/svn/trunk/src/base2/JSB/chrome/"
 });
 
 eval(this.imports);
+
+if (detect("MSIE6")) {
+  try {
+    document.execCommand("BackgroundImageCache", false, true);
+  } catch (ex) {}
+}

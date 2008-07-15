@@ -7,8 +7,6 @@ header('Expires: ' . gmdate('D, d M Y H:i:s') . ' GMT');
 header('Cache-Control: no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
-print("// timestamp: ".gmdate('D, d M Y H:i:s')."\r\n");
-
 $REG_XML = '/\\w+\\.xml$/';
 $PACKAGE = $_GET["package"];
 $PBASE = dirname($PACKAGE);
@@ -25,6 +23,9 @@ if (!file_exists($PACKAGE)) {
 	print("   build.php?package=path\\to\\package.xml&full\n");
 	exit;
 }
+
+include("header.txt");
+print("\r\n// timestamp: ".gmdate('D, d M Y H:i:s')."\r\n");
 
 $dom = new DomDocument;
 $p = path_resolve($PACKAGE, $HBASE);

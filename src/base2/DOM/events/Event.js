@@ -35,6 +35,10 @@ var Event = Binding.extend({
     }
   }
 }, {
+  CAPTURING_PHASE: _CAPTURING_PHASE,
+  AT_TARGET:       _AT_TARGET,
+  BUBBLING_PHASE:  _BUBBLING_PHASE,
+    
   "@!(document.createEvent)": {
     "@MSIE": {
       bind: function(event) {

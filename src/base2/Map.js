@@ -9,15 +9,23 @@ var Map = Base.extend({
   },
 
   clear: function() {
-    for (var key in this) if (key.charAt(0) == _HASH) {
+    for (var key in this) if (key.indexOf(_HASH) == 0) {
       delete this[key];
     }
   },
 
-  copy: delegate(copy),
+  copy: function() {
+    base2.__prototyping = true; // not really prototyping but it stops [[construct]] being called
+    var copy = new this.constructor;
+    delete base2.__prototyping;
+    for (var i in this) if (copy[i] !== this[i]) {
+      copy[i] = this[i];
+    }
+    return copy;
+  },
 
   forEach: function(block, context) {
-    for (var key in this) if (key.charAt(0) == _HASH) {
+    for (var key in this) if (key.indexOf(_HASH) == 0) {
       block.call(context, this[key], key.slice(1), this);
     }
   },
@@ -34,7 +42,7 @@ var Map = Base.extend({
     return this.map(I);
   },
 
-  // Ancient browsers throw an error when we use "in" as an operator.
+  // Ancient browsers throw an error if we use "in" as an operator.
   has: function(key) {
   /*@cc_on @*/
   /*@if (@_jscript_version < 5.5)
@@ -65,7 +73,7 @@ var Map = Base.extend({
   size: function() {
     // this is expensive because we are not storing the keys
     var size = 0;
-    for (var key in this) if (key.charAt(0) == _HASH) size++;
+    for (var key in this) if (key.indexOf(_HASH) == 0) size++;
     return size;
   },
 

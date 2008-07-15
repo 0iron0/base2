@@ -15,8 +15,10 @@ function instanceOf(object, klass) {
     return typeOf(object) == typeof klass.prototype.valueOf();
   }
   @*/
+    if (object.constructor == klass) return true;
+    if (klass.ancestorOf) return klass.ancestorOf(object.constructor);
   /*@if (@_jscript_version < 5.1)
-    if ($Legacy.instanceOf(object, klass)) return true;
+    // do nothing
   @else @*/
     if (object instanceof klass) return true;
   /*@end @*/

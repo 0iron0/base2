@@ -38,7 +38,7 @@ var ViewCSS = Interface.extend({
       propertyName = this.toCamelCase(propertyName);
       if (_METRICS.test(propertyName))
         return _MSIE_getPixelValue(element, element.currentStyle[propertyName]) + "px";
-      if (_COLOR.test(propertyName))
+      if (!_MSIE5 && _COLOR.test(propertyName))
         return _MSIE_getColorValue(element, propertyName == "color" ? "ForeColor" : "BackColor");
       return element.currentStyle[propertyName];
     }
@@ -61,14 +61,14 @@ function _MSIE_getPixelValue(element, value) {
   return value;
 };
 
-function _MSIE_getColorValue(element, value) {
+function _MSIE_getColorValue(element, type) {
   // elements need to have "layout" for this to work.
   if (element.createTextRange) {
     var range = element.createTextRange();
   } else {
-    element.document.body.createTextRange();
+    range = element.document.body.createTextRange();
     range.moveToElementText(element);
   }
-  var color = range.queryCommandValue(value);
+  var color = range.queryCommandValue(type);
   return format("rgb(%1, %2, %3)", color & 0xff, (color & 0xff00) >> 8,  (color & 0xff0000) >> 16);
 };

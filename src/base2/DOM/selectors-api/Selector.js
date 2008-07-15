@@ -61,9 +61,6 @@ var Selector = Base.extend({
   "@(true)": {
     exec: function(context, count, simple) {
       try {
-        // TO DO: more efficient selectors for:
-        //   #ID
-        //   :hover/active/focus/target
         var result = this.base(context || document, count, simple);
       } catch (error) { // probably an invalid selector =)
         throw new SyntaxError(format("'%1' is not a valid CSS selector.", this));
@@ -119,8 +116,9 @@ Selector.pseudoClasses = { //-dean: lang()
   "target":      "e%1.id&&e%1.id==location.hash.slice(1)",
   "hover":       "DocumentState.getInstance(d).isHover(e%1)",
   "active":      "DocumentState.getInstance(d).isActive(e%1)",
-  "focus":       "DocumentState.getInstance(d).hasFocus(e%1)"
-//"link":        "d.links&&Array2.indexOf(d.links,e%1)!=-1", // not implemented (security)
+  "focus":       "DocumentState.getInstance(d).hasFocus(e%1)",
+  "link":        "false", // not implemented (security)
+  "visited":     "false"
 // nth-child     defined below
 };
 
@@ -250,7 +248,7 @@ var _parser = {
     last = format("e%1.parentNode.b2_length", _index);
     var replacement = "if(p%1!==e%1.parentNode)p%1=_register(e%1.parentNode);";
     replacement += "var i=e%1[p%1.b2_lookup];if(p%1.b2_lookup!='b2_index')i++;if(";
-    return format(replacement, _index) + _nthChild(match, args, "i", last, "!", "&&", "%", "==") + "){";
+    return format(replacement, _index) + _nthChild(match, args, "i", last, "!", "&&", "% ", "==") + "){";
   },
   
   ":([\\w-]+)(\\(([^)]+)\\))?": function(match, pseudoClass, $2, args) { // other pseudo class selectors
@@ -261,7 +259,7 @@ var _parser = {
     var alias = _ATTRIBUTES[attr] || attr;
     var getAttribute = "e%1.getAttribute('%2',2)";
     if (operator) {
-      if (!_EVALUATED.test(attr)) {
+      if (attr != "href" && attr != "src") {
         getAttribute = "e%1.%3||" + getAttribute;
       }
     } else {
@@ -347,7 +345,8 @@ var _parser = {
       var total = sum(_list);
       for (var i = 1; i <= total; i++) {
         args += ",a" + i;
-        state.push("i" + i);
+        //state.push("i" + i);
+        state.push("i" + i + "?(i" + i + "-1):0");
       }
       if (total) {
         var complete = [], k = 0;

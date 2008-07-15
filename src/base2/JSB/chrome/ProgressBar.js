@@ -9,12 +9,10 @@ var ProgressBar = Range.modify({
   WIDTH: 3000,
   CHUNK_WIDTH: 10,
   CHUNK_HEIGHT: 10,
-
-  ATTRIBUTES: {
-    min:  0,
-    max:  100,
-    step: 1
-  },
+  
+  min:  0,
+  max:  100,
+  step: 1,
 
   appearance: "progressbar",
 
@@ -66,14 +64,14 @@ var ProgressBar = Range.modify({
   },
 
   getUnitIncrement: function(element) {
-    var attributes = this.getAttributes(element);
-    return attributes.step / (attributes.max - attributes.min) || this.base(element);
+    var properties = this.getProperties(element);
+    return properties.step / (properties.max - properties.min) || this.base(element);
   },
 
   layout: function(element) {
-    var clientWidth = element.clientWidth;
-    var clientHeight = element.clientHeight;
-    var base2ID = element.base2ID;
+    var clientWidth = element[_WIDTH],
+        clientHeight = element[_HEIGHT],
+        base2ID = element.base2ID;
 
     if (_vertical[base2ID]) {
       var left = (-clientWidth / 2) * (clientWidth + 3) - 2;
@@ -97,8 +95,8 @@ var ProgressBar = Range.modify({
   },
 
   setValue: function(element, value) {
-    var attributes = this.getAttributes(element);
-    var min = Number(attributes.min), max = Number(attributes.max);
+    var properties = this.getProperties(element);
+    var min = Number(properties.min), max = Number(properties.max);
     this.base(element, min + (max - min) * value);
     _values[element.base2ID] = (element.value - min) / (max - min);
     this.layout(element);

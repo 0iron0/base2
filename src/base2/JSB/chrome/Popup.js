@@ -4,7 +4,7 @@ var _POPUP_METRICS = "left:%1px!important;top:%2px!important;width:%3px!importan
 var Popup = Base.extend({
   constructor: function(owner) {
     this.owner = owner;
-    var popup = this.popup = document.createElement("chrome");
+    var popup = this.popup = document.createElement("div");
     popup.className = this.appearance;
     popup.innerHTML = this.html;
   },

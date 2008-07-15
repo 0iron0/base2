@@ -13,7 +13,7 @@ var StaticNodeList = Base.extend({
       return nodes[index];
     };
 /*  // Sorting large node lists can be slow so only do it if necessary.
-    // You must still explicitly call sort() to get a sorted node list.
+    // You must explicitly call sort() to get a sorted node list.
     if (nodes.unsorted) this.sort = function() {
       nodes.sort(_SORTER);
       return this;

@@ -124,5 +124,5 @@ Array2.like = function(object) {
 };
 
 // introspection (removed when packed)
-//;;; Enumerable["#implemented_by"].pop();
-//;;; Enumerable["#implemented_by"].push(Array2);
+;;; Enumerable["#implemented_by"].pop();
+;;; Enumerable["#implemented_by"].push(Array2);

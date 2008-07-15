@@ -16,14 +16,22 @@ var Chrome = Behavior.modify({
   imageWidth: 17,
   
   oncontentready: function(element) {
-    if (element.clientHeight > element.clientWidth) {
+    if (element[_HEIGHT] > element[_WIDTH]) {
       this.setOrientation(element, this.VERTICAL);
     }
     this.layout(element, this.states[element.disabled ? "disabled" : "normal"]);
   },
 
+  onclick: function(element, event, x, y) {
+    ;;; console2.log("onclick(" + event.eventPhase + "): " + event.button);
+  },
+
+  ondblclick: function(element, event, x, y) {
+    ;;; console2.log("ondblclick(" + event.eventPhase + "): " + event.button);
+  },
+
   onmousedown: function(element, event, x, y) {
-    //;;; console2.log("onmousedown(" + event.eventPhase + "): " + event.button);
+    ;;; console2.log("onmousedown(" + event.eventPhase + "): " + event.button);
     Chrome._active = element;
 
     if (!this.isEditable(element)) return;
@@ -46,7 +54,7 @@ var Chrome = Behavior.modify({
   },
 
   onmousemove: function(element, event, x, y) {
-    //console2.log("onmousemove: "+[x,y]);
+    //;;; console2.log("onmousemove: "+[x,y]);
     var thumb = this.hitTest(element, x, y);
     if (thumb != Chrome._hoverThumb) {
       Chrome._hoverThumb = thumb;
@@ -61,7 +69,7 @@ var Chrome = Behavior.modify({
   },
 
   onmouseout: function(element) {
-    //console2.log("onmouseout");
+    //;;; console2.log("onmouseout");
     delete Chrome._activeThumb;
     delete Chrome._hoverThumb;
     delete Chrome._hover;
@@ -102,7 +110,7 @@ var Chrome = Behavior.modify({
   hitTest: function(element, x) {
     //var rtl = element.currentStyle.direction == "rtl";
     var rtl = false;
-    return rtl ? x <= this.imageWidth : x >= element.clientWidth - this.imageWidth;
+    return rtl ? x <= this.imageWidth : x >= element[_WIDTH] - this.imageWidth;
   },
 
   setOrientation: function(element, orientation) {
@@ -139,10 +147,11 @@ var Chrome = Behavior.modify({
 
   layout: function(element, state) {
     if (state == null) state = this.getState(element);
-    var clientHeight = element.clientHeight;
+    var clientWidth = element[_WIDTH],
+        clientHeight = element[_HEIGHT];
     var top = - this.states.length * (clientHeight / 2 * (clientHeight - 1));
     top -= clientHeight * state;
-    element.style.backgroundPosition = "right " + top + PX;
+    element.style.backgroundPosition = (clientWidth - this.imageWidth) + PX + " " + top + PX;
     this.syncCursor(element);
   }
 });

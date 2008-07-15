@@ -15,3 +15,6 @@ var _timers   = {}, // store for timeouts
 function _resetScroll() {
   this.scrollTop = 0;
 };
+
+var _WIDTH = "clientWidth";
+var _HEIGHT = "clientHeight";

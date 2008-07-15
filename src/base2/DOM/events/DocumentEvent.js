@@ -3,18 +3,8 @@
 
 var DocumentEvent = Interface.extend({  
   "@!(document.createEvent)": {
-    createEvent: function() {
-      return Event.bind({});
-    },
-  
-    "@(document.createEventObject)": {
-      createEvent: function(document) {
-        return Event.bind(document.createEventObject());
-      }
-    },
-
     createEvent: function(document, type) {
-      var event = this.base(document);
+      var event = document.createEventObject ? document.createEventObject() : {};
       event.bubbles = false;
       event.cancelable = false;
       event.eventPhase = 0;
@@ -22,7 +12,7 @@ var DocumentEvent = Interface.extend({
       event.currentTarget = null;
       event.relatedTarget = null;
       event.timeStamp = new Date().valueOf();
-      return event;
+      return Event(event);
     }
   },
   

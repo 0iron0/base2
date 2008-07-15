@@ -1,91 +1,81 @@
 
-base2.JSB.globalize = "$";
-
 var packer = new Packer;
 
 new base2.JSB.RuleList({
-  "#form": {
-    ondocumentready: function(element) {
-      this.removeClass($form, "disabled");
-      $output.value = "";
-      $form.ready();
+  "form": {
+    ondocumentready: function(form) {
+      form.output.value = "";
+      this.ready(form);
     },
-    
-    ready: function() {
-      $message.write("ready");
-      $input.focus();
-    }
-  },
-  "#input,#output": {
-    disabled: false,
-    spellcheck: false // for mozilla
-  },
-  "#clear-all": {
-    disabled: false,
-    
-    onclick: function() {
-      $input.value = "";
-      $output.value = "";
-      $form.ready();
-    }
-  },
-  "#pack-script": {
-    disabled: false,
-    
-    onclick: function() {
-      try {
-        $output.value = "";
-        if ($input.value) {
-          var value = packer.pack($input.value, $base62.checked, $shrink.checked, $privates.checked);
-          $output.value = value;
-          $message.update();
-        }
-      } catch (error) {
-        $message.error("error packing script", error);
-      } finally {
-        $decodeScript.disabled = !$output.value || !$base62.checked;
+
+    onclick: function(form, event) {
+      var target = event.target;
+      if (target.tagName == "BUTTON") {
+        this[target.id](form);
       }
-    }
-  },
-  "#decode-script": {    
-    onclick: function() {
+    },
+
+    clear: function(form) {
+      form.input.value = "";
+      form.output.value = "";
+      this.ready(form);
+    },
+
+    decode: function(form) {
       try {
-        if ($output.value) {
+        if (form.output.value) {
           var start = new Date;
-          eval("var value=String" + $output.value.slice(4));
+          eval("var value=String" + form.output.value.slice(4));
           var stop = new Date;
-          $output.value = value;
-          $message.update("unpacked in " + (stop - start) + " milliseconds");
+          form.output.value = value;
+          this.update(form, "unpacked in " + (stop - start) + " milliseconds");
         }
       } catch (error) {
-        $message.error("error decoding script", error);
+        this.error("error decoding script", error);
       } finally {
-        $decodeScript.blur();
-        $decodeScript.disabled = true;
+        form.decode.blur();
+        form.decode.disabled = true;
       }
+    },
+
+    error: function(text, error) {
+      this.message(text + ": " + error.message, "error");
+    },
+
+    message: function(text, className) {
+      var message = document.getElementById("message");
+      message.innerHTML = text;
+      message.className = className || "";
+    },
+
+    pack: function(form) {
+      try {
+        form.output.value = "";
+        if (form.input.value) {
+          var value = packer.pack(form.input.value, form.base62.checked, form.shrink.checked, form.privates.checked);
+          form.output.value = value;
+          this.update(form);
+        }
+      } catch (error) {
+        this.error("error packing script", error);
+      } finally {
+        form.decode.disabled = !form.output.value || !form.base62.checked;
+      }
+    },
+
+    ready: function(form) {
+      this.message("ready");
+      form.input.focus();
+    },
+
+    update: function(form, message) {
+      var length = form.input.value.length;
+      if (!/\r/.test(form.input.value)) { // mozilla trims carriage returns
+        length += match(form.input.value, /\n/g).length;
+      }
+      var calc = form.output.value.length + "/" + length;
+      var ratio = (form.output.value.length / length).toFixed(3);
+      this.message((message ? message + ", " : "") + format("compression ratio: %1=%2", calc, ratio));
     }
-  },
-  "#base62,#shrink,#privates,#dictionary": {
-    disabled: false
-  },
-  "#message": {
-    error: function($message, text, error) {
-      $message.write(text + ": " + error.message, "error");
-    },
-    
-    update: function($message, message) {
-      var length = $input.value.length;
-      if (!/\r/.test($input.value)) { // mozilla trims carriage returns
-        length += match($input.value, /\n/g).length;
-      }
-      var calc = $output.value.length + "/" + length;
-      var ratio = ($output.value.length / length).toFixed(3);
-      $message.write((message ? message + ", " : "") + format("compression ratio: %1=%2", calc, ratio));
-    },
-    
-    write: function($message, text, className) {
-      $message.innerHTML = text;
-      $message.className = className || "";
-    } 
   }
 });
