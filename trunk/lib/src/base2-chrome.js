@@ -1,4 +1,10 @@
-// timestamp: Tue, 27 May 2008 15:00:20
+/*
+  base2 - copyright 2007-2008, Dean Edwards
+  http://code.google.com/p/base2/
+  http://www.opensource.org/licenses/mit-license.php
+*/
+
+// timestamp: Tue, 15 Jul 2008 14:54:43
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -16,18 +22,24 @@ var chrome = new base2.Package(this, {
   version: "0.2",
   imports: "Enumerable,Function2,DOM,JSB",
   exports: "Chrome,ComboBox,Range,ProgressBar,Slider,Spinner,Rect",
-  
+
+  //host:    ""
   host:    "http://base2.googlecode.com/svn/trunk/src/base2/JSB/chrome/"
 });
 
 eval(this.imports);
 
+if (detect("MSIE6")) {
+  try {
+    document.execCommand("BackgroundImageCache", false, true);
+  } catch (ex) {}
+}
+
 // =========================================================================
 // chrome/header.js
 // =========================================================================
 
-var _MSIE  = detect("MSIE"),
-    _OPERA = detect("opera");
+var _MSIE  = detect("MSIE");
 
 var PX = "px";
 
@@ -43,6 +55,9 @@ var _timers   = {}, // store for timeouts
 function _resetScroll() {
   this.scrollTop = 0;
 };
+
+var _WIDTH = "clientWidth";
+var _HEIGHT = "clientHeight";
 
 // =========================================================================
 // chrome/Theme.js
@@ -87,7 +102,7 @@ var Theme = Base.extend({
   "@Windows": {
     detect: function() {
       var element = document.createElement("input");
-      var head = NodeSelector.querySelector(document, "head");
+      var head = NodeSelector.querySelector(document, "body,head");
       head.appendChild(element);
       // detect XP theme by inspecting the ActiveCaption colour
       element.style.color = "ActiveCaption";
@@ -100,12 +115,22 @@ var Theme = Base.extend({
       return _XP_DETECT[color];
     },
 
+    "@MSIE6": {
+      detect: function() {
+        return this.base() || {
+      	"#ece9d8": "luna/blue",
+      	"#e0dfe3": "luna/silver",
+      	"#ebe9ed": "royale"
+        }[document.documentElement.currentStyle.scrollbarFaceColor] || "classic";
+      }
+    },
+
     "@MSIE5": {
       detect: K("classic")
     }
   },
 
-  "@Safari": {
+  "@Safari|Camino": {
     detect: K("aqua")
   }
 });
@@ -252,6 +277,10 @@ var styleSheet = {
 
     "@Gecko": {
       MozBorder:     "initial"
+    },
+
+    "@Gecko(1|200[0-2])": {
+      backgroundColor: "#f2f2f2"
     }
   },
 
@@ -262,7 +291,11 @@ var styleSheet = {
     outline:    "1px dotted",
     MozOutline: "1px dotted"
   },
-  
+
+  datalist: {
+    display: "none!important"
+  },
+
   popup: {
     display:     "none",
     borderWidth: "1px",
@@ -330,16 +363,39 @@ new Theme(chrome.theme);
 // chrome/Chrome.js
 // =========================================================================
 
-var Chrome = Behavior.extend({
+var Chrome = Behavior.modify({
+  HORIZONTAL: 0,
+  VERTICAL: 1,
+
+  states: {
+    normal:   0,
+    hover:    1,
+    active:   2,
+    disabled: 3,
+    length:   4
+  },
+
+  appearance: "",
+
+  imageWidth: 17,
+  
   oncontentready: function(element) {
-    if (element.clientHeight > element.clientWidth) {
+    if (element[_HEIGHT] > element[_WIDTH]) {
       this.setOrientation(element, this.VERTICAL);
     }
     this.layout(element, this.states[element.disabled ? "disabled" : "normal"]);
   },
 
+  onclick: function(element, event, x, y) {
+    ;;; console2.log("onclick(" + event.eventPhase + "): " + event.button);
+  },
+
+  ondblclick: function(element, event, x, y) {
+    ;;; console2.log("ondblclick(" + event.eventPhase + "): " + event.button);
+  },
+
   onmousedown: function(element, event, x, y) {
-    //;;; console2.log("onmousedown(" + event.eventPhase + "): " + event.button);
+    ;;; console2.log("onmousedown(" + event.eventPhase + "): " + event.button);
     Chrome._active = element;
 
     if (!this.isEditable(element)) return;
@@ -352,7 +408,7 @@ var Chrome = Behavior.extend({
   },
 
   onmouseup: function(element, event) {
-    //;;; console2.log("onmouseup(" + event.eventPhase + "): " + event.button);
+    ;;; console2.log("onmouseup(" + event.eventPhase + "): " + event.button);
     delete Chrome._active;
     if (Chrome._activeThumb) {
       delete Chrome._activeThumb;
@@ -362,7 +418,7 @@ var Chrome = Behavior.extend({
   },
 
   onmousemove: function(element, event, x, y) {
-    //console2.log("onmousemove: "+[x,y]);
+    //;;; console2.log("onmousemove: "+[x,y]);
     var thumb = this.hitTest(element, x, y);
     if (thumb != Chrome._hoverThumb) {
       Chrome._hoverThumb = thumb;
@@ -377,7 +433,7 @@ var Chrome = Behavior.extend({
   },
 
   onmouseout: function(element) {
-    //console2.log("onmouseout");
+    //;;; console2.log("onmouseout");
     delete Chrome._activeThumb;
     delete Chrome._hoverThumb;
     delete Chrome._hover;
@@ -393,22 +449,7 @@ var Chrome = Behavior.extend({
     delete Chrome._focus;
     this.removeClass(element, this.appearance + _FOCUS);
     this.layout(element);
-  }
-}, {
-  HORIZONTAL: 0,
-  VERTICAL: 1,
-
-  states: {
-    normal:   0,
-    hover:    1,
-    active:   2,
-    disabled: 3,
-    length:   4
   },
-
-  appearance: "",
-
-  imageWidth: 17,
 
   isActive: function(element) {
     return Chrome._activeThumb && (Chrome._activeThumb == Chrome._hoverThumb);
@@ -433,7 +474,7 @@ var Chrome = Behavior.extend({
   hitTest: function(element, x) {
     //var rtl = element.currentStyle.direction == "rtl";
     var rtl = false;
-    return rtl ? x <= this.imageWidth : x >= element.clientWidth - this.imageWidth;
+    return rtl ? x <= this.imageWidth : x >= element[_WIDTH] - this.imageWidth;
   },
 
   setOrientation: function(element, orientation) {
@@ -454,7 +495,7 @@ var Chrome = Behavior.extend({
   startTimer: function(element, id, interval, repeat) {
     id = element.base2ID + (id || _TIMER);
     if (!_timers[id]) {
-      _timers[id] = setInterval(bind(this.tick, this, element), 100);
+      _timers[id] = this.setInterval(this.tick, 100, element);
     }
   },
 
@@ -470,60 +511,12 @@ var Chrome = Behavior.extend({
 
   layout: function(element, state) {
     if (state == null) state = this.getState(element);
-    var clientHeight = element.clientHeight;
+    var clientWidth = element[_WIDTH],
+        clientHeight = element[_HEIGHT];
     var top = - this.states.length * (clientHeight / 2 * (clientHeight - 1));
     top -= clientHeight * state;
-    element.style.backgroundPosition = "right " + top + PX;
+    element.style.backgroundPosition = (clientWidth - this.imageWidth) + PX + " " + top + PX;
     this.syncCursor(element);
-  },
-
-  handleEvent: function(element, event, type) {
-    if (Chrome._captureMouse) {
-      if (/^mouse(up|move)$/.test(type)) {
-        this.base(Chrome._captureElement, event);
-      }
-    } else if (!this.isNativeControl(element)) {
-      this.base(element, event);
-    }
-  },
-
-  setCapture: function(element) {
-    if (!Chrome._captureMouse) {
-      var behavior = this;
-      Chrome._captureElement = element;
-      Chrome._captureMouse = function(event) {
-        if (_OPERA) getSelection().collapse(document.body, 0); // prevent text selection
-        behavior.handleEvent(element, event, event.type);
-      };
-      this.addEventListener(document, "mouseup", Chrome._captureMouse, true);
-      this.addEventListener(document, "mousemove", Chrome._captureMouse, true);
-    }
-  },
-
-  releaseCapture: function() {
-    if (Chrome._captureMouse) {
-      this.removeEventListener(document, "mouseup", Chrome._captureMouse, true);
-      this.removeEventListener(document, "mousemove", Chrome._captureMouse, true);
-      delete Chrome._captureMouse;
-      delete Chrome._captureElement;
-    }
-  },
-
-  "@MSIE": {
-    setCapture: function(element) {
-      element.setCapture();
-      behavior = this;
-      element.attachEvent("onlosecapture", function() {
-        if (Chrome._captureMouse) behavior.onmouseup(element);
-        element.detachEvent("onlosecapture", arguments.callee);
-      });
-      this.base(element);
-    },
-
-    releaseCapture: function() {
-      this.base();
-      document.releaseCapture();
-    }
   }
 });
 
@@ -531,7 +524,9 @@ var Chrome = Behavior.extend({
 // chrome/ComboBox.js
 // =========================================================================
 
-var ComboBox = Chrome.extend({
+var ComboBox = Chrome.modify({
+  appearance: "menulist",
+  
   onmousedown: function(element, event, x) {
     base(this, arguments);
     if (this.isEditable(element)) {
@@ -590,9 +585,7 @@ var ComboBox = Chrome.extend({
         }
       };
     }
-  }
-}, {
-  appearance: "menulist",
+  },
   
   "@Safari.+theme=aqua": {
     layout: function(element) {
@@ -630,14 +623,20 @@ var ComboBox = Chrome.extend({
 
 // For numeric controls
 
-var Range = Chrome.extend({
+var Range = Chrome.modify({
+  min:  "",
+  max:  "",
+  step: 1,
+
+/*MASK: /-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/,*/
+
   onattach: function(element) {
-    var attributes = this.getAttributes(element);
+    var properties = this.getProperties(element);
     // the following only applies to Slider/ProgressBar but we'll leave it here
-    var value = element.value, min = attributes.min;
+    var value = element.value, min = properties.min;
     if (!value || isNaN(value)) value = min;
     //else if (_numberAttributes.step != 1) this.setValue(element, value);
-    _values[element.base2ID] = (value - min) / (attributes.max - min);
+    _values[element.base2ID] = (value - min) / (properties.max - min);
     element.onscroll = _resetScroll;
   },
 
@@ -646,28 +645,21 @@ var Range = Chrome.extend({
       this.increment(element, -parseInt(delta / 40));
       event.preventDefault();
     }
-  }
-}, {
-  ATTRIBUTES: {
-    min:  "",
-    max:  "",
-    step: 1
   },
 
-/*MASK: /-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/,*/
-
-  getAttributes: function(element) {
+  getProperties: function(element) {
     // initialise min/max/step
-    var attributes = {};
-    for (var attr in this.ATTRIBUTES) {
+    var properties = {min: this.min, max: this.max, step: this.step};
+    for (var attr in properties) {
       var value = element[attr];
       if (value == null && element.hasAttribute && element.hasAttribute(attr)) {
         value = element.getAttribute(attr);
       }
-      if (!value || isNaN(value)) value = this.ATTRIBUTES[attr];
-      attributes[attr] = value;
+      if (value && !isNaN(value)) {
+        properties[attr] = value;
+      }
     }
-    return attributes;
+    return properties;
   },
 
   increment: function(element, amount, block) {
@@ -681,7 +673,7 @@ var Range = Chrome.extend({
   },
 
   getUnitIncrement: function(element) {
-    return this.getAttributes(element).step || 1;
+    return this.getProperty(element, "step") || 1;
   },
 
   getValue: function(element) {
@@ -689,9 +681,9 @@ var Range = Chrome.extend({
   },
 
   setValue: function(element, value) {
-    var attributes = this.getAttributes(element);
+    var properties = this.getProperties(element);
     if (isNaN(value)) value = 0;
-    var min = parseFloat(attributes.min), max = parseFloat(attributes.max), step = parseFloat(attributes.step) || 1;
+    var min = parseFloat(properties.min), max = parseFloat(properties.max), step = parseFloat(properties.step) || 1;
     // check min/max
     value = value > max ? max : value < min ? min : value;
     // round to step
@@ -713,7 +705,18 @@ var Range = Chrome.extend({
 
 // TODO: Right to left should invert horizontal
 
-var ProgressBar = Range.extend({
+var ProgressBar = Range.modify({
+  HEIGHT: 3000,
+  WIDTH: 3000,
+  CHUNK_WIDTH: 10,
+  CHUNK_HEIGHT: 10,
+  
+  min:  0,
+  max:  100,
+  step: 1,
+
+  appearance: "progressbar",
+
   "@!theme=aqua": {
     onfocus: function(element) {
       if (element != Chrome._active) {
@@ -749,20 +752,7 @@ var ProgressBar = Range.extend({
         amount = -1;
     }
     this.increment(element, amount, block);
-  }
-}, {
-  HEIGHT: 3000,
-  WIDTH: 3000,
-  CHUNK_WIDTH: 10,
-  CHUNK_HEIGHT: 10,
-  
-  ATTRIBUTES: {
-    min:  0,
-    max:  100,
-    step: 1
   },
-
-  appearance: "progressbar",
 
   hitTest: False,
 
@@ -775,14 +765,14 @@ var ProgressBar = Range.extend({
   },
 
   getUnitIncrement: function(element) {
-    var attributes = this.getAttributes(element);
-    return attributes.step / (attributes.max - attributes.min) || this.base(element);
+    var properties = this.getProperties(element);
+    return properties.step / (properties.max - properties.min) || this.base(element);
   },
 
   layout: function(element) {
-    var clientWidth = element.clientWidth;
-    var clientHeight = element.clientHeight;
-    var base2ID = element.base2ID;
+    var clientWidth = element[_WIDTH],
+        clientHeight = element[_HEIGHT],
+        base2ID = element.base2ID;
 
     if (_vertical[base2ID]) {
       var left = (-clientWidth / 2) * (clientWidth + 3) - 2;
@@ -806,8 +796,8 @@ var ProgressBar = Range.extend({
   },
 
   setValue: function(element, value) {
-    var attributes = this.getAttributes(element);
-    var min = Number(attributes.min), max = Number(attributes.max);
+    var properties = this.getProperties(element);
+    var min = Number(properties.min), max = Number(properties.max);
     this.base(element, min + (max - min) * value);
     _values[element.base2ID] = (element.value - min) / (max - min);
     this.layout(element);
@@ -818,7 +808,16 @@ var ProgressBar = Range.extend({
 // chrome/Slider.js
 // =========================================================================
 
-var Slider = ProgressBar.extend({
+var Slider = ProgressBar.modify({
+  HORIZONTAL_WIDTH: 3000,
+  HORIZONTAL_HEIGHT: 21,
+  VERTICAL_WIDTH: 22,
+  VERTICAL_HEIGHT: 3000,
+  THUMB_WIDTH: 11,
+  THUMB_HEIGHT: 11,
+
+  appearance: "slider",
+
   onmousedown: function(element, event, x, y, screenX, screenY) {
     base(this, arguments);
     event.preventDefault();
@@ -838,20 +837,6 @@ var Slider = ProgressBar.extend({
     element.focus();
   },
 
-  "@theme=aqua": {
-    onblur: function(element) {
-      if (element == Slider._activeElement) {
-        delete Slider._activeElement;
-      }
-      base(this, arguments);
-    },
-
-    onmousedown: function(element) {
-      Slider._activeElement = element;
-      base(this, arguments);
-    }
-  },
-
   onmouseup: function(element, event) {
     this.base(element, event);
     delete Chrome._dragInfo;
@@ -865,8 +850,8 @@ var Slider = ProgressBar.extend({
 
   onmousemove: function(element, event, x, y, screenX, screenY) {
     if (Chrome._dragInfo) {
-      var clientWidth = element.clientWidth;
-      var clientHeight = element.clientHeight;
+      var clientWidth = element[_WIDTH];
+      var clientHeight = element[_HEIGHT];
       if (clientWidth >= clientHeight) {
         var size = clientWidth - this.THUMB_WIDTH;
         var pos = screenX - Chrome._dragInfo.dx;
@@ -877,21 +862,6 @@ var Slider = ProgressBar.extend({
       this.setValue(element, pos / size);
     } else {
       base(this, arguments);
-    }
-  }
-}, {
-  HORIZONTAL_WIDTH: 3000,
-  HORIZONTAL_HEIGHT: 21,
-  VERTICAL_WIDTH: 22,
-  VERTICAL_HEIGHT: 3000,
-  THUMB_WIDTH: 11,
-  THUMB_HEIGHT: 11,
-
-  appearance: "slider",
-
-  "@KHTML|opera[91]": {
-    isNativeControl: function(element) {
-      return element.nodeName == "INPUT" && element.type == "range";
     }
   },
 
@@ -913,8 +883,8 @@ var Slider = ProgressBar.extend({
   },
 
   getThumbRect: function(element) {
-    var clientWidth = element.clientWidth,
-        clientHeight = element.clientHeight,
+    var clientWidth = element[_WIDTH],
+        clientHeight = element[_HEIGHT],
         value = _values[element.base2ID];
         
     if (_vertical[element.base2ID]) {
@@ -951,27 +921,6 @@ var Slider = ProgressBar.extend({
     }
     return this.states[state];
   },
-  
-  "@theme=aqua": {
-    getState: function(element) {
-      if (element.disabled) {
-        var state = "disabled";
-      } else if (element == Chrome._active && Chrome._activeThumb) {
-        state = "active";
-      } else if (element == Chrome._focus && element != Slider._activeElement) {
-        state = "hover";
-      } else {
-        state = "normal";
-      }
-      return this.states[state];
-    },
-
-    startTimer: function(element) {
-      // the aqua slider jumps immediatley to wherever you click
-    },
-
-    tick: Undefined
-  },
 
   tick: function(element) {
     var thumb = this.getThumbRect(element);
@@ -996,6 +945,45 @@ var Slider = ProgressBar.extend({
       }
     }
     Chrome._firedOnce = true;
+  },
+
+  "@KHTML|opera[91]": {
+    isNativeControl: function(element) {
+      return element.nodeName == "INPUT" && element.type == "range";
+    }
+  },
+
+  "@theme=aqua": {
+    onblur: function(element) {
+      if (element == Slider._activeElement) {
+        delete Slider._activeElement;
+      }
+      base(this, arguments);
+    },
+
+    onmousedown: function(element) {
+      Slider._activeElement = element;
+      base(this, arguments);
+    },
+
+    getState: function(element) {
+      if (element.disabled) {
+        var state = "disabled";
+      } else if (element == Chrome._active && Chrome._activeThumb) {
+        state = "active";
+      } else if (element == Chrome._focus && element != Slider._activeElement) {
+        state = "hover";
+      } else {
+        state = "normal";
+      }
+      return this.states[state];
+    },
+
+    startTimer: function(element) {
+      // the aqua slider jumps immediatley to wherever you click
+    },
+
+    tick: Undefined
   }
 });
 
@@ -1003,7 +991,19 @@ var Slider = ProgressBar.extend({
 // chrome/Spinner.js
 // =========================================================================
 
-var Spinner = Range.extend({
+var Spinner = Range.modify({
+  appearance: "spinner",
+
+  states: {
+    normal:      0,
+    up_hover:    1,
+    up_active:   2,
+    down_hover:  3,
+    down_active: 4,
+    disabled:    5,
+    length:      6
+  },
+  
   onkeydown: function(element, event, keyCode) {
     if (!this.isEditable(element)) return;
     if (!/^(3[34568]|40)$/.test(keyCode)) return;
@@ -1055,18 +1055,6 @@ var Spinner = Range.extend({
     this.stopTimer(element);
     // call afterward because we don't want to clear the state yet
     this.base(element, event);
-  }
-}, {
-  appearance: "spinner",
-  
-  states: {
-    normal:      0,
-    up_hover:    1,
-    up_active:   2,
-    down_hover:  3,
-    down_active: 4,
-    disabled:    5,
-    length:      6
   },
 
   "@opera[91]": {
@@ -1107,7 +1095,7 @@ var Spinner = Range.extend({
 
   hitTest: function(element, x, y) {
     if (!this.base(element, x)) return null;
-    return y <= (element.clientHeight / 2) ? "up" : "down";
+    return y <= (element[_HEIGHT] / 2) ? "up" : "down";
   },
 
   startTimer: function(element) {
@@ -1123,7 +1111,9 @@ var Spinner = Range.extend({
       this.base(element);
       if (!Chrome._firedOnce) this.increment(element);
       delete Chrome._firedOnce;
-      element.select();
+      try {
+        element.select();
+      } catch (ex) {}
     }
   },
 
@@ -1151,7 +1141,7 @@ var _POPUP_METRICS = "left:%1px!important;top:%2px!important;width:%3px!importan
 var Popup = Base.extend({
   constructor: function(owner) {
     this.owner = owner;
-    var popup = this.popup = document.createElement("chrome");
+    var popup = this.popup = document.createElement("div");
     popup.className = this.appearance;
     popup.innerHTML = this.html;
   },

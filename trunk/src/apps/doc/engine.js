@@ -1,4 +1,10 @@
-// timestamp: Tue, 27 May 2008 15:00:20
+/*
+  base2 - copyright 2007-2008, Dean Edwards
+  http://code.google.com/p/base2/
+  http://www.opensource.org/licenses/mit-license.php
+*/
+
+// timestamp: Tue, 15 Jul 2008 14:54:43
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 

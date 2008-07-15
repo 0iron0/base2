@@ -1,7 +1,17 @@
 
 function copy(object) {
-  // Doug Crockford
-  var fn = function(){};
-  fn.prototype = object;
-  return new fn;
+  // a quick copy
+  var copy = {};
+  for (var i in object) {
+    copy[i] = object[i];
+  }
+  return copy;
 };
+
+function pcopy(object) {
+  // Doug Crockford / Richard Cornford
+  _dummy.prototype = object;
+  return new _dummy;
+};
+
+function _dummy(){};

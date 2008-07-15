@@ -1,4 +1,10 @@
-// timestamp: Tue, 27 May 2008 15:00:20
+/*
+  base2 - copyright 2007-2008, Dean Edwards
+  http://code.google.com/p/base2/
+  http://www.opensource.org/licenses/mit-license.php
+*/
+
+// timestamp: Tue, 15 Jul 2008 14:54:43
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -10,20 +16,21 @@ new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
 var JSB = new base2.Package(this, {
   name:    "JSB",
-  version: "0.9.1",
-  imports: "Function2,Enumerable,DOM",
+  version: "0.9.2",
+  imports: "DOM",
   exports: "Behavior,Rule,RuleList,ExtendedMouse"
 });
 
 eval(this.imports);
 
-if (typeof console2 == "undefined") console2={log:Undefined,update:Undefined};
+;;; if (typeof console2 == "undefined") console2={log:Undefined,update:Undefined};
 
 // =========================================================================
 // JSB/header.js
 // =========================================================================
 
-var _MSIE  = detect("MSIE");
+var _MSIE  = detect("MSIE"),
+    _OPERA = detect("opera");
 
 // Max time for hogging the processor.
 var _MAX_PROCESSING_TIME = 200; // milliseconds
@@ -43,95 +50,72 @@ var _EVENT          = /^on(DOM\w+|[a-z]+)$/,
     _EVENT_MOUSE    = /^mouse|click$/,
     _EVENT_TEXT     = /^(key|text)/;
 
-var _MOUSE_BUTTON_LEFT = /^[^12]$/;
+var _MOUSE_BUTTON_LEFT = /^[^12]$/,
+    _MOUSE_CAPTURE     = /^mouse(up|move)$/;
 
-var _CAN_DELEGATE = /^(blur|submit|reset|change)$|^(focus|mouse|key)|(click|ready)$/;
+var _CANNOT_DELEGATE = /^(abort|error|load|scroll|readystatechange|propertychange|filterchange)$/;
 
 // =========================================================================
 // JSB/Behavior.js
 // =========================================================================
 
-var Behavior = Module.extend(null, {
-  attach: I,
-  detach: I,
+var Behavior = new Base({
+  attach: Function2.I,
+  detach: Function2.I,
 
-  extend: function(_interface, _static) {
+  modify: function(_interface) {
     // Extend a behavior to create a new behavior.
-    var behavior = this.base(_interface, _static);
+    var behavior = pcopy(this).extend(_interface);
     behavior.EventDelegator = this.EventDelegator || EventDelegator;
-    if (_static && _static.EventDelegator) {
-      behavior.EventDelegator = behavior.EventDelegator.extend(_static.EventDelegator);
+    if (_interface && _interface.EventDelegator) {
+      behavior.EventDelegator = behavior.EventDelegator.extend(_interface.EventDelegator);
     }
-    var events, delegatedEvents = [], attributes = {}, methods;
+    var events, delegatedEvents = [];
     var attachedElementIDs = {}; // base2IDs
     var eventListener = new EventListener(new behavior.EventDelegator(behavior, attachedElementIDs));
     
     if (behavior.ondocumentready) {
-      behavior._readyQueue = [];
+      behavior._documentReadyQueue = [];
     }
 
-    // Extract behavior properties.
-    behavior.forEach (function(property, name) {
-      if (_EVENT.test(name)) {
+    // Extract events.
+    forEach (behavior, function(property, name) {
+      if (typeof property == "function" && _EVENT.test(name)) {
         var type = name.slice(2);
         // Store event handlers.
-        if (_CAN_DELEGATE.test(type)) {
-          delegatedEvents.push(type);
-        } else {
+        if (_CANNOT_DELEGATE.test(type)) {
           if (!events) events = [];
           events.push(type);
+        } else {
+          delegatedEvents.push(type);
         }
-      } else {
-        // Store methods.
-        if (!methods) methods = {};
-        methods[name] = behavior.prototype[name];
-      }
-    });
-    forEach.detect (_interface, function(property, name) {
-      // Store attributes.
-      if (typeOf(property) != "function") {
-        attributes[name] = property;
       }
     });
 
-    var docID = document.base2ID;
     behavior.attach = function(element) {
       //if (!element) return;
       var base2ID = element.base2ID || assignID(element);
       if (!attachedElementIDs[base2ID]) { // Don't attach more than once.
         attachedElementIDs[base2ID] = true;
-        if (JSB.globalize && element.id) global[JSB.globalize + ViewCSS.toCamelCase(element.id)] = element;
-        // If the document is bound then bind the element.
-        if (DOM.bind[docID]) DOM.bind(element);
         // Add event handlers
         if (delegatedEvents) {
-          forEach (delegatedEvents, bind(eventListener.delegate, eventListener));
+          forEach (delegatedEvents, eventListener.delegate, eventListener);
           delegatedEvents = null;
         }
         if (events) {
           forEach (events, bind(eventListener.add, eventListener, element));
         }
-        // Extend the element.
-        for (var name in attributes) {
-          var value = attributes[name];
-          if (element[name] === undefined && typeof value != "object") {
-            element.setAttribute(name, value)
-          } else {
-            element[name] = value;
-          }
-        }
-        if (methods) extend(element, methods);
         // Pseudo events.
         if (behavior.onattach) behavior.onattach(element);
         if (behavior.oncontentready) {
           if (DocumentState.isContentReady(element)) {
             behavior.oncontentready(element);
           } else {
-            DocumentState.readyQueue.push({element: element, behavior: behavior});
+            DocumentState.contentReadyQueue.push({element: element, behavior: behavior});
           }
         }
-        if (behavior._readyQueue) {
-          behavior._readyQueue.push(element);
+        if (behavior._documentReadyQueue) {
+          behavior._documentReadyQueue.push(element);
         }
         if (element == document.activeElement && behavior.onfocus) {
           behavior.dispatchEvent(element, "focus");
@@ -141,11 +125,7 @@ var Behavior = Module.extend(null, {
     };
 
     behavior.detach = function(element) {
-      var base2ID = element.base2ID || assignID(element);
-      if (attachedElementIDs[base2ID]) {
-        if (behavior.ondetach) behavior.ondetach(element);
-        delete attachedElementIDs[base2ID];
-      }
+      delete attachedElementIDs[element.base2ID];
       return element;
     };
     
@@ -162,7 +142,8 @@ var Behavior = Module.extend(null, {
       event = DocumentEvent.createEvent(document, "Events");
       Event.initEvent(event, type, true, false);
     }
-    EventTarget.dispatchEvent(element, extend(event, data));
+    if (data) extend(event, data);
+    EventTarget.dispatchEvent(element, event);
   },
 
   handleEvent: function(element, event, type) {
@@ -187,6 +168,17 @@ var Behavior = Module.extend(null, {
     }
   },
 
+  getProperty: function(element, name) {
+    var defaultValue = this[name];
+    var value = Element.getAttribute(element, name);
+    if (value == null) {
+      value = defaultValue;
+    } else {
+      value = defaultValue.constructor(value); // cast
+    }
+    return value;
+  },
+
   getComputedStyle: function(element, propertyName) {
     var view = document.defaultView;
     if (propertyName) return ViewCSS.getComputedPropertyValue(view, element, propertyName);
@@ -199,7 +191,64 @@ var Behavior = Module.extend(null, {
 
   setCSSProperty: function(element, propertyName, value, important) {
     CSSStyleDeclaration.setProperty(element.style, propertyName, value, important ? "important" : "");
+  },
+
+  setCapture: function(element) {
+    if (!Behavior._captureMouse) {
+      var behavior = this;
+      Behavior._captureElement = element;
+      Behavior._captureMouse = function(event) {
+        if (_OPERA) getSelection().collapse(document.body, 0); // prevent text selection
+        if (event.type == "mousemove" || event.eventPhase == Event.BUBBLING_PHASE) {
+          behavior.handleEvent(element, event, event.type);
+        }
+      };
+      this.addEventListener(document, "mouseup", Behavior._captureMouse, true);
+      this.addEventListener(document, "mousemove", Behavior._captureMouse, true);
+    }
+  },
+
+  releaseCapture: function() {
+    if (Behavior._captureMouse) {
+      this.removeEventListener(document, "mouseup", Behavior._captureMouse, true);
+      this.removeEventListener(document, "mousemove", Behavior._captureMouse, true);
+      delete Behavior._captureMouse;
+      delete Behavior._captureElement;
+    }
+  },
+
+  "@MSIE": {
+    setCapture: function(element) {
+      element.setCapture();
+      behavior = this;
+      element.attachEvent("onlosecapture", function() {
+        if (Behavior._captureMouse) {
+          // element.fireEvent("onmouseup");
+          behavior.dispatchEvent(element, "mouseup");
+        }
+        element.detachEvent("onlosecapture", arguments.callee);
+      });
+      this.base(element);
+    },
+
+    releaseCapture: function() {
+      this.base();
+      document.releaseCapture();
+    }
   }
+});
+
+// Additional methods (all the good ones)
+
+forEach.csv("setInterval,setTimeout", function(name) {
+  Behavior[name] = function(callback, delay) {
+    if (typeof callback == "string") callback = this[callback];
+    var args = Array2.slice(arguments, 2);
+    var self = this;
+    return global[name](function() {
+      callback.apply(self, args);
+    }, delay || 0);
+  };
 });
 
 forEach ([
@@ -230,12 +279,16 @@ var Rule = Base.extend({
     if (!instanceOf(selector, Selector)) {
       selector = new Selector(selector);
     }
-    if (!Behavior.ancestorOf(behavior)) {
-      behavior = Behavior.extend(behavior);
+    if (typeof behavior == "string") {
+      behavior = new External(behavior, function(external) {
+        behavior = external;
+      });
+    } else if (!behavior || Behavior.constructor != behavior.constructor) {
+      behavior = Behavior.modify(behavior);
     }
     
     this.refresh = function() {
-      selector.exec(document).forEach(behavior.attach);
+      if (behavior.attach) selector.exec(document).forEach(behavior.attach);
     };
 
     this.toString = selector.toString;
@@ -268,6 +321,8 @@ var RuleList = Collection.extend({
 // JSB/EventListener.js
 // =========================================================================
 
+// Mostly fixes for event.offsetX/Y
+
 var EventListener = Base.extend({
   constructor: function(delegator) {
     this.delegator = delegator;
@@ -287,13 +342,41 @@ var EventListener = Base.extend({
     this.delegator.handleEvent(event);
   },
 
+  "@Opera" : {
+    handleEvent: function(event) {
+      var target = event.target;
+      if (_EVENT_MOUSE.test(event.type)) {
+        var originalEvent = event;
+        event = copy(originalEvent);
+        event.stopPropagation = function() {
+          originalEvent.stopPropagation();
+        };
+        event.preventDefault = function() {
+          originalEvent.preventDefault();
+        };
+        event.offsetX += target.clientLeft;
+        event.offsetY += target.clientTop;
+      }
+      this.delegator.handleEvent(event);
+    }
+  },
+
   "@MSIE" : {
     handleEvent: function(event) {
       var target = event.target;
-      if (_EVENT_MOUSE.test(event.type) && !target.currentStyle.hasLayout) {
-        event = extend({}, event);
-        event.offsetX -= target.offsetLeft;
-        event.offsetY -= target.offsetTop;
+      if (_EVENT_MOUSE.test(event.type)) {
+        event = copy(event);
+        var hasLayout = target.currentStyle.hasLayout;
+        if (hasLayout === false || !target.clientWidth) {
+          event.offsetX -= target.offsetLeft;
+          event.offsetY -= target.offsetTop;
+          if (hasLayout === undefined) {
+            event.offsetX -= 2;
+            event.offsetY -= 2;
+          }
+        }
+        event.offsetX += target.clientLeft;
+        event.offsetY += target.clientTop;
       }
       this.delegator.handleEvent(event);
     }
@@ -302,9 +385,27 @@ var EventListener = Base.extend({
   "@Gecko" : {
     handleEvent: function(event) {
       if (_EVENT_MOUSE.test(event.type)) {
-        var box = document.getBoxObjectFor(event.target);
-        event.offsetX = event.pageX - box.x;
-        event.offsetY = event.pageY - box.y;
+        var target = event.target;
+        if (target.nodeType == 3) {
+          target = target.parentNode;
+        }
+        if (target.getBoundingClientRect) {
+          var rect = target.getBoundingClientRect();
+        } else {
+          var box = document.getBoxObjectFor(target);
+          var computedStyle = getComputedStyle(target, null);
+          rect = {
+            left: box.x - parseInt(computedStyle.borderLeftWidth),
+            top: box.y - parseInt(computedStyle.borderTopWidth)
+          };
+          // for ancient moz browsers
+          if (isNaN(rect.left)) {
+            rect.left = target.offsetLeft;
+            rect.top = target.offsetTop;
+          }
+        }
+        event.offsetX = event.pageX - rect.left;
+        event.offsetY = event.pageY - rect.top;
       }
       this.delegator.handleEvent(event);
     }
@@ -328,16 +429,20 @@ var EventDelegator = Base.extend({
     var type = event.type;
     var behavior = this.behavior;
     if (type == "documentready") {
-      if (behavior._readyQueue) {
-        forEach (behavior._readyQueue, bind(behavior.ondocumentready, behavior));
-        delete behavior._readyQueue;
+      if (behavior._documentReadyQueue) {
+        forEach (behavior._documentReadyQueue, behavior.ondocumentready, behavior);
+        delete behavior._documentReadyQueue;
       }
     } else {
-      var target = event.target;
-      // make sure it's an attached element
-      if (target && this.attached[target.base2ID]) {
-        behavior.handleEvent(target, event, type);
-      }
+      var capture = Behavior._captureMouse && _MOUSE_CAPTURE.test(type);
+      var target = capture ? Behavior._captureElement : event.target;
+      do {
+        // make sure it's an attached element
+        if (this.attached[target.base2ID]) {
+          behavior.handleEvent(target, event, type);
+        }
+        target = target.parentNode;
+      } while (target && !capture);
     }
   }
 });
@@ -351,7 +456,7 @@ var EventDelegator = Base.extend({
 // This behavior allows any button click. Relevant events get the "button"
 // parameter as the first argument after the "event" parameter.
 
-var ExtendedMouse = Behavior.extend(null, {
+var ExtendedMouse = Behavior.modify({
   handleEvent: function(element, event, type) {
     type = event.type;
     if (_EVENT_BUTTON.test(type)) {
@@ -373,11 +478,26 @@ var ExtendedMouse = Behavior.extend(null, {
 ;;; console2.update();
 ;;; var start = Date2.now();
 
-var DocumentState = Behavior.extend({
+var DocumentState = Behavior.modify({
+  EventDelegator: {
+    handleEvent: function(event) {
+      this.behavior["on" + event.type](event.target, event.offsetX, event.offsetY);
+    }
+  },
+
+  active: false,
+  busy:   false,
+  loaded: false,
+  ready:  false,
+
+  contentReadyQueue: [],
+  rules: new Array2,
+  
   onDOMContentLoaded: function() {
     this.loaded = true;
     ;;; console2.log("DOMContentLoaded");
     ;;; console2.log("Document load time: " + (Date2.now() - start));
+    if (!this.ready && !this.rules.length) this.fireReady(document);
   },
 
   onkeydown: function() {
@@ -391,9 +511,7 @@ var DocumentState = Behavior.extend({
   onmousedown: function(element, x, y) {
     // If the user has clicked on a scrollbar then carry on processing.
     this.active = this.busy = (
-      x >= 0 &&
       x < element.offsetWidth &&
-      y >= 0 &&
       y < element.offsetHeight
     );
   },
@@ -404,31 +522,27 @@ var DocumentState = Behavior.extend({
 
   onmousemove: function() {
     if (!this.busy) this.setBusyState(true)
-  }
-}, {
-  EventDelegator: {
-    handleEvent: function(event) {
-      this.behavior["on" + event.type](event.target, event.offsetX, event.offsetY);
-    }
   },
-  
-  active: false,
-  busy:   false,
-  loaded: false,
-  ready:  false,
-
-  readyQueue: [],
-  rules: new Array2,
   
   init: function() {
     this.attach(document);
   },
-  
+
   addRule: function(selector, behavior) {
+    assert(!this.loaded, "Cannot add JSB rules after the DOM has loaded.");
     assert(!/:/.test(selector), format("Pseudo class selectors not allowed in JSB (selector='%2').", selector));
     var query = Selector.parse(selector);
-    this.rules.push({query: query, behavior: behavior});
+    this.rules.push({query: query, behavior: behavior, toString:selector.toString});
     if (this.rules.length == 1) this.recalc(); // start the timer
+  },
+
+  fireReady: function() {
+    if (!this.ready) {
+      this.ready = true;
+      this.dispatchEvent(document, "documentready");
+      ;;; console2.log("documentready");
+      ;;; console2.log("Document ready time: " + (Date2.now()  - start));
+    }
   },
 
   isContentReady: function(element) {
@@ -440,18 +554,17 @@ var DocumentState = Behavior.extend({
   },
 
   recalc: function(i, j, elements) {
-    // This method is overridden once the document has loaded.
     //;;; console2.log("TICK: busy=" + this.busy);
     var rules = this.rules;
     if (!this.busy) {
       // Process the contentready queue.
-      var readyQueue = this.readyQueue;
+      var contentReadyQueue = this.contentReadyQueue;
       var now = Date2.now(), start = now, k = 0;
-      while (readyQueue.length && (now - start < _MAX_PROCESSING_TIME)) {
-        var ready = readyQueue[0];
+      while (contentReadyQueue.length && (now - start < _MAX_PROCESSING_TIME)) {
+        var ready = contentReadyQueue[0];
         if (this.isContentReady(ready.element)) {
           ready.behavior.oncontentready(ready.element);
-          readyQueue.shift();
+          contentReadyQueue.shift();
         }
         if (k++ < 5 || k % 50 == 0) now = Date2.now();
       }
@@ -468,52 +581,108 @@ var DocumentState = Behavior.extend({
         if (!elements) {
           var query = rule.query;
           var state = query.state || [];
-          state.unshift(document, _MAX_ELEMENTS);
+          state.unshift(document, behavior.constructor == External ? 2 : _MAX_ELEMENTS);
           elements = query.apply(null, state);
-          queryComplete = query.complete;
+          queryComplete = !!query.complete;
         }
-        
+
         now = Date2.now(); // update the clock
-        
-        // Attach behaviors.
+
         var length = elements.length, k = 0;
-        while (j < length && (now - start < _MAX_PROCESSING_TIME)) {
-          behavior.attach(elements[j++]);
-          if (k++ < 5 || k % 50 == 0) now = Date2.now();
-        }
-        
-        // Maintain the loop.
-        if (j == length) { // no more elements
-          j = 0;
+
+        if (length && behavior.constructor == External) {
+          // Load the external behavior.
+          rule.behavior = behavior.getObject() || behavior;
+          delete query.state;
           elements = null;
-          if (this.loaded && queryComplete) { // stop processing after DOMContentLoaded
-            rules.removeAt(i);
-          } else i++;
+          i++;
+        } else {
+          // Attach behaviors.
+          while (j < length && (now - start < _MAX_PROCESSING_TIME)) {
+            behavior.attach(elements[j++]);
+            if (k++ < 5 || k % 50 == 0) now = Date2.now();
+          }
+
+          // Maintain the loop.
+          if (j == length) { // no more elements
+            j = 0;
+            elements = null;
+            if (this.loaded && queryComplete) { // stop processing after DOMContentLoaded
+              rules.removeAt(i);
+            } else i++;
+          }
         }
-        if (i > rules.length - 1) i = 0; // at end, loop to first rule
+        //if (i > rules.length - 1) i = 0; // at end, loop to first rule
+        if (i >= rules.length) i = 0; // at end, loop to first rule
         count--;
       }
     }
     if (rules.length) {
-      setTimeout(bind(this.recalc, this, i, j, elements), _TICK);
+      this.setTimeout(this.recalc, _TICK, i, j, elements);
     } else {
       if (!this.ready) this.fireReady(document);
-    }
-  },
-
-  fireReady: function() {
-    if (!this.ready) {
-      this.ready = true;
-      this.dispatchEvent(document, "documentready");
-      ;;; console2.log("documentready");
-      ;;; console2.log("Document ready time: " + (Date2.now()  - start));
     }
   },
   
   setBusyState: function(state) {
     this.busy = this.active || !!state;
-    if (this.busy) setTimeout(bind(this.setBusyState, this), 250);
+    if (this.busy) this.setTimeout(this.setBusyState, 250);
   }
+});
+
+// =========================================================================
+// JSB/External.js
+// =========================================================================
+
+var External = Base.extend({
+  constructor: function(url, callback) {
+    url = url.split("#");
+    this.src = url[0];
+    this.id = url[1].split(".");
+    this.callback = callback;
+  },
+
+//id: null,
+//loaded: false,
+//src: "",
+//script: null,
+  
+  getObject: function() {
+    if (!this.loaded) this.load();
+    var object = window, i = 0;
+    while (object && i < this.id.length) {
+      object = object[this.id[i++]];
+    }
+    if (object) {
+      this.callback(object);
+      this.unload();
+    }
+    return object;
+  },
+
+  load: function() {
+    // load the external script
+    External.SCRIPT.src = this.src;
+    if (!External.scripts[External.SCRIPT.src]) {
+      External.scripts[External.SCRIPT.src] = true;
+      this.script = document.createElement("script");
+      this.script.type = "text/javascript";
+      this.script.src = this.src;
+      Document.querySelector(document, "head").appendChild(this.script);
+    }
+    this.loaded = true;
+  },
+
+  unload: function() {
+    // remove the external script (keeps the DOM clean)
+    if (this.script) {
+      this.script.parentNode.removeChild(this.script);
+      this.script = null;
+    }
+  }
+}, {
+  SCRIPT: document.createElement("script"),
+  scripts: {}
 });
 
 eval(this.exports);

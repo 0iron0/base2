@@ -11,13 +11,21 @@ var EventDelegator = Base.extend({
   handleEvent: function(event) {
     var type = event.type;
     var behavior = this.behavior;
-    var target = event.target;
-    // make sure it's an attached element
-    if (Behavior._captureMouse && _MOUSE_CAPTURE.test(type)) {
-      target = Behavior._captureElement;
-    }
-    if (target && this.attached[target.base2ID]) {
-      behavior.handleEvent(target, event, type);
+    if (type == "documentready") {
+      if (behavior._documentReadyQueue) {
+        forEach (behavior._documentReadyQueue, behavior.ondocumentready, behavior);
+        delete behavior._documentReadyQueue;
+      }
+    } else {
+      var capture = Behavior._captureMouse && _MOUSE_CAPTURE.test(type);
+      var target = capture ? Behavior._captureElement : event.target;
+      do {
+        // make sure it's an attached element
+        if (this.attached[target.base2ID]) {
+          behavior.handleEvent(target, event, type);
+        }
+        target = target.parentNode;
+      } while (target && !capture);
     }
   }
 });

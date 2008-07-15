@@ -23,4 +23,4 @@ var _EVENT          = /^on(DOM\w+|[a-z]+)$/,
 var _MOUSE_BUTTON_LEFT = /^[^12]$/,
     _MOUSE_CAPTURE     = /^mouse(up|move)$/;
 
-var _CAN_DELEGATE = /^(blur|submit|reset|change)$|^(focus|mouse|key)|(click|ready)$/;
+var _CANNOT_DELEGATE = /^(abort|error|load|scroll|readystatechange|propertychange|filterchange)$/;

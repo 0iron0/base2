@@ -116,6 +116,10 @@ var styleSheet = {
 
     "@Gecko": {
       MozBorder:     "initial"
+    },
+
+    "@Gecko(1|200[0-2])": {
+      backgroundColor: "#f2f2f2"
     }
   },
 
@@ -126,7 +130,11 @@ var styleSheet = {
     outline:    "1px dotted",
     MozOutline: "1px dotted"
   },
-  
+
+  datalist: {
+    display: "none!important"
+  },
+
   popup: {
     display:     "none",
     borderWidth: "1px",

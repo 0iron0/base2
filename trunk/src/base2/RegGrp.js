@@ -103,12 +103,6 @@ var RegGrp = Collection.extend({
             .replace(/\$(\d+)/g, Q + "+(arguments[$1]||" + Q+Q + ")+" + Q)
             .replace(/(['"])\1\+(.*)\+\1\1$/, "$1");
           replacement = new Function("return " + Q + replacement + Q);
-          
-          // My old crappy version:
-          /*var Q = /'/.test(replacement.replace(/\\./g, "")) ? '"' : "'";
-          replacement = replacement.replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\$(\d+)/g, Q +
-            "+(arguments[$1]||" + Q+Q + ")+" + Q);
-          replacement = new Function("return " + Q + replacement.replace(/(['"])\1\+(.*)\+\1\1$/, "$1") + Q);*/
         }
       }
       

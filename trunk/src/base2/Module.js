@@ -97,13 +97,13 @@ function _extendModule(module, _interface, index) {
 };
 
 function _staticModuleMethod(module, name) {
-  return function _staticModuleMethod() {
+  return function() {
     return module[name].apply(this, arguments);
   };
 };
 
 function _moduleMethod(module, name) {
-  return function _moduleMethod() {
+  return function() {
     var args = _slice.call(arguments);
     args.unshift(this);
     return module[name].apply(this, args);

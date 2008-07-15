@@ -25,6 +25,7 @@ var EventTarget = Interface.extend({
     },
     
     dispatchEvent: function(target, event) {
+      event.target = target;
       return DocumentState.getInstance(target).handleEvent(event);
     },
     
@@ -39,13 +40,6 @@ var EventTarget = Interface.extend({
           if (listeners) delete listeners[listener.base2ID];
         }
       }
-    },
-
-    "@(element.fireEvent)": {
-      dispatchEvent: function(target, event) {
-        event.target = target;
-        return this.base(target, event);
-      }
     }
   },
 
@@ -55,7 +49,7 @@ var EventTarget = Interface.extend({
         // this event cannot be removed
         var onmousewheel = DocumentState[assignID(listener)] = listener;
         listener = function(event) {
-          event = copy(event);
+          event = pcopy(event);
           event.__defineGetter__("type", K("mousewheel"));
           event.wheelDelta = (-event.detail * 40) || 0;
           if (typeof onmousewheel == "function") {

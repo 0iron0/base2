@@ -7,7 +7,7 @@
 var Interpreter = Command.extend({
   constructor: function(request) {
     this.base();
-    this.request = copy(request);
+    this.request = pcopy(request);
   },
   
   query: "",

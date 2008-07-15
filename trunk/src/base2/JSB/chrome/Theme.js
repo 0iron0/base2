@@ -38,7 +38,7 @@ var Theme = Base.extend({
   "@Windows": {
     detect: function() {
       var element = document.createElement("input");
-      var head = NodeSelector.querySelector(document, "head");
+      var head = NodeSelector.querySelector(document, "body,head");
       head.appendChild(element);
       // detect XP theme by inspecting the ActiveCaption colour
       element.style.color = "ActiveCaption";
@@ -51,12 +51,22 @@ var Theme = Base.extend({
       return _XP_DETECT[color];
     },
 
+    "@MSIE6": {
+      detect: function() {
+        return this.base() || {
+      	"#ece9d8": "luna/blue",
+      	"#e0dfe3": "luna/silver",
+      	"#ebe9ed": "royale"
+        }[document.documentElement.currentStyle.scrollbarFaceColor] || "classic";
+      }
+    },
+
     "@MSIE5": {
       detect: K("classic")
     }
   },
 
-  "@Safari": {
+  "@Safari|Camino": {
     detect: K("aqua")
   }
 });

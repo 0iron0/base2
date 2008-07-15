@@ -25,15 +25,15 @@ var XPathParser = CSSParser.extend({
     ).replace(/'[^'\\]*\\'(\\.|[^'\\])*'/g, function(match) { // escape single quotes
       return "concat(" + match.split("\\'").join("',\"'\",'") + ")";
     });
-  }
-  
-/*"@opera": {
+  },
+
+  "@opera(7|8|9\\.[1-4])": {
     unescape: function(selector) {
-      // opera does not seem to support last() but I can't find any 
+      // opera pre 9.5 does not seem to support last() but I can't find any
       //  documentation to confirm this
       return this.base(selector.replace(/last\(\)/g, "count(preceding-sibling::*)+count(following-sibling::*)+1"));
     }
-  }*/
+  }
 }, {
   build: function() {
     // build the rules collection
@@ -115,6 +115,8 @@ var XPathParser = CSSParser.extend({
     },
     
     pseudoClasses: { // pseudo class selectors
+      "link":             "[false]",
+      "visited":          "[false]",
       "empty":            "[not(child::*) and not(text())]",
 //-   "lang()":           "[boolean(lang('$1') or boolean(ancestor-or-self::*[@lang][1][starts-with(@lang,'$1')]))]",
       "first-child":      "[not(preceding-sibling::*)]",

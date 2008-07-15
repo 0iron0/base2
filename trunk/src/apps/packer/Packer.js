@@ -22,7 +22,6 @@ var Packer = Base.extend({
     script = Packer.comments.exec(script);
     script = Packer.clean.exec(script);
     script = Packer.whitespace.exec(script);
-    //script = script.replace(/(@\*\/)\s+(\/\*@)/g, "$1$2");
     return script;
   },
   
@@ -257,7 +256,7 @@ var Packer = Base.extend({
   init: function() {
     eval("var e=this.encode62=" + this.ENCODE62);
     this.data = this.build(this.data);
-    forEach ("comments,clean,whitespace".split(","), function(name) {
+    forEach.csv("comments,clean,whitespace", function(name) {
       this[name] = this.data.union(this.build(this[name]));
     }, this);
     this.whitespace.removeAt(2); // conditional comments
@@ -289,7 +288,7 @@ var Packer = Base.extend({
     "CONDITIONAL": IGNORE, // conditional comments
     "(OPERATOR)\\s*(REGEXP)": "$1$2"
   },
-    
+
   encode52: function(c) {
     // Base52 encoding (a-Z)
     function encode(c) {

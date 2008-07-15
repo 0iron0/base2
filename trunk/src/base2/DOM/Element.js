@@ -4,7 +4,6 @@
 // getAttribute() will return null if the attribute is not specified. This is
 //  contrary to the specification but has become the de facto standard.
 
-var _EVALUATED = /^(href|src)$/;
 var _ATTRIBUTES = {
   "class": "className",
   "for": "htmlFor"
@@ -18,10 +17,10 @@ var Element = Node.extend({
       }
       var attribute = _getAttributeNode(element, name);
       if (attribute && (attribute.specified || name == "value")) {
-        if (_EVALUATED.test(name)) {
+        if (name == "href" || name == "src") {
           return this.base(element, name, 2);
         } else if (name == "style") {
-         return element.style.cssText;
+         return element.style.cssText.toLowerCase();
         } else {
          return attribute.nodeValue;
         }
@@ -68,7 +67,7 @@ var Element = Node.extend({
 });
 
 // remove the base2ID for clones
-extend(Element.prototype, "cloneNode", function(deep) {
+if (detect("MSIE.+win")) extend(Element.prototype, "cloneNode", function(deep) {
   var clone = this.base(deep || false);
   clone.base2ID = undefined;
   return clone;

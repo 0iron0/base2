@@ -103,7 +103,7 @@ var Spinner = Range.modify({
 
   hitTest: function(element, x, y) {
     if (!this.base(element, x)) return null;
-    return y <= (element.clientHeight / 2) ? "up" : "down";
+    return y <= (element[_HEIGHT] / 2) ? "up" : "down";
   },
 
   startTimer: function(element) {
@@ -119,7 +119,9 @@ var Spinner = Range.modify({
       this.base(element);
       if (!Chrome._firedOnce) this.increment(element);
       delete Chrome._firedOnce;
-      element.select();
+      try {
+        element.select();
+      } catch (ex) {}
     }
   },
 

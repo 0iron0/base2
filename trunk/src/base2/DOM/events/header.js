@@ -14,7 +14,7 @@ var _MOUSE_BUTTON   = /^mouse(up|down)|click$/,
     _BUBBLES        = "abort|error|select|change|resize|scroll|", // + _CANCELABLE
     _CANCELABLE     = "(dbl)?click|mouse(down|up|over|move|out|wheel)|key(down|up)|submit|reset";
 
-    _BUBBLES = new RegExp("^(" +_BUBBLES + _CANCELABLE + ")$");
+    _BUBBLES = new RegExp("^(" + _BUBBLES + _CANCELABLE + ")$");
     _CANCELABLE = new RegExp("^(" + _CANCELABLE + ")$");
 
 if (_MSIE) {
@@ -22,4 +22,4 @@ if (_MSIE) {
       _CAPTURE_TYPE   = {focus: "focusin", blur: "focusout"};
 }
 
-var _CAN_DELEGATE = /^(blur|submit|reset|change)$|^(mouse|key|focus)|click$/;
+var _CAN_DELEGATE = /^(blur|submit|reset|change|select)$|^(mouse|key|focus)|click$/;

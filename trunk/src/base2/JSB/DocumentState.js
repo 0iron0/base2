@@ -15,13 +15,14 @@ var DocumentState = Behavior.modify({
   loaded: false,
   ready:  false,
 
-  readyQueue: [],
+  contentReadyQueue: [],
   rules: new Array2,
   
   onDOMContentLoaded: function() {
     this.loaded = true;
     ;;; console2.log("DOMContentLoaded");
     ;;; console2.log("Document load time: " + (Date2.now() - start));
+    if (!this.ready && !this.rules.length) this.fireReady(document);
   },
 
   onkeydown: function() {
@@ -35,9 +36,7 @@ var DocumentState = Behavior.modify({
   onmousedown: function(element, x, y) {
     // If the user has clicked on a scrollbar then carry on processing.
     this.active = this.busy = (
-      x >= 0 &&
       x < element.offsetWidth &&
-      y >= 0 &&
       y < element.offsetHeight
     );
   },
@@ -55,9 +54,10 @@ var DocumentState = Behavior.modify({
   },
 
   addRule: function(selector, behavior) {
+    assert(!this.loaded, "Cannot add JSB rules after the DOM has loaded.");
     assert(!/:/.test(selector), format("Pseudo class selectors not allowed in JSB (selector='%2').", selector));
     var query = Selector.parse(selector);
-    this.rules.push({query: query, behavior: behavior});
+    this.rules.push({query: query, behavior: behavior, toString:selector.toString});
     if (this.rules.length == 1) this.recalc(); // start the timer
   },
 
@@ -83,13 +83,13 @@ var DocumentState = Behavior.modify({
     var rules = this.rules;
     if (!this.busy) {
       // Process the contentready queue.
-      var readyQueue = this.readyQueue;
+      var contentReadyQueue = this.contentReadyQueue;
       var now = Date2.now(), start = now, k = 0;
-      while (readyQueue.length && (now - start < _MAX_PROCESSING_TIME)) {
-        var ready = readyQueue[0];
+      while (contentReadyQueue.length && (now - start < _MAX_PROCESSING_TIME)) {
+        var ready = contentReadyQueue[0];
         if (this.isContentReady(ready.element)) {
           ready.behavior.oncontentready(ready.element);
-          readyQueue.shift();
+          contentReadyQueue.shift();
         }
         if (k++ < 5 || k % 50 == 0) now = Date2.now();
       }
@@ -106,16 +106,16 @@ var DocumentState = Behavior.modify({
         if (!elements) {
           var query = rule.query;
           var state = query.state || [];
-          state.unshift(document, behavior instanceof External ? 2 : _MAX_ELEMENTS);
+          state.unshift(document, behavior.constructor == External ? 2 : _MAX_ELEMENTS);
           elements = query.apply(null, state);
-          queryComplete = query.complete;
+          queryComplete = !!query.complete;
         }
 
         now = Date2.now(); // update the clock
 
         var length = elements.length, k = 0;
 
-        if (length && behavior instanceof External) {
+        if (length && behavior.constructor == External) {
           // Load the external behavior.
           rule.behavior = behavior.getObject() || behavior;
           delete query.state;

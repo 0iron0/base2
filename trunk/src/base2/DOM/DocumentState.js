@@ -32,7 +32,7 @@ var DocumentState = Base.extend({
   isHover: function(element) {
     return this.includes(element, this._hoverElement);
   },
-  
+
   handleEvent: function(event) {
     return this["on" + event.type](event);
   },
@@ -65,7 +65,7 @@ var DocumentState = Base.extend({
     this.document.addEventListener(type, this, true);
     this.events[type] = true;
   },
-  
+
   "@(document.activeElement===undefined)": {
     constructor: function(document) {
       this.base(document);
@@ -104,7 +104,7 @@ var DocumentState = Base.extend({
         return dispatcher.handleEvent(event);
       };
     },
-    
+
     registerEvent: function(type, target) {
       var events = this.events[type];
       var canDelegate = _CAN_DELEGATE.test(type);
@@ -114,84 +114,118 @@ var DocumentState = Base.extend({
         var state = this;
         target["on" + type] = function(event) {
           if (!event) {
-            event = Traveral.getDefaultiew(this).event;
+            event = Traversal.getDefaultView(this).event;
           }
           if (event) state.handleEvent(event);
         };
       }
       return events;
-    }
-  },
+    },
 
-  "@MSIE": {
-    constructor: function(document) {
-      this.base(document);
-      var forms = {};
-      this._registerForm = function(form) {
-        var formID = assignID(form);
-        if (!forms[formID]) {
-          forms[formID] = true;
-          form.attachEvent("onsubmit", this._dispatch);
-          form.attachEvent("onreset", this._dispatch);
+    "@MSIE.+win": {
+      constructor: function(document) {
+        this.base(document);
+        var forms = {};
+        this._registerForm = function(form) {
+          var formID = assignID(form);
+          if (!forms[formID]) {
+            forms[formID] = true;
+            form.attachEvent("onsubmit", this._dispatch);
+            form.attachEvent("onreset", this._dispatch);
+          }
+        };
+      },
+
+      fireEvent: function(type, event) {
+        event = copy(event);
+        event.type = type;
+        this.handleEvent(event);
+      },
+
+      registerEvent: function(type, target) {
+        var events = this.events[type];
+        var canDelegate = _CAN_DELEGATE.test(type);
+        if (!events || !canDelegate) {
+          if (!events) events = this.events[type] = {};
+          if (canDelegate || !target) target = this.document;
+          var state = this;
+          target.attachEvent("on" + type, function(event) {
+            event.target = event.srcElement || state.document;
+            state.handleEvent(event);
+            if (state["after" + type]) {
+              state["after" + type](event);
+            }
+          });
         }
-      };
-    },
-    
-    registerEvent: function(type, target) {
-      var events = this.events[type];
-      var canDelegate = _CAN_DELEGATE.test(type);
-      if (!events || !canDelegate) {
-        if (!events) events = this.events[type] = {};
-        if (canDelegate || !target) target = this.document;
-        var state = this;
-        target.attachEvent("on" + type, function(event) {
-          event.target = event.srcElement || state.document;
-          state.handleEvent(event);
-        });
+        return events;
+      },
+
+      onDOMContentLoaded: function(event) {
+        forEach (event.target.forms, this._registerForm, this);
+        this.setFocus(this.document.activeElement);
+      },
+
+      onmousedown: function(event) {
+        this.base(event);
+        this._button = event.button;
+      },
+
+      onmouseup: function(event) {
+        this.base(event);
+        if (this._button == null) {
+          this.fireEvent("mousedown", event);
+        }
+        delete this._button;
+      },
+
+      aftermouseup: function() {
+        if (this._selectEvent) {
+          this._dispatch(this._selectEvent);
+          delete this._selectEvent;
+        }
+      },
+
+      onfocusin: function(event) {
+        this.setFocus(event.target);
+        this.onfocus(event);
+      },
+
+      setFocus: function(target) {
+        var change = this.events.change, select = this.events.select;
+        if (change || select) {
+          var dispatch = this._dispatch;
+          if (change) target.attachEvent("onchange", dispatch);
+          if (select) {
+            var state = this;
+            var onselect = function(event) {
+              if (state._activeElement == target) {
+                state._selectEvent = copy(event);
+              } else {
+                dispatch(event);
+              }
+            };
+            target.attachEvent("onselect", onselect);
+          }
+          target.attachEvent("onblur", function() {
+            target.detachEvent("onblur", arguments.callee);
+            if (change) target.detachEvent("onchange", dispatch);
+            if (select) target.detachEvent("onselect", onselect);
+          });
+        }
+      },
+
+      onfocusout: function(event) {
+        this.onblur(event);
+      },
+
+      onclick: function(event) {
+        var target = event.target;
+        if (target.form) this._registerForm(target.form);
+      },
+
+      ondblclick: function(event) {
+        this.fireEvent("click", event);
       }
-      return events;
-    },
-
-    onDOMContentLoaded: function(event) {
-      forEach (event.target.forms, this._registerForm, this);
-    },
-
-    onmousedown: function(event) {
-      this.base(event);
-      this._button = event.button;
-    },
-
-    onmouseup: function(event) {
-      this.base(event);
-      if (this._button == null) {
-        event.target.fireEvent("onmousedown", event);
-      }
-      delete this._button;
-    },
-
-    onfocusin: function(event) {
-      var target = event.target, dispatch = this._dispatch;
-      if (this.events.change && target.form !== undefined) {
-        target.attachEvent("onchange", dispatch);
-        target.attachEvent("onblur", function() {
-          target.detachEvent("onblur", arguments.callee);
-          target.detachEvent("onchange", dispatch);
-        });
-      }
-      this.onfocus(event);
-    },
-
-    onfocusout: function(event) {
-      this.onblur(event);
-    },
-
-    onclick: function(event) {
-      var target = event.target;
-      if (target.form) this._registerForm(target.form);
-    },
-
-    ondblclick: function(event) {
-      event.target.fireEvent("onclick", event);
     }
   }
 }, {

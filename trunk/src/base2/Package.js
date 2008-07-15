@@ -11,12 +11,14 @@ var Package = Base.extend({
     }
     
     if (_private) {
+      // This next line gets round a bug in old Mozilla browsers
+      var JSNamespace = base2.JavaScript ? base2.JavaScript.namespace : "";
       // This string should be evaluated immediately after creating a Package object.
       _private.imports = Array2.reduce(csv(this.imports), function(namespace, name) {
-        eval(format("var ns=(base2.%1||JavaScript.%1)", name));
-        ;;; assert(ns, format("Package not found: '%1'.", name), ReferenceError);
+        var ns = lookup(name) || lookup("JavaScript." + name);
+        ;;; assert(ns, format("Object not found: '%1'.", name), ReferenceError);
         return namespace += ns.namespace;
-      }, _namespace + base2.namespace + JavaScript.namespace) + lang.namespace;
+      }, "var base2=(function(){return this.base2})();" + base2.namespace + JSNamespace) + lang.namespace;
       
       // This string should be evaluated after you have created all of the objects
       // that are being exported.
@@ -26,6 +28,15 @@ var Package = Base.extend({
         return namespace += "if(!" + fullName + ")" + fullName + "=" + name + ";";
       }, "", this);
     }
+
+    function lookup(names) {
+      names = names.split(".");
+      var value = base2, i = 0;
+      while (value && names[i] != null) {
+        value = value[names[i++]];
+      }
+      return value;
+    };
   },
 
   exports: "",

@@ -1,5 +1,5 @@
 
-function detect(_no_shrink_) {
+function detect() {
   // Two types of detection:
   //  1. Object detection
   //    e.g. detect("(java)");
@@ -10,12 +10,9 @@ function detect(_no_shrink_) {
 
   var jscript = NaN/*@cc_on||@_jscript_version@*/; // http://dean.edwards.name/weblog/2007/03/sniff/#comment85164
   var java = global.java ? true : false;
-  var _lookup = {};
   if (global.navigator) {
     var MSIE = /MSIE[\d.]+/g;
-    _lookup.document = document;
-    var element = _lookup.element = document.createElement("span");
-    //var event = document.createEvent ? document.createEvent("UIEvents") : document.createEventObject ? document.createEventObject() : {};
+    var element = document.createElement("span");
     // Close up the space between name and version number.
     //  e.g. MSIE 6 -> MSIE6
     var userAgent = navigator.userAgent.replace(/([a-z])[\s\/](\d)/gi, "$1$2");
@@ -33,17 +30,10 @@ function detect(_no_shrink_) {
       var not = test.charAt(0) == "!";
       if (not) test = test.slice(1);
       if (test.charAt(0) == "(") {
-        // Object detection.
-        if (/^\((element|document)\.\w+\)$/.test(test)) {
-          test = test.slice(1, -1).split(".");
-          returnValue = !!_lookup[test[0]][test[1]];
-        } else {
-          try {
-            eval("var _returnValue=!!" + test);
-            returnValue = _returnValue;
-          } catch (x) {
-            // the test failed
-          }
+        try {
+          returnValue = new Function("element,jscript,java", "return !!" + test)(element, jscript, java);
+        } catch (ex) {
+          // the test failed
         }
       } else {
         // Browser sniffing.
