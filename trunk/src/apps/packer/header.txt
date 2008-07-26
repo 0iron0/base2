@@ -1,0 +1,4 @@
+/*
+  Packer version 3.1 - copyright 2004-2008, Dean Edwards
+  http://www.opensource.org/licenses/mit-license.php
+*/

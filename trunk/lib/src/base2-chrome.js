@@ -2,9 +2,12 @@
   base2 - copyright 2007-2008, Dean Edwards
   http://code.google.com/p/base2/
   http://www.opensource.org/licenses/mit-license.php
+
+  Contributors:
+    Doeke Zanstra
 */
 
-// timestamp: Tue, 15 Jul 2008 14:54:43
+// timestamp: Sat, 26 Jul 2008 00:01:23
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -1084,9 +1087,9 @@ var Spinner = Range.modify({
     } else if (element.readOnly) {
       state = "normal";
     } else if ((element == Chrome._hover || element == Chrome._focus) && Chrome._activeThumb) {
-      state = Chrome._activeThumb + _ACTIVE;
+      state = Chrome._activeThumb + "_" + "active";
     } else if (element == Chrome._hover && Chrome._hoverThumb) {
-      state = Chrome._hoverThumb + _HOVER;
+      state = Chrome._hoverThumb + "_" + "hover";
     } else {
       state = "normal";
     }

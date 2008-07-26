@@ -1,7 +1,7 @@
 
 // DOM Traversal. Just the basics.
 
-var TEXT = _MSIE ? "innerText" : "textContent";
+var TEXT = detect("(element.textContent===undefined)") ? "innerText" : "textContent";
 
 var Traversal = Module.extend({
   getDefaultView: function(node) {

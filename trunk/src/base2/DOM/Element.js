@@ -10,7 +10,7 @@ var _ATTRIBUTES = {
 };
 
 var Element = Node.extend({
-  "@^Win.+MSIE[5-7]": { // MSIE
+  "@MSIE.+win": {
     getAttribute: function(element, name) {
       if (element.className === undefined) { // XML
         return this.base(element, name);
@@ -18,7 +18,8 @@ var Element = Node.extend({
       var attribute = _getAttributeNode(element, name);
       if (attribute && (attribute.specified || name == "value")) {
         if (name == "href" || name == "src") {
-          return this.base(element, name, 2);
+          element.base = element.getAttribute.ancestor;
+          return element[element.base ? "base" : "getAttribute"](name, 2);
         } else if (name == "style") {
          return element.style.cssText.toLowerCase();
         } else {

@@ -48,10 +48,6 @@ var DocumentState = Behavior.modify({
   onmousemove: function() {
     if (!this.busy) this.setBusyState(true)
   },
-  
-  init: function() {
-    this.attach(document);
-  },
 
   addRule: function(selector, behavior) {
     assert(!this.loaded, "Cannot add JSB rules after the DOM has loaded.");
@@ -154,3 +150,5 @@ var DocumentState = Behavior.modify({
     if (this.busy) this.setTimeout(this.setBusyState, 250);
   }
 });
+
+DocumentState.attach(document);

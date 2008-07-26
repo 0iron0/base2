@@ -2,13 +2,16 @@
   base2 - copyright 2007-2008, Dean Edwards
   http://code.google.com/p/base2/
   http://www.opensource.org/licenses/mit-license.php
+
+  Contributors:
+    Doeke Zanstra
 */
 
-// timestamp: Tue, 15 Jul 2008 14:54:40
+// timestamp: Sat, 26 Jul 2008 00:01:22
 
 var base2 = {
   name:    "base2",
-  version: "1.0 (beta 3)",
+  version: "1.0 (RC1)",
   exports:
     "Base,Package,Abstract,Module,Enumerable,Map,Collection,RegGrp," +
     "Undefined,Null,This,True,False,assignID,detect,global",
@@ -143,7 +146,7 @@ var Package = Base.extend({
     this.extend(_public);
     if (this.init) this.init();
     
-    if (this.name != "base2") {
+    if (this.name && this.name != "base2") {
       if (!this.parent) this.parent = base2;
       this.parent.addName(this.name, this);
       this.namespace = format("var %1=%2;", this.name, String2.slice(this, 1, -1));
@@ -314,7 +317,7 @@ function _extendModule(module, _interface, index) {
 
 function _staticModuleMethod(module, name) {
   return function() {
-    return module[name].apply(this, arguments);
+    return module[name].apply(module, arguments);
   };
 };
 
@@ -322,7 +325,7 @@ function _moduleMethod(module, name) {
   return function() {
     var args = _slice.call(arguments);
     args.unshift(this);
-    return module[name].apply(this, args);
+    return module[name].apply(module, args);
   };
 };
 
@@ -419,7 +422,7 @@ var Map = Base.extend({
     base2.__prototyping = true; // not really prototyping but it stops [[construct]] being called
     var copy = new this.constructor;
     delete base2.__prototyping;
-    for (var i in this) if (copy[i] !== this[i]) {
+    for (var i in this) if (this[i] !== copy[i]) {
       copy[i] = this[i];
     }
     return copy;
@@ -485,6 +488,15 @@ var Map = Base.extend({
 
 Map.implement(Enumerable);
 
+Map.prototype.filter = function(test, context) {
+  return this.reduce(function(result, value, key) {
+    if (!test.call(context, value, key, this)) {
+      result.remove(key);
+    }
+    return result;
+  }, this.copy(), this);
+};
+
 // =========================================================================
 // base2/Collection.js
 // =========================================================================
@@ -526,7 +538,7 @@ var Collection = Map.extend({
     return copy;
   },
 
-  forEach: function(block, context) { // optimised (refers to _HASH)
+  forEach: function(block, context) {
     var keys = this[_KEYS];
     var length = keys.length;
     for (var i = 0; i < length; i++) {
@@ -535,13 +547,12 @@ var Collection = Map.extend({
   },
 
   getAt: function(index) {
-    if (index < 0) index += this[_KEYS].length; // starting from the end
-    var key = this[_KEYS][index];
+    var key = this[_KEYS].item(index);
     return (key === undefined)  ? undefined : this[_HASH + key];
   },
 
   getKeys: function() {
-    return this[_KEYS].concat();
+    return this[_KEYS].copy();
   },
 
   indexOf: function(key) {
@@ -552,7 +563,7 @@ var Collection = Map.extend({
     assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
     assert(!this.has(key), "Duplicate key '" + key + "'.");
     this[_KEYS].insertAt(index, String(key));
-    this[_HASH + key] == null; // placeholder
+    this[_HASH + key] = null; // placeholder
     this.put.apply(this, _slice.call(arguments, 1));
   },
   
@@ -587,8 +598,11 @@ var Collection = Map.extend({
   },
 
   removeAt: function(index) {
-    var key = this[_KEYS].removeAt(index);
-    delete this[_HASH + key];
+    var key = this[_KEYS].item(index);
+    if (key !== undefined) {
+      this[_KEYS].removeAt(index);
+      delete this[_HASH + key];
+    }
   },
 
   reverse: function() {
@@ -602,10 +616,9 @@ var Collection = Map.extend({
 
   sort: function(compare) { // optimised (refers to _HASH)
     if (compare) {
-      var self = this;
-      this[_KEYS].sort(function(key1, key2) {
-        return compare(self[_HASH + key1], self[_HASH + key2], key1, key2);
-      });
+      this[_KEYS].sort(bind(function(key1, key2) {
+        return compare(this[_HASH + key1], this[_HASH + key2], key1, key2);
+      }, this));
     } else this[_KEYS].sort();
     return this;
   },
@@ -691,6 +704,7 @@ var RegGrp = Collection.extend({
   },
 
   test: function(string) {
+    // The slow way to do it. Hopefully, this isn't called too often. :-)
     return this.exec(string) != string;
   },
   
@@ -1147,6 +1161,23 @@ if ((new Date).getYear() > 1900) {
   };
 }
 
+// https://bugs.webkit.org/show_bug.cgi?id=9532
+
+var _testDate = new Date(Date.UTC(2006, 1, 20));
+_testDate.setUTCDate(15);
+if (_testDate.getUTCHours() != 0) {
+  forEach.csv("FullYear,Month,Date,Hours,Minutes,Seconds,Milliseconds", function(type) {
+    extend(Date.prototype, "setUTC" + type, function() {
+      var value = base(this, arguments);
+      if (value >= 57722401000) {
+        value -= 3600000;
+        this.setTime(value);
+      }
+      return value;
+    });
+  });
+}
+
 // =========================================================================
 // JavaScript/~/Function.js
 // =========================================================================
@@ -1197,17 +1228,17 @@ var Array2 = _createObject2(
 
     copy: function(array) {
       var copy = _slice.call(array);
-      if (!copy.swap) Array2(copy); // cast to Array2
+      if (array.swap && !copy.swap) Array2(copy); // cast to Array2
       return copy;
     },
 
     flatten: function(array) {
-      var length = 0;
+      var i = 0;
       return Array2.reduce(array, function(result, item) {
         if (Array2.like(item)) {
           Array2.reduce(item, arguments.callee, result);
         } else {
-          result[length++] = item;
+          result[i++] = item;
         }
         return result;
       }, []);
@@ -1259,28 +1290,13 @@ var Array2 = _createObject2(
       return result;
     },
 
-/*  reduceRight: function(array, block, result, context) {
-      var length = array.length;
-      var initialised = arguments.length > 2;
-      this.forEach (Array2.reverse(array), function(value, index) {
-        if (initialised) {
-          result = block.call(context, result, value, length - index, array);
-        } else {
-          result = value;
-          initialised = true;
-        }
-      });
-      return result;
-    }, */
-
     remove: function(array, item) {
       var index = Array2.indexOf(array, item);
       if (index != -1) Array2.removeAt(array, index);
-      return item;
     },
 
     removeAt: function(array, index) {
-      return Array2.splice(array, index, 1);
+      Array2.splice(array, index, 1);
     },
 
     swap: function(array, index1, index2) {
@@ -1298,7 +1314,7 @@ Array2.reduce = Enumerable.reduce; // Mozilla does not implement the thisObj arg
 
 Array2.like = function(object) {
   // is the object like an array?
-  return !!(object && typeof object == "object" && typeof object.length == "number");
+  return typeOf(object) == "object" && typeof object.length == "number";
 };
 
 // introspection (removed when packed)
@@ -1424,7 +1440,7 @@ function trim(string) {
 };
 
 function csv(string) {
-  return string ? String(string).split(/\s*,\s*/) : [];
+  return string ? (string + "").split(/\s*,\s*/) : [];
 };
 
 function format(string) {
@@ -1434,7 +1450,7 @@ function format(string) {
   // Only %1 - %9 supported.
   var args = arguments;
   var pattern = new RegExp("%([1-" + (arguments.length - 1) + "])", "g");
-  return String(string).replace(pattern, function(match, index) {
+  return (string + "").replace(pattern, function(match, index) {
     return args[index];
   });
 };
@@ -1442,12 +1458,12 @@ function format(string) {
 function match(string, expression) {
   // Same as String.match() except that this function will return an empty
   // array if there is no match.
-  return String(string).match(expression) || [];
+  return (string + "").match(expression) || [];
 };
 
 function rescape(string) {
   // Make a string safe for creating a RegExp.
-  return String(string).replace(_RESCAPE, "\\$1");
+  return (string + "").replace(_RESCAPE, "\\$1");
 };
 
 // =========================================================================

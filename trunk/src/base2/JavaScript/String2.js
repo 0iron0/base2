@@ -21,7 +21,7 @@ function trim(string) {
 };
 
 function csv(string) {
-  return string ? String(string).split(/\s*,\s*/) : [];
+  return string ? (string + "").split(/\s*,\s*/) : [];
 };
 
 function format(string) {
@@ -31,7 +31,7 @@ function format(string) {
   // Only %1 - %9 supported.
   var args = arguments;
   var pattern = new RegExp("%([1-" + (arguments.length - 1) + "])", "g");
-  return String(string).replace(pattern, function(match, index) {
+  return (string + "").replace(pattern, function(match, index) {
     return args[index];
   });
 };
@@ -39,10 +39,10 @@ function format(string) {
 function match(string, expression) {
   // Same as String.match() except that this function will return an empty
   // array if there is no match.
-  return String(string).match(expression) || [];
+  return (string + "").match(expression) || [];
 };
 
 function rescape(string) {
   // Make a string safe for creating a RegExp.
-  return String(string).replace(_RESCAPE, "\\$1");
+  return (string + "").replace(_RESCAPE, "\\$1");
 };

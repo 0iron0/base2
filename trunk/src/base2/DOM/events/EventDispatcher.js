@@ -42,7 +42,7 @@ var EventDispatcher = Base.extend({
       // Fix the mouse button (left=0, middle=1, right=2)
       if (_MOUSE_BUTTON.test(type)) {
         var button = _MOUSE_CLICK.test(type) ? this.state._button : event.button;
-        if (button != 2) button = button == 4 ? 1 : 0;
+        button = _TYPE_MAP[button] || 0;
         if (event.button != button) {
           event = copy(event);
           event.button = button;
@@ -62,7 +62,7 @@ var EventDispatcher = Base.extend({
         this.dispatch(nodes, event, _BUBBLING_PHASE);
       }
     }
-    return event.returnValue;
+    return event.returnValue !== false;
   },
 
   "@MSIE.+win": {
@@ -71,6 +71,7 @@ var EventDispatcher = Base.extend({
         // horrible IE bug (setting style during scroll event causes crash)
         // the scroll event can't be cancelled so it's not a problem to use a timer
         setTimeout(bind(this.base, this, copy(event), true), 0);
+        return true;
       } else {
         return this.base(event);
       }
@@ -78,7 +79,7 @@ var EventDispatcher = Base.extend({
     
     "@MSIE5": {
       dispatch: function(nodes, event, phase) {
-        // IE5.0 documentElement does not have a parentNode so document is missing
+        // IE5.x documentElement does not have a parentNode so document is missing
         // from the nodes collection
         if (phase == _CAPTURING_PHASE && !Array2.item(nodes, -1).documentElement) {
           nodes.push(nodes[0].document);

@@ -3,7 +3,8 @@
 
 // textInput event
 
-var _CAPTURE_TYPE = {};
+var _CAPTURE_TYPE = {},
+    _TYPE_MAP     = {"2": 2, "4": 1};
 
 var _CAPTURING_PHASE = 1,
     _AT_TARGET       = 2,

@@ -25,7 +25,7 @@ var DOMContentLoadedEvent = Base.extend({
 
   listen: Undefined,
 
-  "@!Gecko20([^0]|0[3-9])|Webkit(4[2-9]|5-9)|Opera[19]|MSIE.+mac": {
+  "@!Gecko20([^0]|0[3-9])|Webkit[5-9]|Opera[19]|MSIE.+mac": {
     listen: function(document) {
       // if all else fails fall back on window.onload
       EventTarget.addEventListener(Traversal.getDefaultView(document), "load", this.fire, false);

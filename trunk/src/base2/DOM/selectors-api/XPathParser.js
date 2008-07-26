@@ -83,7 +83,7 @@ var XPathParser = CSSParser.extend({
     },
     
     attributes: function(replacement, operator) {
-      this["\\[([\\w-]+)\\s*" + rescape(operator) +  "\\s*([^\\]]*)\\]"] = replacement;
+      this["\\[\\s*([\\w-]+)\\s*" + rescape(operator) +  "\\s*([^\\]\\s]*)\\s*\\]"] = replacement;
     },
     
     pseudoClasses: function(replacement, pseudoClass) {

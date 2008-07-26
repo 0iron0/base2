@@ -24,14 +24,7 @@ var EventListener = Base.extend({
     handleEvent: function(event) {
       var target = event.target;
       if (_EVENT_MOUSE.test(event.type)) {
-        var originalEvent = event;
-        event = copy(originalEvent);
-        event.stopPropagation = function() {
-          originalEvent.stopPropagation();
-        };
-        event.preventDefault = function() {
-          originalEvent.preventDefault();
-        };
+        event = Event.cloneEvent(event);
         event.offsetX += target.clientLeft;
         event.offsetY += target.clientTop;
       }
@@ -43,12 +36,12 @@ var EventListener = Base.extend({
     handleEvent: function(event) {
       var target = event.target;
       if (_EVENT_MOUSE.test(event.type)) {
-        event = copy(event);
+        event = Event.cloneEvent(event);
         var hasLayout = target.currentStyle.hasLayout;
         if (hasLayout === false || !target.clientWidth) {
           event.offsetX -= target.offsetLeft;
           event.offsetY -= target.offsetTop;
-          if (hasLayout === undefined) {
+          if (hasLayout === undefined) { // this should probably be a test for quirks mode
             event.offsetX -= 2;
             event.offsetY -= 2;
           }

@@ -19,17 +19,17 @@ var Array2 = _createObject2(
 
     copy: function(array) {
       var copy = _slice.call(array);
-      if (!copy.swap) Array2(copy); // cast to Array2
+      if (array.swap && !copy.swap) Array2(copy); // cast to Array2
       return copy;
     },
 
     flatten: function(array) {
-      var length = 0;
+      var i = 0;
       return Array2.reduce(array, function(result, item) {
         if (Array2.like(item)) {
           Array2.reduce(item, arguments.callee, result);
         } else {
-          result[length++] = item;
+          result[i++] = item;
         }
         return result;
       }, []);
@@ -81,28 +81,13 @@ var Array2 = _createObject2(
       return result;
     },
 
-/*  reduceRight: function(array, block, result, context) {
-      var length = array.length;
-      var initialised = arguments.length > 2;
-      this.forEach (Array2.reverse(array), function(value, index) {
-        if (initialised) {
-          result = block.call(context, result, value, length - index, array);
-        } else {
-          result = value;
-          initialised = true;
-        }
-      });
-      return result;
-    }, */
-
     remove: function(array, item) {
       var index = Array2.indexOf(array, item);
       if (index != -1) Array2.removeAt(array, index);
-      return item;
     },
 
     removeAt: function(array, index) {
-      return Array2.splice(array, index, 1);
+      Array2.splice(array, index, 1);
     },
 
     swap: function(array, index1, index2) {
@@ -120,7 +105,7 @@ Array2.reduce = Enumerable.reduce; // Mozilla does not implement the thisObj arg
 
 Array2.like = function(object) {
   // is the object like an array?
-  return !!(object && typeof object == "object" && typeof object.length == "number");
+  return typeOf(object) == "object" && typeof object.length == "number";
 };
 
 // introspection (removed when packed)

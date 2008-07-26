@@ -24,17 +24,23 @@ if (!file_exists($PACKAGE)) {
 	exit;
 }
 
-include("header.txt");
-print("\r\n// timestamp: ".gmdate('D, d M Y H:i:s')."\r\n");
-
 $dom = new DomDocument;
 $p = path_resolve($PACKAGE, $HBASE);
 $dom->load($p);
 $package =  $dom->documentElement;
 $loaded = Array();
 
+$header = $package->getAttribute('header');
+if ($header == '') {
+  include("header.txt");
+} else {
+	readfile(path_resolve($header, $PBASE));
+}
+
+print("\r\n// timestamp: ".gmdate('D, d M Y H:i:s')."\r\n");
+
 if (preg_match('/(^|\&)full($|\=|\&)/i',$_SERVER['QUERY_STRING'])) {
-	readfile(path_resolve('~/base2.js',$PBASE));
+	readfile(path_resolve('~/base2.js', $PBASE));
 	
 	if ($package->getAttribute('name') != 'base2') {
 		load_package(path_resolve('~/base2/package.xml',$PBASE));
@@ -75,7 +81,10 @@ function print_package($package, $pbase) {
 	$publish = $package->getAttribute('publish') != 'false';
 	$closure = $package->getAttribute('closure') != 'false';
 	
-	if ($closure) print("\r\nnew function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////\r\n");
+	if ($closure) {
+    $shrink = ($package->getAttribute('shrink') == 'true') ? '' : '_no_shrink_';
+    print("\r\nnew function($shrink) { ///////////////  BEGIN: CLOSURE  ///////////////\r\n");
+  }
 	$includes = $package->getElementsByTagName('include');
 	foreach ($includes as $include) {
 		$src = path_resolve($include->getAttribute('src'), $pbase);
@@ -84,9 +93,11 @@ function print_package($package, $pbase) {
 		if (preg_match($REG_XML, $src)) {
 			load_package($src);
 		} else {
-			print("\r\n// =========================================================================\r\n");
-			print('// '.preg_replace('/^\//', '', preg_replace('/[\w\-]+\/\.\./', '', $name.'/'.$include->getAttribute('src'))));
-			print("\r\n// =========================================================================\r\n");
+      if ($include->getAttribute('header') != 'false') {
+  			print("\r\n// =========================================================================\r\n");
+  			print('// '.preg_replace('/^\//', '', preg_replace('/[\w\-]+\/\.\./', '', $name.'/'.$include->getAttribute('src'))));
+  			print("\r\n// =========================================================================\r\n");
+      }
 			if ($var) {
 				print("var ".$var."=".json_encode(file_get_contents($src)).";\r\n");
 			}

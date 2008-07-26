@@ -19,13 +19,20 @@ var EventDelegator = Base.extend({
     } else {
       var capture = Behavior._captureMouse && _MOUSE_CAPTURE.test(type);
       var target = capture ? Behavior._captureElement : event.target;
+      var cancelBubble = !event.bubbles || capture;
+      if (!cancelBubble) {
+        extend(event, "stopPropagation", function() {
+          this.base();
+          cancelBubble = true;
+        });
+      }
       do {
         // make sure it's an attached element
         if (this.attached[target.base2ID]) {
           behavior.handleEvent(target, event, type);
         }
         target = target.parentNode;
-      } while (target && !capture);
+      } while (target && !cancelBubble);
     }
   }
 });

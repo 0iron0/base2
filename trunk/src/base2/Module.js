@@ -98,7 +98,7 @@ function _extendModule(module, _interface, index) {
 
 function _staticModuleMethod(module, name) {
   return function() {
-    return module[name].apply(this, arguments);
+    return module[name].apply(module, arguments);
   };
 };
 
@@ -106,6 +106,6 @@ function _moduleMethod(module, name) {
   return function() {
     var args = _slice.call(arguments);
     args.unshift(this);
-    return module[name].apply(this, args);
+    return module[name].apply(module, args);
   };
 };

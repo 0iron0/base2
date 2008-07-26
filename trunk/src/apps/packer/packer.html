@@ -7,22 +7,21 @@
  <meta name="keywords" content="packer,javascript,compressor,obfuscator"/>
  <link rel="stylesheet" href="packer.css" type="text/css" media="screen, projection"/>
  <script src="../../../lib/base2-jsb-fp.js" type="text/javascript"></script>
- <script src="Packer.js" type="text/javascript"></script>
- <script src="Words.js" type="text/javascript"></script>
+ <script src="../../../lib/packer-p.js" type="text/javascript"></script>
  <script src="behaviors.js" type="text/javascript"></script>
 </head>
 <body>
- <h1>Packer 3.1 (alpha 5)</h1>
+ <h1>Packer 3.1</h1>
  <form action="" method="post">
   <p><label class="paste">Paste:</label><br />
    <textarea id="input" name="input" rows="10" cols="80" spellcheck="false"></textarea></p>
   <p id="controls">
    <label for="base62">Base62 encode
-	<input type="checkbox" name="base62"/></label><br />
+	<input type="checkbox" name="base62" id="base62"/></label><br />
    <label for="shrink">Shrink variables
-    <input type="checkbox" name="shrink"/></label><br />
+    <input type="checkbox" name="shrink" id="shrink"/></label><br />
    <label for="privates">Encode privates
-    <input type="checkbox" name="privates" name="privates" value="1"/></label></p>
+    <input type="checkbox" name="privates" id="privates" value="1"/></label></p>
   <p class="form-buttons" id="input-buttons">
    <button type="button" name="clear" id="clear">Clear</button>
    <button type="button" name="pack" id="pack">Pack</button></p>

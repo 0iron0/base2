@@ -36,7 +36,7 @@ var Collection = Map.extend({
     return copy;
   },
 
-  forEach: function(block, context) { // optimised (refers to _HASH)
+  forEach: function(block, context) {
     var keys = this[_KEYS];
     var length = keys.length;
     for (var i = 0; i < length; i++) {
@@ -45,13 +45,12 @@ var Collection = Map.extend({
   },
 
   getAt: function(index) {
-    if (index < 0) index += this[_KEYS].length; // starting from the end
-    var key = this[_KEYS][index];
+    var key = this[_KEYS].item(index);
     return (key === undefined)  ? undefined : this[_HASH + key];
   },
 
   getKeys: function() {
-    return this[_KEYS].concat();
+    return this[_KEYS].copy();
   },
 
   indexOf: function(key) {
@@ -62,7 +61,7 @@ var Collection = Map.extend({
     assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
     assert(!this.has(key), "Duplicate key '" + key + "'.");
     this[_KEYS].insertAt(index, String(key));
-    this[_HASH + key] == null; // placeholder
+    this[_HASH + key] = null; // placeholder
     this.put.apply(this, _slice.call(arguments, 1));
   },
   
@@ -97,8 +96,11 @@ var Collection = Map.extend({
   },
 
   removeAt: function(index) {
-    var key = this[_KEYS].removeAt(index);
-    delete this[_HASH + key];
+    var key = this[_KEYS].item(index);
+    if (key !== undefined) {
+      this[_KEYS].removeAt(index);
+      delete this[_HASH + key];
+    }
   },
 
   reverse: function() {
@@ -112,10 +114,9 @@ var Collection = Map.extend({
 
   sort: function(compare) { // optimised (refers to _HASH)
     if (compare) {
-      var self = this;
-      this[_KEYS].sort(function(key1, key2) {
-        return compare(self[_HASH + key1], self[_HASH + key2], key1, key2);
-      });
+      this[_KEYS].sort(bind(function(key1, key2) {
+        return compare(this[_HASH + key1], this[_HASH + key2], key1, key2);
+      }, this));
     } else this[_KEYS].sort();
     return this;
   },

@@ -1,20 +1,5 @@
-/*
-  Packer version 3.1 (alpha 4) - copyright 2004-2008, Dean Edwards
-  http://www.opensource.org/licenses/mit-license.php
-*/
 
-eval(base2.namespace);
-eval(JavaScript.namespace);
-eval(Function2.namespace);
-eval(Enumerable.namespace);
-eval(lang.namespace);
-
-var IGNORE = RegGrp.IGNORE;
-var KEYS   = "~";
-var REMOVE = "";
-var SPACE  = " ";
-
-var Packer = Base.extend({
+global.Packer = Base.extend({
   minify: function(script) {
     // packing with no additional options
     script += "\n";
@@ -22,6 +7,7 @@ var Packer = Base.extend({
     script = Packer.comments.exec(script);
     script = Packer.clean.exec(script);
     script = Packer.whitespace.exec(script);
+    script = Packer.concat.exec(script);
     return script;
   },
   
@@ -57,7 +43,7 @@ var Packer = Base.extend({
   },
 
   _base62Encode: function(script, shrink) {
-    var words = new Base62();
+    var words = new Base62;
     var pattern = Packer.WORDS;
     if (shrink) pattern = new RegExp(Packer.SHRUNK.source + "|" + pattern.source , "g");
     
@@ -142,7 +128,6 @@ var Packer = Base.extend({
     var VARS        = /\bvar\s+[\w$]+[^;#]*|\bfunction\s+[\w$]+/g;
     var VAR_TIDY    = /\b(var|function)\b|\sin\s+[^;]+/g;
     var VAR_EQUAL   = /\s*=[^,;]*/g;
-    var PROTECTED
     
     var blocks = []; // store program blocks (anything between braces {})
     var total = 0;
@@ -181,7 +166,7 @@ var Packer = Base.extend({
               processed[id] = true;
               id = rescape(id);
               // encode variable names
-              while (new RegExp("@" + count + "\\b").test(block)) count++
+              while (new RegExp(PREFIX + count + "\\b").test(block)) count++;
               var reg = new RegExp("([^\\w$.])" + id + "([^\\w$:])");
               while (reg.test(block)) {
                 block = block.replace(global(reg), "$1" + PREFIX + count + "$2");
@@ -237,7 +222,7 @@ var Packer = Base.extend({
     return this.decode(script);
   }
 }, {
-  version: "3.1 (alpha 4)",
+  version: "3.1",
   
   CONTINUE: /\\\r?\n/g,
   ENCODED:  /\x01(\d+)\x01/g,
@@ -256,18 +241,29 @@ var Packer = Base.extend({
   init: function() {
     eval("var e=this.encode62=" + this.ENCODE62);
     this.data = this.build(this.data);
+    this.concat = this.build(this.concat).merge(this.data);
+    extend(this.concat, "exec", function(script) {
+      var parsed = this.base(script);
+      while (parsed != script) {
+        script = parsed;
+        parsed = this.base(script);
+      }
+      return parsed;
+    });
     forEach.csv("comments,clean,whitespace", function(name) {
       this[name] = this.data.union(this.build(this[name]));
     }, this);
+    this.conditionalComments = this.comments.copy();
+    this.conditionalComments.putAt(-1, " $3");
     this.whitespace.removeAt(2); // conditional comments
+    this.comments.removeAt(2);
   },
   
   build: function(group) {
-    var javascript = this.javascript;
     return reduce(group, function(data, replacement, expression) {
-      data.put(javascript.exec(expression), replacement);
+      data.put(this.javascript.exec(expression), replacement);
       return data;
-    }, new RegGrp);
+    }, new RegGrp, this);
   },
   
   clean: {
@@ -275,11 +271,27 @@ var Packer = Base.extend({
     "throw[^};]+[};]": IGNORE, // a safari 1.3 bug
     ";+\\s*([};])": "$1"
   },
-  
+
   comments: {
     ";;;[^\\n]*\\n": REMOVE,
     "(COMMENT1)\\n\\s*(REGEXP)?": "\n$3",
-    "(COMMENT2)\\s*(REGEXP)?": " $3"
+    "(COMMENT2)\\s*(REGEXP)?": function(match, comment, $2, regexp) {
+      if (/^\/\*@/.test(comment) && /@\*\/$/.test(comment)) {
+        comment = Packer.conditionalComments.exec(comment);
+      } else {
+        comment = "";
+      }
+      return comment + " " + (regexp || "");
+    }
+  },
+
+  concat: {
+    "(STRING1)\\+(STRING1)": function(match, a, $2, b) {
+      return a.slice(0, -1) + b.slice(1);
+    },
+    "(STRING2)\\+(STRING2)": function(match, a, $2, b) {
+      return a.slice(0, -1) + b.slice(1);
+    }
   },
   
   data: {

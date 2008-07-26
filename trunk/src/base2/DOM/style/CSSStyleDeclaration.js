@@ -29,7 +29,7 @@ var CSSStyleDeclaration = _CSSStyleDeclaration_ReadOnly.extend({
         if (priority == "important") {
           style.cssText += format(";%1:%2!important;", propertyName, value);
         } else {
-          style.setAttribute(propertyName, value);
+          style.setAttribute(ViewCSS.toCamelCase(propertyName), value);
         }
       }
     }
@@ -48,7 +48,7 @@ var _CSSPropertyNameMap = new Base({
   "@Gecko": {
     opacity: "-moz-opacity"
   },
-  
+
   "@KHTML": {
     opacity: "-khtml-opacity"
   }
