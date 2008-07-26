@@ -1,10 +1,11 @@
 
 // http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-ViewCSS
 
-var _PIXEL   = /^\d+(px)?$/i;
-var _METRICS = /(width|height|top|bottom|left|right|fontSize)$/;
-var _COLOR   = /^(color|backgroundColor)$/;
-var _RUBY    = /^ruby/;
+var _PIXEL     = /^\d+(px)?$/i,
+    _METRICS   = /(width|height|top|bottom|left|right|fontSize)$/,
+    _COLOR     = /^(color|backgroundColor)$/,
+    _RGB_BLACK = "rgb(0, 0, 0)",
+    _BLACK     = {black:1, "#000":1, "#000000":1};
 
 var ViewCSS = Interface.extend({
   "@!(document.defaultView.getComputedStyle)": {
@@ -13,11 +14,11 @@ var ViewCSS = Interface.extend({
         // pseudoElement parameter is not supported
         var currentStyle = element.currentStyle;
         var computedStyle = {};
-        for (var i in currentStyle) {
-          if (_METRICS.test(i) || _COLOR.test(i)) {
-            computedStyle[i] = this.getComputedPropertyValue(view, element, i);
-          } else if (!_RUBY.test(i)) {
-            computedStyle[i] = currentStyle[i];
+        for (var propertyName in currentStyle) {
+          if (_METRICS.test(propertyName) || _COLOR.test(propertyName)) {
+            computedStyle[propertyName] = this.getComputedPropertyValue(view, element, propertyName);
+          } else if (propertyName.indexOf("ruby") != 0) {
+            computedStyle[propertyName] = currentStyle[propertyName];
           }
         }
         return computedStyle;
@@ -36,11 +37,14 @@ var ViewCSS = Interface.extend({
   "@MSIE": {
     getComputedPropertyValue: function(view, element, propertyName) {
       propertyName = this.toCamelCase(propertyName);
+      var value = element.currentStyle[propertyName];
       if (_METRICS.test(propertyName))
-        return _MSIE_getPixelValue(element, element.currentStyle[propertyName]) + "px";
-      if (!_MSIE5 && _COLOR.test(propertyName))
-        return _MSIE_getColorValue(element, propertyName == "color" ? "ForeColor" : "BackColor");
-      return element.currentStyle[propertyName];
+        return _MSIE_getPixelValue(element, value) + "px";
+      if (!_MSIE5 && _COLOR.test(propertyName)) {
+        var rgb = _MSIE_getColorValue(element, propertyName == "color" ? "ForeColor" : "BackColor");
+        return (rgb == _RGB_BLACK && !_BLACK[value]) ? value : rgb;
+      }
+      return value;
     }
   },
   

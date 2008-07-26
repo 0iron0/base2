@@ -2,7 +2,7 @@
 var _CSS_ESCAPE =           /'(\\.|[^'\\])*'|"(\\.|[^"\\])*"/g,
     _CSS_IMPLIED_ASTERISK = /([\s>+~,]|[^(]\+|^)([#.:\[])/g,
     _CSS_IMPLIED_SPACE =    /(^|,)([^\s>+~])/g,
-    _CSS_WHITESPACE =       /\s*([\s>+~(),]|^|$)\s*/g,
+    _CSS_WHITESPACE =       /\s*([\s>+~,]|^|$)\s*/g,
     _CSS_WILD_CARD =        /\s\*\s/g,
     _CSS_UNESCAPE =         /\x01(\d+)/g,
     _QUOTE =                /'/g;

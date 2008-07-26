@@ -4,7 +4,7 @@ var Package = Base.extend({
     this.extend(_public);
     if (this.init) this.init();
     
-    if (this.name != "base2") {
+    if (this.name && this.name != "base2") {
       if (!this.parent) this.parent = base2;
       this.parent.addName(this.name, this);
       this.namespace = format("var %1=%2;", this.name, String2.slice(this, 1, -1));

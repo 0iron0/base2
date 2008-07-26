@@ -52,6 +52,7 @@ var RegGrp = Collection.extend({
   },
 
   test: function(string) {
+    // The slow way to do it. Hopefully, this isn't called too often. :-)
     return this.exec(string) != string;
   },
   

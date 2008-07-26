@@ -18,7 +18,7 @@ var Map = Base.extend({
     base2.__prototyping = true; // not really prototyping but it stops [[construct]] being called
     var copy = new this.constructor;
     delete base2.__prototyping;
-    for (var i in this) if (copy[i] !== this[i]) {
+    for (var i in this) if (this[i] !== copy[i]) {
       copy[i] = this[i];
     }
     return copy;
@@ -83,3 +83,12 @@ var Map = Base.extend({
 });
 
 Map.implement(Enumerable);
+
+Map.prototype.filter = function(test, context) {
+  return this.reduce(function(result, value, key) {
+    if (!test.call(context, value, key, this)) {
+      result.remove(key);
+    }
+    return result;
+  }, this.copy(), this);
+};

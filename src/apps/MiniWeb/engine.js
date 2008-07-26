@@ -2,9 +2,12 @@
   base2 - copyright 2007-2008, Dean Edwards
   http://code.google.com/p/base2/
   http://www.opensource.org/licenses/mit-license.php
+
+  Contributors:
+    Doeke Zanstra
 */
 
-// timestamp: Tue, 15 Jul 2008 14:54:43
+// timestamp: Sat, 26 Jul 2008 00:01:23
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -856,7 +859,7 @@ var HTMLFormItem = HTMLElement.extend(null, {
         return item.checked;
       case "image":
       case "submit":
-        return item == Traversal.getOwnerDocument(item).activeElement;
+        return ElementSelector.matchesSelector(item, ":active");
       default:
         return true;
     }

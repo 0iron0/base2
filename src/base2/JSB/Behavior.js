@@ -33,7 +33,6 @@ var Behavior = new Base({
     });
 
     behavior.attach = function(element) {
-      //if (!element) return;
       var base2ID = element.base2ID || assignID(element);
       if (!attachedElementIDs[base2ID]) { // Don't attach more than once.
         attachedElementIDs[base2ID] = true;
@@ -68,8 +67,6 @@ var Behavior = new Base({
       delete attachedElementIDs[element.base2ID];
       return element;
     };
-    
-    if (behavior.init) behavior.init();
 
     return behavior;
   },
@@ -138,7 +135,7 @@ var Behavior = new Base({
       var behavior = this;
       Behavior._captureElement = element;
       Behavior._captureMouse = function(event) {
-        if (_OPERA) getSelection().collapse(document.body, 0); // prevent text selection
+        if (_OPERA9) getSelection().collapse(document.body, 0); // prevent text selection
         if (event.type == "mousemove" || event.eventPhase == Event.BUBBLING_PHASE) {
           behavior.handleEvent(element, event, event.type);
         }

@@ -10,6 +10,7 @@ var StaticNodeList = Base.extend({
     nodes = nodes || [];
     this.length = nodes.length;
     this.item = function(index) {
+      if (index < 0) index += this.length; // starting from the end
       return nodes[index];
     };
 /*  // Sorting large node lists can be slow so only do it if necessary.
@@ -29,6 +30,15 @@ var StaticNodeList = Base.extend({
   },
 
   item: Undefined, // defined in the constructor function
+
+  not: function(test, context) {
+    return this.filter(not(test), context);
+  },
+
+  slice: function(start, length) {
+    return new StaticNodeList(this.map(I).slice(start, length));
+  },
+  
 //sort: This,
 
   "@(XPathResult)": {
@@ -36,6 +46,7 @@ var StaticNodeList = Base.extend({
       if (nodes && nodes.snapshotItem) {
         this.length = nodes.snapshotLength;
         this.item = function(index) {
+          if (index < 0) index += this.length; // starting from the end
           return nodes.snapshotItem(index);
         };
       } else this.base(nodes);
@@ -44,6 +55,26 @@ var StaticNodeList = Base.extend({
 });
 
 StaticNodeList.implement(Enumerable);
+
+var _matchesSelector = function(test, context) {
+  if (typeof test != "function") {
+    test = bind("test", new Selector(test));
+  }
+  return this.base(test, context);
+};
+
+StaticNodeList.implement({
+  every: _matchesSelector,
+  filter: _matchesSelector,
+  not: _matchesSelector,
+  some: _matchesSelector
+});
+
+StaticNodeList.implement({
+  filter: function(test, context) {
+    return new StaticNodeList(this.base(test, context));
+  }
+});
 
 /*
 var _SORTER = _INDEXED ? function(node1, node2) {

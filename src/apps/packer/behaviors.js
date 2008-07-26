@@ -1,9 +1,11 @@
 
+eval (base2.lang.namespace);
+
 var packer = new Packer;
 
 new base2.JSB.RuleList({
   "form": {
-    ondocumentready: function(form) {
+    oncontentready: function(form) {
       form.output.value = "";
       this.ready(form);
     },

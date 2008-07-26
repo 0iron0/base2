@@ -52,5 +52,20 @@ var Event = Binding.extend({
         return this.base(event);
       }
     }
+  },
+
+  cloneEvent: function(event) {
+    var clone = copy(event);
+    clone.stopPropagation = function() {
+      event.stopPropagation();
+    };
+    clone.preventDefault = function() {
+      event.preventDefault();
+    };
+    return clone;
+  },
+
+  "@MSIE" : {
+    cloneEvent: copy
   }
 });

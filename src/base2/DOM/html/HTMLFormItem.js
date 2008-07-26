@@ -13,7 +13,7 @@ var HTMLFormItem = HTMLElement.extend(null, {
         return item.checked;
       case "image":
       case "submit":
-        return item == Traversal.getOwnerDocument(item).activeElement;
+        return ElementSelector.matchesSelector(item, ":active");
       default:
         return true;
     }
