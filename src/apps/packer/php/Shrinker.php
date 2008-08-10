@@ -101,9 +101,7 @@ class Shrinker {
         foreach ($matches[0] as $id) {
           if (!$processed[$id]) {
             $processed[$id] = true;
-            echo($id."\n");
             $id = RegGrp::escape($id);
-            echo($id."\n");
             // encode variable names
             while (preg_match('/'.$PREFIX.$count.'\\b/', $block)) $count++;
             $reg = '/([^\\w$.])'.$id.'([^\\w$:])/';
