@@ -19,7 +19,7 @@ class RegGrp extends Collection {
     return preg_match_all(self::$BRACKETS, $expression, $dummy);
   }
   
-  function escape($string) {
+  public static function escape($string) {
     // Make a string safe for creating a RegExp.
     return preg_replace(self::$ESCAPE, '\\\\$1', $string);
   }

@@ -1,6 +1,8 @@
 <?php
 
 class Shrinker {
+  const SHRUNK           = '/@\\d+\\b/';
+  
   // identify blocks, particularly identify function blocks (which define scope)
   private $BLOCK         = '/((catch|do|if|while|with|function)\\b[^~{};]*(\\(\\s*[^{};]*\\s*\\))\\s*)?(\\{[^{}]*\\})/';
   private $BRACKETS      = '/\\{[^{}]*\\}|\\[[^\\[\\]]*\\]|\\([^\\(\\)]*\\)|~[^~]+~/';
@@ -8,7 +10,6 @@ class Shrinker {
   private $ENCODED_DATA  = '/\\x01(\\d+)\\x01/';
   private $IDENTIFIER    = '/[a-zA-Z_$][\\w\\$]*/';
   private $SCOPED        = '/~#(\\d+)~/';
-  private $SHRUNK        = '/@\\d+\\b/';
   private $VAR           = '/\\bvar\\b/';
   private $VARS          = '/\\bvar\\s+[\\w$]+[^;#]*|\\bfunction\\s+[\\w$]+/';
   private $VAR_TIDY      = '/\\b(var|function)\\b|\\sin\\s+[^;]+/';
@@ -27,7 +28,7 @@ class Shrinker {
     $script = $this->decodeBlocks($this->encodeBlocks($script), $this->ENCODED_BLOCK);
 
     if (!$base62) {
-      $this->shrunk = new Words($script, $this->SHRUNK);
+      $this->shrunk = new Words($script, self::SHRUNK);
       $this->count = 0;
       $this->shrunk->encode(array(&$this, '_varEncoder'));
       $script = $this->shrunk->exec($script);
