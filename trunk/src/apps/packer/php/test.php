@@ -15,12 +15,12 @@
     echo(htmlspecialchars($_POST['input']));
    ?></textarea></p>
   <p id="controls">
-   <label for="base62">Base62 encode
-	<input type="checkbox" name="base62" id="base62"/></label><br />
    <label for="shrink">Shrink variables
     <input type="checkbox" name="shrink" id="shrink"/></label><br />
    <label for="privates">Encode privates
-    <input type="checkbox" name="privates" id="privates" value="1"/></label></p>
+    <input type="checkbox" name="privates" id="privates" value="1"/></label><br />
+   <label for="base62">Base62 encode
+	  <input type="checkbox" name="base62" id="base62"/></label></p>
   <p class="form-buttons" id="input-buttons">
    <button type="reset" name="clear" id="clear" onclick="document.forms[0].output=''">Clear</button>
    <button type="submit" name="pack" id="pack">Pack</button></p>
