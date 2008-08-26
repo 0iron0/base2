@@ -7,7 +7,7 @@ doc.data = new Base({
   },
 
   makepath: function(objectID, entry) {
-    return this.PATH + objectID.replace(/::/, '.prototype.').split('.').join('/') + '/#' + entry;
+    return this.PATH + String(objectID).replace(/::/, '.prototype.').split('.').join('/') + '/#' + entry;
   },
 
   read: function(objectID, entry) {

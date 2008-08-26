@@ -7,7 +7,7 @@
     Doeke Zanstra
 */
 
-// timestamp: Sat, 26 Jul 2008 00:01:23
+// timestamp: Tue, 26 Aug 2008 18:47:01
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -40,7 +40,7 @@ doc.data = new Base({
   },
 
   makepath: function(objectID, entry) {
-    return this.PATH + objectID.replace(/::/, '.prototype.').split('.').join('/') + '/#' + entry;
+    return this.PATH + String(objectID).replace(/::/, '.prototype.').split('.').join('/') + '/#' + entry;
   },
 
   read: function(objectID, entry) {
@@ -88,7 +88,7 @@ forEach (base2.exports.match(LIST), function(name) {
         }
       });
     } else if (Module.ancestorOf(property)) {
-      forEach(property["#implements"], function(module) {
+      forEach (property["#implements"], function(module) {
         forEach (module, function(method, name) {
           if (!Module[name] && typeOf(method) == "function" && property[name]) {
             property[name]._module = module;

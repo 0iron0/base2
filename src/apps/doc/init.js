@@ -19,7 +19,7 @@ forEach (base2.exports.match(LIST), function(name) {
         }
       });
     } else if (Module.ancestorOf(property)) {
-      forEach(property["#implements"], function(module) {
+      forEach (property["#implements"], function(module) {
         forEach (module, function(method, name) {
           if (!Module[name] && typeOf(method) == "function" && property[name]) {
             property[name]._module = module;

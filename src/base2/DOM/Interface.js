@@ -28,6 +28,7 @@ var Interface = Module.extend(null, {
 });
 
 function _createDelegates(module, _interface) {
+  var id = module.toString().slice(1, -1);
   for (var name in _interface) {
     var property = _interface[name];
     if (name.charAt(0) == "@") {
@@ -42,7 +43,7 @@ function _createDelegates(module, _interface) {
       var fn = new Function(args.join(","), format("%2.base=%2.%1.ancestor;var m=%2.base?'base':'%1';return %2[m](%3)", name, args[0], args.slice(1)));
       fn._delegate = name;
       module[name] = fn;
-      module.namespace += "var " + name + "=base2.lang.bind('" + name + "',base2.Module[" + module.toString("index") + "]);";
+      module.namespace += "var " + name + "=base2.lang.bind('" + name + "'," + id + ");";
     }
   }
 };

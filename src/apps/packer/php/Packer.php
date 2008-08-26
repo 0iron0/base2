@@ -19,6 +19,13 @@ class Packer {
     return $encoded;
   }
 
+  public static function encode62($n) {
+    $left = $n < 62 ? '' : self::encode62((int)($n / 62));
+    $n = $n % 62;
+    $right = $n > 35 ? chr($n + 29) : base_convert($n, 10, 36);
+    return $left.$right;
+  }
+
   private $minifier;
   private $shrinker;
   private $privates;
@@ -26,16 +33,16 @@ class Packer {
 
   public function __construct() {
     $this->minifier = new Minifier;
-    //$this->privates = new Privates;
     $this->shrinker = new Shrinker;
-    //$this->base62 = new Base62;
+    $this->privates = new Privates;
+    $this->base62   = new Base62;
   }
 
   public function pack($script = '', $base62 = false, $shrink = true, $privates = false) {
     $script = $this->minifier->minify($script);
-    if ($shrink) $script = $this->shrinker->shrink($script, $base62);
-    //if ($privates) $script = $this->privates->encode($script);
-    //if ($base62) $script = $this->base62->encode($script, $shrink);
+    if ($shrink) $script = $this->shrinker->shrink($script);
+    if ($privates) $script = $this->privates->encode($script);
+    if ($base62) $script = $this->base62->encode($script);
     return $script;
   }
 }

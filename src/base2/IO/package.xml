@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="IO" requires="JSON">
+<package name="IO">
   <include src="package.js"/>
   <include src="../utils/XPCOM.js"/>
   <include src="FileSystem.js"/>
@@ -7,6 +7,4 @@
   <include src="LocalFileSystem.js"/>
   <include src="LocalDirectory.js"/>
   <include src="LocalFile.js"/>
-  <include src="JSONFileSystem.js"/>
-  <include src="JSONDirectory.js"/>
 </package>

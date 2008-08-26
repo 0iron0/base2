@@ -48,7 +48,7 @@ var EventTarget = Interface.extend({
   "@(element.addEventListener)": {
     "@Gecko": {
       addEventListener: function(target, type, listener, useCapture) {
-        if (type == "mousewheel") {
+        if (type == "mousewheel") { // this event cannot be removed
           type = "DOMMouseScroll";
           var originalListener = listener;
           listener = _wrappedListeners[assignID(listener)] = function(event) {
@@ -116,8 +116,10 @@ var EventTarget = Interface.extend({
       }
     },
 
-    removeEventListener: function(target, type, listener, useCapture) {
-      this.base(target, type, _wrappedListeners[listener.base2ID] || listener, useCapture);
+    "@Linux|Mac|opera|webkit[1-4]": {
+      removeEventListener: function(target, type, listener, useCapture) {
+        this.base(target, type, _wrappedListeners[listener.base2ID] || listener, useCapture);
+      }
     }
   }
 });

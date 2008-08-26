@@ -33,7 +33,7 @@ var NodeSelector = Interface.extend({
   }
 });
 
-// automatically bind objects retrieved using the Selectors API
+// automatically bind objects retrieved using the Selectors API on a bound node
 
 extend(NodeSelector.prototype, {
   querySelector: function(selector) {

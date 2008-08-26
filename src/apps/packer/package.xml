@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="packer" publish="false" header="header.txt" shrink="true">
   <include src="package.js" header="false"/>
-  <include src="Packer.js"/>
+  <include src="Parser.js"/>
   <include src="Words.js"/>
+  <include src="Encoder.js"/>
+  <include src="Privates.js"/>
   <include src="Base62.js"/>
+  <include src="Packer.js"/>
+  <include src="Minifier.js"/>
+  <include src="Shrinker.js"/>
 </package>

@@ -10,4 +10,4 @@ var JSB = new base2.Package(this, {
 
 eval(this.imports);
 
-;;; if (typeof console2 == "undefined") console2={log:Undefined,update:Undefined};
+;;; if (typeof console2 == "undefined") global.console2={log:Undefined,update:Undefined};

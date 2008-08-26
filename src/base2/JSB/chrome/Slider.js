@@ -172,8 +172,6 @@ var Slider = ProgressBar.modify({
 
     startTimer: function(element) {
       // the aqua slider jumps immediatley to wherever you click
-    },
-
-    tick: Undefined
+    }
   }
 });

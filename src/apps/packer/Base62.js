@@ -1,83 +1,79 @@
 
-var Base62 = Words.extend({
-  exec: function(script, pattern) {
-    if (script) forEach (script.match(pattern), this.add, this);
+var Base62 = Encoder.extend({
+  encode: function(script) {
+    var words = this.search(script);
 
-    if (!this.size()) return script;
+    words.sort();
 
-    this.sort();
-
-    var encode = Packer.encode62;
     var encoded = new Collection; // a dictionary of base62 -> base10
-    var size = this[KEYS].length;
+    var size = words.size();
     for (var i = 0; i < size; i++) {
-      encoded.put(encode(i), i);
+      encoded.put(Packer.encode62(i), i);
     }
 
-    var self = this;
     function replacement(word) {
-      return self["#" + word].replacement;
+      return words["#" + word].replacement;
     };
 
     var empty = K("");
     var index = 0;
-    var letter = 0, c;
-    forEach (this, function(word) {
-      if (index == 62) letter += 62 + size;
-      if (word.toString().charAt(0) == "@") {
-        do c = Packer.encode52(letter++);
-        while (new RegExp("[^\\w$.]" + c + "[^\\w$:]").test(script));
-        if (index < 62) {
-          var w = this.add(c);
-          w.count += word.count - 1;
-        }
-        word.count = 0;
-        word.index = size + 1;
-        word.toString = empty;
-        word.replacement = c;
-      }
-      index++;
-    }, this);
-
-    script = script.replace(Packer.SHRUNK, replacement);
-
-    this.sort();
-
-    var index = 0;
-    forEach (this, function(word) {
-      if (word.index == Infinity) return;
+    forEach (words, function(word) {
       if (encoded.has(word)) {
         word.index = encoded.get(word);
         word.toString = empty;
       } else {
-        while (this.has(encode(index))) index++;
+        while (words.has(Packer.encode62(index))) index++;
         word.index = index++;
         if (word.count == 1) {
           word.toString = empty;
         }
       }
-      word.replacement = encode(word.index);
+      word.replacement = Packer.encode62(word.index);
       if (word.replacement.length == word.toString().length) {
         word.toString = empty;
       }
-    }, this);
+    });
 
     // sort by encoding
-    this.sort(function(word1, word2) {
+    words.sort(function(word1, word2) {
       return word1.index - word2.index;
     });
 
     // trim unencoded words
-    this[KEYS].length = this.getKeyWords().split("|").length;
+    words = words.slice(0, this.getKeyWords(words).split("|").length);
+    
+    script = script.replace(this.getPattern(words), replacement);
 
-    return script.replace(new RegExp(this, "g"), replacement);
+    /* build the packed script */
+
+    var p = this.escape(script);
+    var a = "[]";
+    var c = this.getCount(words);
+    var k = this.getKeyWords(words);
+    var e = this.getEncoder(words);
+    var d = this.getDecoder(words);
+
+    // the whole thing
+    return format(Base62.UNPACK, p,a,c,k,e,d);
+  },
+  
+  search: function(script) {
+    var words = new Words;
+    forEach (script.match(Base62.WORDS), words.add, words);
+    return words;
   },
 
-  getKeyWords: function() {
-    return this.map(String).join("|").replace(/\|+$/, "");
+  escape: function(script) {
+    // Single quotes wrap the final string so escape them.
+    // Also, escape new lines (required by conditional comments).
+    return script.replace(/([\\'])/g, "\\$1").replace(/[\r\n]+/g, "\\n");
   },
 
-  getDecoder: function() {
+  getCount: function(words) {
+    return words.size() || 1;
+  },
+
+  getDecoder: function(words) {
     // returns a pattern used for fast decoding of the packed script
     var trim = new RegGrp({
       "(\\d)(\\|\\d)+\\|(\\d)": "$1-$3",
@@ -85,7 +81,7 @@ var Base62 = Words.extend({
       "([A-Z])(\\|[A-Z])+\\|([A-Z])": "$1-$3",
       "\\|": ""
     });
-    var pattern = trim.exec(this.map(function(word) {
+    var pattern = trim.exec(words.map(function(word) {
       if (word.toString()) return word.replacement;
       return "";
     }).slice(0, 62).join("|"));
@@ -94,7 +90,7 @@ var Base62 = Words.extend({
 
     pattern = "[" + pattern + "]";
 
-    var size = this.size();
+    var size = words.size();
     if (size > 62) {
       pattern = "(" + pattern + "|";
       var c = Packer.encode62(size).charAt(0);
@@ -128,13 +124,27 @@ var Base62 = Words.extend({
     return pattern;
   },
 
-  toString: function() {
-    var words = this.map(String).join("|").replace(/\|{2,}/g, "|").replace(/^\|+|\|+$/g, "") || "\\x0";
-    return "\\b(" + words + ")\\b";
+  getEncoder: function(words) {
+    var size = words.size();
+    return Base62["ENCODE" + (size > 10 ? size > 36 ? 62 : 36 : 10)];
+  },
+
+  getKeyWords: function(words) {
+    return words.map(String).join("|").replace(/\|+$/, "");
+  },
+
+  getPattern: function(words) {
+    var words = words.map(String).join("|").replace(/\|{2,}/g, "|").replace(/^\|+|\|+$/g, "") || "\\x0";
+    return new RegExp("\\b(" + words + ")\\b", "g");
   }
 }, {
-  Item: {
-    encoded: "",
-    index: -1
-  }
+  WORDS: /\b[\da-zA-Z]\b|\w{2,}/g,
+
+  ENCODE10: "String",
+  ENCODE36: "function(c){return c.toString(36)}",
+  ENCODE62: "function(c){return(c<62?'':e(parseInt(c/62)))+((c=c%62)>35?String.fromCharCode(c+29):c.toString(36))}",
+
+  UNPACK: "eval(function(p,a,c,k,e,r){e=%5;if('0'.replace(0,e)==0){while(c--)r[e(c)]=k[c];" +
+    "k=[function(e){return r[e]||e}];e=function(){return'%6'};c=1};while(c--)if(k[c])p=p." +
+    "replace(new RegExp('\\\\b'+e(c)+'\\\\b','g'),k[c]);return p}('%1',%2,%3,'%4'.split('|'),0,{}))"
 });

@@ -6,12 +6,15 @@ var JavaScript = {
   namespace: "", // fixed later
   
   bind: function(host) {
+    var top = global;
+    global = host;
     forEach.csv(this.exports, function(name2) {
       var name = name2.slice(0, -1);
       extend(host[name], this[name2]);
       this[name2](host[name].prototype); // cast
     }, this);
-    return this;
+    global = top;
+    return host;
   }
 };
 

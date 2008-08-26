@@ -15,10 +15,14 @@ var Directory = Collection.extend({
 }, {
   Item: {
     constructor: function(name, isDirectory, size) {
-      this.name = String(name);
-      this.isDirectory = Boolean(isDirectory);
-      this.size = Number(size || 0);
+      this.name = name + "";
+      this.isDirectory = !!isDirectory;
+      this.size = isDirectory ? 0 : size || 0;
     },
+
+    name : "",
+    isDirectory: false,
+    size: 0,
     
     toString: function() {
       return this.name;

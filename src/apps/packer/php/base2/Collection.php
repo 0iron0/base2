@@ -1,16 +1,20 @@
 <?php
 
 class Collection extends Map {
+  public function __toString() {
+    return '('.implode(',', $this->getKeys()).')';
+  }
+
   public function add($key, $item = NULL) {
     // Duplicates not allowed using add().
     // But you can still overwrite entries using put().
     assert(!$this->has($key));
-    
+
     $this->put($key, $item);
   }
 
   public function getAt($index) {
-    return $this->get($this->_getKey($index));
+    return $this->get($this->getKey($index));
   }
 
   public function indexOf($key) {
@@ -18,7 +22,7 @@ class Collection extends Map {
   }
 
   public function insertAt($index, $key, $item) {
-    assert(abs($index) < $this->size());
+    assert($this->isValidIndex($index));
     assert(!$this->has($key));
     
     array_splice($this->values, $index, 1, NULL); // placeholder
@@ -27,38 +31,58 @@ class Collection extends Map {
 
   public function item($key) {
     if (is_int($key)) {
-      $key = $this->_getKey($key);
+      $key = $this->getKey($key);
     }
     return $this->get($key);
   }
 
   public function putAt($index, $item) {
-    assert(abs($index) < $this->size());
+    assert($this->isValidIndex($index));
     
-    $this->put($this->_getKey($index), $item);
+    $this->put($this->getKey($index), $item);
   }
 
   public function removeAt($index) {
-    $this->remove($this->_getKey($index));
+    $this->remove($this->getKey($index));
   }
 
   public function reverse() {
-    array_reverse($this->values);
+    array_reverse($this->values, TRUE);
     return $this;
   }
 
   public function sort($sorter = NULL) {
     if (isset($sorter)) {
-      usort($this->values, $sorter);
+      uasort($this->values, $sorter);
     } else {
-      sort($this->values);
+      asort($this->values);
     }
     return $this;
   }
   
-  private function _getKey($index) {
+  public function slice($start = 0, $end = NULL) {
+    $values = $this->values;
+    $length = $end;
+    if (isset($end) && $end > 0) {
+      $length = $end - $this->size();
+    }
+    $this->values = array_slice($values, $start, $length, TRUE);
+    $sliced = $this->copy();
+    $this->values = $values;
+    return $sliced;
+  }
+  
+  private function getKey($index) {
+    $size = $this->size();
+    if ($index < 0) $index += $size;
     $keys = $this->getKeys();
     return $keys[$index];
+  }
+  
+  private function isValidIndex($index) {
+    $size = $this->size();
+    if ($index < 0) $index += $size;
+    return ($index >= 0) && ($index < $size);
   }
 }
 

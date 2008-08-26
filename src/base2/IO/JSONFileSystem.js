@@ -7,7 +7,7 @@ var JSONFileSystem = FileSystem.extend({
       // fetch data from the JSON object, regardless of type
       path = this.makepath(path);
       return reduce(path.split("/"), function(file, name) {
-        if (file && name) file = (undefined === file[name]) ? undefined : file[name];
+        if (file && name) file = (name in file) ? file[name] : undefined; // code looks silly but stops warnings being generated in Firebug
         return file;
       }, data);
     };

@@ -3,7 +3,7 @@
 class Map implements Iterator {
   protected $values = array();
   
-  public function __construct($values = null) {
+  public function __construct($values = NULL) {
     if (is_array($values)) $this->merge($values);
   }
   
@@ -41,7 +41,6 @@ class Map implements Iterator {
   }
 
   public function put($key = '', $value = NULL) {
-    if (!isset($value)) $value = $key;
     $this->values[(string)$key] = $value;
   }
 

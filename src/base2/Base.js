@@ -37,7 +37,6 @@ var _subclass = function(_instance, _static) {
   if (_class.init) _class.init();
   
   // introspection (removed when packed)
-  ;;; _class.toString = K(String(_constructor));
   ;;; _class["#implements"] = [];
   ;;; _class["#implemented_by"] = [];
   

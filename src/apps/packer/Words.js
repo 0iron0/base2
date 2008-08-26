@@ -1,34 +1,29 @@
 
-var Words = RegGrp.extend({
-  constructor: function(script, pattern) {
-    this.base();
-    if (script) forEach (script.match(pattern), this.add, this);
-  },
-
+var Words = Collection.extend({
   add: function(word) {
     if (!this.has(word)) this.base(word);
     word = this.get(word);
+    if (!word.index) {
+      word.index = this.size();
+    }
     word.count++;
     return word;
-  },
-
-  encode: function(encoder) {
-    this.sort();
-    var index = 0;
-    forEach (this, function(word) {
-      word.replacement = encoder(index++);
-    });
-    return this;
   },
 
   sort: function(sorter) {
     return this.base(sorter || function(word1, word2) {
       // sort by frequency
-      return (word2.count - word1.count) || (word2.length - word1.length) || (word1 < word2 ? -1 : 1);
+      return (word2.count - word1.count) || (word1.index - word2.index);
     });
   }
 }, {
   Item: {
-    count: 0
+    constructor: function(word) {
+      this.toString = K(word);
+    },
+
+    index: 0,
+    count: 0,
+    encoded: ""
   }
 });

@@ -19,7 +19,7 @@ var Array2 = _createObject2(
 
     copy: function(array) {
       var copy = _slice.call(array);
-      if (array.swap && !copy.swap) Array2(copy); // cast to Array2
+      if (!copy.swap) Array2(copy); // cast to Array2
       return copy;
     },
 

@@ -1,8 +1,16 @@
 <?php
 
 class Shrinker {
-  const SHRUNK           = '/@\\d+\\b/';
+  const PREFIX = "\x02";
+  const SHRUNK = '\\x02\\d+\\b';
   
+  private static $ESCAPE = '/([\\/()[\\]{}|*+-.,^$?\\\\])/';
+
+  public static function rescape($string) {
+    // Make a string safe for creating a RegExp.
+    return preg_replace(self::$ESCAPE, '\\\\$1', $string);
+  }
+
   // identify blocks, particularly identify function blocks (which define scope)
   private $BLOCK         = '/((catch|do|if|while|with|function)\\b[^~{};]*(\\(\\s*[^{};]*\\s*\\))\\s*)?(\\{[^{}]*\\})/';
   private $BRACKETS      = '/\\{[^{}]*\\}|\\[[^\\[\\]]*\\]|\\([^\\(\\)]*\\)|~[^~]+~/';
@@ -17,22 +25,21 @@ class Shrinker {
 
   private $count = 0; // number of variables
   private $blocks; // store program blocks (anything between braces {})
+  private $data;   // store program data (strings and regexps)
   private $script;
-  private $shrunk;
 
-  public function shrink($script = '', $base62 = false) {
-    $this->blocks = array();
-    
+  public function shrink($script = '') {
     $script = $this->encodeData($script);
 
+    $this->blocks = array();
     $script = $this->decodeBlocks($this->encodeBlocks($script), $this->ENCODED_BLOCK);
+    unset($this->blocks);
 
-    if (!$base62) {
-      $this->shrunk = new Words($script, self::SHRUNK);
-      $this->count = 0;
-      $this->shrunk->encode(array(&$this, '_varEncoder'));
-      $script = $this->shrunk->exec($script);
-    }
+    $this->count = 0;
+    $this->script = $script;
+    $shrunk = new Encoder(Shrinker::SHRUNK, array(&$this, '_varEncoder'));
+    $script = $shrunk->encode($script);
+    unset($this->script);
 
     return $this->decodeData($script);
   }
@@ -55,12 +62,14 @@ class Shrinker {
 
   private function decodeData($script) {
     // put strings and regular expressions back
-    return preg_replace_callback($this->ENCODED_DATA, array(&$this, '_dataDecoder'), $script);
+    $script = preg_replace_callback($this->ENCODED_DATA, array(&$this, '_dataDecoder'), $script);
+    unset($this->data);
+    return $script;
   }
 
   private function encodeData($script) {
+    $this->data = array(); // encoded strings and regular expressions
     // encode strings and regular expressions
-    $this->_encoded = array(); // encoded strings and regular expressions
     return Packer::$data->exec($script, array(&$this, '_dataEncoder'));
   }
   
@@ -71,7 +80,6 @@ class Shrinker {
   }
   
   public function _blockEncoder($match) {
-    $PREFIX = '@';
     $prefix = $match[1]; $blockType = $match[2]; $args = $match[3]; $block = $match[4];
     if (!$prefix) $prefix = '';
     if ($blockType == 'function') {
@@ -102,14 +110,14 @@ class Shrinker {
         foreach ($matches[0] as $id) {
           if (!$processed[$id]) {
             $processed[$id] = true;
-            $id = RegGrp::escape($id);
+            $id = self::rescape($id);
             // encode variable names
-            while (preg_match('/'.$PREFIX.$count.'\\b/', $block)) $count++;
+            while (preg_match('/'.Shrinker::PREFIX.$count.'\\b/', $block)) $count++;
             $reg = '/([^\\w$.])'.$id.'([^\\w$:])/';
             while (preg_match($reg, $block)) {
-              $block = preg_replace($reg, '$1'.$PREFIX.$count.'$2', $block);
+              $block = preg_replace($reg, '$1'.Shrinker::PREFIX.$count.'$2', $block);
             }
-            $block = preg_replace('/([^{,\\w$.])'.$id.':/', '$1'.$PREFIX.$count.':', $block);
+            $block = preg_replace('/([^{,\\w$.])'.$id.':/', '$1'.Shrinker::PREFIX.$count.':', $block);
             $count++;
           }
         }
@@ -125,21 +133,17 @@ class Shrinker {
   }
 
   public function _dataDecoder($matches) {
-    return $this->_encoded[$matches[1]];
+    return $this->data[$matches[1]];
   }
 
   public function _dataEncoder($match, $operator = '', $regexp = '') {
-    $replacement = "\x01".count($this->_encoded)."\x01";
+    $replacement = "\x01".count($this->data)."\x01";
     if ($regexp) {
       $replacement = $operator.$replacement;
       $match = $regexp;
     }
-    array_push($this->_encoded, $match);
+    array_push($this->data, $match);
     return $replacement;
-  }
-
-  public function _varDecoder($match) {
-    return $this->shrunk->get($match[0])->replacement;
   }
 
   public function _varEncoder() {

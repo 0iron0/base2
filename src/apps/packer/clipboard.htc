@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!-- keeping code tidy!! -->
+
+<public:component xmlns:public="urn:HTMLComponent" lightweight="true">
+<public:attach event="ondocumentready" handler="init"/>
+<script type="text/javascript">
+//<![CDATA[
+
+function init() {
+	var labels = getElementsByTagName("label");
+	labels[0].innerHTML = "<a href='javascript:void(clipboardData.setData(\"text\",output.value))' " +
+		"title='Copy text to clipboard'>Copy</a>:";
+	labels[1].innerHTML = "<a href='javascript:void(input.value=clipboardData.getData(\"text\")||\"\")' " +
+		"title='Paste text from clipboard'>Paste</a>:";
+};
+
+//]]>
+</script>
+</public:component>
+<!-- http://dean.edwards.name/ -->

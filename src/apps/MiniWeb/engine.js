@@ -7,7 +7,7 @@
     Doeke Zanstra
 */
 
-// timestamp: Sat, 26 Jul 2008 00:01:23
+// timestamp: Tue, 26 Aug 2008 18:47:01
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -23,7 +23,7 @@ new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
 var MiniWeb = new base2.Package(this, {
   name:    "MiniWeb",
-  exports: "Client,Server,FileSystem,Command,Interpreter,Terminal,Request,History",
+  exports: "Client,Server,JSONFileSystem,JSONDirectory,FileSystem,Command,Interpreter,Terminal,Request,History",
   imports: "IO",
   version: "0.7",
   
@@ -56,7 +56,7 @@ var MiniWeb = new base2.Package(this, {
     }, this);
     
     window.onload = function() {
-      MiniWeb.readOnly = location.protocol != "file:";
+      MiniWeb.readOnly = location.protocol != "file:" || LocalFile.prototype.open == NOT_SUPPORTED;
       MiniWeb.server = new Server;
       MiniWeb.terminal = new Terminal;
       MiniWeb.client = new Client;
@@ -76,10 +76,15 @@ var MiniWeb = new base2.Package(this, {
   save: function(name) {
     if (this.readOnly) {
       alert(
-        "You cannot save your changes over HTTP.\n" +
-        "Instead, save this page to your hard disk.\n" +
-        "If you edit the local version you will then\n" +
-        "be able to save your changes."
+        location.protocol == "file:"
+        ?
+          "Your browser does not support local file access.\n" +
+          "Use Internet Explorer or Firefox instead."
+        :
+          "You cannot save your changes over HTTP.\n" +
+          "Instead, save this page to your hard disk.\n" +
+          "If you edit the local version you will then\n" +
+          "be able to save your changes."
       );
       return false;
     }
@@ -126,8 +131,9 @@ var MiniWeb = new base2.Package(this, {
       ""
     ]).join("\r\n");
     
-    if (!name) LocalFile.backup(location.pathname);
-    LocalFile.write(name || location.pathname, html);
+    var fs = new LocalFileSystem;
+    if (!name) fs.backup(location.pathname);
+    fs.write(name || location.pathname, html);
     if (!name) location.reload();
     
     return true;
@@ -146,6 +152,12 @@ MiniWeb.toString = function() {
 };
 
 eval(this.imports);
+
+JavaScript.bind(global);
+
+var _WILD_CARD      = /\*$/,
+    _TRIM_PATH      = /[^\/]+$/,
+    _SPACE          = /\s+/;
 
 // =========================================================================
 // MiniWeb/Client.js
@@ -170,19 +182,6 @@ var Client = Base.extend({
     this.view = document.createElement("iframe");
     this.view.style.display = "none";
     document.body.appendChild(this.view);
-    
-    window.onunload = function() {
-      try {
-        client.view = null;
-        if (client.window) {
-          client.window.onunload();
-          client.window = null;
-        }
-        clearInterval(client.history.timer);
-      } catch (error) {
-        // ignore
-      }
-    };
   },
   
   address: "",
@@ -565,6 +564,87 @@ var Request = Base.extend({
 });
 
 // =========================================================================
+// MiniWeb/~/base2/IO/JSONFileSystem.js
+// =========================================================================
+
+var _FETCH = "#fetch";
+
+var JSONFileSystem = FileSystem.extend({
+  constructor: function(data) {
+    this[_FETCH] = function(path) {
+      // fetch data from the JSON object, regardless of type
+      path = this.makepath(path);
+      return reduce(path.split("/"), function(file, name) {
+        if (file && name) file = (name in file) ? file[name] : undefined; // code looks silly but stops warnings being generated in Firebug
+        return file;
+      }, data);
+    };
+  },
+  
+  exists: function(path) {
+    return this[_FETCH](path) !== undefined;
+  },
+  
+  isFile: function(path) {
+    return typeof this[_FETCH](path) == "string";
+  },
+  
+  isDirectory: function(path) {
+    return typeof this[_FETCH](path) == "object";
+  },
+
+  copy: function(path1, path2) {
+    var data = this[_FETCH](path1);
+    this.write(path2, JSON.copy(data));
+  },
+  
+  mkdir: function(path) {
+    // create a directory
+    this.write(path, {});
+  },
+  
+  move: function(path1, path2) {
+    var data = this[_FETCH](path1);
+    this.write(path2, data);
+    this.remove(path1);
+  },
+
+  read: function(path) {    
+    // read text from the JSON object
+    var file = this[_FETCH](path);
+    return typeof file == "object" ?
+      new JSONDirectory(file) : file || ""; // make read safe
+  },
+  
+  remove: function(path) {
+    // remove data from the JSON object
+    path = path.replace(/\/$/, "").split("/");
+    var filename = path.splice(path.length - 1, 1);
+    var directory = this[_FETCH](path.join("/"));
+    if (directory) delete directory[filename];
+  },
+
+  write: function(path, data) {
+    // write data to the JSON object
+    path = path.split("/");
+    var filename = path.splice(path.length - 1, 1);
+    var directory = this[_FETCH](path.join("/"));
+    assert(directory, "Directory not found."); 
+    return directory[filename] = data || "";
+  }
+});
+
+// =========================================================================
+// MiniWeb/~/base2/IO/JSONDirectory.js
+// =========================================================================
+
+var JSONDirectory = Directory.extend(null, {
+  create: function(name, item) {
+    return new this.Item(name, typeof item == "object", typeof item == "string" ? item.length : 0);
+  }
+});
+
+// =========================================================================
 // MiniWeb/FileSystem.js
 // =========================================================================
 
@@ -606,20 +686,24 @@ var Command = FileSystem.extend({
     var jst = new JST.Interpreter(this);
     this[Command.INCLUDES] = {};
     this.exec = function(template, target) {
-      command.parent = command.self;
-      if (!command.top) {
-        command.top = 
-        command.parent = this.makepath(template);
+      var result = "";
+      var dir = template.replace(_TRIM_PATH, "");
+      if (command.isDirectory(dir)) {
+        command.parent = command.self;
+        if (!command.top) {
+          command.top =
+          command.parent = this.makepath(template);
+        }
+        var path = command.path;
+        var restore = command.target;
+        command.self = this.makepath(template);
+        command.chdir(dir);
+        command.target = target || "";
+        result = jst.interpret(this.read(template));
+        command.target = restore;
+        command.path = path;
+        command.self = command.parent;
       }
-      var path = command.path;
-      var restore = command.target;
-      command.self = this.makepath(template);
-      command.chdir(template);
-      command.target = target || "";
-      var result = jst.interpret(this.read(template));
-      command.target = restore;
-      command.path = path;
-      command.self = command.parent;
       return result;
     };
   },
@@ -631,8 +715,8 @@ var Command = FileSystem.extend({
   
   args: function(names) {
     // define template arguments in the current scope
-    var args = this.target.split(/\s+/);
-    forEach (String(names).match(/[^\s,]+/g), function(name, index) {
+    var args = this.target.split(_SPACE);
+    forEach.csv(names, function(name, index) {
       if (name) this[name] = args[index];
     }, this);
     return args;
@@ -657,8 +741,7 @@ var Command = FileSystem.extend({
   },
   
   process: function(template, target) {
-    var WILD_CARD = /\*$/;
-    if (WILD_CARD.test(target)) { // process everything in the current directory
+    if (_WILD_CARD.test(target)) { // process everything in the current directory
       var path = target.replace(WILD_CARD, "") || this.path;
       var directory = this.read(path);
       forEach (directory, function(item, target) {
@@ -791,9 +874,10 @@ var Terminal = Command.extend({
     // the state of a terminal session is saved to disk whenever
     //  MiniWeb is saved from the terminal. Reload the saved
     //  state.
-    if (!MiniWeb.readOnly && LocalFile.exists(this.TMP)) {
-      var state = JSON.parse(LocalFile.read(this.TMP));
-      LocalFile.remove(this.TMP);
+    var fs = new LocalFileSystem;
+    if (!MiniWeb.readOnly && fs.exists(this.TMP)) {
+      var state = JSON.parse(fs.read(this.TMP));
+      fs.remove(this.TMP);
     } else {
       state = {
         commands: [],
@@ -814,7 +898,8 @@ var Terminal = Command.extend({
     state.protocol = terminal.protocol;
     state.path = terminal.path;
     if (!MiniWeb.readOnly) {
-      LocalFile.write(this.TMP, JSON.toString(state));
+      var fs = new LocalFileSystem;
+      fs.write(this.TMP, JSON.toString(state));
     }
   }
 });
