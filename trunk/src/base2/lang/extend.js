@@ -10,7 +10,7 @@ function extend(object, source) { // or extend(object, key, value)
       source = {};
       source[key] = arguments[2];
     }
-    var proto = (typeof source == "function" ? Function : Object).prototype;
+    var proto = global[(typeof source == "function" ? "Function" : "Object")].prototype;
     // Add constructor, toString etc
     if (base2.__prototyping) {
       var i = _HIDDEN.length, key;
@@ -32,21 +32,21 @@ function extend(object, source) { // or extend(object, key, value)
         // Object detection.
         if (key.charAt(0) == "@") {
           if (detect(key.slice(1))) extend(object, value);
-          continue;
-        }
-        // Check for method overriding.
-        var ancestor = object[key];
-        if (ancestor && typeof value == "function") {
-          if (value != ancestor) {
-            if (_BASE.test(value)) {
-              _override(object, key, value);
-            } else {
-              value.ancestor = ancestor;
-              object[key] = value;
-            }
-          }
         } else {
-          object[key] = value;
+          // Check for method overriding.
+          var ancestor = object[key];
+          if (ancestor && typeof value == "function") {
+            if (value != ancestor) {
+              if (_BASE.test(value)) {
+                _override(object, key, value);
+              } else {
+                value.ancestor = ancestor;
+                object[key] = value;
+              }
+            }
+          } else {
+            object[key] = value;
+          }
         }
       }
     }

@@ -34,11 +34,12 @@ if (WScript.Arguments.length > 0) {
 } else {
 	WScript.Echo();
 	WScript.Echo('Compress a JavaScript source file using Dean Edwards\' "Packer".');
-	WScript.Echo('  Version : 3.0');
-	WScript.Echo('  Syntax  : program sourcefile -es');
+	WScript.Echo('  Version : 3.1');
+	WScript.Echo('  Syntax  : program sourcefile -esp');
 	WScript.Echo('  Options :');
 	WScript.Echo('    e: base62 encode');
 	WScript.Echo('    s: shrink variables');
+	WScript.Echo('    p: encode privates');
 }
 
 </script>

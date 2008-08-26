@@ -10,18 +10,12 @@ class RegGrp extends Collection {
   private static $ESCAPE_CHARS    = '/\\\\./';
   private static $ESCAPE_BRACKETS = '/\\(\\?[:=!]|\\[[^\\]]+\\]/';
   private static $BRACKETS        = '/\\(/';
-  private static $ESCAPE         = '/([\\/()[\\]{}|*+-.,^$?\\\\])/';
 
   public static function count($expression) {
     // Count the number of sub-expressions in a RegExp/RegGrp.Item.
     $expression = preg_replace(self::$ESCAPE_CHARS, '', (string)$expression);
     $expression = preg_replace(self::$ESCAPE_BRACKETS, '', $expression);
     return preg_match_all(self::$BRACKETS, $expression, $dummy);
-  }
-  
-  public static function escape($string) {
-    // Make a string safe for creating a RegExp.
-    return preg_replace(self::$ESCAPE, '\\\\$1', $string);
   }
   
   public $ignoreCase = false;
@@ -107,6 +101,8 @@ class RegGrpItem {
   public  $replacement = '';
 
   public function __construct($expression, $replacement = RegGrp::IGNORE) {
+    if ($replacement instanceof RegGrpItem) $replacement = $replacement->replacement;
+    
     // does the pattern use sub-expressions?
     if (!is_callable($replacement) && preg_match(self::$LOOKUP, $replacement)) {
       // a simple lookup? (e.g. "$2")

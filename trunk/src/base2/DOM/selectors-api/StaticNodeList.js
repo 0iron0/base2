@@ -13,12 +13,7 @@ var StaticNodeList = Base.extend({
       if (index < 0) index += this.length; // starting from the end
       return nodes[index];
     };
-/*  // Sorting large node lists can be slow so only do it if necessary.
-    // You must explicitly call sort() to get a sorted node list.
-    if (nodes.unsorted) this.sort = function() {
-      nodes.sort(_SORTER);
-      return this;
-    }; */
+    if (nodes.unsorted) nodes.sort(_SORTER);
   },
   
   length: 0,
@@ -35,11 +30,9 @@ var StaticNodeList = Base.extend({
     return this.filter(not(test), context);
   },
 
-  slice: function(start, length) {
-    return new StaticNodeList(this.map(I).slice(start, length));
+  slice: function(start, end) {
+    return new StaticNodeList(this.map(I).slice(start, end));
   },
-  
-//sort: This,
 
   "@(XPathResult)": {
     constructor: function(nodes) {
@@ -76,10 +69,8 @@ StaticNodeList.implement({
   }
 });
 
-/*
 var _SORTER = _INDEXED ? function(node1, node2) {
-  return node2.sourceIndex - node2.sourceIndex;
+  return node1.sourceIndex - node2.sourceIndex;
 } : function(node1, node2) {
   return (Node.compareDocumentPosition(node1, node2) & 2) - 1;
 };
-*/

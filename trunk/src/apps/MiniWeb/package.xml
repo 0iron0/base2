@@ -5,6 +5,8 @@
   <include src="History.js"/>
   <include src="Server.js"/>
   <include src="Request.js"/>
+  <include src="~/base2/IO/JSONFileSystem.js"/>
+  <include src="~/base2/IO/JSONDirectory.js"/>
   <include src="FileSystem.js"/>
   <include src="Command.js"/>
   <include src="Interpreter.js"/>

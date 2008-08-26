@@ -7,11 +7,11 @@
     Doeke Zanstra
 */
 
-// timestamp: Sat, 26 Jul 2008 00:01:23
+// timestamp: Tue, 26 Aug 2008 18:47:01
 
 var base2 = {
   name:    "base2",
-  version: "1.0 (RC1)",
+  version: "1.0 (RC2)",
   exports:
     "Base,Package,Abstract,Module,Enumerable,Map,Collection,RegGrp," +
     "Undefined,Null,This,True,False,assignID,detect,global",
@@ -92,7 +92,6 @@ var _subclass = function(_instance, _static) {
   if (_class.init) _class.init();
   
   // introspection (removed when packed)
-  ;;; _class.toString = K(String(_constructor));
   ;;; _class["#implements"] = [];
   ;;; _class["#implemented_by"] = [];
   
@@ -168,7 +167,20 @@ var Package = Base.extend({
         var fullName = this.name + "." + name;
         this.namespace += "var " + name + "=" + fullName + ";";
         return namespace += "if(!" + fullName + ")" + fullName + "=" + name + ";";
-      }, "", this);
+      }, "", this) + "this._label_" + this.name + "();";
+      
+      var pkg = this;
+      var packageName = String2.slice(this, 1, -1);
+      _private["_label_" + this.name] = function() {
+        Package.forEach (pkg, function(object, name) {
+          if (object && object.ancestorOf == Base.ancestorOf) {
+            object.toString = K(format("[%1.%2]", packageName, name));
+            if (object.prototype.toString == Base.prototype.toString) {
+              object.prototype.toString = K(format("[object %1.%2]", packageName, name));
+            }
+          }
+        });
+      };
     }
 
     function lookup(names) {
@@ -229,9 +241,7 @@ var Module = Abstract.extend(null, {
     var index = _moduleCount++;
     module.namespace = "";
     module.partial = this.partial;
-    module.toString = function(hint) {
-      return hint == "index" ? index : "[module]";
-    };
+    module.toString = K("[base2.Module[" + index + "]]");
     Module[index] = module;
     // Inherit class methods.
     module.implement(this);
@@ -255,7 +265,7 @@ var Module = Abstract.extend(null, {
 
   implement: function(_interface) {
     var module = this;
-    var index = module.toString("index");
+    var id = module.toString().slice(1, -1);
     if (typeof _interface == "function") {
       if (!_ancestorOf(_interface, module)) {
         this.base(_interface);
@@ -271,22 +281,22 @@ var Module = Abstract.extend(null, {
             module[name] = property;
           }
         }
-        module.namespace += _interface.namespace.replace(/\b\d+\b/g, index);
+        module.namespace += _interface.namespace.replace(/base2\.Module\[\d+\]/g, id);
       }
     } else {
       // Add static interface.
       extend(module, _interface);
       // Add instance interface.
-      _extendModule(module, _interface, index);
+      _extendModule(module, _interface);
     }
     return module;
   },
 
   partial: function() {
     var module = Module.extend();
-    var index = module.toString("index");
+    var id = module.toString().slice(1, -1);
     // partial methods are already bound so remove the binding to speed things up
-    module.namespace = this.namespace.replace(/(\w+)=b[^\)]+\)/g, "$1=base2.Module[" + index + "].$1");
+    module.namespace = this.namespace.replace(/(\w+)=b[^\)]+\)/g, "$1=" + id + ".$1");
     this.forEach(function(method, name) {
       module[name] = partial(bind(method, module));
     });
@@ -294,17 +304,18 @@ var Module = Abstract.extend(null, {
   }
 });
 
-function _extendModule(module, _interface, index) {
+function _extendModule(module, _interface) {
   var proto = module.prototype;
+  var id = module.toString().slice(1, -1);
   for (var name in _interface) {
     var property = _interface[name], namespace = "";
     if (name.charAt(0) == "@") { // object detection
-      if (detect(name.slice(1))) _extendModule(module, property, index);
+      if (detect(name.slice(1))) _extendModule(module, property);
     } else if (!proto[name]) {
       if (name == name.toUpperCase()) {
-        namespace = "var " + name + "=base2.Module[" + index + "]." + name + ";";
+        namespace = "var " + name + "=" + id + "." + name + ";";
       } else if (typeof property == "function" && property.call) {
-        namespace = "var " + name + "=base2.lang.bind('" + name + "',base2.Module[" + index + "]);";
+        namespace = "var " + name + "=base2.lang.bind('" + name + "'," + id + ");";
         proto[name] = _moduleMethod(module, name);
         ;;; proto[name]._module = module; // introspection
       }
@@ -465,7 +476,6 @@ var Map = Base.extend({
   },
 
   put: function(key, value) {
-    if (arguments.length == 1) value = key;
     // create the new entry (or overwrite the old entry).
     this[_HASH + key] = value;
   },
@@ -560,19 +570,18 @@ var Collection = Map.extend({
   },
 
   insertAt: function(index, key, item) {
-    assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
+    assert(this[_KEYS].item(index) !== undefined, "Index out of bounds.");
     assert(!this.has(key), "Duplicate key '" + key + "'.");
     this[_KEYS].insertAt(index, String(key));
     this[_HASH + key] = null; // placeholder
     this.put.apply(this, _slice.call(arguments, 1));
   },
-  
+
   item: function(keyOrIndex) {
     return this[typeof keyOrIndex == "number" ? "getAt" : "get"](keyOrIndex);
   },
 
   put: function(key, item) {
-    if (arguments.length == 1) item = key;
     if (!this.has(key)) {
       this[_KEYS].push(String(key));
     }
@@ -584,8 +593,8 @@ var Collection = Map.extend({
   },
 
   putAt: function(index, item) {
-    assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
     arguments[0] = this[_KEYS].item(index);
+    assert(arguments[0] !== undefined, "Index out of bounds.");
     this.put.apply(this, arguments);
   },
 
@@ -614,6 +623,24 @@ var Collection = Map.extend({
     return this[_KEYS].length;
   },
 
+  slice: function(start, end) {
+    var sliced = this.copy();
+    if (arguments.length > 0) {
+      var keys = this[_KEYS], removed = keys;
+      sliced[_KEYS] = Array2(_slice.apply(keys, arguments));
+      if (sliced[_KEYS].length) {
+        removed = removed.slice(0, start);
+        if (arguments.length > 1) {
+          removed = removed.concat(keys.slice(end));
+        }
+      }
+      for (var i = 0; i < removed.length; i++) {
+        delete sliced[_HASH + removed[i]];
+      }
+    }
+    return sliced;
+  },
+
   sort: function(compare) { // optimised (refers to _HASH)
     if (compare) {
       this[_KEYS].sort(bind(function(key1, key2) {
@@ -624,7 +651,7 @@ var Collection = Map.extend({
   },
 
   toString: function() {
-    return "(" + String(this[_KEYS]) + ")";
+    return "(" + (this[_KEYS] || "") + ")";
   }
 }, {
   Item: null, // If specified, all members of the collection must be instances of Item.
@@ -736,6 +763,7 @@ var RegGrp = Collection.extend({
   Item: {
     constructor: function(expression, replacement) {
       if (replacement == null) replacement = RegGrp.IGNORE;
+      else if (replacement.replacement != null) replacement = replacement.replacement;
       else if (typeof replacement != "function") replacement = String(replacement);
       
       // does the pattern use sub-expressions?
@@ -845,7 +873,7 @@ function extend(object, source) { // or extend(object, key, value)
       source = {};
       source[key] = arguments[2];
     }
-    var proto = (typeof source == "function" ? Function : Object).prototype;
+    var proto = global[(typeof source == "function" ? "Function" : "Object")].prototype;
     // Add constructor, toString etc
     if (base2.__prototyping) {
       var i = _HIDDEN.length, key;
@@ -867,21 +895,21 @@ function extend(object, source) { // or extend(object, key, value)
         // Object detection.
         if (key.charAt(0) == "@") {
           if (detect(key.slice(1))) extend(object, value);
-          continue;
-        }
-        // Check for method overriding.
-        var ancestor = object[key];
-        if (ancestor && typeof value == "function") {
-          if (value != ancestor) {
-            if (_BASE.test(value)) {
-              _override(object, key, value);
-            } else {
-              value.ancestor = ancestor;
-              object[key] = value;
-            }
-          }
         } else {
-          object[key] = value;
+          // Check for method overriding.
+          var ancestor = object[key];
+          if (ancestor && typeof value == "function") {
+            if (value != ancestor) {
+              if (_BASE.test(value)) {
+                _override(object, key, value);
+              } else {
+                value.ancestor = ancestor;
+                object[key] = value;
+              }
+            }
+          } else {
+            object[key] = value;
+          }
         }
       }
     }
@@ -1102,12 +1130,15 @@ var JavaScript = {
   namespace: "", // fixed later
   
   bind: function(host) {
+    var top = global;
+    global = host;
     forEach.csv(this.exports, function(name2) {
       var name = name2.slice(0, -1);
       extend(host[name], this[name2]);
       this[name2](host[name].prototype); // cast
     }, this);
-    return this;
+    global = top;
+    return host;
   }
 };
 
@@ -1228,7 +1259,7 @@ var Array2 = _createObject2(
 
     copy: function(array) {
       var copy = _slice.call(array);
-      if (array.swap && !copy.swap) Array2(copy); // cast to Array2
+      if (!copy.swap) Array2(copy); // cast to Array2
       return copy;
     },
 
@@ -1512,17 +1543,20 @@ function K(k) {
 };
 
 function bind(fn, context) {
+  if (fn.isBound) return fn;
   var lateBound = typeof fn != "function";
   if (arguments.length > 2) {
     var args = _slice.call(arguments, 2);
-    return function() {
+    var boundFunction = function() {
       return (lateBound ? context[fn] : fn).apply(context, args.concat.apply(args, arguments));
     };
   } else { // faster if there are no additional arguments
-    return function() {
+    boundFunction = function() {
       return (lateBound ? context[fn] : fn).apply(context, arguments);
     };
   }
+  boundFunction.isBound = true;
+  return boundFunction;
 };
 
 function compose() {
@@ -1601,8 +1635,8 @@ function detect() {
   //    e.g. detect("MSIE|opera");
 
   var jscript = NaN/*@cc_on||@_jscript_version@*/; // http://dean.edwards.name/weblog/2007/03/sniff/#comment85164
-  var java = global.java ? true : false;
-  if (global.navigator) {
+  var javaEnabled = global.java ? true : false;
+  if (global.navigator) { // browser
     var MSIE = /MSIE[\d.]+/g;
     var element = document.createElement("span");
     // Close up the space between name and version number.
@@ -1612,7 +1646,12 @@ function detect() {
     if (!jscript) userAgent = userAgent.replace(MSIE, "");
     if (MSIE.test(userAgent)) userAgent = userAgent.match(MSIE)[0] + " " + userAgent.replace(MSIE, "");
     base2.userAgent = navigator.platform + " " + userAgent.replace(/like \w+/gi, "");
-    java &= navigator.javaEnabled();
+    javaEnabled &= navigator.javaEnabled();
+//} else if (java) { // rhino
+//  var System = java.lang.System;
+//  base2.userAgent = "Rhino " + System.getProperty("os.arch") + " " + System.getProperty("os.name") + " " + System.getProperty("os.version");
+//} else if (jscript) { // Windows Scripting Host
+//  base2.userAgent = "WSH";
   }
 
   var _cache = {};
@@ -1623,7 +1662,7 @@ function detect() {
       if (not) test = test.slice(1);
       if (test.charAt(0) == "(") {
         try {
-          returnValue = new Function("element,jscript,java", "return !!" + test)(element, jscript, java);
+          returnValue = new Function("element,jscript,java,global", "return !!" + test)(element, jscript, javaEnabled, global);
         } catch (ex) {
           // the test failed
         }
@@ -2003,15 +2042,67 @@ new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
 var IO = new base2.Package(this, {
   name:    "IO",
-  version: "0.8",
-  imports: "Function2,Enumerable",
-  exports: "FileSystem,Directory,LocalFileSystem,LocalDirectory,LocalFile,JSONFileSystem,JSONDirectory"
+  version: "0.9",
+  imports: "Enumerable,Function2",
+  exports: "NOT_SUPPORTED,READ,WRITE,FileSystem,Directory,LocalFileSystem,LocalDirectory,LocalFile"
 });
 
 eval(this.imports);
 
-function NOT_SUPPORTED() {
+var NOT_SUPPORTED = function() {
   throw new Error("Not supported.");
+};
+
+var READ = 1, WRITE = 2;
+
+var _RELATIVE       = /\/[^\/]+\/\.\./,
+    _TRIM_PATH      = /[^\/]+$/,
+    _SLASH          = /\//g,
+    _BACKSLASH      = /\\/g,
+    _LEADING_SLASH  = /^\//,
+    _TRAILING_SLASH = /\/$/;
+
+var _INVALID_MODE = function() {
+  throw new Error("Invalid file open mode.");
+};
+
+var _win_formatter = {
+  fromNativePath: function(path) {
+    return "/" + String(path).replace(_BACKSLASH, "/");
+  },
+
+  toNativePath: function(path) {
+    return String(path).replace(_LEADING_SLASH, "").replace(_SLASH, "\\");
+  }
+};
+
+function _makeNativeAbsolutePath(path) {
+  return LocalFileSystem.toNativePath(FileSystem.resolve(LocalFileSystem.getPath(), path));
+};
+
+var _fso;
+function _activex_exec(method, path1, path2, flags) {
+  if (!_fso) _fso = new ActiveXObject("Scripting.FileSystemObject");
+  path1 = _makeNativeAbsolutePath(path1)
+  if (arguments.length > 2) {
+    path2 = _makeNativeAbsolutePath(path2);
+  }
+  switch (arguments.length) {
+    case 2: return _fso[method](path1);
+    case 3: return _fso[method](path1, path2);
+    case 4: return _fso[method](path1, path2, flags);
+  }
+  return undefined;
+};
+
+function _xpcom_createFile(path) {
+  var file = XPCOM.createObject("file/local;1", "nsILocalFile");
+  file.initWithPath(_makeNativeAbsolutePath(path));
+  return file;
+};
+
+function _java_createFile(path) {
+  return new java.io.File(_makeNativeAbsolutePath(path));
 };
 
 // =========================================================================
@@ -2061,30 +2152,27 @@ var XPCOM = Module.extend({
 // Here we'll define all the path management code.
 
 var FileSystem = Base.extend({
+  constructor: function(path) {
+    if (path) this.chdir(path);
+  },
+
   path: "/",
-  
+
   chdir: function(path) {
     // set the current path
+    assert(this.isDirectory(path), path + " is not a directory.");
     path = this.makepath(path);
-    if (!/\/$/.test(path)) { // trailing slash?
-      if (this.isDirectory(path)) {
-        // if it's a directory add the slash
-        path += "/";
-      } else {
-        // if it's not then trim to the last slash
-        path = path.replace(/[^\/]+$/, "");
-      }
-    }
+    if (!_TRAILING_SLASH.test(path)) path += "/";
     this.path = path;
   },
-  
+
   makepath: function(path1, path2) {
     if (arguments.length == 1) {
       path2 = path1;
       path1 = this.path;
     }
     return FileSystem.resolve(path1, path2);
-  }, 
+  },
     
   copy: NOT_SUPPORTED,
   exists: NOT_SUPPORTED,
@@ -2097,8 +2185,6 @@ var FileSystem = Base.extend({
   write: NOT_SUPPORTED
 }, {
   resolve: function(path1, path2) {
-    var FILENAME = /[^\/]+$/;
-    var RELATIVE = /\/[^\/]+\/\.\./;
     // stringify
     path1 = String(path1 || "");
     path2 = String(path2 || "");
@@ -2106,12 +2192,12 @@ var FileSystem = Base.extend({
     if (path2.charAt(0) == "/") {
       var path = "";
     } else {
-      path = path1.replace(FILENAME, "");
+      path = path1.replace(_TRIM_PATH, "");
     }
     path += path2;
-    // get rid of ../ relative paths
-    while (RELATIVE.test(path)) {
-      path = path.replace(RELATIVE, "");
+    // resolve relative paths
+    while (_RELATIVE.test(path)) {
+      path = path.replace(_RELATIVE, "");
     }
     return path;
   }
@@ -2137,10 +2223,14 @@ var Directory = Collection.extend({
 }, {
   Item: {
     constructor: function(name, isDirectory, size) {
-      this.name = String(name);
-      this.isDirectory = Boolean(isDirectory);
-      this.size = Number(size || 0);
+      this.name = name + "";
+      this.isDirectory = !!isDirectory;
+      this.size = isDirectory ? 0 : size || 0;
     },
+
+    name : "",
+    isDirectory: false,
+    size: 0,
     
     toString: function() {
       return this.name;
@@ -2153,111 +2243,191 @@ var Directory = Collection.extend({
 // =========================================================================
 
 var LocalFileSystem = FileSystem.extend({
+  constructor: function(path) {
+    this.path = LocalFileSystem.getPath();
+    this.base(path);
+  },
+
+  backup: function(path, extension) {
+    if (this.isFile(path)) {
+      if (!extension) extension = ".backup";
+      this.write(path + extension, this.read(path));
+    }
+  },
+  
   read: function(path) {
-    return LocalFile.read(path);
+    if (this.isDirectory(path)) {
+      return new LocalDirectory(this.makepath(path));
+    } else {
+      var file = new LocalFile(this.makepath(path));
+      file.open(READ);
+      var text = file.read();
+      file.close();
+      return text;
+    }
   },
 
   write: function(path, text) {
-    return LocalFile.write(path, text);
+    var file = new LocalFile(this.makepath(path));
+    file.open(WRITE);
+    file.write(text);
+    file.close();
   },
 
   "@(ActiveXObject)": {
-    constructor: function() {
-      this.$fso = new ActiveXObject("Scripting.FileSystemObject");
-    },
-    
     copy: function(path1, path2) {
-      var method = this.isDirectory(path1) ? "CopyFolder" : "CopyFile";
-      this.$fso[method](path1, path2, true);
+      _activex_exec(this.isDirectory(path1) ? "CopyFolder" : "CopyFile", this.makepath(path1), this.makepath(path2), true);
     },
 
     exists: function(path) {
-      return this.isFile() || this.isDirectory();
+      return this.isFile(path) || this.isDirectory(path);
     },
 
     isFile: function(path) {
-      return this.$fso.FileExists(path);
+      return _activex_exec("FileExists", this.makepath(path));
     },
     
     isDirectory: function(path) {
-      return this.$fso.FolderExists(path);
+      return _activex_exec("FolderExists", this.makepath(path));
     },
   
     mkdir: function(path) {
-      return this.$fso.CreateFolder(path);
+      _activex_exec("CreateFolder", this.makepath(path));
     },
     
     move: function(path1, path2) {
-      var method = this.isDirectory(path1) ? "MoveFolder" : "MoveFile";
-      this.$fso[method](path1, path2);
-    },
-    
-    read: function(path) {
-      if (this.isDirectory(path)) {
-        return new LocalDirectory(this.$fso.GetFolder(path));
-      }
-      return this.base(path);
+      _activex_exec(this.isDirectory(path1) ? "MoveFolder" : "MoveFile", this.makepath(path1), this.makepath(path2));
     },
     
     remove: function(path) {
       if (this.isFile(path)) {
-        this.$fso.DeleteFile(path);
+        _activex_exec("DeleteFile", this.makepath(path));
       } else if (this.isDirectory(path)) {
-        this.$fso.DeleteFolder(path);
+        _activex_exec("DeleteFolder", this.makepath(path));
       }
     }
   },
 
   "@(Components)": { // XPCOM
-    constructor: function() {
-      this.$nsILocalFile = LocalFile.$createObject();
-    },
-    
     copy: function(path1, path2) {
-      return this.$nsILocalFile.copyTo(path2);
+      var file1 = _xpcom_createFile(this.makepath(path1));
+      var file2 = _xpcom_createFile(this.makepath(path2));
+      file1.copyTo(file2.parent, file2.leafName);
     },
     
     exists: function(path) {
-      return this.$nsILocalFile.exists();
+      return _xpcom_createFile(this.makepath(path)).exists();
     },
     
     isFile: function(path) {
-      return this.exists() && this.$nsILocalFile.isFile();
+      var file = _xpcom_createFile(this.makepath(path))
+      return file.exists() && file.isFile();
     },
     
     isDirectory: function(path) {
-      return this.exists() && this.$nsILocalFile.isDirectory();
+      var file = _xpcom_createFile(this.makepath(path))
+      return file.exists() && file.isDirectory();
     },
   
     mkdir: function(path) {
-      return this.$nsILocalFile.create(1);
+      _xpcom_createFile(this.makepath(path)).create(1);
     },
     
     move: function(path1, path2) {
-      return this.$nsILocalFile.moveTo(path2);
-    },
-    
-    read: function(path) {
-      if (this.isDirectory(path)) {
-        return new LocalDirectory(this.$nsILocalFile.directoryEntries);
-      }
-      return this.base(path);
+      var file1 = _xpcom_createFile(this.makepath(path1));
+      var file2 = _xpcom_createFile(this.makepath(path2));
+      file1.moveTo(file2.parent, file2.leafName);
     },
     
     remove: function(path) {
-      this.$nsILocalFile.remove(false);
+      _xpcom_createFile(this.makepath(path)).remove(false);
     }
   },
 
   "@(java && !global.Components)": {
     exists: function(path) {
-      return new java.io.File(path).exists();
+      return _java_createFile(this.makepath(path)).exists();
+    },
+
+    isFile: function(path) {
+      return _java_createFile(this.makepath(path)).isFile();
+    },
+
+    isDirectory: function(path) {
+      return _java_createFile(this.makepath(path)).isDirectory();
+    },
+
+    mkdir: function(path) {
+      _java_createFile(this.makepath(path)).mkdir();
+    },
+
+    move: function(path1, path2) {
+      var file1 = _java_createFile(this.makepath(path1));
+      var file2 = _java_createFile(this.makepath(path2));
+      file1.renameTo(file2);
+    },
+
+    remove: function(path) {
+      _java_createFile(this.makepath(path))["delete"]();
     }
   }
 }, {
+  init: function() {
+    forEach.csv("copy,move", function(method) {
+      extend(this, method, function(path1, path2, overwrite) {
+        assert(this.exists(path1), "File does not exist: " + path1);
+        if (this.exists(path2)) {
+          if (overwrite) {
+            this.remove(path2);
+          } else {
+            throw new Error("File already exists: " + path2);
+          }
+        }
+        this.base(path1, path2);
+      });
+    }, this.prototype);
+  },
+
   "@(Components)": { // XPCOM
     init: function() {
+      this.base();
       XPCOM.privelegedObject(this.prototype);
+    }
+  },
+  
+  fromNativePath: I,
+  toNativePath: I,
+
+  getPath: K("/"),
+
+  "@(global.java.io.File.separator=='\\\\')": _win_formatter,
+  "@(jscript)": _win_formatter,
+  "@win(32|64)": _win_formatter,
+  
+  "@(java)": {
+    getPath: function() {
+      return this.fromNativePath(new java.io.File("").getAbsolutePath());
+    }
+  },
+
+  "@(ActiveXObject)": {
+    getPath: function() {
+      var fso = new ActiveXObject("Scripting.FileSystemObject");
+      return this.fromNativePath(fso.GetFolder(".").path);
+    }
+  },
+
+  "@(location)": {
+    getPath: function() {
+      return decodeURIComponent(location.pathname.replace(_TRIM_PATH, ""));
+    }
+  },
+
+  "@(true)": {
+    getPath: function() { // memoise
+      var path = this.base();
+      this.getPath = K(path);
+      return path;
     }
   }
 });
@@ -2268,35 +2438,66 @@ var LocalFileSystem = FileSystem.extend({
 
 var LocalDirectory = Directory.extend({
   "@(ActiveXObject)": {
-    constructor: function(directory) {
+    constructor: function(path) {
       this.base();
-      var files = directory.files;
-      var length = files.Count();      
-      for (var i = 0; i < length; i++) {
-        this.put(files.item(i));
+      if (typeof path == "string") {
+        var directory = _activex_exec("GetFolder", path);
+        forEach([directory.SubFolders, directory.Files], function(list) {
+          var enumerator = new Enumerator(list);
+          while (!enumerator.atEnd()) {
+            var file = enumerator.item();
+            this.put(file.Name, file);
+            enumerator.moveNext();
+          }
+        }, this);
       }
     }
   },
 
   "@(Components)": { // XPCOM
-    constructor: XPCOM.privelegedMethod(function(directory) {
+    constructor: function(path) {
       this.base();
-      var enumerator = directory.QueryInterface(Components.interfaces.nsIDirectoryEnumerator);
-      while (enumerator.hasMoreElements()) {
-        this.put(enumerator.nextFile);
+      if (typeof path == "string") {
+        var file = _xpcom_createFile(path);
+        var directory = file.directoryEntries;
+        var enumerator = directory.QueryInterface(Components.interfaces.nsIDirectoryEnumerator);
+        while (enumerator.hasMoreElements()) {
+          file = enumerator.nextFile;
+          this.put(file.leafName, file);
+        }
       }
-    })
+    }
+  },
+
+  "@(java && !global.Components)": {
+    constructor: function(path) {
+      this.base();
+      if (typeof path == "string") {
+        var file = _java_createFile(path);
+        var directory = file.list();
+        for (var i = 0; i < directory.length; i++) {
+          file = new java.io.File(directory[i]);
+          this.put(file.getName(), file);
+        }
+      }
+    }
   }
 }, {
-  "@(ActiveXObject)": {  
+  "@(ActiveXObject)": {
     create: function(name, file) {
-      return new this.Item(file.Name, file.Type | 16, file.Size);
+      return new this.Item(name, file.Type | 16, file.Size);
     }
   },
 
   "@(Components)": {
     create: function(name, file) {
-      return new this.Item(file.leafName, file.isDirectory(), file.fileSize);
+      return new this.Item(name, file.isDirectory(), file.fileSize);
+    }
+  },
+
+  "@(java && !global.Components)": {
+    create: function(name, file) {
+      return new this.Item(name, file.isDirectory(), file.length());
     }
   }
 });
@@ -2309,334 +2510,118 @@ var LocalDirectory = Directory.extend({
 // the java version seems a bit buggy when writing...?
 
 var LocalFile = Base.extend({
-  constructor: function(path, mode) {
-    assignID(this);
-    this.path = LocalFile.makepath(path);
-    if (mode) this.open(mode);
+  constructor: function(path) {
+    this.toString = K(FileSystem.resolve(LocalFileSystem.getPath(), path));
   },
-
-  mode: 0,
-  path: "",
-
-  close: function() {
-    delete LocalFile.opened[this.base2ID];
-    delete this.$stream;
-    this.mode = LocalFile.CLOSED;
-  },
-
-  open: function(mode) {
-    this.mode = mode || LocalFile.READ;
-    LocalFile.opened[this.base2ID] = this;
-  },
-
-  exists: NOT_SUPPORTED,
-  read: NOT_SUPPORTED,
-  remove: NOT_SUPPORTED,
-  write: NOT_SUPPORTED,
+  
+  close: _INVALID_MODE,
+  open: NOT_SUPPORTED,
+  read: _INVALID_MODE,
+  write: _INVALID_MODE,
 
   "@(ActiveXObject)": {
-    constructor: function(path, mode) {
-      this.$fso = new ActiveXObject("Scripting.FileSystemObject");
-      this.base(path, mode);
-    },
-
-    close: function() {
-      if (this.$stream) {
-        this.$stream.Close();
-        this.base();
-      }
-    },
-
-    exists: function() {
-      return this.$fso.FileExists(this.path);
-    },
-
     open: function(mode) {
-      if (!this.$stream) {
-        this.base(mode);
-        switch (this.mode) {
-          case LocalFile.READ:
-            if (!this.exists()) {
-              this.mode = LocalFile.CLOSED;
-              break;
-            }
-            this.$stream = this.$fso.OpenTextFile(this.path, 1);
-            break;
-          case LocalFile.WRITE:
-            this.$stream = this.$fso.OpenTextFile(this.path, 2, -1, 0);
-            break;
-        }
+      var path = LocalFileSystem.toNativePath(this);
+      var fso = new ActiveXObject("Scripting.FileSystemObject");
+      
+      switch (mode) {
+        case READ:
+          assert(fso.FileExists(path), "File does not exist: " + this);
+          var stream = fso.OpenTextFile(path, 1);
+          this.read = function() {
+            return stream.ReadAll();
+          };
+          break;
+          
+        case WRITE:
+          stream = fso.OpenTextFile(path, 2, -1, 0);
+          this.write = function(text) {
+            stream.Write(text || "");
+          };
+          break;
       }
-    },
-
-    read: function() {
-      return this.$stream.ReadAll();
-    },
-
-    remove: function() {
-      return this.$fso.GetFile(this.path).Delete();
-    },
-
-    write: function(text) {
-      this.$stream.Write(text || "");
+      
+      this.close = function() {
+        stream.Close();
+        delete this.read;
+        delete this.write;
+        delete this.close;
+      };
     }
   },
 
   "@(Components)": { // XPCOM
-    constructor: function(path, mode) {
-      this.$nsILocalFile = LocalFile.$createObject();
-      this.base(path, mode);
-    },
-
-    $init: function() {
-      var file = this.$nsILocalFile;
-      try {
-        file.initWithPath(this.path);
-      } catch (error) {
-        file.initWithPath(location.pathname);
-        file.setRelativeDescriptor(file, this.path);
-      }
-      return file;
-    },
-
-    close: function() {
-      if (this.$stream) {
-        if (this.mode == LocalFile.WRITE) this.$stream.flush();
-        this.$stream.close();
-        this.base();
-      }
-    },
-
-    exists: function() {
-      return this.$init().exists();
-    },
-
     open: function(mode) {
-      if (!this.$stream) {
-        this.base(mode);
-        var file = this.$init();
-        switch (this.mode) {
-          case LocalFile.READ:
-            if (!file.exists()) {
-              this.mode = LocalFile.CLOSED;
-              break;
-            }
-            var $stream = XPCOM.createObject("network/file-input-stream;1", "nsIFileInputStream");
-            $stream.init(file, 0x01, 00004, null);
-            this.$stream = XPCOM.createObject("scriptableinputstream;1", "nsIScriptableInputStream");
-            this.$stream.init($stream);
-            break;
-          case LocalFile.WRITE:
-            if (!file.exists()) file.create(0, 0664);
-            this.$stream = XPCOM.createObject("network/file-output-stream;1", "nsIFileOutputStream");
-            this.$stream.init(file, 0x20 | 0x02, 00004, null);
-            break;
-        }
+      var file = _xpcom_createFile(this);
+      
+      switch (mode) {
+        case READ:
+          assert(file.exists(), "File does not exist: " + this);
+          var input = XPCOM.createObject("network/file-input-stream;1", "nsIFileInputStream");
+          input.init(file, 0x01, 00004, null);
+          var stream = XPCOM.createObject("scriptableinputstream;1", "nsIScriptableInputStream");
+          stream.init(input);
+          this.read = function() {
+            return stream.read(stream.available());
+          };
+          break;
+          
+        case WRITE:
+          if (!file.exists()) file.create(0, 0664);
+          stream = XPCOM.createObject("network/file-output-stream;1", "nsIFileOutputStream");
+          stream.init(file, 0x20 | 0x02, 00004, null);
+          this.write = function(text) {
+            if (text == null) text = "";
+            stream.write(text, text.length);
+          };
+          break;
       }
-    },
-
-    read: function() {
-      return this.$stream.read(this.$stream.available());
-    },
-
-    remove: function() {
-      this.$init().remove(false);
-    },
-
-    write: function(text) {
-      if (text == null) text = "";
-      this.$stream.write(text, text.length);
+      
+      this.close = function() {
+        if (mode == WRITE) stream.flush();
+        stream.close();
+        delete this.read;
+        delete this.write;
+        delete this.close;
+      };
     }
   },
 
   "@(java && !global.Components)": {
-    close: function() {
-      if (this.$stream) {
-        this.$stream.close();
-        this.base();
-      }
-    },
-
-    exists: function() {
-      return new java.io.File(this.path).exists();
-    },
-
     open: function(mode) {
-      if (!this.$stream) {
-        this.base(mode);
-        switch (this.mode) {
-          case LocalFile.READ:
-            var file = new java.io.FileReader(this.path);
-            this.$stream = new java.io.BufferedReader(file);
-            break;
-          case LocalFile.WRITE:
-            var file = new java.io.FileOutputStream(this.path);
-            this.$stream = new java.io.PrintStream(file);
-            break;
-        }
+      var path = LocalFileSystem.toNativePath(this);
+      var io = java.io;
+      
+      switch (mode) {
+        case READ:
+          var file = _java_createFile(this);
+          assert(file.exists(), "File does not exist: " + this);
+          var stream = new io.BufferedReader(new io.FileReader(path));
+          this.read = function() {
+            var lines = [], line, i = 0;
+            while ((line = stream.readLine()) != null) {
+              lines[i++] = line;
+            }
+            return lines.join("\r\n");
+          };
+          break;
+          
+        case WRITE:
+          assert(!global.navigator, "Cannot write to local files with this browser.");
+          stream = new io.PrintStream(new io.FileOutputStream(path));
+          this.write = function(text) {
+            stream.print(text || "");
+          };
+          break;
       }
-    },
-
-    read: function() {
-      var lines = [];
-      var line, i = 0;
-      while ((line = this.$stream.readLine()) != null) {
-        lines[i++] = line;
-      }
-      return lines.join("\r\n");
-    },
-
-    write: function(text) {
-      this.$stream.print(text || "");
+      
+      this.close = function() {
+        stream.close();
+        delete this.read;
+        delete this.write;
+        delete this.close;
+      };
     }
-  }
-}, {
-  CLOSED: 0,
-  READ: 1,
-  WRITE: 2,
-
-  opened: {},
-
-  backup: function(fileName, backupName) {
-    var text = this.read(fileName);
-    this.write(backupName || (fileName + ".backup"), text);
-    return text;
-  },
-
-  closeAll: function() {
-    var files = this.opened;
-    for (var i in files) files[i].close();
-  },
-
-  exists: function(fileName) {
-    return new this(fileName).exists();
-  },
-
-  makepath: function(fileName) {
-    var TRIM = /[^\/]+$/;
-    var path = location.pathname.replace(TRIM, "");
-    path = FileSystem.resolve(path, fileName);
-    return decodeURIComponent(path);
-  },
-
-  "@win(32|64)": {
-    makepath: function(fileName) {
-      var SLASH = /\//g;
-      var BACKSLASH = /\\/g;
-      var TRIM = /[^\/]+$/;
-      fileName = String(fileName || "").replace(BACKSLASH, "/");
-      var path = location.pathname.replace(BACKSLASH, "/").replace(TRIM, "");
-      path = FileSystem.resolve(path, fileName).slice(1);
-      return decodeURIComponent(path.replace(SLASH, "\\"));
-    }
-  },
-
-  read: function(fileName) {
-    var file = new this(fileName, this.READ);
-    var text = file.mode ? file.read() : "";
-    file.close();
-    return text;
-  },
-
-  remove: function(fileName) {
-    var file = new this(fileName);
-    file.remove();
-  },
-
-  write: function(fileName, text) {
-    var file = new this(fileName, this.WRITE);
-    file.write(text);
-    file.close();
-  },
-
-  "@(Components)": {
-    init: function() {
-      XPCOM.privelegedObject(this.prototype);
-      this.$createObject = XPCOM.privelegedMethod(function() {
-        return XPCOM.createObject("file/local;1", "nsILocalFile");
-      });
-    }
-  }
-});
-
-// =========================================================================
-// IO/JSONFileSystem.js
-// =========================================================================
-
-var _FETCH = "#fetch";
-
-var JSONFileSystem = FileSystem.extend({
-  constructor: function(data) {
-    this[_FETCH] = function(path) {
-      // fetch data from the JSON object, regardless of type
-      path = this.makepath(path);
-      return reduce(path.split("/"), function(file, name) {
-        if (file && name) file = (undefined === file[name]) ? undefined : file[name];
-        return file;
-      }, data);
-    };
-  },
-  
-  exists: function(path) {
-    return this[_FETCH](path) !== undefined;
-  },
-  
-  isFile: function(path) {
-    return typeof this[_FETCH](path) == "string";
-  },
-  
-  isDirectory: function(path) {
-    return typeof this[_FETCH](path) == "object";
-  },
-
-  copy: function(path1, path2) {
-    var data = this[_FETCH](path1);
-    this.write(path2, JSON.copy(data));
-  },
-  
-  mkdir: function(path) {
-    // create a directory
-    this.write(path, {});
-  },
-  
-  move: function(path1, path2) {
-    var data = this[_FETCH](path1);
-    this.write(path2, data);
-    this.remove(path1);
-  },
-
-  read: function(path) {    
-    // read text from the JSON object
-    var file = this[_FETCH](path);
-    return typeof file == "object" ?
-      new JSONDirectory(file) : file || ""; // make read safe
-  },
-  
-  remove: function(path) {
-    // remove data from the JSON object
-    path = path.replace(/\/$/, "").split("/");
-    var filename = path.splice(path.length - 1, 1);
-    var directory = this[_FETCH](path.join("/"));
-    if (directory) delete directory[filename];
-  },
-
-  write: function(path, data) {
-    // write data to the JSON object
-    path = path.split("/");
-    var filename = path.splice(path.length - 1, 1);
-    var directory = this[_FETCH](path.join("/"));
-    assert(directory, "Directory not found."); 
-    return directory[filename] = data || "";
-  }
-});
-
-// =========================================================================
-// IO/JSONDirectory.js
-// =========================================================================
-
-var JSONDirectory = Directory.extend(null, {
-  create: function(name, item) {
-    return new this.Item(name, typeof item == "object", typeof item == "string" ? item.length : 0);
   }
 });
 
@@ -2658,7 +2643,7 @@ new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
 var MiniWeb = new base2.Package(this, {
   name:    "MiniWeb",
-  exports: "Client,Server,FileSystem,Command,Interpreter,Terminal,Request,History",
+  exports: "Client,Server,JSONFileSystem,JSONDirectory,FileSystem,Command,Interpreter,Terminal,Request,History",
   imports: "IO",
   version: "0.7",
   
@@ -2691,7 +2676,7 @@ var MiniWeb = new base2.Package(this, {
     }, this);
     
     window.onload = function() {
-      MiniWeb.readOnly = location.protocol != "file:";
+      MiniWeb.readOnly = location.protocol != "file:" || LocalFile.prototype.open == NOT_SUPPORTED;
       MiniWeb.server = new Server;
       MiniWeb.terminal = new Terminal;
       MiniWeb.client = new Client;
@@ -2711,10 +2696,15 @@ var MiniWeb = new base2.Package(this, {
   save: function(name) {
     if (this.readOnly) {
       alert(
-        "You cannot save your changes over HTTP.\n" +
-        "Instead, save this page to your hard disk.\n" +
-        "If you edit the local version you will then\n" +
-        "be able to save your changes."
+        location.protocol == "file:"
+        ?
+          "Your browser does not support local file access.\n" +
+          "Use Internet Explorer or Firefox instead."
+        :
+          "You cannot save your changes over HTTP.\n" +
+          "Instead, save this page to your hard disk.\n" +
+          "If you edit the local version you will then\n" +
+          "be able to save your changes."
       );
       return false;
     }
@@ -2761,8 +2751,9 @@ var MiniWeb = new base2.Package(this, {
       ""
     ]).join("\r\n");
     
-    if (!name) LocalFile.backup(location.pathname);
-    LocalFile.write(name || location.pathname, html);
+    var fs = new LocalFileSystem;
+    if (!name) fs.backup(location.pathname);
+    fs.write(name || location.pathname, html);
     if (!name) location.reload();
     
     return true;
@@ -2781,6 +2772,12 @@ MiniWeb.toString = function() {
 };
 
 eval(this.imports);
+
+JavaScript.bind(global);
+
+var _WILD_CARD      = /\*$/,
+    _TRIM_PATH      = /[^\/]+$/,
+    _SPACE          = /\s+/;
 
 // =========================================================================
 // MiniWeb/Client.js
@@ -2805,19 +2802,6 @@ var Client = Base.extend({
     this.view = document.createElement("iframe");
     this.view.style.display = "none";
     document.body.appendChild(this.view);
-    
-    window.onunload = function() {
-      try {
-        client.view = null;
-        if (client.window) {
-          client.window.onunload();
-          client.window = null;
-        }
-        clearInterval(client.history.timer);
-      } catch (error) {
-        // ignore
-      }
-    };
   },
   
   address: "",
@@ -3200,6 +3184,87 @@ var Request = Base.extend({
 });
 
 // =========================================================================
+// MiniWeb/~/base2/IO/JSONFileSystem.js
+// =========================================================================
+
+var _FETCH = "#fetch";
+
+var JSONFileSystem = FileSystem.extend({
+  constructor: function(data) {
+    this[_FETCH] = function(path) {
+      // fetch data from the JSON object, regardless of type
+      path = this.makepath(path);
+      return reduce(path.split("/"), function(file, name) {
+        if (file && name) file = (name in file) ? file[name] : undefined; // code looks silly but stops warnings being generated in Firebug
+        return file;
+      }, data);
+    };
+  },
+  
+  exists: function(path) {
+    return this[_FETCH](path) !== undefined;
+  },
+  
+  isFile: function(path) {
+    return typeof this[_FETCH](path) == "string";
+  },
+  
+  isDirectory: function(path) {
+    return typeof this[_FETCH](path) == "object";
+  },
+
+  copy: function(path1, path2) {
+    var data = this[_FETCH](path1);
+    this.write(path2, JSON.copy(data));
+  },
+  
+  mkdir: function(path) {
+    // create a directory
+    this.write(path, {});
+  },
+  
+  move: function(path1, path2) {
+    var data = this[_FETCH](path1);
+    this.write(path2, data);
+    this.remove(path1);
+  },
+
+  read: function(path) {    
+    // read text from the JSON object
+    var file = this[_FETCH](path);
+    return typeof file == "object" ?
+      new JSONDirectory(file) : file || ""; // make read safe
+  },
+  
+  remove: function(path) {
+    // remove data from the JSON object
+    path = path.replace(/\/$/, "").split("/");
+    var filename = path.splice(path.length - 1, 1);
+    var directory = this[_FETCH](path.join("/"));
+    if (directory) delete directory[filename];
+  },
+
+  write: function(path, data) {
+    // write data to the JSON object
+    path = path.split("/");
+    var filename = path.splice(path.length - 1, 1);
+    var directory = this[_FETCH](path.join("/"));
+    assert(directory, "Directory not found."); 
+    return directory[filename] = data || "";
+  }
+});
+
+// =========================================================================
+// MiniWeb/~/base2/IO/JSONDirectory.js
+// =========================================================================
+
+var JSONDirectory = Directory.extend(null, {
+  create: function(name, item) {
+    return new this.Item(name, typeof item == "object", typeof item == "string" ? item.length : 0);
+  }
+});
+
+// =========================================================================
 // MiniWeb/FileSystem.js
 // =========================================================================
 
@@ -3241,20 +3306,24 @@ var Command = FileSystem.extend({
     var jst = new JST.Interpreter(this);
     this[Command.INCLUDES] = {};
     this.exec = function(template, target) {
-      command.parent = command.self;
-      if (!command.top) {
-        command.top = 
-        command.parent = this.makepath(template);
+      var result = "";
+      var dir = template.replace(_TRIM_PATH, "");
+      if (command.isDirectory(dir)) {
+        command.parent = command.self;
+        if (!command.top) {
+          command.top =
+          command.parent = this.makepath(template);
+        }
+        var path = command.path;
+        var restore = command.target;
+        command.self = this.makepath(template);
+        command.chdir(dir);
+        command.target = target || "";
+        result = jst.interpret(this.read(template));
+        command.target = restore;
+        command.path = path;
+        command.self = command.parent;
       }
-      var path = command.path;
-      var restore = command.target;
-      command.self = this.makepath(template);
-      command.chdir(template);
-      command.target = target || "";
-      var result = jst.interpret(this.read(template));
-      command.target = restore;
-      command.path = path;
-      command.self = command.parent;
       return result;
     };
   },
@@ -3266,8 +3335,8 @@ var Command = FileSystem.extend({
   
   args: function(names) {
     // define template arguments in the current scope
-    var args = this.target.split(/\s+/);
-    forEach (String(names).match(/[^\s,]+/g), function(name, index) {
+    var args = this.target.split(_SPACE);
+    forEach.csv(names, function(name, index) {
       if (name) this[name] = args[index];
     }, this);
     return args;
@@ -3292,8 +3361,7 @@ var Command = FileSystem.extend({
   },
   
   process: function(template, target) {
-    var WILD_CARD = /\*$/;
-    if (WILD_CARD.test(target)) { // process everything in the current directory
+    if (_WILD_CARD.test(target)) { // process everything in the current directory
       var path = target.replace(WILD_CARD, "") || this.path;
       var directory = this.read(path);
       forEach (directory, function(item, target) {
@@ -3426,9 +3494,10 @@ var Terminal = Command.extend({
     // the state of a terminal session is saved to disk whenever
     //  MiniWeb is saved from the terminal. Reload the saved
     //  state.
-    if (!MiniWeb.readOnly && LocalFile.exists(this.TMP)) {
-      var state = JSON.parse(LocalFile.read(this.TMP));
-      LocalFile.remove(this.TMP);
+    var fs = new LocalFileSystem;
+    if (!MiniWeb.readOnly && fs.exists(this.TMP)) {
+      var state = JSON.parse(fs.read(this.TMP));
+      fs.remove(this.TMP);
     } else {
       state = {
         commands: [],
@@ -3449,7 +3518,8 @@ var Terminal = Command.extend({
     state.protocol = terminal.protocol;
     state.path = terminal.path;
     if (!MiniWeb.readOnly) {
-      LocalFile.write(this.TMP, JSON.toString(state));
+      var fs = new LocalFileSystem;
+      fs.write(this.TMP, JSON.toString(state));
     }
   }
 });

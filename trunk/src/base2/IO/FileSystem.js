@@ -3,30 +3,27 @@
 // Here we'll define all the path management code.
 
 var FileSystem = Base.extend({
+  constructor: function(path) {
+    if (path) this.chdir(path);
+  },
+
   path: "/",
-  
+
   chdir: function(path) {
     // set the current path
+    assert(this.isDirectory(path), path + " is not a directory.");
     path = this.makepath(path);
-    if (!/\/$/.test(path)) { // trailing slash?
-      if (this.isDirectory(path)) {
-        // if it's a directory add the slash
-        path += "/";
-      } else {
-        // if it's not then trim to the last slash
-        path = path.replace(/[^\/]+$/, "");
-      }
-    }
+    if (!_TRAILING_SLASH.test(path)) path += "/";
     this.path = path;
   },
-  
+
   makepath: function(path1, path2) {
     if (arguments.length == 1) {
       path2 = path1;
       path1 = this.path;
     }
     return FileSystem.resolve(path1, path2);
-  }, 
+  },
     
   copy: NOT_SUPPORTED,
   exists: NOT_SUPPORTED,
@@ -39,8 +36,6 @@ var FileSystem = Base.extend({
   write: NOT_SUPPORTED
 }, {
   resolve: function(path1, path2) {
-    var FILENAME = /[^\/]+$/;
-    var RELATIVE = /\/[^\/]+\/\.\./;
     // stringify
     path1 = String(path1 || "");
     path2 = String(path2 || "");
@@ -48,12 +43,12 @@ var FileSystem = Base.extend({
     if (path2.charAt(0) == "/") {
       var path = "";
     } else {
-      path = path1.replace(FILENAME, "");
+      path = path1.replace(_TRIM_PATH, "");
     }
     path += path2;
-    // get rid of ../ relative paths
-    while (RELATIVE.test(path)) {
-      path = path.replace(RELATIVE, "");
+    // resolve relative paths
+    while (_RELATIVE.test(path)) {
+      path = path.replace(_RELATIVE, "");
     }
     return path;
   }

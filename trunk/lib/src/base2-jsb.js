@@ -7,7 +7,7 @@
     Doeke Zanstra
 */
 
-// timestamp: Sat, 26 Jul 2008 00:01:22
+// timestamp: Tue, 26 Aug 2008 18:47:00
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -26,7 +26,7 @@ var JSB = new base2.Package(this, {
 
 eval(this.imports);
 
-;;; if (typeof console2 == "undefined") console2={log:Undefined,update:Undefined};
+;;; if (typeof console2 == "undefined") global.console2={log:Undefined,update:Undefined};
 
 // =========================================================================
 // JSB/header.js

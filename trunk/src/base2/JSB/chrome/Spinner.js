@@ -92,9 +92,9 @@ var Spinner = Range.modify({
     } else if (element.readOnly) {
       state = "normal";
     } else if ((element == Chrome._hover || element == Chrome._focus) && Chrome._activeThumb) {
-      state = Chrome._activeThumb + "_" + "active";
+      state = Chrome._activeThumb + _ACTIVE;
     } else if (element == Chrome._hover && Chrome._hoverThumb) {
-      state = Chrome._hoverThumb + "_" + "hover";
+      state = Chrome._hoverThumb + _HOVER;
     } else {
       state = "normal";
     }

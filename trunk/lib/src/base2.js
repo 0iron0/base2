@@ -7,11 +7,11 @@
     Doeke Zanstra
 */
 
-// timestamp: Sat, 26 Jul 2008 00:01:22
+// timestamp: Tue, 26 Aug 2008 18:47:00
 
 var base2 = {
   name:    "base2",
-  version: "1.0 (RC1)",
+  version: "1.0 (RC2)",
   exports:
     "Base,Package,Abstract,Module,Enumerable,Map,Collection,RegGrp," +
     "Undefined,Null,This,True,False,assignID,detect,global",
@@ -92,7 +92,6 @@ var _subclass = function(_instance, _static) {
   if (_class.init) _class.init();
   
   // introspection (removed when packed)
-  ;;; _class.toString = K(String(_constructor));
   ;;; _class["#implements"] = [];
   ;;; _class["#implemented_by"] = [];
   
@@ -168,7 +167,20 @@ var Package = Base.extend({
         var fullName = this.name + "." + name;
         this.namespace += "var " + name + "=" + fullName + ";";
         return namespace += "if(!" + fullName + ")" + fullName + "=" + name + ";";
-      }, "", this);
+      }, "", this) + "this._label_" + this.name + "();";
+      
+      var pkg = this;
+      var packageName = String2.slice(this, 1, -1);
+      _private["_label_" + this.name] = function() {
+        Package.forEach (pkg, function(object, name) {
+          if (object && object.ancestorOf == Base.ancestorOf) {
+            object.toString = K(format("[%1.%2]", packageName, name));
+            if (object.prototype.toString == Base.prototype.toString) {
+              object.prototype.toString = K(format("[object %1.%2]", packageName, name));
+            }
+          }
+        });
+      };
     }
 
     function lookup(names) {
@@ -229,9 +241,7 @@ var Module = Abstract.extend(null, {
     var index = _moduleCount++;
     module.namespace = "";
     module.partial = this.partial;
-    module.toString = function(hint) {
-      return hint == "index" ? index : "[module]";
-    };
+    module.toString = K("[base2.Module[" + index + "]]");
     Module[index] = module;
     // Inherit class methods.
     module.implement(this);
@@ -255,7 +265,7 @@ var Module = Abstract.extend(null, {
 
   implement: function(_interface) {
     var module = this;
-    var index = module.toString("index");
+    var id = module.toString().slice(1, -1);
     if (typeof _interface == "function") {
       if (!_ancestorOf(_interface, module)) {
         this.base(_interface);
@@ -271,22 +281,22 @@ var Module = Abstract.extend(null, {
             module[name] = property;
           }
         }
-        module.namespace += _interface.namespace.replace(/\b\d+\b/g, index);
+        module.namespace += _interface.namespace.replace(/base2\.Module\[\d+\]/g, id);
       }
     } else {
       // Add static interface.
       extend(module, _interface);
       // Add instance interface.
-      _extendModule(module, _interface, index);
+      _extendModule(module, _interface);
     }
     return module;
   },
 
   partial: function() {
     var module = Module.extend();
-    var index = module.toString("index");
+    var id = module.toString().slice(1, -1);
     // partial methods are already bound so remove the binding to speed things up
-    module.namespace = this.namespace.replace(/(\w+)=b[^\)]+\)/g, "$1=base2.Module[" + index + "].$1");
+    module.namespace = this.namespace.replace(/(\w+)=b[^\)]+\)/g, "$1=" + id + ".$1");
     this.forEach(function(method, name) {
       module[name] = partial(bind(method, module));
     });
@@ -294,17 +304,18 @@ var Module = Abstract.extend(null, {
   }
 });
 
-function _extendModule(module, _interface, index) {
+function _extendModule(module, _interface) {
   var proto = module.prototype;
+  var id = module.toString().slice(1, -1);
   for (var name in _interface) {
     var property = _interface[name], namespace = "";
     if (name.charAt(0) == "@") { // object detection
-      if (detect(name.slice(1))) _extendModule(module, property, index);
+      if (detect(name.slice(1))) _extendModule(module, property);
     } else if (!proto[name]) {
       if (name == name.toUpperCase()) {
-        namespace = "var " + name + "=base2.Module[" + index + "]." + name + ";";
+        namespace = "var " + name + "=" + id + "." + name + ";";
       } else if (typeof property == "function" && property.call) {
-        namespace = "var " + name + "=base2.lang.bind('" + name + "',base2.Module[" + index + "]);";
+        namespace = "var " + name + "=base2.lang.bind('" + name + "'," + id + ");";
         proto[name] = _moduleMethod(module, name);
         ;;; proto[name]._module = module; // introspection
       }
@@ -465,7 +476,6 @@ var Map = Base.extend({
   },
 
   put: function(key, value) {
-    if (arguments.length == 1) value = key;
     // create the new entry (or overwrite the old entry).
     this[_HASH + key] = value;
   },
@@ -560,19 +570,18 @@ var Collection = Map.extend({
   },
 
   insertAt: function(index, key, item) {
-    assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
+    assert(this[_KEYS].item(index) !== undefined, "Index out of bounds.");
     assert(!this.has(key), "Duplicate key '" + key + "'.");
     this[_KEYS].insertAt(index, String(key));
     this[_HASH + key] = null; // placeholder
     this.put.apply(this, _slice.call(arguments, 1));
   },
-  
+
   item: function(keyOrIndex) {
     return this[typeof keyOrIndex == "number" ? "getAt" : "get"](keyOrIndex);
   },
 
   put: function(key, item) {
-    if (arguments.length == 1) item = key;
     if (!this.has(key)) {
       this[_KEYS].push(String(key));
     }
@@ -584,8 +593,8 @@ var Collection = Map.extend({
   },
 
   putAt: function(index, item) {
-    assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
     arguments[0] = this[_KEYS].item(index);
+    assert(arguments[0] !== undefined, "Index out of bounds.");
     this.put.apply(this, arguments);
   },
 
@@ -614,6 +623,24 @@ var Collection = Map.extend({
     return this[_KEYS].length;
   },
 
+  slice: function(start, end) {
+    var sliced = this.copy();
+    if (arguments.length > 0) {
+      var keys = this[_KEYS], removed = keys;
+      sliced[_KEYS] = Array2(_slice.apply(keys, arguments));
+      if (sliced[_KEYS].length) {
+        removed = removed.slice(0, start);
+        if (arguments.length > 1) {
+          removed = removed.concat(keys.slice(end));
+        }
+      }
+      for (var i = 0; i < removed.length; i++) {
+        delete sliced[_HASH + removed[i]];
+      }
+    }
+    return sliced;
+  },
+
   sort: function(compare) { // optimised (refers to _HASH)
     if (compare) {
       this[_KEYS].sort(bind(function(key1, key2) {
@@ -624,7 +651,7 @@ var Collection = Map.extend({
   },
 
   toString: function() {
-    return "(" + String(this[_KEYS]) + ")";
+    return "(" + (this[_KEYS] || "") + ")";
   }
 }, {
   Item: null, // If specified, all members of the collection must be instances of Item.
@@ -736,6 +763,7 @@ var RegGrp = Collection.extend({
   Item: {
     constructor: function(expression, replacement) {
       if (replacement == null) replacement = RegGrp.IGNORE;
+      else if (replacement.replacement != null) replacement = replacement.replacement;
       else if (typeof replacement != "function") replacement = String(replacement);
       
       // does the pattern use sub-expressions?
@@ -845,7 +873,7 @@ function extend(object, source) { // or extend(object, key, value)
       source = {};
       source[key] = arguments[2];
     }
-    var proto = (typeof source == "function" ? Function : Object).prototype;
+    var proto = global[(typeof source == "function" ? "Function" : "Object")].prototype;
     // Add constructor, toString etc
     if (base2.__prototyping) {
       var i = _HIDDEN.length, key;
@@ -867,21 +895,21 @@ function extend(object, source) { // or extend(object, key, value)
         // Object detection.
         if (key.charAt(0) == "@") {
           if (detect(key.slice(1))) extend(object, value);
-          continue;
-        }
-        // Check for method overriding.
-        var ancestor = object[key];
-        if (ancestor && typeof value == "function") {
-          if (value != ancestor) {
-            if (_BASE.test(value)) {
-              _override(object, key, value);
-            } else {
-              value.ancestor = ancestor;
-              object[key] = value;
-            }
-          }
         } else {
-          object[key] = value;
+          // Check for method overriding.
+          var ancestor = object[key];
+          if (ancestor && typeof value == "function") {
+            if (value != ancestor) {
+              if (_BASE.test(value)) {
+                _override(object, key, value);
+              } else {
+                value.ancestor = ancestor;
+                object[key] = value;
+              }
+            }
+          } else {
+            object[key] = value;
+          }
         }
       }
     }
@@ -1102,12 +1130,15 @@ var JavaScript = {
   namespace: "", // fixed later
   
   bind: function(host) {
+    var top = global;
+    global = host;
     forEach.csv(this.exports, function(name2) {
       var name = name2.slice(0, -1);
       extend(host[name], this[name2]);
       this[name2](host[name].prototype); // cast
     }, this);
-    return this;
+    global = top;
+    return host;
   }
 };
 
@@ -1228,7 +1259,7 @@ var Array2 = _createObject2(
 
     copy: function(array) {
       var copy = _slice.call(array);
-      if (array.swap && !copy.swap) Array2(copy); // cast to Array2
+      if (!copy.swap) Array2(copy); // cast to Array2
       return copy;
     },
 
@@ -1512,17 +1543,20 @@ function K(k) {
 };
 
 function bind(fn, context) {
+  if (fn.isBound) return fn;
   var lateBound = typeof fn != "function";
   if (arguments.length > 2) {
     var args = _slice.call(arguments, 2);
-    return function() {
+    var boundFunction = function() {
       return (lateBound ? context[fn] : fn).apply(context, args.concat.apply(args, arguments));
     };
   } else { // faster if there are no additional arguments
-    return function() {
+    boundFunction = function() {
       return (lateBound ? context[fn] : fn).apply(context, arguments);
     };
   }
+  boundFunction.isBound = true;
+  return boundFunction;
 };
 
 function compose() {
@@ -1601,8 +1635,8 @@ function detect() {
   //    e.g. detect("MSIE|opera");
 
   var jscript = NaN/*@cc_on||@_jscript_version@*/; // http://dean.edwards.name/weblog/2007/03/sniff/#comment85164
-  var java = global.java ? true : false;
-  if (global.navigator) {
+  var javaEnabled = global.java ? true : false;
+  if (global.navigator) { // browser
     var MSIE = /MSIE[\d.]+/g;
     var element = document.createElement("span");
     // Close up the space between name and version number.
@@ -1612,7 +1646,12 @@ function detect() {
     if (!jscript) userAgent = userAgent.replace(MSIE, "");
     if (MSIE.test(userAgent)) userAgent = userAgent.match(MSIE)[0] + " " + userAgent.replace(MSIE, "");
     base2.userAgent = navigator.platform + " " + userAgent.replace(/like \w+/gi, "");
-    java &= navigator.javaEnabled();
+    javaEnabled &= navigator.javaEnabled();
+//} else if (java) { // rhino
+//  var System = java.lang.System;
+//  base2.userAgent = "Rhino " + System.getProperty("os.arch") + " " + System.getProperty("os.name") + " " + System.getProperty("os.version");
+//} else if (jscript) { // Windows Scripting Host
+//  base2.userAgent = "WSH";
   }
 
   var _cache = {};
@@ -1623,7 +1662,7 @@ function detect() {
       if (not) test = test.slice(1);
       if (test.charAt(0) == "(") {
         try {
-          returnValue = new Function("element,jscript,java", "return !!" + test)(element, jscript, java);
+          returnValue = new Function("element,jscript,java,global", "return !!" + test)(element, jscript, javaEnabled, global);
         } catch (ex) {
           // the test failed
         }

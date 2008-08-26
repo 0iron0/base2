@@ -41,17 +41,20 @@ function K(k) {
 };
 
 function bind(fn, context) {
+  if (fn.isBound) return fn;
   var lateBound = typeof fn != "function";
   if (arguments.length > 2) {
     var args = _slice.call(arguments, 2);
-    return function() {
+    var boundFunction = function() {
       return (lateBound ? context[fn] : fn).apply(context, args.concat.apply(args, arguments));
     };
   } else { // faster if there are no additional arguments
-    return function() {
+    boundFunction = function() {
       return (lateBound ? context[fn] : fn).apply(context, arguments);
     };
   }
+  boundFunction.isBound = true;
+  return boundFunction;
 };
 
 function compose() {

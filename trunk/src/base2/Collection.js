@@ -58,19 +58,18 @@ var Collection = Map.extend({
   },
 
   insertAt: function(index, key, item) {
-    assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
+    assert(this[_KEYS].item(index) !== undefined, "Index out of bounds.");
     assert(!this.has(key), "Duplicate key '" + key + "'.");
     this[_KEYS].insertAt(index, String(key));
     this[_HASH + key] = null; // placeholder
     this.put.apply(this, _slice.call(arguments, 1));
   },
-  
+
   item: function(keyOrIndex) {
     return this[typeof keyOrIndex == "number" ? "getAt" : "get"](keyOrIndex);
   },
 
   put: function(key, item) {
-    if (arguments.length == 1) item = key;
     if (!this.has(key)) {
       this[_KEYS].push(String(key));
     }
@@ -82,8 +81,8 @@ var Collection = Map.extend({
   },
 
   putAt: function(index, item) {
-    assert(Math.abs(index) < this[_KEYS].length, "Index out of bounds.");
     arguments[0] = this[_KEYS].item(index);
+    assert(arguments[0] !== undefined, "Index out of bounds.");
     this.put.apply(this, arguments);
   },
 
@@ -112,6 +111,24 @@ var Collection = Map.extend({
     return this[_KEYS].length;
   },
 
+  slice: function(start, end) {
+    var sliced = this.copy();
+    if (arguments.length > 0) {
+      var keys = this[_KEYS], removed = keys;
+      sliced[_KEYS] = Array2(_slice.apply(keys, arguments));
+      if (sliced[_KEYS].length) {
+        removed = removed.slice(0, start);
+        if (arguments.length > 1) {
+          removed = removed.concat(keys.slice(end));
+        }
+      }
+      for (var i = 0; i < removed.length; i++) {
+        delete sliced[_HASH + removed[i]];
+      }
+    }
+    return sliced;
+  },
+
   sort: function(compare) { // optimised (refers to _HASH)
     if (compare) {
       this[_KEYS].sort(bind(function(key1, key2) {
@@ -122,7 +139,7 @@ var Collection = Map.extend({
   },
 
   toString: function() {
-    return "(" + String(this[_KEYS]) + ")";
+    return "(" + (this[_KEYS] || "") + ")";
   }
 }, {
   Item: null, // If specified, all members of the collection must be instances of Item.

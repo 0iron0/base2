@@ -10,20 +10,24 @@ var Command = FileSystem.extend({
     var jst = new JST.Interpreter(this);
     this[Command.INCLUDES] = {};
     this.exec = function(template, target) {
-      command.parent = command.self;
-      if (!command.top) {
-        command.top = 
-        command.parent = this.makepath(template);
+      var result = "";
+      var dir = template.replace(_TRIM_PATH, "");
+      if (command.isDirectory(dir)) {
+        command.parent = command.self;
+        if (!command.top) {
+          command.top =
+          command.parent = this.makepath(template);
+        }
+        var path = command.path;
+        var restore = command.target;
+        command.self = this.makepath(template);
+        command.chdir(dir);
+        command.target = target || "";
+        result = jst.interpret(this.read(template));
+        command.target = restore;
+        command.path = path;
+        command.self = command.parent;
       }
-      var path = command.path;
-      var restore = command.target;
-      command.self = this.makepath(template);
-      command.chdir(template);
-      command.target = target || "";
-      var result = jst.interpret(this.read(template));
-      command.target = restore;
-      command.path = path;
-      command.self = command.parent;
       return result;
     };
   },
@@ -35,8 +39,8 @@ var Command = FileSystem.extend({
   
   args: function(names) {
     // define template arguments in the current scope
-    var args = this.target.split(/\s+/);
-    forEach (String(names).match(/[^\s,]+/g), function(name, index) {
+    var args = this.target.split(_SPACE);
+    forEach.csv(names, function(name, index) {
       if (name) this[name] = args[index];
     }, this);
     return args;
@@ -61,8 +65,7 @@ var Command = FileSystem.extend({
   },
   
   process: function(template, target) {
-    var WILD_CARD = /\*$/;
-    if (WILD_CARD.test(target)) { // process everything in the current directory
+    if (_WILD_CARD.test(target)) { // process everything in the current directory
       var path = target.replace(WILD_CARD, "") || this.path;
       var directory = this.read(path);
       forEach (directory, function(item, target) {

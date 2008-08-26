@@ -7,7 +7,7 @@
     Doeke Zanstra
 */
 
-// timestamp: Sat, 26 Jul 2008 00:01:23
+// timestamp: Tue, 26 Aug 2008 18:47:00
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -46,10 +46,10 @@ var _MSIE  = detect("MSIE");
 
 var PX = "px";
 
-var _ACTIVE = "_active",
-    _HOVER  = "_hover",
-    _FOCUS  = "_focus",
-    _TIMER  = "_timer";
+var _ACTIVE = "\x5factive",
+    _HOVER  = "\x5fhover",
+    _FOCUS  = "\x5ffocus",
+    _TIMER  = "\x5ftimer";
 
 var _timers   = {}, // store for timeouts
     _values   = {}, // store for computed values
@@ -984,9 +984,7 @@ var Slider = ProgressBar.modify({
 
     startTimer: function(element) {
       // the aqua slider jumps immediatley to wherever you click
-    },
-
-    tick: Undefined
+    }
   }
 });
 
@@ -1087,9 +1085,9 @@ var Spinner = Range.modify({
     } else if (element.readOnly) {
       state = "normal";
     } else if ((element == Chrome._hover || element == Chrome._focus) && Chrome._activeThumb) {
-      state = Chrome._activeThumb + "_" + "active";
+      state = Chrome._activeThumb + _ACTIVE;
     } else if (element == Chrome._hover && Chrome._hoverThumb) {
-      state = Chrome._hoverThumb + "_" + "hover";
+      state = Chrome._hoverThumb + _HOVER;
     } else {
       state = "normal";
     }

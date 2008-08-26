@@ -7,7 +7,7 @@
     Doeke Zanstra
 */
 
-// timestamp: Sat, 26 Jul 2008 00:01:22
+// timestamp: Tue, 26 Aug 2008 18:47:00
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -17,7 +17,7 @@ new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
 var DOM = new base2.Package(this, {
   name:    "DOM",
-  version: "1.0 (RC1)",
+  version: "1.0 (RC2)",
   imports: "Function2",
   exports:
     "Interface,Binding,Node,Document,Element,AbstractView,HTMLDocument,HTMLElement,"+
@@ -102,6 +102,7 @@ var Interface = Module.extend(null, {
 });
 
 function _createDelegates(module, _interface) {
+  var id = module.toString().slice(1, -1);
   for (var name in _interface) {
     var property = _interface[name];
     if (name.charAt(0) == "@") {
@@ -116,7 +117,7 @@ function _createDelegates(module, _interface) {
       var fn = new Function(args.join(","), format("%2.base=%2.%1.ancestor;var m=%2.base?'base':'%1';return %2[m](%3)", name, args[0], args.slice(1)));
       fn._delegate = name;
       module[name] = fn;
-      module.namespace += "var " + name + "=base2.lang.bind('" + name + "',base2.Module[" + module.toString("index") + "]);";
+      module.namespace += "var " + name + "=base2.lang.bind('" + name + "'," + id + ");";
     }
   }
 };
@@ -651,7 +652,7 @@ var EventTarget = Interface.extend({
   "@(element.addEventListener)": {
     "@Gecko": {
       addEventListener: function(target, type, listener, useCapture) {
-        if (type == "mousewheel") {
+        if (type == "mousewheel") { // this event cannot be removed
           type = "DOMMouseScroll";
           var originalListener = listener;
           listener = _wrappedListeners[assignID(listener)] = function(event) {
@@ -719,8 +720,10 @@ var EventTarget = Interface.extend({
       }
     },
 
-    removeEventListener: function(target, type, listener, useCapture) {
-      this.base(target, type, _wrappedListeners[listener.base2ID] || listener, useCapture);
+    "@Linux|Mac|opera|webkit[1-4]": {
+      removeEventListener: function(target, type, listener, useCapture) {
+        this.base(target, type, _wrappedListeners[listener.base2ID] || listener, useCapture);
+      }
     }
   }
 });
@@ -1020,7 +1023,7 @@ var NodeSelector = Interface.extend({
   }
 });
 
-// automatically bind objects retrieved using the Selectors API
+// automatically bind objects retrieved using the Selectors API on a bound node
 
 extend(NodeSelector.prototype, {
   querySelector: function(selector) {
@@ -1420,7 +1423,7 @@ Selector.pseudoClasses = { //-dean: lang()
 // not
 };
 
-var _INDEXED = detect("(element.sourceIndex)"),
+var _INDEXED = document.documentElement.sourceIndex !== undefined,
     _VAR = "var p%2=0,i%2,e%3,n%2=e%1.",
     _ID = _INDEXED ? "e%1.sourceIndex" : "assignID(e%1)",
     _TEST = "var g=" + _ID + ";if(!p[g]){p[g]=1;",
@@ -1678,12 +1681,7 @@ var StaticNodeList = Base.extend({
       if (index < 0) index += this.length; // starting from the end
       return nodes[index];
     };
-/*  // Sorting large node lists can be slow so only do it if necessary.
-    // You must explicitly call sort() to get a sorted node list.
-    if (nodes.unsorted) this.sort = function() {
-      nodes.sort(_SORTER);
-      return this;
-    }; */
+    if (nodes.unsorted) nodes.sort(_SORTER);
   },
   
   length: 0,
@@ -1700,11 +1698,9 @@ var StaticNodeList = Base.extend({
     return this.filter(not(test), context);
   },
 
-  slice: function(start, length) {
-    return new StaticNodeList(this.map(I).slice(start, length));
+  slice: function(start, end) {
+    return new StaticNodeList(this.map(I).slice(start, end));
   },
-  
-//sort: This,
 
   "@(XPathResult)": {
     constructor: function(nodes) {
@@ -1741,13 +1737,11 @@ StaticNodeList.implement({
   }
 });
 
-/*
 var _SORTER = _INDEXED ? function(node1, node2) {
-  return node2.sourceIndex - node2.sourceIndex;
+  return node1.sourceIndex - node2.sourceIndex;
 } : function(node1, node2) {
   return (Node.compareDocumentPosition(node1, node2) & 2) - 1;
 };
-*/
 
 // =========================================================================
 // DOM/selectors-api/implementations.js

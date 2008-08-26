@@ -7,7 +7,7 @@
 
 var MiniWeb = new base2.Package(this, {
   name:    "MiniWeb",
-  exports: "Client,Server,FileSystem,Command,Interpreter,Terminal,Request,History",
+  exports: "Client,Server,JSONFileSystem,JSONDirectory,FileSystem,Command,Interpreter,Terminal,Request,History",
   imports: "IO",
   version: "0.7",
   
@@ -40,7 +40,7 @@ var MiniWeb = new base2.Package(this, {
     }, this);
     
     window.onload = function() {
-      MiniWeb.readOnly = location.protocol != "file:";
+      MiniWeb.readOnly = location.protocol != "file:" || LocalFile.prototype.open == NOT_SUPPORTED;
       MiniWeb.server = new Server;
       MiniWeb.terminal = new Terminal;
       MiniWeb.client = new Client;
@@ -60,10 +60,15 @@ var MiniWeb = new base2.Package(this, {
   save: function(name) {
     if (this.readOnly) {
       alert(
-        "You cannot save your changes over HTTP.\n" +
-        "Instead, save this page to your hard disk.\n" +
-        "If you edit the local version you will then\n" +
-        "be able to save your changes."
+        location.protocol == "file:"
+        ?
+          "Your browser does not support local file access.\n" +
+          "Use Internet Explorer or Firefox instead."
+        :
+          "You cannot save your changes over HTTP.\n" +
+          "Instead, save this page to your hard disk.\n" +
+          "If you edit the local version you will then\n" +
+          "be able to save your changes."
       );
       return false;
     }
@@ -110,8 +115,9 @@ var MiniWeb = new base2.Package(this, {
       ""
     ]).join("\r\n");
     
-    if (!name) LocalFile.backup(location.pathname);
-    LocalFile.write(name || location.pathname, html);
+    var fs = new LocalFileSystem;
+    if (!name) fs.backup(location.pathname);
+    fs.write(name || location.pathname, html);
     if (!name) location.reload();
     
     return true;
@@ -130,3 +136,9 @@ MiniWeb.toString = function() {
 };
 
 eval(this.imports);
+
+JavaScript.bind(global);
+
+var _WILD_CARD      = /\*$/,
+    _TRIM_PATH      = /[^\/]+$/,
+    _SPACE          = /\s+/;

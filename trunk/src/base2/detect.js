@@ -9,8 +9,8 @@ function detect() {
   //    e.g. detect("MSIE|opera");
 
   var jscript = NaN/*@cc_on||@_jscript_version@*/; // http://dean.edwards.name/weblog/2007/03/sniff/#comment85164
-  var java = global.java ? true : false;
-  if (global.navigator) {
+  var javaEnabled = global.java ? true : false;
+  if (global.navigator) { // browser
     var MSIE = /MSIE[\d.]+/g;
     var element = document.createElement("span");
     // Close up the space between name and version number.
@@ -20,7 +20,12 @@ function detect() {
     if (!jscript) userAgent = userAgent.replace(MSIE, "");
     if (MSIE.test(userAgent)) userAgent = userAgent.match(MSIE)[0] + " " + userAgent.replace(MSIE, "");
     base2.userAgent = navigator.platform + " " + userAgent.replace(/like \w+/gi, "");
-    java &= navigator.javaEnabled();
+    javaEnabled &= navigator.javaEnabled();
+//} else if (java) { // rhino
+//  var System = java.lang.System;
+//  base2.userAgent = "Rhino " + System.getProperty("os.arch") + " " + System.getProperty("os.name") + " " + System.getProperty("os.version");
+//} else if (jscript) { // Windows Scripting Host
+//  base2.userAgent = "WSH";
   }
 
   var _cache = {};
@@ -31,7 +36,7 @@ function detect() {
       if (not) test = test.slice(1);
       if (test.charAt(0) == "(") {
         try {
-          returnValue = new Function("element,jscript,java", "return !!" + test)(element, jscript, java);
+          returnValue = new Function("element,jscript,java,global", "return !!" + test)(element, jscript, javaEnabled, global);
         } catch (ex) {
           // the test failed
         }

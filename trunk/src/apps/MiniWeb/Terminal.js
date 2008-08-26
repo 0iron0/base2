@@ -22,9 +22,10 @@ var Terminal = Command.extend({
     // the state of a terminal session is saved to disk whenever
     //  MiniWeb is saved from the terminal. Reload the saved
     //  state.
-    if (!MiniWeb.readOnly && LocalFile.exists(this.TMP)) {
-      var state = JSON.parse(LocalFile.read(this.TMP));
-      LocalFile.remove(this.TMP);
+    var fs = new LocalFileSystem;
+    if (!MiniWeb.readOnly && fs.exists(this.TMP)) {
+      var state = JSON.parse(fs.read(this.TMP));
+      fs.remove(this.TMP);
     } else {
       state = {
         commands: [],
@@ -45,7 +46,8 @@ var Terminal = Command.extend({
     state.protocol = terminal.protocol;
     state.path = terminal.path;
     if (!MiniWeb.readOnly) {
-      LocalFile.write(this.TMP, JSON.toString(state));
+      var fs = new LocalFileSystem;
+      fs.write(this.TMP, JSON.toString(state));
     }
   }
 });

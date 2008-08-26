@@ -26,7 +26,20 @@ var Package = Base.extend({
         var fullName = this.name + "." + name;
         this.namespace += "var " + name + "=" + fullName + ";";
         return namespace += "if(!" + fullName + ")" + fullName + "=" + name + ";";
-      }, "", this);
+      }, "", this) + "this._label_" + this.name + "();";
+      
+      var pkg = this;
+      var packageName = String2.slice(this, 1, -1);
+      _private["_label_" + this.name] = function() {
+        Package.forEach (pkg, function(object, name) {
+          if (object && object.ancestorOf == Base.ancestorOf) {
+            object.toString = K(format("[%1.%2]", packageName, name));
+            if (object.prototype.toString == Base.prototype.toString) {
+              object.prototype.toString = K(format("[object %1.%2]", packageName, name));
+            }
+          }
+        });
+      };
     }
 
     function lookup(names) {

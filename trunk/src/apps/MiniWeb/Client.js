@@ -18,19 +18,6 @@ var Client = Base.extend({
     this.view = document.createElement("iframe");
     this.view.style.display = "none";
     document.body.appendChild(this.view);
-    
-    window.onunload = function() {
-      try {
-        client.view = null;
-        if (client.window) {
-          client.window.onunload();
-          client.window = null;
-        }
-        clearInterval(client.history.timer);
-      } catch (error) {
-        // ignore
-      }
-    };
   },
   
   address: "",

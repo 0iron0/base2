@@ -84,6 +84,7 @@ var RegGrp = Collection.extend({
   Item: {
     constructor: function(expression, replacement) {
       if (replacement == null) replacement = RegGrp.IGNORE;
+      else if (replacement.replacement != null) replacement = replacement.replacement;
       else if (typeof replacement != "function") replacement = String(replacement);
       
       // does the pattern use sub-expressions?

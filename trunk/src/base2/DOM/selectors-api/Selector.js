@@ -123,7 +123,7 @@ Selector.pseudoClasses = { //-dean: lang()
 // not
 };
 
-var _INDEXED = detect("(element.sourceIndex)"),
+var _INDEXED = document.documentElement.sourceIndex !== undefined,
     _VAR = "var p%2=0,i%2,e%3,n%2=e%1.",
     _ID = _INDEXED ? "e%1.sourceIndex" : "assignID(e%1)",
     _TEST = "var g=" + _ID + ";if(!p[g]){p[g]=1;",

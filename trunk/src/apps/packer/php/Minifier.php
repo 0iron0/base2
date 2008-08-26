@@ -17,7 +17,7 @@ class Minifier {
   
   public static $clean = array(
     '\\(\\s*([^;)]*)\\s*;\\s*([^;)]*)\\s*;\\s*([^;)]*)\\)' => '($1;$2;$3)', // for (;;) loops
-    "throw[^};]+[};]" => RegGrp::IGNORE, // a safari 1.3 bug
+    'throw[^};]+[};]' => RegGrp::IGNORE, // a safari 1.3 bug
     ';+\\s*([};])' => '$1'
   );
 
@@ -39,8 +39,8 @@ class Minifier {
   public static $conditionalComments;
 
   public static $concat = array(
-    "(STRING1)\\+(STRING1)" => array(__CLASS__, '_concatenater'),
-    "(STRING2)\\+(STRING2)" => array(__CLASS__, '_concatenater')
+    '(STRING1)\\+(STRING1)' => array(__CLASS__, '_concatenater'),
+    '(STRING2)\\+(STRING2)' => array(__CLASS__, '_concatenater')
   );
 
   public static function _concatenater($match, $string1, $plus, $string2) {

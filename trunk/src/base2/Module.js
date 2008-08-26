@@ -10,9 +10,7 @@ var Module = Abstract.extend(null, {
     var index = _moduleCount++;
     module.namespace = "";
     module.partial = this.partial;
-    module.toString = function(hint) {
-      return hint == "index" ? index : "[module]";
-    };
+    module.toString = K("[base2.Module[" + index + "]]");
     Module[index] = module;
     // Inherit class methods.
     module.implement(this);
@@ -36,7 +34,7 @@ var Module = Abstract.extend(null, {
 
   implement: function(_interface) {
     var module = this;
-    var index = module.toString("index");
+    var id = module.toString().slice(1, -1);
     if (typeof _interface == "function") {
       if (!_ancestorOf(_interface, module)) {
         this.base(_interface);
@@ -52,22 +50,22 @@ var Module = Abstract.extend(null, {
             module[name] = property;
           }
         }
-        module.namespace += _interface.namespace.replace(/\b\d+\b/g, index);
+        module.namespace += _interface.namespace.replace(/base2\.Module\[\d+\]/g, id);
       }
     } else {
       // Add static interface.
       extend(module, _interface);
       // Add instance interface.
-      _extendModule(module, _interface, index);
+      _extendModule(module, _interface);
     }
     return module;
   },
 
   partial: function() {
     var module = Module.extend();
-    var index = module.toString("index");
+    var id = module.toString().slice(1, -1);
     // partial methods are already bound so remove the binding to speed things up
-    module.namespace = this.namespace.replace(/(\w+)=b[^\)]+\)/g, "$1=base2.Module[" + index + "].$1");
+    module.namespace = this.namespace.replace(/(\w+)=b[^\)]+\)/g, "$1=" + id + ".$1");
     this.forEach(function(method, name) {
       module[name] = partial(bind(method, module));
     });
@@ -75,17 +73,18 @@ var Module = Abstract.extend(null, {
   }
 });
 
-function _extendModule(module, _interface, index) {
+function _extendModule(module, _interface) {
   var proto = module.prototype;
+  var id = module.toString().slice(1, -1);
   for (var name in _interface) {
     var property = _interface[name], namespace = "";
     if (name.charAt(0) == "@") { // object detection
-      if (detect(name.slice(1))) _extendModule(module, property, index);
+      if (detect(name.slice(1))) _extendModule(module, property);
     } else if (!proto[name]) {
       if (name == name.toUpperCase()) {
-        namespace = "var " + name + "=base2.Module[" + index + "]." + name + ";";
+        namespace = "var " + name + "=" + id + "." + name + ";";
       } else if (typeof property == "function" && property.call) {
-        namespace = "var " + name + "=base2.lang.bind('" + name + "',base2.Module[" + index + "]);";
+        namespace = "var " + name + "=base2.lang.bind('" + name + "'," + id + ");";
         proto[name] = _moduleMethod(module, name);
         ;;; proto[name]._module = module; // introspection
       }
