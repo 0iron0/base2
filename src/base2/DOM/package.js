@@ -1,7 +1,7 @@
 
 var DOM = new base2.Package(this, {
   name:    "DOM",
-  version: "1.0 (RC2)",
+  version: "1.0 (RC3)",
   imports: "Function2",
   exports:
     "Interface,Binding,Node,Document,Element,AbstractView,HTMLDocument,HTMLElement,"+
