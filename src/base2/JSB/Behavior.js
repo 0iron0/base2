@@ -110,7 +110,7 @@ var Behavior = new Base({
     var value = Element.getAttribute(element, name);
     if (value == null) {
       value = defaultValue;
-    } else {
+    } else if (defaultValue != null) {
       value = defaultValue.constructor(value); // cast
     }
     return value;

@@ -128,7 +128,7 @@ var Chrome = Behavior.modify({
     return !!_timers[id];
   },
 
-  startTimer: function(element, id, interval, repeat) {
+  startTimer: function(element, id, interval) {
     id = element.base2ID + (id || _TIMER);
     if (!_timers[id]) {
       _timers[id] = this.setInterval(this.tick, 100, element);

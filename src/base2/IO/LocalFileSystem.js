@@ -77,12 +77,12 @@ var LocalFileSystem = FileSystem.extend({
     },
     
     isFile: function(path) {
-      var file = _xpcom_createFile(this.makepath(path))
+      var file = _xpcom_createFile(this.makepath(path));
       return file.exists() && file.isFile();
     },
     
     isDirectory: function(path) {
-      var file = _xpcom_createFile(this.makepath(path))
+      var file = _xpcom_createFile(this.makepath(path));
       return file.exists() && file.isDirectory();
     },
   

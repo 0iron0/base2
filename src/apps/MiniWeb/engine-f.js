@@ -7,7 +7,7 @@
     Doeke Zanstra
 */
 
-// timestamp: Wed, 27 Aug 2008 02:52:47
+// timestamp: Wed, 27 Aug 2008 23:03:28
 
 var base2 = {
   name:    "base2",
@@ -2064,7 +2064,7 @@ function _makeNativeAbsolutePath(path) {
 var _fso;
 function _activex_exec(method, path1, path2, flags) {
   if (!_fso) _fso = new ActiveXObject("Scripting.FileSystemObject");
-  path1 = _makeNativeAbsolutePath(path1)
+  path1 = _makeNativeAbsolutePath(path1);
   if (arguments.length > 2) {
     path2 = _makeNativeAbsolutePath(path2);
   }
@@ -2301,12 +2301,12 @@ var LocalFileSystem = FileSystem.extend({
     },
     
     isFile: function(path) {
-      var file = _xpcom_createFile(this.makepath(path))
+      var file = _xpcom_createFile(this.makepath(path));
       return file.exists() && file.isFile();
     },
     
     isDirectory: function(path) {
-      var file = _xpcom_createFile(this.makepath(path))
+      var file = _xpcom_createFile(this.makepath(path));
       return file.exists() && file.isDirectory();
     },
   
