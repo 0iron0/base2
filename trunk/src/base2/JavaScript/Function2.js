@@ -16,7 +16,7 @@ var Function2 = _createObject2(
     unshift: unshift
   }
 );
-
+/*
 Function2.apply = function(fn, context, args) {
   return fn.apply(context, args);
 };
@@ -25,7 +25,7 @@ Function2.call  = function(fn, context) {
 };
 
 Function2.namespace += "var apply=base2.JavaScript.Function2.apply,call=base2.JavaScript.Function2.call;";
-
+*/
 function I(i) { // return first argument
   return i;
 };
@@ -41,20 +41,17 @@ function K(k) {
 };
 
 function bind(fn, context) {
-  if (fn.isBound) return fn;
   var lateBound = typeof fn != "function";
   if (arguments.length > 2) {
     var args = _slice.call(arguments, 2);
-    var boundFunction = function() {
+    return function() {
       return (lateBound ? context[fn] : fn).apply(context, args.concat.apply(args, arguments));
     };
   } else { // faster if there are no additional arguments
-    boundFunction = function() {
+    return function() {
       return (lateBound ? context[fn] : fn).apply(context, arguments);
     };
   }
-  boundFunction.isBound = true;
-  return boundFunction;
 };
 
 function compose() {

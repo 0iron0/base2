@@ -23,11 +23,11 @@ function _createObject2(Native, constructor, generics, extensions) {
 
   // Create a Module that will contain all the new methods.
   var INative = Module.extend();
-  var index = INative.toString("index");
+  var id = INative.toString().slice(1, -1);
   // http://developer.mozilla.org/en/docs/New_in_JavaScript_1.6#Array_and_String_generics
   forEach.csv(generics, function(name) {
     INative[name] = unbind(Native.prototype[name]);
-    INative.namespace += format("var %1=base2.Module[%2].%1;", name, index);
+    INative.namespace += format("var %1=%2.%1;", name, id);
   });
   forEach (_slice.call(arguments, 3), INative.implement, INative);
 
@@ -48,6 +48,7 @@ function _createObject2(Native, constructor, generics, extensions) {
   Native2.ancestor = Object;
   delete Native2.extend;
   
+  // remove "lang.bind.."
   Native2.namespace = Native2.namespace.replace(/(var (\w+)=)[^,;]+,([^\)]+)\)/g, "$1$3.$2");
   
   return Native2;

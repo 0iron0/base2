@@ -23,6 +23,14 @@ var Node = Binding.extend({
       return 0;
     }
   }
+}, {
+  "@Gecko": {
+    bind: function(node) {
+      return extend(this.base(node), "removeEventListener", function(type, listener, useCapture) {
+        this.base(type, _wrappedListeners[listener.base2ID] || listener, useCapture);
+      });
+    }
+  }
 });
 
 var _getSourceIndex = document.documentElement.sourceIndex ? function(node) {
