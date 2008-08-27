@@ -12,20 +12,10 @@ var Function2 = _createObject2(
     flip: flip,
     not: not,
     partial: partial,
-    unbind: unbind,
-    unshift: unshift
+    unbind: unbind
   }
 );
-/*
-Function2.apply = function(fn, context, args) {
-  return fn.apply(context, args);
-};
-Function2.call  = function(fn, context) {
-  return fn.apply(context, _slice.call(arguments, 2));
-};
 
-Function2.namespace += "var apply=base2.JavaScript.Function2.apply,call=base2.JavaScript.Function2.call;";
-*/
 function I(i) { // return first argument
   return i;
 };
@@ -83,9 +73,9 @@ function not(fn) {
   };
 };
 
-function partial(fn) { // "hard" partial
-  // based on Oliver Steele's version
+function partial(fn) {
   var args = _slice.call(arguments, 1);
+  // based on Oliver Steele's version
   return function() {
     var specialised = args.concat(), i = 0, j = 0;
     while (i < args.length && j < arguments.length) {
@@ -106,12 +96,5 @@ function partial(fn) { // "hard" partial
 function unbind(fn) {
   return function(context) {
     return fn.apply(context, _slice.call(arguments, 1));
-  };
-};
-
-function unshift(fn) { // "soft" partial
-  var args = _slice.call(arguments, 1);
-  return function() {
-    return fn.apply(this, args.concat.apply(args, arguments));
   };
 };
