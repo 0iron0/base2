@@ -125,7 +125,7 @@ var Shrinker = Base.extend({
       do shortId = Packer.encode52(count++);
       while (new RegExp("[^\\w$.]" + shortId + "[^\\w$:]").test(script));
       return shortId;
-    })
+    });
     script = shrunk.encode(script);
     
     return this.decodeData(script);
