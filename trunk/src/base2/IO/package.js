@@ -42,7 +42,7 @@ function _makeNativeAbsolutePath(path) {
 var _fso;
 function _activex_exec(method, path1, path2, flags) {
   if (!_fso) _fso = new ActiveXObject("Scripting.FileSystemObject");
-  path1 = _makeNativeAbsolutePath(path1)
+  path1 = _makeNativeAbsolutePath(path1);
   if (arguments.length > 2) {
     path2 = _makeNativeAbsolutePath(path2);
   }
