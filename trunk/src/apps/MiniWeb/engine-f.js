@@ -7,7 +7,7 @@
     Doeke Zanstra
 */
 
-// timestamp: Thu, 28 Aug 2008 16:39:17
+// timestamp: Thu, 28 Aug 2008 16:54:13
 
 var base2 = {
   name:    "base2",
@@ -62,7 +62,7 @@ var _subclass = function(_instance, _static) {
   var _prototype = new this;
   if (_instance) extend(_prototype, _instance);
   delete base2.__prototyping;
-  
+
   // Create the wrapper for the constructor function.
   var _constructor = _prototype.constructor;
   function _class() {
@@ -81,7 +81,7 @@ var _subclass = function(_instance, _static) {
     return this;
   };
   _prototype.constructor = _class;
-  
+
   // Build the static interface.
   for (var i in Base) _class[i] = this[i];
   _class.ancestor = this;
@@ -90,11 +90,11 @@ var _subclass = function(_instance, _static) {
   if (_static) extend(_class, _static);
   _class.prototype = _prototype;
   if (_class.init) _class.init();
-  
+
   // introspection (removed when packed)
   ;;; _class["#implements"] = [];
   ;;; _class["#implemented_by"] = [];
-  
+
   return _class;
 };
 
@@ -104,23 +104,23 @@ var Base = _subclass.call(Object, {
       this.extend(arguments[0]);
     }
   },
-  
+
   base: function() {
     // Call this method from any other method to invoke the current method's ancestor (super).
   },
-  
+
   extend: delegate(extend)
 }, Base = {
   ancestorOf: function(klass) {
     return _ancestorOf(this, klass);
   },
-  
+
   extend: _subclass,
-    
+
   forEach: function(object, block, context) {
     _Function_forEach(this, object, block, context);
   },
-  
+
   implement: function(source) {
     if (typeof source == "function") {
       ;;; if (_ancestorOf(Base, source)) {
@@ -144,13 +144,13 @@ var Package = Base.extend({
   constructor: function(_private, _public) {
     this.extend(_public);
     if (this.init) this.init();
-    
+
     if (this.name && this.name != "base2") {
       if (!this.parent) this.parent = base2;
       this.parent.addName(this.name, this);
       this.namespace = format("var %1=%2;", this.name, String2.slice(this, 1, -1));
     }
-    
+
     if (_private) {
       // This next line gets round a bug in old Mozilla browsers
       var JSNamespace = base2.JavaScript ? base2.JavaScript.namespace : "";
@@ -160,7 +160,7 @@ var Package = Base.extend({
         ;;; assert(ns, format("Object not found: '%1'.", name), ReferenceError);
         return namespace += ns.namespace;
       }, "var base2=(function(){return this.base2})();" + base2.namespace + JSNamespace) + lang.namespace;
-      
+
       // This string should be evaluated after you have created all of the objects
       // that are being exported.
       _private.exports = Array2.reduce(csv(this.exports), function(namespace, name) {
@@ -168,7 +168,7 @@ var Package = Base.extend({
         this.namespace += "var " + name + "=" + fullName + ";";
         return namespace += "if(!" + fullName + ")" + fullName + "=" + name + ";";
       }, "", this) + "this._label_" + this.name + "();";
-      
+
       var pkg = this;
       var packageName = String2.slice(this, 1, -1);
       _private["_label_" + this.name] = function() {
@@ -210,7 +210,7 @@ var Package = Base.extend({
   addPackage: function(name) {
     this.addName(name, new Package(null, {name: name, parent: this}));
   },
-  
+
   toString: function() {
     return format("[%1]", this.parent ? String2.slice(this.parent, 1, -1) + "." + this.name : this.name);
   }
@@ -357,7 +357,7 @@ var Enumerable = Module.extend({
     }
     return !!result; // cast to boolean
   },
-  
+
   filter: function(object, test, context) {
     var i = 0;
     return this.reduce(object, function(result, value, key) {
@@ -367,7 +367,7 @@ var Enumerable = Module.extend({
       return result;
     }, []);
   },
-  
+
   invoke: function(object, method) {
     // Apply a method to each item in the enumerated object.
     var args = _slice.call(arguments, 2);
@@ -377,7 +377,7 @@ var Enumerable = Module.extend({
       return item == null ? undefined : item[method].apply(item, args);
     });
   },
-  
+
   map: function(object, block, context) {
     var result = [], i = 0;
     forEach (object, function(value, key) {
@@ -385,26 +385,26 @@ var Enumerable = Module.extend({
     });
     return result;
   },
-  
+
   pluck: function(object, key) {
     return this.map(object, function(item) {
       return item == null ? undefined : item[key];
     });
   },
-  
+
   reduce: function(object, block, result, context) {
     var initialised = arguments.length > 2;
     forEach (object, function(value, key) {
-      if (initialised) { 
+      if (initialised) {
         result = block.call(context, result, value, key, object);
-      } else { 
+      } else {
         result = value;
         initialised = true;
       }
     });
     return result;
   },
-  
+
   some: function(object, test, context) {
     return !this.every(object, not(test), context);
   }
@@ -519,7 +519,7 @@ Map.prototype.filter = function(test, context) {
 
 // The static create() method is responsible for all construction of collection items.
 // Instance methods that add new items (add, put, insertAt, putAt) pass *all* of their arguments
-// to the static create() method. If you want to modify the way collection items are 
+// to the static create() method. If you want to modify the way collection items are
 // created then you only need to override this method for custom collections.
 
 var _KEYS = "~";
@@ -529,7 +529,7 @@ var Collection = Map.extend({
     this[_KEYS] = new Array2;
     this.base(values);
   },
-  
+
   add: function(key, item) {
     // Duplicates not allowed using add().
     // But you can still overwrite entries using put().
@@ -655,11 +655,11 @@ var Collection = Map.extend({
   }
 }, {
   Item: null, // If specified, all members of the collection must be instances of Item.
-  
+
   create: function(key, item) {
     return this.Item ? new this.Item(key, item) : item;
   },
-  
+
   extend: function(_instance, _static) {
     var klass = this.base(_instance);
     klass.create = this.create;
@@ -734,7 +734,7 @@ var RegGrp = Collection.extend({
     // The slow way to do it. Hopefully, this isn't called too often. :-)
     return this.exec(string) != string;
   },
-  
+
   toString: function() {
     var offset = 1;
     return "(" + this.map(function(item) {
@@ -748,7 +748,7 @@ var RegGrp = Collection.extend({
   }
 }, {
   IGNORE: "$0",
-  
+
   init: function() {
     forEach ("add,get,has,put,remove".split(","), function(name) {
       _override(this, name, function(expression) {
@@ -759,13 +759,13 @@ var RegGrp = Collection.extend({
       });
     }, this.prototype);
   },
-  
+
   Item: {
     constructor: function(expression, replacement) {
       if (replacement == null) replacement = RegGrp.IGNORE;
       else if (replacement.replacement != null) replacement = replacement.replacement;
       else if (typeof replacement != "function") replacement = String(replacement);
-      
+
       // does the pattern use sub-expressions?
       if (typeof replacement == "string" && _RG_LOOKUP.test(replacement)) {
         // a simple lookup? (e.g. "$2")
@@ -786,16 +786,16 @@ var RegGrp = Collection.extend({
           replacement = new Function("return " + Q + replacement + Q);
         }
       }
-      
+
       this.length = RegGrp.count(expression);
       this.replacement = replacement;
       this.toString = K(expression + "");
     },
-    
+
     length: 0,
     replacement: ""
   },
-  
+
   count: function(expression) {
     // Count the number of sub-expressions in a RegExp/RegGrp.Item.
     expression = (expression + "").replace(_RG_ESCAPE_CHARS, "").replace(_RG_ESCAPE_BRACKETS, "");
@@ -998,7 +998,7 @@ function _Array_forEach(array, block, context) {
       block.call(context, array.charAt(i), i, array);
     }
   } else { // Cater for sparse arrays.
-    for (i = 0; i < length; i++) {    
+    for (i = 0; i < length; i++) {
     /*@cc_on @*/
     /*@if (@_jscript_version < 5.2)
       if ($Legacy.has(array, i))
@@ -1012,13 +1012,13 @@ function _Array_forEach(array, block, context) {
 
 function _Function_forEach(fn, object, block, context) {
   // http://code.google.com/p/base2/issues/detail?id=10
-  
+
   // Run the test for Safari's buggy enumeration.
   var Temp = function(){this.i=1};
   Temp.prototype = {i:1};
   var count = 0;
   for (var i in new Temp) count++;
-  
+
   // Overwrite the main function the first time it is called.
   _Function_forEach = (count > 1) ? function(fn, object, block, context) {
     // Safari fix (pre version 3)
@@ -1037,7 +1037,7 @@ function _Function_forEach(fn, object, block, context) {
       }
     }
   };
-  
+
   _Function_forEach(fn, object, block, context);
 };
 
@@ -1048,14 +1048,14 @@ function _Function_forEach(fn, object, block, context) {
 function instanceOf(object, klass) {
   // Handle exceptions where the target object originates from another frame.
   // This is handy for JSON parsing (amongst other things).
-  
+
   if (typeof klass != "function") {
     throw new TypeError("Invalid 'instanceOf' operand.");
   }
 
   if (object == null) return false;
-  
-  /*@cc_on  
+
+  /*@cc_on
   // COM objects don't have a constructor
   if (typeof object.constructor != "function") {
     return typeOf(object) == typeof klass.prototype.valueOf();
@@ -1071,10 +1071,10 @@ function instanceOf(object, klass) {
 
   // If the class is a base2 class then it would have passed the test above.
   if (Base.ancestorOf == klass.ancestorOf) return false;
-  
+
   // base2 objects can only be instances of Object.
   if (Base.ancestorOf == object.constructor.ancestorOf) return klass == Object;
-  
+
   switch (klass) {
     case Array: // This is the only troublesome one.
       return !!(typeof object == "object" && object.join && object.splice);
@@ -1091,7 +1091,7 @@ function instanceOf(object, klass) {
     case Object:
       return true;
   }
-  
+
   return false;
 };
 
@@ -1128,7 +1128,7 @@ var JavaScript = {
   version:   base2.version,
   exports:   "Array2,Date2,Function2,String2",
   namespace: "", // fixed later
-  
+
   bind: function(host) {
     var top = global;
     global = host;
@@ -1171,10 +1171,10 @@ function _createObject2(Native, constructor, generics, extensions) {
   }
   Native2.ancestor = Object;
   delete Native2.extend;
-  
+
   // remove "lang.bind.."
   Native2.namespace = Native2.namespace.replace(/(var (\w+)=)[^,;]+,([^\)]+)\)/g, "$1$3.$2");
-  
+
   return Native2;
 };
 
@@ -1275,9 +1275,9 @@ var Array2 = _createObject2(
         return result;
       }, []);
     },
-    
+
     forEach: _Array_forEach,
-    
+
     indexOf: function(array, item, fromIndex) {
       var length = array.length;
       if (fromIndex == null) {
@@ -1290,17 +1290,17 @@ var Array2 = _createObject2(
       }
       return -1;
     },
-    
+
     insertAt: function(array, index, item) {
       Array2.splice(array, index, 0, item);
       return item;
     },
-    
+
     item: function(array, index) {
       if (index < 0) index += array.length; // starting from the end
       return array[index];
     },
-    
+
     lastIndexOf: function(array, item, fromIndex) {
       var length = array.length;
       if (fromIndex == null) {
@@ -1313,7 +1313,7 @@ var Array2 = _createObject2(
       }
       return -1;
     },
-  
+
     map: function(array, block, context) {
       var result = [];
       Array2.forEach (array, function(item, index) {
@@ -1360,7 +1360,7 @@ Array2.like = function(object) {
 // http://developer.mozilla.org/es4/proposals/date_and_time.html
 
 // big, ugly, regular expression
-var _DATE_PATTERN = /^((-\d+|\d{4,})(-(\d{2})(-(\d{2}))?)?)?T((\d{2})(:(\d{2})(:(\d{2})(\.(\d{1,3})(\d)?\d*)?)?)?)?(([+-])(\d{2})(:(\d{2}))?|Z)?$/;  
+var _DATE_PATTERN = /^((-\d+|\d{4,})(-(\d{2})(-(\d{2}))?)?)?T((\d{2})(:(\d{2})(:(\d{2})(\.(\d{1,3})(\d)?\d*)?)?)?)?(([+-])(\d{2})(:(\d{2}))?|Z)?$/;
 var _DATE_PARTS = { // indexes to the sub-expressions of the RegExp above
   FullYear: 2,
   Month: 4,
@@ -1382,7 +1382,7 @@ var _TRIM_ZEROES   = /(((00)?:0+)?:0+)?\.0+$/;
 var _TRIM_TIMEZONE = /(T[0-9:.]+)$/;
 
 var Date2 = _createObject2(
-  Date, 
+  Date,
   function(yy, mm, dd, h, m, s, ms) {
     switch (arguments.length) {
       case 0: return new Date;
@@ -1439,7 +1439,7 @@ Date2.parse = function(string, defaultDate) {
       var hours = Number(parts[_TIMEZONE_PARTS.Sign] + parts[_TIMEZONE_PARTS.Hours]);
       var minutes = Number(parts[_TIMEZONE_PARTS.Sign] + (parts[_TIMEZONE_PARTS.Minutes] || 0));
       date.setUTCMinutes(date.getUTCMinutes() + (hours * 60) + minutes);
-    } 
+    }
     return date.valueOf();
   } else {
     return Date.parse(string);
@@ -1451,7 +1451,7 @@ Date2.parse = function(string, defaultDate) {
 // =========================================================================
 
 var String2 = _createObject2(
-  String, 
+  String,
   function(string) {
     return new String(arguments.length == 0 ? "" : string);
   },
@@ -1655,7 +1655,7 @@ function detect() {
     }
     return _cache[expression];
   };
-  
+
   return detect(arguments[0]);
 };
 
@@ -1706,10 +1706,10 @@ var STDOUT = 1;
 
 var Command = Base.extend({
   constructor: function(command) {
-    this[STDOUT] = [];    
+    this[STDOUT] = [];
     this.extend(command); // additional commands
   },
-  
+
   echo: function(string) {
     this[STDOUT].push(string);
   },
@@ -1727,7 +1727,7 @@ var Environment = Base.extend({
   set: function(name, value) {
     this[name] = value;
   },
-  
+
   unset: function(name) {
     delete this[name];
   }
@@ -1743,11 +1743,11 @@ var Interpreter = Base.extend({
     this.environment = new Environment(environment);
     this.parser = new Parser;
   },
-  
+
   command: null,
   environment: null,
   parser: null,
-  
+
   interpret: function(template) {
     var command = new Command(this.command);
     var code = base2.namespace + JavaScript.namespace + lang.namespace +
@@ -1774,7 +1774,7 @@ var Escape = Module.extend({
     }
     return string;
   },
-  
+
   unescape: function(parser, string) {
     // decode escaped characters
     if (parser.escapeChar) {
@@ -1797,11 +1797,11 @@ var Escape = Module.extend({
 
 var Parser = Base.extend({
   escapeChar: "\\",
-  
+
   parse: function(string) {
     return this._decode(this._encode(String(string)));
   },
-  
+
   _decode: function(string) {
     var evaluated = this._evaluated;
     while (Parser.EVALUATED.test(string)) {
@@ -1812,8 +1812,8 @@ var Parser = Base.extend({
     delete this._evaluated;
     return this.unescape(string);
   },
-  
-  _encode: function(string) {    
+
+  _encode: function(string) {
     var TRIM = /^=|;+$/g;
     var BLOCK = /<%[^%]*%([^>][^%]*%)*>/g;
     var evaluated = this._evaluated = [];
@@ -1872,12 +1872,12 @@ var JSON = new base2.Package(this, {
   // IE5.0 doesn't like non-greedy RegExps
   //VALID: /^("(\\.|[^"\\\n\r])*?"|[,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t])+?$/,
   VALID: /^("(\\.|[^"\\\n\r])*"|[,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t])*$/,
-  
+
   copy: function(object) {
     // use JSON to make a deep copy of an object
     return this.parse(this.toString(object));
   },
-  
+
   parse: function(string) {
     return this.String.parseJSON(string);
   }
@@ -1917,7 +1917,7 @@ JSON.Object = Module.extend({
   }
 }, {
   VALID_TYPE: /^(object|boolean|number|string)$/,
-  
+
   isValid: function(object) {
     return this.VALID_TYPE.test(typeof object);
   }
@@ -2095,7 +2095,7 @@ function _java_createFile(path) {
 var XPCOM = Module.extend({
   privelegedMethod: I, // no such thing as priveleged for non-Mozilla browsers
   privelegedObject: I,
-  
+
   "@(Components)": {
     createObject: function(classPath, interfaceId) {
       if (classPath.charAt(0) != "@") {
@@ -2107,14 +2107,14 @@ var XPCOM = Module.extend({
         throw new Error(format("Failed to create object '%1' (%2).", interfaceId, error.message));
       }
     },
-    
+
     privelegedMethod: function(method) {
       return function() {
         netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
         return method.apply(this, arguments);
       };
     },
-    
+
     privelegedObject: function(object) {
       Base.forEach (object, function(method, name) {
         if (typeof method == "function") {
@@ -2154,7 +2154,7 @@ var FileSystem = Base.extend({
     }
     return FileSystem.resolve(path1, path2);
   },
-    
+
   copy: NOT_SUPPORTED,
   exists: NOT_SUPPORTED,
   isDirectory: NOT_SUPPORTED,
@@ -2195,9 +2195,9 @@ var Directory = Collection.extend({
   sort: function() {
     return this.base(function(file1, file2, name1, name2) {
       if (file1.isDirectory != file2.isDirectory) {
-        return file1.isDirectory ? -1 : 1; 
+        return file1.isDirectory ? -1 : 1;
       } else {
-        return name1 < name2 ? -1 : 1; 
+        return name1 < name2 ? -1 : 1;
       }
     });
   }
@@ -2212,7 +2212,7 @@ var Directory = Collection.extend({
     name : "",
     isDirectory: false,
     size: 0,
-    
+
     toString: function() {
       return this.name;
     }
@@ -2235,7 +2235,7 @@ var LocalFileSystem = FileSystem.extend({
       this.write(path + extension, this.read(path));
     }
   },
-  
+
   read: function(path) {
     if (this.isDirectory(path)) {
       return new LocalDirectory(this.makepath(path));
@@ -2267,19 +2267,19 @@ var LocalFileSystem = FileSystem.extend({
     isFile: function(path) {
       return _activex_exec("FileExists", this.makepath(path));
     },
-    
+
     isDirectory: function(path) {
       return _activex_exec("FolderExists", this.makepath(path));
     },
-  
+
     mkdir: function(path) {
       _activex_exec("CreateFolder", this.makepath(path));
     },
-    
+
     move: function(path1, path2) {
       _activex_exec(this.isDirectory(path1) ? "MoveFolder" : "MoveFile", this.makepath(path1), this.makepath(path2));
     },
-    
+
     remove: function(path) {
       if (this.isFile(path)) {
         _activex_exec("DeleteFile", this.makepath(path));
@@ -2295,31 +2295,31 @@ var LocalFileSystem = FileSystem.extend({
       var file2 = _xpcom_createFile(this.makepath(path2));
       file1.copyTo(file2.parent, file2.leafName);
     },
-    
+
     exists: function(path) {
       return _xpcom_createFile(this.makepath(path)).exists();
     },
-    
+
     isFile: function(path) {
       var file = _xpcom_createFile(this.makepath(path));
       return file.exists() && file.isFile();
     },
-    
+
     isDirectory: function(path) {
       var file = _xpcom_createFile(this.makepath(path));
       return file.exists() && file.isDirectory();
     },
-  
+
     mkdir: function(path) {
       _xpcom_createFile(this.makepath(path)).create(1);
     },
-    
+
     move: function(path1, path2) {
       var file1 = _xpcom_createFile(this.makepath(path1));
       var file2 = _xpcom_createFile(this.makepath(path2));
       file1.moveTo(file2.parent, file2.leafName);
     },
-    
+
     remove: function(path) {
       _xpcom_createFile(this.makepath(path)).remove(false);
     }
@@ -2375,7 +2375,7 @@ var LocalFileSystem = FileSystem.extend({
       XPCOM.privelegedObject(this.prototype);
     }
   },
-  
+
   fromNativePath: I,
   toNativePath: I,
 
@@ -2384,7 +2384,7 @@ var LocalFileSystem = FileSystem.extend({
   "@(global.java.io.File.separator=='\\\\')": _win_formatter,
   "@(jscript)": _win_formatter,
   "@win(32|64)": _win_formatter,
-  
+
   "@(java)": {
     getPath: function() {
       return this.fromNativePath(new java.io.File("").getAbsolutePath());
@@ -2494,7 +2494,7 @@ var LocalFile = Base.extend({
   constructor: function(path) {
     this.toString = K(FileSystem.resolve(LocalFileSystem.getPath(), path));
   },
-  
+
   close: _INVALID_MODE,
   open: NOT_SUPPORTED,
   read: _INVALID_MODE,
@@ -2504,7 +2504,7 @@ var LocalFile = Base.extend({
     open: function(mode) {
       var path = LocalFileSystem.toNativePath(this);
       var fso = new ActiveXObject("Scripting.FileSystemObject");
-      
+
       switch (mode) {
         case READ:
           assert(fso.FileExists(path), "File does not exist: " + this);
@@ -2513,7 +2513,7 @@ var LocalFile = Base.extend({
             return stream.ReadAll();
           };
           break;
-          
+
         case WRITE:
           stream = fso.OpenTextFile(path, 2, -1, 0);
           this.write = function(text) {
@@ -2521,7 +2521,7 @@ var LocalFile = Base.extend({
           };
           break;
       }
-      
+
       this.close = function() {
         stream.Close();
         delete this.read;
@@ -2534,7 +2534,7 @@ var LocalFile = Base.extend({
   "@(Components)": { // XPCOM
     open: function(mode) {
       var file = _xpcom_createFile(this);
-      
+
       switch (mode) {
         case READ:
           assert(file.exists(), "File does not exist: " + this);
@@ -2546,7 +2546,7 @@ var LocalFile = Base.extend({
             return stream.read(stream.available());
           };
           break;
-          
+
         case WRITE:
           if (!file.exists()) file.create(0, 0664);
           stream = XPCOM.createObject("network/file-output-stream;1", "nsIFileOutputStream");
@@ -2557,7 +2557,7 @@ var LocalFile = Base.extend({
           };
           break;
       }
-      
+
       this.close = function() {
         if (mode == WRITE) stream.flush();
         stream.close();
@@ -2572,7 +2572,7 @@ var LocalFile = Base.extend({
     open: function(mode) {
       var path = LocalFileSystem.toNativePath(this);
       var io = java.io;
-      
+
       switch (mode) {
         case READ:
           var file = _java_createFile(this);
@@ -2586,7 +2586,7 @@ var LocalFile = Base.extend({
             return lines.join("\r\n");
           };
           break;
-          
+
         case WRITE:
           assert(!global.navigator, "Cannot write to local files with this browser.");
           stream = new io.PrintStream(new io.FileOutputStream(path));
@@ -2595,7 +2595,7 @@ var LocalFile = Base.extend({
           };
           break;
       }
-      
+
       this.close = function() {
         stream.close();
         delete this.read;
@@ -2625,24 +2625,24 @@ new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 var MiniWeb = new base2.Package(this, {
   name:    "MiniWeb",
   exports: "Client,Server,JSONFileSystem,JSONDirectory,FileSystem,Command,Interpreter,Terminal,Request,History",
-  imports: "Function2,IO",
+  imports: "Enumerable,IO",
   version: "0.7.1",
-  
+
   $$: {data: {}},
-  
+
   DOCTYPE: '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">',
   SCRIPT:  '<script type="text/javascript">\r\n%1\r\n<\/script>',
-  
+
   client: null,
   dirty: false,
   readOnly: true,
   server: null,
   terminal: null,
-  
+
   init: function() {
     // create page style
     document.write("<style>html,body{margin:0;padding:0;height:100%;overflow:hidden}#window{width:100%;height:100%;}</style>");
-    
+
     // delegate some methods to the client
     base2.lang.forEach.csv ("navigateTo,refresh,reload,submit", function(method) {
       this[method] = function() {
@@ -2654,25 +2654,25 @@ var MiniWeb = new base2.Package(this, {
         }, 0);
       };
     }, this);
-    
+
     window.onload = function() {
       MiniWeb.readOnly = location.protocol != "file:" || LocalFile.prototype.open == NOT_SUPPORTED;
       MiniWeb.server = new Server;
       MiniWeb.terminal = new Terminal;
       MiniWeb.client = new Client;
     };
-    
+
     window.MiniWeb = this;
   },
-  
+
   register: function(window) {
     this.client.register(window);
   },
-  
+
   resolve: function(path, filename) {
     return IO.FileSystem.resolve(path, filename);
   },
-  
+
   save: function(name) {
     if (this.readOnly) {
       alert(
@@ -2712,14 +2712,14 @@ var MiniWeb = new base2.Package(this, {
         scripts.push(format(this.SCRIPT, entry));
       }
     }, this);
-    
+
     var data = [];
     forEach (this.$$.data, function(value, name) {
       var entry = "MiniWeb.$$.data." + name + "=" + JSON.toString(value).replace(/<\//g, "<\\/");
       data.push(format(this.SCRIPT, entry));
     }, this);
-    
-    
+
+
     // it's mostly script :-)
     var html = Array2.flatten([
       this.DOCTYPE,
@@ -2730,15 +2730,15 @@ var MiniWeb = new base2.Package(this, {
       data,
       ""
     ]).join("\r\n");
-    
+
     var fs = new LocalFileSystem;
     if (!name) fs.backup(location.pathname);
     fs.write(name || location.pathname, html);
     if (!name) location.reload();
-    
+
     return true;
   },
-  
+
   send: function(request, data) {
     if (this.client) {
       request.referer = this.client.address;
@@ -2775,27 +2775,27 @@ var Client = Base.extend({
       client.address = address;
       client.refresh();
     });
-    
+
     // the url of the hosting page
     this.host = location.href.slice(0, -location.hash.length);
-    
+
     this.view = document.createElement("iframe");
     this.view.style.display = "none";
     document.body.appendChild(this.view);
   },
-  
+
   address: "",
   history: null,
   host: "",
   response: null,
   view: null,
   window: null,
-  
+
   fixForm: function(form) {
     // intercept form submissions
     form.onsubmit = Client.onsubmit;
   },
-  
+
   fixLink: function(link) {
     // stylise links - add classes for visited etc
     var href = link.getAttribute("href");
@@ -2816,15 +2816,15 @@ var Client = Base.extend({
       link.target = "_parent";
     }
   },
-  
+
   fixStyle: function(style) {
     style.innerHTML = style.innerHTML.replace(/:(visited)/g, ".mw-$1");
   },
-  
+
   navigateTo: function(url) {
     // load a new page
     var hash = /^#/.test(url) ? url.slice(1) : url;
-    if (this.address != hash) {      
+    if (this.address != hash) {
       var request = new Request("HEAD", hash);
       if (request.status == 301) {
         hash = request.getResponseHeader("Location");
@@ -2832,44 +2832,44 @@ var Client = Base.extend({
       this.history.add("#" + hash);
     }
   },
-  
+
   refresh: function() {
     // refresh the current page from the last response
-    
+
     // insert a script
-    var script = "parent.MiniWeb.register(this);var base2=parent.base2;" + 
+    var script = "parent.MiniWeb.register(this);var base2=parent.base2;" +
       base2.namespace + lang.namespace + "JavaScript.bind(this);";
     script = format(MiniWeb.SCRIPT, script);
     var html = this.response.replace(/(<head[^>]*>)/i, "$1\n" + script);
-    
+
     // create an iframe to display the page
     var iframe = document.createElement(Client.$IFRAME);
     iframe.frameBorder = "0";
     iframe.id = "window";
     document.body.replaceChild(iframe, this.view);
     this.view = iframe;
-    
+
     // write the html
     var doc = iframe.contentDocument || iframe.contentWindow.document;
     doc.open();
     doc.write(html);
     doc.close();
-    
+
     // fix the page
     forEach (doc.links, this.fixLink, this);
     forEach (doc.getElementsByTagName("style"), this.fixStyle, this);
     forEach (doc.forms, this.fixForm, this);
-    
+
     if (typeof doc.activeElement == "undefined") {
       doc.onclick = function(event) {
         this.activeElement = event.target;
       };
     }
-    
+
     // keep the browser title in sync
     document.title = doc.title;
   },
-  
+
   register: function(window) {
     window.MiniWeb = MiniWeb;
     window.onunload = function() { // destroy
@@ -2877,30 +2877,30 @@ var Client = Base.extend({
     };
     this.window = window;
   },
-  
+
   reload: function() {
     // reload the current page
     this.send("GET", this.address);
     this.refresh();
   },
-  
+
   send: function(method, url, data, headers) {
     // it's all synchronous ;-)
     this.response = new Request(method, url, data, headers).responseText;
   },
-  
+
   submit: function(form) {
     // post form data
     this.send("POST", form.action || this.address, HTMLFormElement.serialize(form));
     this.refresh();
   },
-  
+
   "@MSIE": {
     fixStyle: function(style) {
       style = style.styleSheet;
       style.cssText = style.cssText.replace(/:visited/g, ".mw-visited");
     },
-    
+
     refresh: function() {
       // IE needs a kick up the butt
       //  this will cause the unload event to fire in the iframe
@@ -2910,8 +2910,8 @@ var Client = Base.extend({
   }
 }, {
   $IFRAME: "iframe",
-  
-  onclick: function() {  
+
+  onclick: function() {
     var href = this.getAttribute("href", 2);
     if (href && !/^\w+:/.test(href) ) {
       if (!/current/.test(this.className)) {
@@ -2921,12 +2921,12 @@ var Client = Base.extend({
     }
     return true;
   },
-  
+
   onsubmit: function() {
     MiniWeb.submit(this);
     return false;
   },
-  
+
   "@MSIE": {
     $IFRAME: "<iframe scrolling=yes>"
   }
@@ -2942,7 +2942,7 @@ var History = Base.extend({
   constructor: function(callback) {
     this.visited = {};
   //-  var scrollTop = this.scrollTop = {};
-    
+
     var hash;
     this.timer = setInterval(function() {
       if (hash != location.hash) {
@@ -2951,20 +2951,20 @@ var History = Base.extend({
       //-  document.documentElement.scrollTop = scrollTop[hash];
       }
     }, 20);
-    
+
   /*  // preserve scroll position
     window.onscroll = function() {
       if (hash == location.hash) {
         scrollTop[hash] = document.documentElement.scrollTop;
       }
     }; */
-    
+
     this.add(location.hash || ("#" + (document.title.slice(9) || "/")));
   },
-  
+
   timer: 0,
   visited: null,
-  
+
   add: function(hash) {
     if (location.hash != hash) {
       location.hash = hash;
@@ -2972,20 +2972,20 @@ var History = Base.extend({
   //-  this.scrollTop[hash] = 0;
     this.visited[hash] = true;
   },
-  
+
   "@MSIE": {
     add: function(hash) {
       History.$write(hash);
       this.base(hash);
     }
   }
-}, {    
+}, {
   init: function() {
     // the hash portion of the location needs to be set for history to work properly
     // -- we need to do it before the page has loaded
     if (!location.hash) location.replace("#" + (document.title.slice(9) || "/"));
   },
-  
+
   "@MSIE": {
     $write: function(hash) {
       if (hash != location.hash) {
@@ -2995,7 +2995,7 @@ var History = Base.extend({
         document.close();
       }
     },
-    
+
     init: function() {
       this.base();
       document.write("<iframe style=display:none></iframe>");
@@ -3014,9 +3014,9 @@ var Server = Base.extend({
   constructor: function() {
     this.io = new FileSystem;
   },
-  
+
   io: null,
-  
+
   interpret: function(request) {
     var interpreter = new Interpreter(request);
     try {
@@ -3026,7 +3026,7 @@ var Server = Base.extend({
       throw error;
     }
   },
-  
+
   respond: function(request, data) {
     // repsond to a client request
     try {
@@ -3064,7 +3064,7 @@ var Server = Base.extend({
       }
     }
   },
-  
+
   HEAD: function(server, request) {
     var url = request.url.replace(/!.*$/, "");
     if (server.io.exists(url)) {
@@ -3079,18 +3079,18 @@ var Server = Base.extend({
       request.status = 404; // Not Found
     }
   },
-  
+
   OPTIONS: function(server, request) {
     request.headers["Allow"] = "OPTIONS,HEAD,GET,POST,PUT,DELETE";
     request.status = 200; // OK
   },
-  
+
   PUT: function(server, request, data) {
     request.responseText = server.io.write(request.url, data);
     // not sure what to return here
     request.status = 200; // OK
   },
-  
+
   DELETE: function(server, request) {
     this.HEAD(server, request);
     // not sure what to return here
@@ -3098,7 +3098,7 @@ var Server = Base.extend({
       request.reponseText = server.io.remove(request.url);
     }
   },
-  
+
   POST: function(server, request, data) {
     // build a simple object containing post data
     forEach (data.split("&"), function(data) {
@@ -3128,7 +3128,7 @@ var Request = Base.extend({
       this.send(data);
     }
   },
-  
+
   headers: null,
   readyState: 0,
   status: 0,
@@ -3136,27 +3136,27 @@ var Request = Base.extend({
   method: "",
   responseText: "",
   url: "",
-  
+
   open: function(method, url) {
     assert(this.readyState == 0, "Invalid state.");
     this.readyState = 1;
     this.method = method;
     this.url = url;
   },
-  
+
   send: function(data) {
     assert(this.readyState == 1, "Invalid state.");
     this.readyState = 2;
     MiniWeb.send(this, data);
   },
-  
+
   // there is no distinction between request/response headers at the moment
-  
+
   getResponseHeader: function(header) {
     assert(this.readyState >= 3, "Invalid state.");
     return this.headers[header];
   },
-  
+
   setRequestHeader: function(header, value) {
     assert(this.readyState == 1, "Invalid state.");
     this.headers[header] = value;
@@ -3180,15 +3180,15 @@ var JSONFileSystem = FileSystem.extend({
       }, data);
     };
   },
-  
+
   exists: function(path) {
     return this[_FETCH](path) !== undefined;
   },
-  
+
   isFile: function(path) {
     return typeof this[_FETCH](path) == "string";
   },
-  
+
   isDirectory: function(path) {
     return typeof this[_FETCH](path) == "object";
   },
@@ -3197,25 +3197,25 @@ var JSONFileSystem = FileSystem.extend({
     var data = this[_FETCH](path1);
     this.write(path2, JSON.copy(data));
   },
-  
+
   mkdir: function(path) {
     // create a directory
     this.write(path, {});
   },
-  
+
   move: function(path1, path2) {
     var data = this[_FETCH](path1);
     this.write(path2, data);
     this.remove(path1);
   },
 
-  read: function(path) {    
+  read: function(path) {
     // read text from the JSON object
     var file = this[_FETCH](path);
     return typeof file == "object" ?
       new JSONDirectory(file) : file || ""; // make read safe
   },
-  
+
   remove: function(path) {
     // remove data from the JSON object
     path = path.replace(/\/$/, "").split("/");
@@ -3229,7 +3229,7 @@ var JSONFileSystem = FileSystem.extend({
     path = path.split("/");
     var filename = path.splice(path.length - 1, 1);
     var directory = this[_FETCH](path.join("/"));
-    assert(directory, "Directory not found."); 
+    assert(directory, "Directory not found.");
     return directory[filename] = data || "";
   }
 });
@@ -3257,17 +3257,17 @@ var FileSystem = JSONFileSystem.extend({
   constructor: function() {
     this.base(MiniWeb.$$);
   },
-  
+
   remove: function(path) {
     MiniWeb.dirty = true;
     return this.base(path);
   },
-  
+
   write: function(path, data) {
     MiniWeb.dirty = true;
     return this.base(path, data);
   },
-  
+
   protocol: "json:"
 });
 
@@ -3307,12 +3307,12 @@ var Command = FileSystem.extend({
       return result;
     };
   },
-  
+
   parent: "",
   self: "",
   target: "",
   top: "",
-  
+
   args: function(names) {
     // define template arguments in the current scope
     var args = this.target.split(_SPACE);
@@ -3321,17 +3321,17 @@ var Command = FileSystem.extend({
     }, this);
     return args;
   },
-  
+
   escapeHTML: function(string) {
     return Command.HTML_ESCAPE.exec(string);
   },
-  
+
   exec: Undefined, // defined in the constructor function
-  
+
   include: function(template) {
     this.echo(this.exec(template, this.target));
   },
-  
+
   include_once: function(template) {
     var path = this.makepath(template);
     if (!this[Command.INCLUDES][path]) {
@@ -3339,7 +3339,7 @@ var Command = FileSystem.extend({
       this.include(template);
     }
   },
-  
+
   process: function(template, target) {
     if (_WILD_CARD.test(target)) { // process everything in the current directory
       var path = target.replace(WILD_CARD, "") || this.path;
@@ -3362,7 +3362,7 @@ var Command = FileSystem.extend({
   STDOUT: 1,
   STDERR: 2,
   INCLUDES: 3,
-  
+
   HTML_ESCAPE: new RegGrp({
     '"': "&quot;",
     "&": "&amp;",
@@ -3378,7 +3378,7 @@ var Command = FileSystem.extend({
 
 // This object gets between the server and the file system to manage the
 //  returned content.
-// The interpreter also provides access to to a copy of the request object 
+// The interpreter also provides access to to a copy of the request object
 //  and its post data.
 
 var Interpreter = Command.extend({
@@ -3386,7 +3386,7 @@ var Interpreter = Command.extend({
     this.base();
     this.request = pcopy(request);
   },
-  
+
   query: "",
   request: null,
 
@@ -3407,12 +3407,12 @@ var Interpreter = Command.extend({
       this.echo("\n<\/style>\n");
     }
   },
-  
+
   interpret: function() {
     var url = this.request.url;
     var template = Interpreter.VIEW;
     var status = this.request.status;
-    
+
     if (status > 299) { // return an error page
       target = Interpreter.ERROR + (Interpreter.ERROR_PAGES[status] || Interpreter.DEFAULT);
     } else {
@@ -3469,7 +3469,7 @@ var Terminal = Command.extend({
 }, {
   STATE: "#state",
   TMP:   "~terminal",
-  
+
   load: function(terminal) {
     // the state of a terminal session is saved to disk whenever
     //  MiniWeb is saved from the terminal. Reload the saved
@@ -3491,7 +3491,7 @@ var Terminal = Command.extend({
     terminal.path = state.path;
     terminal[this.STATE] = state;
   },
-  
+
   save: function(terminal) {
     // save the state of a terminal session to disk
     var state = terminal[this.STATE];
@@ -3532,7 +3532,7 @@ var HTMLFormElement = HTMLElement.extend({
 
 var HTMLFormItem = HTMLElement.extend(null, {
   tags: "BUTTON,INPUT,SELECT,TEXTAREA",
-  
+
   isSuccessful: function(item) {
     if (!item.name || item.disabled) return false;
     switch (item.type) {
@@ -3549,7 +3549,7 @@ var HTMLFormItem = HTMLElement.extend(null, {
         return true;
     }
   },
-  
+
   serialize: function(item) {
     return item.name + "=" + encodeURIComponent(item.value);
   }

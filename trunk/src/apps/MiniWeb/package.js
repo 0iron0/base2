@@ -8,7 +8,7 @@
 var MiniWeb = new base2.Package(this, {
   name:    "MiniWeb",
   exports: "Client,Server,JSONFileSystem,JSONDirectory,FileSystem,Command,Interpreter,Terminal,Request,History",
-  imports: "Function2,IO",
+  imports: "Enumerable,IO",
   version: "0.7.1",
   
   $$: {data: {}},
