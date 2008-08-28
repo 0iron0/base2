@@ -8,8 +8,8 @@
 var MiniWeb = new base2.Package(this, {
   name:    "MiniWeb",
   exports: "Client,Server,JSONFileSystem,JSONDirectory,FileSystem,Command,Interpreter,Terminal,Request,History",
-  imports: "IO",
-  version: "0.7",
+  imports: "Function2,IO",
+  version: "0.7.1",
   
   $$: {data: {}},
   
@@ -27,8 +27,7 @@ var MiniWeb = new base2.Package(this, {
     document.write("<style>html,body{margin:0;padding:0;height:100%;overflow:hidden}#window{width:100%;height:100%;}</style>");
     
     // delegate some methods to the client
-    var methods = "navigateTo,refresh,reload,submit".split(",");
-    base2.lang.forEach (methods, function(method) {
+    base2.lang.forEach.csv ("navigateTo,refresh,reload,submit", function(method) {
       this[method] = function() {
         var args = arguments;
         var client = MiniWeb.client;

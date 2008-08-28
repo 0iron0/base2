@@ -7,7 +7,7 @@
     Doeke Zanstra
 */
 
-// timestamp: Wed, 27 Aug 2008 23:03:28
+// timestamp: Thu, 28 Aug 2008 16:39:17
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -24,8 +24,8 @@ new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 var MiniWeb = new base2.Package(this, {
   name:    "MiniWeb",
   exports: "Client,Server,JSONFileSystem,JSONDirectory,FileSystem,Command,Interpreter,Terminal,Request,History",
-  imports: "IO",
-  version: "0.7",
+  imports: "Function2,IO",
+  version: "0.7.1",
   
   $$: {data: {}},
   
@@ -43,8 +43,7 @@ var MiniWeb = new base2.Package(this, {
     document.write("<style>html,body{margin:0;padding:0;height:100%;overflow:hidden}#window{width:100%;height:100%;}</style>");
     
     // delegate some methods to the client
-    var methods = "navigateTo,refresh,reload,submit".split(",");
-    base2.lang.forEach (methods, function(method) {
+    base2.lang.forEach.csv ("navigateTo,refresh,reload,submit", function(method) {
       this[method] = function() {
         var args = arguments;
         var client = MiniWeb.client;
