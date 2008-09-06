@@ -23,15 +23,15 @@ var Chrome = Behavior.modify({
   },
 
   onclick: function(element, event, x, y) {
-    ;;; console2.log("onclick(" + event.eventPhase + "): " + event.button);
+    //;;; console2.log("onclick(" + event.eventPhase + "): " + event.button);
   },
 
   ondblclick: function(element, event, x, y) {
-    ;;; console2.log("ondblclick(" + event.eventPhase + "): " + event.button);
+    //;;; console2.log("ondblclick(" + event.eventPhase + "): " + event.button);
   },
 
   onmousedown: function(element, event, x, y) {
-    ;;; console2.log("onmousedown(" + event.eventPhase + "): " + event.button);
+    //;;; console2.log("onmousedown(" + event.eventPhase + "): " + event.button);
     Chrome._active = element;
 
     if (!this.isEditable(element)) return;
@@ -44,7 +44,7 @@ var Chrome = Behavior.modify({
   },
 
   onmouseup: function(element, event) {
-    ;;; console2.log("onmouseup(" + event.eventPhase + "): " + event.button);
+    //;;; console2.log("onmouseup(" + event.eventPhase + "): " + event.button);
     delete Chrome._active;
     if (Chrome._activeThumb) {
       delete Chrome._activeThumb;

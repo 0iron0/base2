@@ -5,7 +5,7 @@ var LocalDirectory = Directory.extend({
       this.base();
       if (typeof path == "string") {
         var directory = _activex_exec("GetFolder", path);
-        forEach([directory.SubFolders, directory.Files], function(list) {
+        forEach ([directory.SubFolders, directory.Files], function(list) {
           var enumerator = new Enumerator(list);
           while (!enumerator.atEnd()) {
             var file = enumerator.item();

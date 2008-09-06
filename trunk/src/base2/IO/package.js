@@ -51,7 +51,7 @@ function _activex_exec(method, path1, path2, flags) {
     case 3: return _fso[method](path1, path2);
     case 4: return _fso[method](path1, path2, flags);
   }
-  return undefined;
+  return undefined; // prevent strict warnings
 };
 
 function _xpcom_createFile(path) {

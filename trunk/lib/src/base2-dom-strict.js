@@ -7,7 +7,7 @@
     Doeke Zanstra
 */
 
-// timestamp: Wed, 27 Aug 2008 23:03:28
+// timestamp: Sat, 06 Sep 2008 16:52:33
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -63,6 +63,11 @@ function strictEventListener(target, type, listener, capture) {
 function assertEventTarget(target) {
   assert(target == window || Traversal.isDocument(target) || Traversal.isElement(target), "Invalid event target.", TypeError);
 };
+
+if (detect("Gecko")) {
+  EventTarget.removeEventListener._delegate = "removeEventListener";
+  delete EventTarget.prototype.removeEventListener;
+}
 
 // =========================================================================
 // DOM/strict/NodeSelector.js

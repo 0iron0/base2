@@ -7,7 +7,7 @@
     Doeke Zanstra
 */
 
-// timestamp: Wed, 27 Aug 2008 23:03:28
+// timestamp: Sat, 06 Sep 2008 16:52:33
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 

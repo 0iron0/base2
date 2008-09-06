@@ -7,7 +7,7 @@
     Doeke Zanstra
 */
 
-// timestamp: Wed, 27 Aug 2008 23:03:28
+// timestamp: Sat, 06 Sep 2008 16:52:33
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -390,15 +390,15 @@ var Chrome = Behavior.modify({
   },
 
   onclick: function(element, event, x, y) {
-    ;;; console2.log("onclick(" + event.eventPhase + "): " + event.button);
+    //;;; console2.log("onclick(" + event.eventPhase + "): " + event.button);
   },
 
   ondblclick: function(element, event, x, y) {
-    ;;; console2.log("ondblclick(" + event.eventPhase + "): " + event.button);
+    //;;; console2.log("ondblclick(" + event.eventPhase + "): " + event.button);
   },
 
   onmousedown: function(element, event, x, y) {
-    ;;; console2.log("onmousedown(" + event.eventPhase + "): " + event.button);
+    //;;; console2.log("onmousedown(" + event.eventPhase + "): " + event.button);
     Chrome._active = element;
 
     if (!this.isEditable(element)) return;
@@ -411,7 +411,7 @@ var Chrome = Behavior.modify({
   },
 
   onmouseup: function(element, event) {
-    ;;; console2.log("onmouseup(" + event.eventPhase + "): " + event.button);
+    //;;; console2.log("onmouseup(" + event.eventPhase + "): " + event.button);
     delete Chrome._active;
     if (Chrome._activeThumb) {
       delete Chrome._activeThumb;
@@ -1006,6 +1006,7 @@ var Spinner = Range.modify({
   },
   
   onkeydown: function(element, event, keyCode) {
+    //;;; console2.log("onkeydown(" + event.eventPhase + "): " + keyCode);
     if (!this.isEditable(element)) return;
     if (!/^(3[34568]|40)$/.test(keyCode)) return;
 
@@ -1030,6 +1031,7 @@ var Spinner = Range.modify({
   },
 
   onkeyup: function(element, event, keyCode) {
+    //;;; console2.log("onkeyup(" + event.eventPhase + "): " + keyCode);
     if (!this.isEditable(element)) return;
     
     this.stopTimer(element);
