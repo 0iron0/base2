@@ -13,6 +13,7 @@ var Spinner = Range.modify({
   },
   
   onkeydown: function(element, event, keyCode) {
+    //;;; console2.log("onkeydown(" + event.eventPhase + "): " + keyCode);
     if (!this.isEditable(element)) return;
     if (!/^(3[34568]|40)$/.test(keyCode)) return;
 
@@ -37,6 +38,7 @@ var Spinner = Range.modify({
   },
 
   onkeyup: function(element, event, keyCode) {
+    //;;; console2.log("onkeyup(" + event.eventPhase + "): " + keyCode);
     if (!this.isEditable(element)) return;
     
     this.stopTimer(element);

@@ -26,8 +26,10 @@ var Node = Binding.extend({
 }, {
   "@Gecko": {
     bind: function(node) {
-      return extend(this.base(node), "removeEventListener", function(type, listener, useCapture) {
-        this.base(type, _wrappedListeners[listener.base2ID] || listener, useCapture);
+      return extend(this.base(node), "removeEventListener", function() {
+        var args = Array2.slice(arguments);
+        args.unshift(this);
+        EventTarget.removeEventListener.apply(EventTarget, args);
       });
     }
   }

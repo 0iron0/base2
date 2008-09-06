@@ -23,3 +23,8 @@ function strictEventListener(target, type, listener, capture) {
 function assertEventTarget(target) {
   assert(target == window || Traversal.isDocument(target) || Traversal.isElement(target), "Invalid event target.", TypeError);
 };
+
+if (detect("Gecko")) {
+  EventTarget.removeEventListener._delegate = "removeEventListener";
+  delete EventTarget.prototype.removeEventListener;
+}

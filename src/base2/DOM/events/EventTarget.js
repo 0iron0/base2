@@ -122,7 +122,10 @@ var EventTarget = Interface.extend({
   }
 });
 
-if (detect("Gecko")) delete EventTarget.prototype.removeEventListener;
+if (detect("Gecko")) {
+  EventTarget.removeEventListener._delegate = "removeEventListener";
+  delete EventTarget.prototype.removeEventListener;
+}
 
 function _handleEvent(target, listener, event) {
   if (typeof listener == "function") {

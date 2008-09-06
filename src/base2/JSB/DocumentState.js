@@ -53,7 +53,7 @@ var DocumentState = Behavior.modify({
     assert(!this.loaded, "Cannot add JSB rules after the DOM has loaded.");
     assert(!/:/.test(selector), format("Pseudo class selectors not allowed in JSB (selector='%2').", selector));
     var query = Selector.parse(selector);
-    this.rules.push({query: query, behavior: behavior, toString:selector.toString});
+    this.rules.push({query: query, behavior: behavior});
     if (this.rules.length == 1) this.recalc(); // start the timer
   },
 
@@ -133,7 +133,6 @@ var DocumentState = Behavior.modify({
             } else i++;
           }
         }
-        //if (i > rules.length - 1) i = 0; // at end, loop to first rule
         if (i >= rules.length) i = 0; // at end, loop to first rule
         count--;
       }
