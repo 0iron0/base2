@@ -4,101 +4,48 @@
 
 // TODO: Right to left should invert horizontal
 
-var ProgressBar = Range.modify({
+var progressbar = range.extend({
+  // constants
+  
   HEIGHT: 3000,
   WIDTH: 3000,
-  CHUNK_WIDTH: 10,
-  CHUNK_HEIGHT: 10,
+  CHUNK_WIDTH: 1,
+  CHUNK_HEIGHT: 1,
   
-  min:  0,
-  max:  100,
-  step: 1,
+  "@theme=luna": {
+    CHUNK_WIDTH: 10,
+    CHUNK_HEIGHT: 10
+  },
+
+  // properties
 
   appearance: "progressbar",
 
-  "@!theme=aqua": {
-    onfocus: function(element) {
-      if (element != Chrome._active) {
-        this.addClass(element, this.appearance + _FOCUS);
-      }
-      this.base(element);
-    }
-  },
-  
-  onkeydown: function(element, event, keyCode) {
-    //;;; console2.log("onkeydown: "+keyCode);
-    if (!this.isEditable(element)) return;
+  // events
 
-    //event.preventDefault();
+  onmouseover: Undefined,
+  onmouseout: Undefined,
 
-    if (keyCode < 33 || keyCode > 40) return;
-
-    var amount = 1;
-
-    switch (keyCode) {
-      case 35: // end
-        var value = 1;
-      case 36: // home
-        this.setValue(element, value || 0);
-        return;
-      case 33: // page up
-        var block = true;
-        break;
-      case 34: // page down
-        block = true;
-      case 37: // left
-      case 40: // down
-        amount = -1;
-    }
-    this.increment(element, amount, block);
-  },
+  // methods
 
   hitTest: False,
-
-  getBlockIncrement: function(element) {
-    // try to get as close as possible to 10% while still being a multiple
-    // of the step and make sure that the block increment is not smaller than
-    // twice the size of the unit increment
-    var ui = this.getUnitIncrement(element);
-    return Math.max(2 * ui, Math.round(0.1 / ui) * ui);
-  },
-
-  getUnitIncrement: function(element) {
-    var properties = this.getProperties(element);
-    return properties.step / (properties.max - properties.min) || this.base(element);
-  },
 
   layout: function(element) {
     var clientWidth = element[_WIDTH],
         clientHeight = element[_HEIGHT],
-        base2ID = element.base2ID;
+        relativeValue = this.getProperties(element).relativeValue;
 
-    if (_vertical[base2ID]) {
+    if (clientHeight > clientWidth) {
       var left = (-clientWidth / 2) * (clientWidth + 3) - 2;
       //var left = (-clientWidth / 2) * (clientWidth - 1);
-      var top = Math.floor(clientHeight * _values[base2ID]);
+      var top = Math.floor(clientHeight * relativeValue);
       top = clientHeight - Math.round(top / this.CHUNK_HEIGHT) * this.CHUNK_HEIGHT;
     } else {
-      var chunk = /luna/.test(chrome.theme) ? this.CHUNK_WIDTH : 1;
-      left = Math.floor(clientWidth * _values[base2ID]) - this.WIDTH;
-      left = Math.round(++left / chunk) * chunk;
+      left = Math.floor(clientWidth * relativeValue) - this.WIDTH;
+      left = Math.round(left / this.CHUNK_WIDTH) * this.CHUNK_WIDTH;
       top = (-clientHeight / 2) * (clientHeight + 3) - 2;
       //top = (-clientHeight / 2) * (clientHeight - 1);
     }
     element.style.backgroundPosition = left + PX + " " + top + PX;
-  },
-
-  getCursor: K(""),
-
-  getValue: function(element) {
-    return _values[element.base2ID];
-  },
-
-  setValue: function(element, value) {
-    var properties = this.getProperties(element);
-    var min = Number(properties.min), max = Number(properties.max);
-    this.base(element, min + (max - min) * value);
-    _values[element.base2ID] = (element.value - min) / (max - min);
-    this.layout(element);
   }
 });

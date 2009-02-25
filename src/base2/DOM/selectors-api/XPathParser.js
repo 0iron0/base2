@@ -27,9 +27,9 @@ var XPathParser = CSSParser.extend({
     });
   },
 
-  "@opera(7|8|9\\.[1-4])": {
+  "@Opera(7|8|9\\.[1-4])": {
     unescape: function(selector) {
-      // opera pre 9.5 does not seem to support last() but I can't find any
+      // Opera pre 9.5 does not seem to support last() but I can't find any
       //  documentation to confirm this
       return this.base(selector.replace(/last\(\)/g, "count(preceding-sibling::*)+count(following-sibling::*)+1"));
     }
@@ -54,14 +54,14 @@ var XPathParser = CSSParser.extend({
   },
   
   rules: extend({}, {
-    "@!KHTML|opera": { // this optimisation does not work on Safari/opera
+    "@!KHTML|Opera": { // this optimisation does not work on Safari/opera
       // fast id() search
-      "(^|\\x02) (\\*|[\\w-]+)#([\\w-]+)": "$1id('$3')[self::$2]"
+      "(^|\\x02) (\\*|[ID]+)#([ID]+)": "$1id('$3')[self::$2]"
     },
     
     "@!KHTML": { // this optimisation does not work on Safari
       // optimise positional searches
-      "([ >])(\\*|[\\w-]+):([\\w-]+-child(\\(([^)]+)\\))?)": function(match, token, tagName, pseudoClass, $4, args) {
+      "([ >])(\\*|[ID]+):([ID]+-child(\\(([^)]+)\\))?)": function(match, token, tagName, pseudoClass, $4, args) {
         var replacement = (token == " ") ? "//*" : "/*";
         if (/^nth/i.test(pseudoClass)) {
           replacement += _xpath_nthChild(pseudoClass, args, "position()");
@@ -75,15 +75,15 @@ var XPathParser = CSSParser.extend({
   
   types: {
     identifiers: function(replacement, token) {
-      this[rescape(token) + "([\\w-]+)"] = replacement;
+      this[rescape(token) + "([ID]+)"] = replacement;
     },
     
     combinators: function(replacement, combinator) {
-      this[rescape(combinator) + "(\\*|[\\w-]+)"] = replacement;
+      this[rescape(combinator) + "(\\*|[ID]+)"] = replacement;
     },
     
     attributes: function(replacement, operator) {
-      this["\\[\\s*([\\w-]+)\\s*" + rescape(operator) +  "\\s*([^\\]\\s]*)\\s*\\]"] = replacement;
+      this["\\[\\s*([ID]+)\\s*" + rescape(operator) +  "\\s*([^\\]\\s]*)\\s*\\]"] = replacement;
     },
     
     pseudoClasses: function(replacement, pseudoClass) {
@@ -115,10 +115,10 @@ var XPathParser = CSSParser.extend({
     },
     
     pseudoClasses: { // pseudo class selectors
-      "link":             "[false]",
-      "visited":          "[false]",
+//    "link":             "[false]",
+//    "visited":          "[false]",
       "empty":            "[not(child::*) and not(text())]",
-//-   "lang()":           "[boolean(lang('$1') or boolean(ancestor-or-self::*[@lang][1][starts-with(@lang,'$1')]))]",
+//    "lang()":           "[boolean(lang('$1') or boolean(ancestor-or-self::*[@lang][1][starts-with(@lang,'$1')]))]",
       "first-child":      "[not(preceding-sibling::*)]",
       "last-child":       "[not(following-sibling::*)]",
       "not()":            _xpath_not,
@@ -129,7 +129,7 @@ var XPathParser = CSSParser.extend({
     }
   },
   
-  "@opera(7|8|9\\.[1-4])": {
+  "@Opera(7|8|9\\.[1-4])": {
     build: function() {
       this.optimised.pseudoClasses["last-child"] = this.values.pseudoClasses["last-child"];
       this.optimised.pseudoClasses["only-child"] = this.values.pseudoClasses["only-child"];
@@ -144,7 +144,7 @@ function _xpath_not(match, args) {
   if (!_notParser) _notParser = new XPathParser;
   return "[not(" + _notParser.exec(trim(args))
     .replace(/\[1\]/g, "") // remove the "[1]" introduced by ID selectors
-    .replace(/^(\*|[\w-]+)/, "[self::$1]") // tagName test
+    .replace(/^(\*|[\w\u00c0-\uFFFF\-]+)/, "[self::$1]") // tagName test
     .replace(/\]\[/g, " and ") // merge predicates
     .slice(1, -1)
   + ")]";

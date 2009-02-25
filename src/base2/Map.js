@@ -63,6 +63,7 @@ var Map = Base.extend({
   put: function(key, value) {
     // create the new entry (or overwrite the old entry).
     this[_HASH + key] = value;
+    return value;
   },
 
   remove: function(key) {

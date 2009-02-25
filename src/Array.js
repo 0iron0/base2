@@ -19,7 +19,7 @@ extend(Array.prototype, {
         var length = arguments.length;
         var i = this.length += length;
         while (i--) this[i] = i < length ? arguments[i] : this[i - length];
-      } else base(this, arguments);
+      } else this.base.apply(this, arguments);
       return this.length;
     }
   }

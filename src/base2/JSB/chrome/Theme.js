@@ -4,23 +4,24 @@ var Theme = Base.extend({
     this.load(name);
   },
 
+  cssText: "",
   name: "default",
 
-  createStyleSheet: function(cssText) {
+  createStyleSheet: function() {
     if (document.body) {
       var style = document.createElement("style");
       style.type = "text/css";
-      style.textContent = cssText;
+      style.textContent = this.cssText;
       new Selector("head").exec(document, 1).appendChild(style);
     } else {
-      document.write(format('<style type="text/css">%1<\/style>', cssText));
+      document.write(format('<style type="text/css">%1<\/style>', this.cssText));
     }
   },
 
   load: function(name) {
-    //return;
     if (name) this.name = name;
-    this.createStyleSheet(format(css, this));
+    this.cssText = format(css, this);
+    this.createStyleSheet();
   },
 
   toString: function() {
@@ -28,8 +29,8 @@ var Theme = Base.extend({
   },
 
   "@MSIE": {
-    createStyleSheet: function(cssText) {
-      document.createStyleSheet().cssText = cssText;
+    createStyleSheet: function() {
+      document.createStyleSheet().cssText = this.cssText;
     }
   }
 }, {
@@ -38,7 +39,7 @@ var Theme = Base.extend({
   "@Windows": {
     detect: function() {
       var element = document.createElement("input");
-      var head = NodeSelector.querySelector(document, "body,head");
+      var head = behavior.querySelector("body,head");
       head.appendChild(element);
       // detect XP theme by inspecting the ActiveCaption colour
       element.style.color = "ActiveCaption";
@@ -54,9 +55,9 @@ var Theme = Base.extend({
     "@MSIE6": {
       detect: function() {
         return this.base() || {
-      	"#ece9d8": "luna/blue",
-      	"#e0dfe3": "luna/silver",
-      	"#ebe9ed": "royale"
+        	"#ece9d8": "luna/blue",
+        	"#e0dfe3": "luna/silver",
+        	"#ebe9ed": "royale"
         }[document.documentElement.currentStyle.scrollbarFaceColor] || "classic";
       }
     },
@@ -66,8 +67,12 @@ var Theme = Base.extend({
     }
   },
 
-  "@Safari|Camino": {
-    detect: K("aqua")
+  "@Webkit([1-4]|5[01]|52[^89])|Camino|Mac": {
+    detect: K("aqua"),
+
+    "@Chrome|Arora": {
+      detect: K("luna/blue")
+    }
   }
 });
 
@@ -79,15 +84,15 @@ var _XP_DETECT = {
   "#335ea8": "royale"
 };
 
+var rgba = rgb;
+
 chrome.theme = Theme.detect();
 
 base2.userAgent += ";theme=" + chrome.theme;
 
-var rgba = rgb;
 function rgb(r, g, b) {
   function toHex(value) {
     return (value < 16 ? "0" : "") + value.toString(16);
   };
   return "#" + toHex(r) + toHex(g) + toHex(b);
 };
-

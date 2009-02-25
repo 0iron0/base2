@@ -3,7 +3,9 @@
 
 var _CSSStyleDeclaration_ReadOnly = Binding.extend({
   getPropertyValue: function(style, propertyName) {
-    return this.base(style, _CSSPropertyNameMap[propertyName] || propertyName);
+    var value = this.base(style, _CSSPropertyNameMap[propertyName] || propertyName);
+    if (_COLOR.test(propertyName)) value = _toRGB(value);
+    return value;
   },
   
   "@MSIE.+win": {

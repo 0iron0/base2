@@ -25,18 +25,7 @@ var ClassList = Module.extend({
   }
 });
 
-function _ElementClassList(element) {
-  this.add = function(token) {
-    ClassList.add(element, token);
-  };
-  this.has = function(token) {
-    return ClassList.has(element, token);
-  };
-  this.remove = function(token) {
-    ClassList.remove(element, token);
-  };
-};
-
-_ElementClassList.prototype.toggle = function(token) {
-  this[this.has(token) ? "remove" : "add"](token);
-};
+// a constructor that binds ClassList objects to elements
+var _ElementClassList = new Function("e", Array2.reduce(String2.csv("add,has,remove,toggle"), function(body, method) {
+  return body += "this." + method + "=function(t){return base2.DOM.ClassList."+ method + "(e,t)};"
+}, ""));

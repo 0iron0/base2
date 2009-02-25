@@ -1,6 +1,7 @@
 
-var Spinner = Range.modify({
-  appearance: "spinner",
+var spinner = number.extend({
+
+  // constants
 
   states: {
     normal:      0,
@@ -11,21 +12,21 @@ var Spinner = Range.modify({
     disabled:    5,
     length:      6
   },
+
+  // properties
+  
+  appearance: "spinner",
+
+  // events
   
   onkeydown: function(element, event, keyCode) {
     //;;; console2.log("onkeydown(" + event.eventPhase + "): " + keyCode);
     if (!this.isEditable(element)) return;
-    if (!/^(3[34568]|40)$/.test(keyCode)) return;
+    if (!/^(3[348]|40)$/.test(keyCode)) return;
 
     event.preventDefault();
 
     switch (keyCode) {
-      case 35: // end
-        if (element.max) this.setValue(element, element.max);
-        return;
-      case 36: // home
-        if (element.min) this.setValue(element, element.min);
-        return;
       case 34: // page-down
         var block = true;
         break;
@@ -40,23 +41,16 @@ var Spinner = Range.modify({
   onkeyup: function(element, event, keyCode) {
     //;;; console2.log("onkeyup(" + event.eventPhase + "): " + keyCode);
     if (!this.isEditable(element)) return;
+    if (!/^(3[348]|40)$/.test(keyCode)) return;
     
     this.stopTimer(element);
 
-    switch (keyCode) {
-      case 33: // page-up
-      case 34: // page-down
-      case 38: // up-arrow
-      case 40: // down-arrow
-        event.preventDefault(); // is this required?
-        this.deactivate(element);
-        break;
-    }
+    this.deactivate(element);
   },
 
   onmousedown: function(element) {
-    base(this, arguments);
-    if (Chrome._activeThumb) {
+    this.base.apply(this, arguments);
+    if (control._activeThumb) {
       this.startTimer(element);
     }
   },
@@ -67,24 +61,20 @@ var Spinner = Range.modify({
     this.base(element, event);
   },
 
-  "@opera[91]": {
-    isNativeControl: function(element) {
-      return element.nodeName == "INPUT" && element.type == "number";
-    }
-  },
+  // methods
 
   activate: function(element, direction, block) {
-    Chrome._activeThumb = Chrome._hoverThumb = direction;
+    control._activeThumb = control._hoverThumb = direction;
     this.layout(element);
-    Chrome._block = block;
+    control._block = block;
     this.startTimer(element, _ACTIVE);
   },
 
   deactivate: function(element) {
     this.stopTimer(element, _ACTIVE);
-    delete Chrome._activeThumb;
-    delete Chrome._hoverThumb;
-    delete Chrome._block;
+    delete control._activeThumb;
+    delete control._hoverThumb;
+    delete control._block;
     this.layout(element);
   },
 
@@ -93,10 +83,10 @@ var Spinner = Range.modify({
       var state = "disabled";
     } else if (element.readOnly) {
       state = "normal";
-    } else if ((element == Chrome._hover || element == Chrome._focus) && Chrome._activeThumb) {
-      state = Chrome._activeThumb + _ACTIVE;
-    } else if (element == Chrome._hover && Chrome._hoverThumb) {
-      state = Chrome._hoverThumb + _HOVER;
+    } else if ((element == control._hover || element == control._focus) && control._activeThumb) {
+      state = control._activeThumb + _ACTIVE;
+    } else if (element == control._hover && control._hoverThumb) {
+      state = control._hoverThumb + _HOVER;
     } else {
       state = "normal";
     }
@@ -109,35 +99,42 @@ var Spinner = Range.modify({
   },
 
   startTimer: function(element) {
-    if (!_timers[element.base2ID + _TIMER]) {
-      Chrome._direction = (Chrome._activeThumb == "up") ? 1 : -1;
-      Chrome._steps = 1;
+    if (!_timers[element.uniqueID + _TIMER]) {
+      control._direction = (control._activeThumb == "up") ? 1 : -1;
+      control._steps = 1;
       this.base(element);
     }
   },
 
   stopTimer: function(element) {
-    if (_timers[element.base2ID + _TIMER]) {
+    if (_timers[element.uniqueID + _TIMER]) {
       this.base(element);
-      if (!Chrome._firedOnce) this.increment(element);
-      delete Chrome._firedOnce;
-      try {
-        element.select();
-      } catch (ex) {}
+      if (!control._firedOnce) this.increment(element);
+      delete control._firedOnce;
+      element.select();
     }
   },
 
   tick: function(element) {
     this.increment(element);
-    Chrome._steps *= 1.1; // accelerate
+    control._steps *= 1.1; // accelerate
   },
 
   increment: function(element, amount, block) {
     if (amount == undefined) {
-      amount = parseInt(Chrome._steps * Chrome._direction);
-      block = !!Chrome._block;
+      amount = parseInt(control._steps * control._direction);
+      block = !!control._block;
     }
     this.base(element, amount, block);
-    Chrome._firedOnce = true;
-  }
+    control._firedOnce = true;
+  },
+
+  "@Opera[91]": {
+    isNativeControl: function(element) {
+      return element.nodeName == "INPUT" && element.type == "number";
+    }
+  },
+  
+  "@MSIE.+win": _MSIEShim
 });
+

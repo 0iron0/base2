@@ -9,7 +9,7 @@
 var Aspect = Module.extend({
   after: function(object, name, after) {
     return extend(object, name, function() {
-      var result = base(this, arguments);
+      var result = this.base.apply(this, arguments);
       after.apply(this, arguments);
       return result;
     });
@@ -22,7 +22,7 @@ var Aspect = Module.extend({
   before: function(object, name, before) {
     return extend(object, name, function() {
       before.apply(this, arguments);
-      return base(this, arguments);
+      return this.base.apply(this, arguments);
     });
   }
 });

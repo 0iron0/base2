@@ -1,35 +1,47 @@
 
+// NOT USED
+
 // Based on this:
 // http://www.w3.org/TR/2007/WD-ElementTraversal-20070727/
 
-var ElementTraversal = Module.extend({
-  childElementCount: function(element) {
+var ElementTraversal = Interface.extend({
+  getChildElementCount: function(node) {
     var count = 0;
-    element = element.firstChild;
-    while (element) {
-      if (Traversal.isElement(element)) count++;
-      element = element.nextSibling;
+    node = node.firstChild;
+    while (node) {
+      if (this.isElement(node)) count++;
+      node = node.nextSibling;
     }
     return count;
   },
 
-  firstElementChild: function(element) {
-    element = element.firstChild;
-    return Traversal.isElement(element) ? element : this.getNextElementSibling(element);
+  getFirstElementChild: function(node) {
+    node = node.firstChild;
+    return this.isElement(node) ? node : this.getNextElementSibling(node);
   },
 
-  getNextElementSibling: function(element) {
-    while (element && (element = element.nextSibling) && !Traversal.isElement(element)) continue;
-    return element;
+  getLastElementChild: function(node) {
+    node = node.lastChild;
+    return this.isElement(node) ? node : this.getPreviousElementSibling(node);
   },
 
-  getPreviousElementSibling: function(element) {
-    while (element && (element = element.previousSibling) && !Traversal.isElement(element)) continue;
-    return element;
+  getNextElementSibling: function(node) {
+    while (node && (node = node.nextSibling) && !this.isElement(node)) continue;
+    return node;
   },
-  
-  lastElementChild: function(element) {
-    element = element.lastChild;
-    return Traversal.isElement(element) ? element : this.getPreviousElementSibling(element);
+
+  getPreviousElementSibling: function(node) {
+    while (node && (node = node.previousSibling) && !this.isElement(node)) continue;
+    return node;
+  }
+}, {
+  isElement: function(node) {
+    return !!(node && node.nodeType == 1);
+  },
+
+  "@MSIE": {
+    isElement: function(node) {
+      return !!(node && node.nodeType == 1 && node.nodeName != "!");
+    }
   }
 });

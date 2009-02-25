@@ -1,11 +1,11 @@
 
 // JavaScript Behaviors
 
-var JSB = new base2.Package(this, {
-  name:    "JSB",
-  version: "0.9.2",
-  imports: "DOM",
-  exports: "Behavior,Rule,RuleList,ExtendedMouse"
+base2.global.jsb = new base2.Package(this, {
+  name:    "jsb",
+  version: "0.9.4",
+  imports: "Function2,DOM",
+  exports: "Rule,RuleList,behavior"
 });
 
 eval(this.imports);

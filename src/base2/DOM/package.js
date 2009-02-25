@@ -1,12 +1,12 @@
 
 var DOM = new base2.Package(this, {
   name:    "DOM",
-  version: "1.0.1",
+  version: base2.version,
   imports: "Function2",
   exports:
     "Interface,Binding,Node,Document,Element,AbstractView,HTMLDocument,HTMLElement,"+
-    "Selector,Traversal,CSSParser,XPathParser,NodeSelector,DocumentSelector,ElementSelector,"+
-    "StaticNodeList,Event,EventTarget,DocumentEvent,ViewCSS,CSSStyleDeclaration,ClassList",
+    "Selector,Traversal,CSSParser,XPathParser,NodeSelector,StaticNodeList,"+
+    "Event,EventTarget,DocumentEvent,ViewCSS,CSSStyleDeclaration,ClassList,ElementView",
   
   bind: function(node) {
     // Apply a base2 DOM Binding to a native DOM node.

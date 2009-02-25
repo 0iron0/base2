@@ -1,7 +1,10 @@
 
 var _moduleCount = 0;
 
-var Module = Abstract.extend(null, {
+var Module = Abstract.extend({
+  base: _IGNORE,
+  extend: _IGNORE
+}, {
   namespace: "",
 
   extend: function(_interface, _static) {
@@ -78,7 +81,7 @@ function _extendModule(module, _interface) {
   var id = module.toString().slice(1, -1);
   for (var name in _interface) {
     var property = _interface[name], namespace = "";
-    if (name.charAt(0) == "@") { // object detection
+    if (name.indexOf("@") == 0) { // object detection
       if (detect(name.slice(1))) _extendModule(module, property);
     } else if (!proto[name]) {
       if (name == name.toUpperCase()) {

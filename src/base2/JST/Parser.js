@@ -26,7 +26,7 @@ var Parser = Base.extend({
     var evaluate = function(block) {
       block = block.replace(Parser.TRIM, "");
       if (!block) return "";
-      if (block.charAt(0) == "=") {
+      if (block.indexOf("=") == 0) {
         block = "\necho(" + block.replace(TRIM, "") + ");";
       }
       var replacement = "\x01" + evaluated.length + "\x01";

@@ -1,75 +1,91 @@
 
-// For numeric controls
+var range = number.extend({
+  // properties
+  
+  min:  0,
+  max:  100,
+  allowVertical: true,
 
-var Range = Chrome.modify({
-  min:  "",
-  max:  "",
-  step: 1,
+  // events
 
-/*MASK: /-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/,*/
+  "@!Opera(8|9.[0-4])": {
+    onchange: Undefined
+  },
 
-  onattach: function(element) {
+
+  "@MSIE": {
+    onfocus: function(element) {
+      if (!element.onscroll) {
+        element.onscroll = _resetScroll;
+        element.onscroll();
+      }
+      this.base(element);
+    }
+  },
+
+  "@!theme=aqua": {
+    onfocus: function(element) {
+      if (element != control._active) {
+        this.addClass(element, this.appearance + _FOCUS);
+      }
+      this.base(element);
+    }
+  },
+
+  onkeydown: function(element, event, keyCode) {
+    if (!this.isEditable(element) || keyCode < 33 || keyCode > 40) return;
+
+    event.preventDefault();
+
+    var amount = 1;
+
+    switch (keyCode) {
+      case 35: // end
+        var value = 1;
+      case 36: // home
+        this.setRelativeValue(element, value || 0);
+        return;
+      case 33: // page up
+        var block = true;
+        break;
+      case 34: // page down
+        block = true;
+      case 37: // left
+      case 40: // down
+        amount = -1;
+    }
+    this.increment(element, amount, block);
+  },
+
+  // methods
+
+  getRelativeValue: function(element) {
+    return this.getProperties(element).relativeValue;
+  },
+
+  setRelativeValue: function(element, relativeValue) {
     var properties = this.getProperties(element);
-    // the following only applies to Slider/ProgressBar but we'll leave it here
-    var value = element.value, min = properties.min;
-    if (!value || isNaN(value)) value = min;
-    //else if (_numberAttributes.step != 1) this.setValue(element, value);
-    _values[element.base2ID] = (value - min) / (properties.max - min);
-    element.onscroll = _resetScroll;
-  },
-
-  onmousewheel: function(element, event, delta) {
-    if (this.isEditable(element) && Chrome._focus == element) {
-      this.increment(element, -parseInt(delta / 40));
-      event.preventDefault();
-    }
-  },
-
-  getProperties: function(element) {
-    // initialise min/max/step
-    var properties = {min: this.min, max: this.max, step: this.step};
-    for (var attr in properties) {
-      var value = element[attr];
-      if (value == null && element.hasAttribute && element.hasAttribute(attr)) {
-        value = element.getAttribute(attr);
-      }
-      if (value && !isNaN(value)) {
-        properties[attr] = value;
-      }
-    }
-    return properties;
+    this.setValue(element, (properties.max - properties.min) * relativeValue);
   },
 
   increment: function(element, amount, block) {
     var type = block ? "Block" : "Unit";
     amount *= this["get" + type + "Increment"](element);
-    this.setValue(element, this.getValue(element) + amount);
+    this.setRelativeValue(element, this.getRelativeValue(element) + amount);
   },
 
   getBlockIncrement: function(element) {
-    return this.getUnitIncrement(element) * 10;
+    // try to get as close as possible to 10% while still being a multiple
+    // of the step and make sure that the block increment is not smaller than
+    // twice the size of the unit increment
+    var ui = this.getUnitIncrement(element);
+    return Math.max(2 * ui, Math.round(0.1 / ui) * ui);
   },
 
   getUnitIncrement: function(element) {
-    return this.getProperty(element, "step") || 1;
-  },
-
-  getValue: function(element) {
-    return parseFloat(element.value);
-  },
-
-  setValue: function(element, value) {
     var properties = this.getProperties(element);
-    if (isNaN(value)) value = 0;
-    var min = parseFloat(properties.min), max = parseFloat(properties.max), step = parseFloat(properties.step) || 1;
-    // check min/max
-    value = value > max ? max : value < min ? min : value;
-    // round to step
-    value = Math.round(value / step) * step;
-    value = value.toFixed(String(step).replace(/^.*\.|^\d+$/, "").length);
-    if (value != element.value) {
-      element.value = value;
-      this.dispatchEvent(element, "change");
-    }
-  }
+    return properties.step / (properties.max - properties.min) || this.base(element);
+  },
+
+  getCursor: K("")
 });

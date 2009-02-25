@@ -52,7 +52,6 @@ var Array2 = _createObject2(
     
     insertAt: function(array, index, item) {
       Array2.splice(array, index, 0, item);
-      return item;
     },
     
     item: function(array, index) {
@@ -101,6 +100,7 @@ var Array2 = _createObject2(
   }
 );
 
+Array2.forEach = _Array_forEach;
 Array2.reduce = Enumerable.reduce; // Mozilla does not implement the thisObj argument
 
 Array2.like = function(object) {

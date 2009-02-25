@@ -1,5 +1,5 @@
 
-// A Selector associated with a Behavior.
+// A Selector associated with a behavior.
 
 var Rule = Base.extend({
   constructor: function(selector, behavior) {
@@ -10,8 +10,8 @@ var Rule = Base.extend({
       behavior = new External(behavior, function(external) {
         behavior = external;
       });
-    } else if (!behavior || Behavior.constructor != behavior.constructor) {
-      behavior = Behavior.modify(behavior);
+    } else if (!jsb.behavior.ancestorOf(behavior)) {
+      behavior = jsb.behavior.extend(behavior);
     }
     
     this.refresh = function() {
@@ -20,7 +20,7 @@ var Rule = Base.extend({
 
     this.toString = selector.toString;
     
-    DocumentState.addRule(selector, behavior);
+    state.addRule(selector, behavior);
   },
   
   refresh: Undefined // defined in the constructor function

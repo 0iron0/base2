@@ -1,18 +1,17 @@
 
-function base(object, args) {
-  return object.base.apply(object, args);
-};
-
 function extend(object, source) { // or extend(object, key, value)
   if (object && source) {
+    var useProto = base2.__prototyping;
     if (arguments.length > 2) { // Extending with a key/value pair.
       var key = source;
       source = {};
       source[key] = arguments[2];
+      useProto = true;
     }
+    //var proto = (typeof source == "function" ? Function : Object).prototype;
     var proto = global[(typeof source == "function" ? "Function" : "Object")].prototype;
     // Add constructor, toString etc
-    if (base2.__prototyping) {
+    if (useProto) {
       var i = _HIDDEN.length, key;
       while ((key = _HIDDEN[--i])) {
         var value = source[key];
@@ -28,11 +27,11 @@ function extend(object, source) { // or extend(object, key, value)
     // Copy each of the source object's properties to the target object.
     for (key in source) {
       if (proto[key] === undefined) {
-        var value = source[key];
+        value = source[key];
         // Object detection.
-        if (key.charAt(0) == "@") {
+        if (key.indexOf("@") == 0) {
           if (detect(key.slice(1))) extend(object, value);
-        } else {
+        } else if (value != _IGNORE) {
           // Check for method overriding.
           var ancestor = object[key];
           if (ancestor && typeof value == "function") {
@@ -81,4 +80,5 @@ function _override(object, name, method) {
   object[name] = _base;
   // introspection (removed when packed)
   ;;; _base.toString = K(method + "");
+  object = null;
 };

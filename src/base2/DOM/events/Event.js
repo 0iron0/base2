@@ -38,6 +38,19 @@ var Event = Binding.extend({
   CAPTURING_PHASE: _CAPTURING_PHASE,
   AT_TARGET:       _AT_TARGET,
   BUBBLING_PHASE:  _BUBBLING_PHASE,
+
+  cloneEvent: function(event) {
+    if (event.isClone) return event;
+    var clone = copy(event);
+    clone.isClone = true;
+    clone.stopPropagation = function() {
+      event.stopPropagation();
+    };
+    clone.preventDefault = function() {
+      event.preventDefault();
+    };
+    return clone;
+  },
     
   "@!(document.createEvent)": {
     "@MSIE": {
@@ -52,20 +65,5 @@ var Event = Binding.extend({
         return this.base(event);
       }
     }
-  },
-
-  cloneEvent: function(event) {
-    var clone = copy(event);
-    clone.stopPropagation = function() {
-      event.stopPropagation();
-    };
-    clone.preventDefault = function() {
-      event.preventDefault();
-    };
-    return clone;
-  },
-
-  "@MSIE" : {
-    cloneEvent: copy
   }
 });

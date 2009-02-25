@@ -1,22 +1,29 @@
 
-var Behavior = new Base({
-  attach: Function2.I,
-  detach: Function2.I,
+var behavior = jsb.behavior = new Base({
+  attach: I,
+  detach: I,
+  
+  extendedMouse: false,
+  
+  ancestorOf: function(behavior) {
+    return behavior instanceof this.constructor;
+  },
 
-  modify: function(_interface) {
+  implement: function(_interface) {
+    return extend(this, _interface);
+  },
+
+  extend: function(_interface) {
     // Extend a behavior to create a new behavior.
-    var behavior = pcopy(this).extend(_interface);
-    behavior.EventDelegator = this.EventDelegator || EventDelegator;
-    if (_interface && _interface.EventDelegator) {
-      behavior.EventDelegator = behavior.EventDelegator.extend(_interface.EventDelegator);
-    }
-    var events, delegatedEvents = [];
-    var attachedElementIDs = {}; // base2IDs
-    var eventListener = new EventListener(new behavior.EventDelegator(behavior, attachedElementIDs));
+    var behavior = pcopy(this); // beget
+    if (this == jsb.behavior) behavior.extendedMouse = false; // preserve the default for direct descendants of jsb.behavior
+    behavior.implement(_interface);
     
-    if (behavior.ondocumentready) {
-      behavior._documentReadyQueue = [];
-    }
+    // Private.
+    var events,
+        delegatedEvents = [],
+        attachments = {}, // uniqueIDs
+        eventDispatcher = new EventDispatcher(behavior, attachments);
 
     // Extract events.
     forEach (behavior, function(property, name) {
@@ -26,181 +33,158 @@ var Behavior = new Base({
         if (_CANNOT_DELEGATE.test(type)) {
           if (!events) events = [];
           events.push(type);
-        } else {
+        } else if (!_EVENT_PSEUDO.test(type)) {
           delegatedEvents.push(type);
         }
       }
     });
 
     behavior.attach = function(element) {
-      var base2ID = element.base2ID || assignID(element);
-      if (!attachedElementIDs[base2ID]) { // Don't attach more than once.
-        attachedElementIDs[base2ID] = true;
+      var uniqueID = element.uniqueID || assignID(element, "uniqueID");
+      if (!attachments[uniqueID]) { // don't attach more than once
+        attachments[uniqueID] = true;
+        var document = element[_OWNER_DOCUMENT],
+            documentID = document.base2ID || assignID(document);
         // Add event handlers
-        if (delegatedEvents) {
-          forEach (delegatedEvents, eventListener.delegate, eventListener);
-          delegatedEvents = null;
+        if (!delegatedEvents[documentID]) {
+          delegatedEvents[documentID] = true; // we only need to attach these once
+          forEach (delegatedEvents, bind("delegate", eventDispatcher, document));
         }
         if (events) {
-          forEach (events, bind(eventListener.add, eventListener, element));
+          forEach (events, bind("add", eventDispatcher, element));
         }
         // Pseudo events.
         if (behavior.onattach) behavior.onattach(element);
         if (behavior.oncontentready) {
-          if (DocumentState.isContentReady(element)) {
+          if (state.isContentReady(element)) {
             behavior.oncontentready(element);
           } else {
-            DocumentState.contentReadyQueue.push({element: element, behavior: behavior});
+            state.contentReadyQueue.push({behavior: behavior, element: element});
           }
         }
-        if (behavior._documentReadyQueue) {
-          behavior._documentReadyQueue.push(element);
+        if (behavior.ondocumentready && !state.ready) {
+          state.documentReadyQueue.push({behavior: behavior, element: element});
         }
-        if (element == document.activeElement && behavior.onfocus) {
+        if (behavior.onfocus && element == document.activeElement) {
           behavior.dispatchEvent(element, "focus");
         }
       }
-      return element;
     };
 
     behavior.detach = function(element) {
-      delete attachedElementIDs[element.base2ID];
-      return element;
+      delete attachments[element.uniqueID];
     };
 
     return behavior;
   },
 
-  EventDelegator: null,
-
-  dispatchEvent: function(element, event, data) {
+  dispatchEvent: function(node, event, data) {
     if (typeof event == "string") {
       var type = event;
-      event = DocumentEvent.createEvent(document, "Events");
+      event = DocumentEvent.createEvent(Traversal.getDocument(node), "Events");
       Event.initEvent(event, type, true, false);
     }
     if (data) extend(event, data);
-    EventTarget.dispatchEvent(element, event);
-  },
-
-  handleEvent: function(element, event, type) {
-    // We could use the passed event type but we can't trust the descendant
-    // classes to always pass it. :-)
-    type = event.type;
-    var handler = "on" + type;
-    if (this[handler]) {
-      if (_EVENT_MOUSE.test(type)) {
-        if (!_EVENT_BUTTON.test(type) || _MOUSE_BUTTON_LEFT.test(event.button)) {
-          if (type == "mousewheel") {
-            this[handler](element, event, event.wheelDelta);
-          } else {
-            this[handler](element, event, event.offsetX, event.offsetY, event.screenX, event.screenY);
-          }
-        }
-      } else if (_EVENT_TEXT.test(type)) {
-        this[handler](element, event, event.keyCode, event.shiftKey, event.ctrlKey, event.altKey, event.metaKey);
-      } else {
-        this[handler](element, event);
-      }
-    }
-  },
-
-  getProperty: function(element, name) {
-    var defaultValue = this[name];
-    var value = Element.getAttribute(element, name);
-    if (value == null) {
-      value = defaultValue;
-    } else if (defaultValue != null) {
-      value = defaultValue.constructor(value); // cast
-    }
-    return value;
+    EventTarget.dispatchEvent(node, event);
   },
 
   getComputedStyle: function(element, propertyName) {
-    var view = document.defaultView;
+    var view = element[_OWNER_DOCUMENT].defaultView;
     if (propertyName) return ViewCSS.getComputedPropertyValue(view, element, propertyName);
     return ViewCSS.getComputedStyle(view, element, null);
   },
 
   getCSSProperty: function(element, propertyName) {
-    CSSStyleDeclaration.getPropertyValue(element.style, propertyName);
+    return ViewCSS.getComputedPropertyValue(element[_OWNER_DOCUMENT].defaultView, element, propertyName);
   },
 
   setCSSProperty: function(element, propertyName, value, important) {
     CSSStyleDeclaration.setProperty(element.style, propertyName, value, important ? "important" : "");
   },
+  
+  getOffsetFromBody: function(element) {
+    return ElementView.getOffsetFromBody(element);
+  },
 
-  setCapture: function(element) {
-    if (!Behavior._captureMouse) {
-      var behavior = this;
-      Behavior._captureElement = element;
-      Behavior._captureMouse = function(event) {
-        if (_OPERA9) getSelection().collapse(document.body, 0); // prevent text selection
-        if (event.type == "mousemove" || event.eventPhase == Event.BUBBLING_PHASE) {
-          behavior.handleEvent(element, event, event.type);
+  getProperty: function(element, propertyName) {
+    var value = element[propertyName];
+    if (value == null) {
+      value = this[propertyName];
+      if (element.hasAttribute(propertyName)) {
+        value = element.getAttribute(propertyName);
+        if (defaultValue != null) {
+          value = defaultValue.constructor(value); // cast
         }
-      };
-      this.addEventListener(document, "mouseup", Behavior._captureMouse, true);
-      this.addEventListener(document, "mousemove", Behavior._captureMouse, true);
+      }
+    }
+    return value;
+  },
+
+  "@(element.getAttribute('expando'))": {
+    getProperty: function(element, propertyName) {
+      var value = element[propertyName];
+      if (value == null) {
+        value = this[propertyName];
+      } else if (defaultValue != null) {
+        value = defaultValue.constructor(value); // cast
+      }
+      return value;
     }
   },
 
-  releaseCapture: function() {
-    if (Behavior._captureMouse) {
-      this.removeEventListener(document, "mouseup", Behavior._captureMouse, true);
-      this.removeEventListener(document, "mousemove", Behavior._captureMouse, true);
-      delete Behavior._captureMouse;
-      delete Behavior._captureElement;
+  setProperty: function(element, propertyName, value, triggerEvent) {
+    var oldValue = this.getProperty(element, propertyName);
+    if (oldValue !== value) {
+      this.setAttribute(element, propertyName, value);
+      if (triggerEvent) this.dispatchEvent(element, propertyName.toLowerCase() + "change");
     }
   },
 
-  "@MSIE": {
-    setCapture: function(element) {
-      element.setCapture();
-      behavior = this;
-      element.attachEvent("onlosecapture", function() {
-        if (Behavior._captureMouse) {
-          // element.fireEvent("onmouseup");
-          behavior.dispatchEvent(element, "mouseup");
-        }
-        element.detachEvent("onlosecapture", arguments.callee);
-      });
-      this.base(element);
-    },
+  captureMouse: function(element) {
+    if (!state._captureElement) state._captureElement = element;
+  },
 
-    releaseCapture: function() {
-      this.base();
-      document.releaseCapture();
-    }
+  releaseMouse: function() {
+    delete state._captureElement;
   }
 });
 
-// Additional methods (all the good ones)
-
 forEach.csv("setInterval,setTimeout", function(name) {
-  Behavior[name] = function(callback, delay) {
+  behavior[name] = function(callback, delay) {
     if (typeof callback == "string") callback = this[callback];
     var args = Array2.slice(arguments, 2);
     var self = this;
     return global[name](function() {
       callback.apply(self, args);
-    }, delay || 0);
+    }, delay || 1);
+  };
+});
+
+// Additional methods (from base2.DOM)
+
+forEach.csv("querySelector,querySelectorAll", function(name) {
+  behavior[name] = function(node, selector) {
+    if (arguments.length == 1) {
+      selector = node;
+      node = document;
+    }
+    return NodeSelector[name](node, selector);
   };
 });
 
 forEach ([
   EventTarget,
-  NodeSelector,
+  ElementView,
   Node,
   Element
 ], function(_interface) {
   _interface.forEach(function(method, name) {
-    if (!Behavior[name]) {
-      Behavior[name] = bind(method, _interface);
+    if (!behavior[name]) {
+      behavior[name] = bind(method, _interface);
     }
   });
 });
 
 ClassList.forEach(function(method, name) {
-  Behavior[name + "Class"] = bind(method, ClassList);
+  behavior[name + "Class"] = bind(method, ClassList);
 });

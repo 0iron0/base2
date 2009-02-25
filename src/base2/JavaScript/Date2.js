@@ -2,7 +2,7 @@
 // http://developer.mozilla.org/es4/proposals/date_and_time.html
 
 // big, ugly, regular expression
-var _DATE_PATTERN = /^((-\d+|\d{4,})(-(\d{2})(-(\d{2}))?)?)?T((\d{2})(:(\d{2})(:(\d{2})(\.(\d{1,3})(\d)?\d*)?)?)?)?(([+-])(\d{2})(:(\d{2}))?|Z)?$/;  
+var _DATE_PATTERN = /^((-\d+|\d{4,})(-(\d{2})(-(\d{2}))?)?)?T((\d{2})(:(\d{2})(:(\d{2})(\.(\d{1,3})(\d)?\d*)?)?)?)?(([+-])(\d{2})(:(\d{2}))?|Z)?$/;
 var _DATE_PARTS = { // indexes to the sub-expressions of the RegExp above
   FullYear: 2,
   Month: 4,
@@ -67,12 +67,13 @@ Date2.parse = function(string, defaultDate) {
     var prefix = parts[_TIMEZONE_PARTS.UTC] || parts[_TIMEZONE_PARTS.Hours] ? "UTC" : "";
     for (var part in _DATE_PARTS) {
       var value = parts[_DATE_PARTS[part]];
-      if (!value) continue; // empty value
-      // set a date part
-      date["set" + prefix + part](value);
-      // make sure that this setting does not overflow
-      if (date["get" + prefix + part]() != parts[_DATE_PARTS[part]]) {
-        return NaN;
+      if (value) {
+        // set a date part
+        date["set" + prefix + part](value);
+        // make sure that this setting does not overflow
+        if (date["get" + prefix + part]() != parts[_DATE_PARTS[part]]) {
+          return NaN;
+        }
       }
     }
     // timezone can be set, without time being available

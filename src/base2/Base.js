@@ -29,10 +29,10 @@ var _subclass = function(_instance, _static) {
   
   // Build the static interface.
   for (var i in Base) _class[i] = this[i];
-  _class.ancestor = this;
-  _class.base = Undefined;
-  //_class.init = Undefined;
   if (_static) extend(_class, _static);
+  _class.ancestor = this;
+  _class.ancestorOf = Base.ancestorOf;
+  _class.base = Undefined;
   _class.prototype = _prototype;
   if (_class.init) _class.init();
   
@@ -54,7 +54,15 @@ var Base = _subclass.call(Object, {
     // Call this method from any other method to invoke the current method's ancestor (super).
   },
   
-  extend: delegate(extend)
+  extend: delegate(extend),
+  
+  toString: function() {
+    if (this.constructor.toString == Function.prototype.toString) {
+      return "[object base2.Base]";
+    } else {
+      return "[object " + this.constructor.toString().slice(1, -1) + "]";
+    }
+  }
 }, Base = {
   ancestorOf: function(klass) {
     return _ancestorOf(this, klass);

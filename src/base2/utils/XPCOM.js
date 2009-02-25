@@ -7,7 +7,7 @@ var XPCOM = Module.extend({
   
   "@(Components)": {
     createObject: function(classPath, interfaceId) {
-      if (classPath.charAt(0) != "@") {
+      if (classPath.indexOf("@") != 0) {
         classPath = "@mozilla.org/" + classPath;
       }
       try {

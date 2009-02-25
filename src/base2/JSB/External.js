@@ -33,7 +33,7 @@ var External = Base.extend({
       this.script = document.createElement("script");
       this.script.type = "text/javascript";
       this.script.src = this.src;
-      Document.querySelector(document, "head").appendChild(this.script);
+      behavior.querySelector("head").appendChild(this.script);
     }
     this.loaded = true;
   },

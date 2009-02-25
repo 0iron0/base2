@@ -48,7 +48,7 @@ var RegGrp = Collection.extend({
     if (instanceOf(expression, RegExp)) {
       arguments[1] = expression.source;
     }
-    return base(this, arguments);
+    return this.base.apply(this, arguments);
   },
 
   test: function(string) {
@@ -76,7 +76,7 @@ var RegGrp = Collection.extend({
         if (instanceOf(expression, RegExp)) {
           arguments[0] = expression.source;
         }
-        return base(this, arguments);
+        return this.base.apply(this, arguments);
       });
     }, this.prototype);
   },
@@ -92,7 +92,7 @@ var RegGrp = Collection.extend({
         // a simple lookup? (e.g. "$2")
         if (_RG_LOOKUP_SIMPLE.test(replacement)) {
           // store the index (used for fast retrieval of matched strings)
-          replacement = parseInt(replacement.slice(1));
+          replacement = parseInt(replacement.slice(1), 10);
         } else { // a complicated lookup (e.g. "Hello $2 $1")
           // build a function to do the lookup
           // Improved version by Alexei Gorkov:

@@ -111,15 +111,19 @@ var DocumentState = Base.extend({
       if (!events || !canDelegate) {
         if (!events) events = this.events[type] = {};
         if (canDelegate || !target) target = this.document;
-        var state = this;
-        target["on" + type] = function(event) {
-          if (!event) {
-            event = Traversal.getDefaultView(this).event;
-          }
-          if (event) state.handleEvent(event);
-        };
+        this.addEvent(type, target);
       }
       return events;
+    },
+
+    addEvent: function(type, target) {
+      var state = this;
+      target["on" + type] = function(event) {
+        if (!event) {
+          event = Traversal.getDefaultView(this).event;
+        }
+        if (event) state.handleEvent(event);
+      };
     },
 
     "@MSIE.+win": {
@@ -137,17 +141,13 @@ var DocumentState = Base.extend({
       },
 
       fireEvent: function(type, event) {
-        event = copy(event);
+        event = Event.cloneEvent(event);
         event.type = type;
         this.handleEvent(event);
       },
 
-      registerEvent: function(type, target) {
-        var events = this.events[type];
-        var canDelegate = _CAN_DELEGATE.test(type);
-        if (!events || !canDelegate) {
-          if (!events) events = this.events[type] = {};
-          if (canDelegate || !target) target = this.document;
+      addEvent: function(type, target) {
+        if (target["on" + type] !== undefined) {
           var state = this;
           target.attachEvent("on" + type, function(event) {
             event.target = event.srcElement || state.document;
@@ -157,7 +157,6 @@ var DocumentState = Base.extend({
             }
           });
         }
-        return events;
       },
 
       onDOMContentLoaded: function(event) {
@@ -191,7 +190,8 @@ var DocumentState = Base.extend({
       },
 
       setFocus: function(target) {
-        var change = this.events.change, select = this.events.select;
+        var change = this.events.change && target.onchange !== undefined,
+           select = this.events.select && target.onselect !== undefined;
         if (change || select) {
           var dispatch = this._dispatch;
           if (change) target.attachEvent("onchange", dispatch);
@@ -230,10 +230,12 @@ var DocumentState = Base.extend({
   }
 }, {
   init: function() {
-    assignID(document);
-    DocumentState = this;
-    this.createState(document);
-    new DOMContentLoadedEvent(document);
+    if (global.document) {
+      assignID(document);
+      DocumentState = this;
+      this.createState(document);
+      new DOMContentLoadedEvent(document);
+    }
   },
 
   createState: function(document) {
@@ -244,7 +246,8 @@ var DocumentState = Base.extend({
     return this[base2ID];
   },
 
-  getInstance: function(target) {
-    return this[Traversal.getDocument(target).base2ID];
+  getInstance: function(node) {
+    var document = Traversal.getDocument(node);
+    return this[document.base2ID] || this.createState(document);
   }
 });

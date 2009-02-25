@@ -12,5 +12,6 @@
   <include src="style/module.xml"/>
   <include src="selectors-api/module.xml"/>
   <include src="html/module.xml"/>
+  <include src="cssom/module.xml"/>
   <include src="DocumentState.js"/>
 </package>

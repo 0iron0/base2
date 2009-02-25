@@ -5,8 +5,8 @@ var _baseRule = extend({}, {
   borderStyle:             "solid",
   borderColor:             "#444 #ddd #ddd #444",
   backgroundPosition:      "9999px 9999px",
-  backgroundAttachment:    "scroll!important",
-  backgroundRepeat:        "no-repeat!important",
+  backgroundAttachment:    "scroll!",
+  backgroundRepeat:        "no-repeat!",
 
   "@MSIE.+theme=classic": {
     padding:               "1px",
@@ -63,44 +63,75 @@ var css = {
   toString: function() {
     return map(this, function(properties, selector) {
       return selector + properties;
-    }).join("\n");
+    }).join("\n").replace(/!/g, "!important");
   }
 };
 
 var styleSheet = {
-  combobox: {
-    paddingRight:    "19px!important",
-    backgroundImage: "url(%1menulist.png)!important",
-    width:           "8em",
+  "default": {},
 
-    "@Safari.+theme=aqua": {
-        WebkitAppearance: "menulist!important",
-        background:       "initial",
-        border:           "initial"
+  "dropdown,combobox": {
+    "@theme=aqua": { // aqua
+      width:              "10em",
+      $boxSizing:         "border-box",
+      minHeight:          "15px",
+      maxHeight:          "21px",
+      $borderRadius:      "5px",
+      $borderImage:       "url(%1menubutton.png) 2 23 1 6",
+      $boxShadow:         "0 1px 0 rgba(160, 160, 160, 0.5)",
+      borderStyle:        "none",
+      borderWidth:        "2px 23px 1px 6px",
+      padding:            "1px"
+    },
+    
+    "@!theme=aqua": { // not aqua
+      width:              "8em",
+      paddingRight:       "19px!",
+      backgroundImage:    "url(%1menulist.png)!",
+      font:               "-webkit-small-control"
+    }
+  },
+    
+  "@theme=aqua": {
+    color:              "black",
+    $opacity:           0.5,
+
+    ".dropdown_active": {
+      $borderImage:         "url(%1menubutton-active.png) 2 23 1 6"
+    },
+
+    ".chrome-dropdown[readonly],.chrome-combobox[readonly],.chrome-dropdown[disabled],.chrome-combobox[disabled]": {
+      $borderImage:         "url(%1menubutton-disabled.png) 2 23 1 6 !",
+      $boxShadow:           "none"
     }
   },
   
   "progressbar,slider": {
-    textIndent:        "-10em", // hide text for purely visual controls (Safari & Gecko)
-    cursor:            "default",
-    WebkitUserSelect:  "none",
+    textIndent:           "-10em", // hide text for purely visual controls (Safari & Gecko)
+    cursor:               "default",
+    $userSelect:          "none",
 
     "@MSIE": {
-      textIndent: 0,
-      lineHeight: "80em" // hide text for purely visual controls (MSIE)
+      verticalAlign:      "top",
+      textIndent:         0,
+      lineHeight:         "80em" // hide text for purely visual controls (MSIE)
     }
   },
   
   progressbar: {
     padding:               "1px",
     border:                "2px solid ThreeDDarkShadow",
-    WebkitBorderRadius:    "2px",
-    MozBorderRadius:       "2px",
+    $borderRadius:         "5px",
     MozBorderTopColors:    "ThreeDDarkShadow ThreeDHighlight",
     MozBorderRightColors:  "ThreeDDarkShadow ThreeDHighlight",
     MozBorderLeftColors:   "ThreeDDarkShadow ThreeDHighlight",
     MozBorderBottomColors: "ThreeDDarkShadow ThreeDHighlight",
-    backgroundImage:       "url(%1progressbar.png)!important"
+    backgroundImage:       "url(%1progressbar.png)!",
+    width:                 "164px",
+
+    "@theme=aqua": {
+      $borderRadius:       "5px"
+    }
   },
 
   slider: {
@@ -108,61 +139,82 @@ var styleSheet = {
     padding:         "3px",
     border:          0,
     backgroundColor: "transparent",
-    backgroundImage: "url(%1slider.png)!important",
+    backgroundImage: "url(%1slider.png)!",
 
-    "@Safari.+theme=aqua": {
-      outline:       "none!important"
+    "@Webkit": {
+      outline:       "none!"
     },
 
     "@Gecko": {
       MozBorder:     "initial"
     },
 
-    "@Gecko(1|200[0-2])": {
+    "@Gecko1\\.[0-3]": {
       backgroundColor: "#f2f2f2"
     }
   },
 
-  "progressbar_focus,slider_focus": {
-    background: "initial",
-    padding:    "initial",
-    border:     "initial",
-    outline:    "1px dotted",
-    MozOutline: "1px dotted"
+  "@!Webkit": {
+    ".progressbar_focus,.slider_focus": {
+      outline:    "1px dotted",
+      MozOutline: "1px dotted"
+    }
   },
 
   datalist: {
-    display: "none!important"
+    display: "none!"
   },
 
   popup: {
-    display:     "none",
+    visibility:  "hidden",
     borderWidth: "1px",
-    position:    "absolute!important",
-    zIndex:      "999999!important",
-    cursor:      "default!important",
-    padding:     "0!important",
-    margin:      "0!important",
+    position:    "absolute!",
+    zIndex:      "999999!",
+    cursor:      "default",
+    padding:     "0!",
+    margin:      "0!",
 
-    "!@theme=(luna|royale)": {
-      borderColor: "red"
-    },
-
-    "@Gecko|opera|theme=aqua": {
+    "@Gecko|Opera|theme=aqua|Webkit": {
       MozBorder:   "initial",
       borderColor: "black",
-      borderStyle: "outset!important"
+      borderStyle: "outset!",
+
+      "@Opera": {
+        borderStyle: "solid!"
+      }
     }
   },
-  
+
+  ".chrome-popup *": {
+    $boxSizing:  "border-box"
+  },
+
+  ".chrome-menulist": {
+    "@MSIE": {
+      overflowY:    "auto!"
+    }
+  },
+
+  ".chrome-menulist p": {
+    margin:      "0!",
+    padding:     "1px 2px!",
+    overflow:    "hidden!",
+    whiteSpace:  "nowrap!"
+  },
+
   spinner: {
     textAlign:        "right",
     width:            "5em",
-    paddingRight:     "19px!important",
-    backgroundImage:  "url(%1spinner.png)!important"
+    paddingRight:     "19px!",
+    backgroundImage:  "url(%1spinner.png)!"
+  },
+
+  error: {
+    borderColor: "#ff5e5e",
+    outlineColor: "#ff5e5e"
   },
   
-  "@WebKit|opera": {
+  "@WebKit|Opera": {
     "input[type=range]": {
       background: "initial",
       height:     "initial",
@@ -176,12 +228,21 @@ forEach.detect (styleSheet, function(properties, selector) {
   if (/,/.test(selector)) {
     forEach.csv(selector, partial(arguments.callee, properties));
   } else {
-    if (/^[\w-]+$/.test(selector)) {
-      selector = "." + selector;
+    var inherit = false;
+    if (selector == "default") {
+      selector = ".chrome";
+      inherit = true;
+    } else if (/^[\w-]+[^\s+>]*$/.test(selector)) {
+      inherit = true;
+      selector = ".chrome-" + selector;
     }
     var rule = css[selector];
-    if (!rule) rule = css[selector] = extend({toString: _baseRule_toString}, _baseRule);
+    if (!rule) rule = css[selector] = extend({toString: _baseRule_toString}, inherit ? _baseRule : null);
     forEach.detect (properties, function(value, propertyName) {
+      if (propertyName.indexOf("$") == 0) {
+        propertyName = propertyName.slice(1);
+        arguments.callee(value, _PREFIX + propertyName);
+      }
       if (value == "initial") {
         forEach (rule, function(initialPropertyValue, initialPropertyName) {
           if (initialPropertyName.indexOf(propertyName) == 0) {
@@ -192,8 +253,9 @@ forEach.detect (styleSheet, function(properties, selector) {
       } else {
         rule[propertyName] = value;
       }
-    })
+    });
   }
 });
 
-new Theme(chrome.theme);
+var _theme = new Theme(chrome.theme);
+//console2.log(_theme.cssText);

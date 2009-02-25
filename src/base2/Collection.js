@@ -21,7 +21,7 @@ var Collection = Map.extend({
   add: function(key, item) {
     // Duplicates not allowed using add().
     // But you can still overwrite entries using put().
-    assert(!this.has(key), "Duplicate key '" + key + "'.");
+    if (this.has(key)) throw "Duplicate key '" + key + "'.";
     this.put.apply(this, arguments);
   },
 
@@ -58,8 +58,8 @@ var Collection = Map.extend({
   },
 
   insertAt: function(index, key, item) {
-    assert(this[_KEYS].item(index) !== undefined, "Index out of bounds.");
-    assert(!this.has(key), "Duplicate key '" + key + "'.");
+    if (this[_KEYS].item(index) == null) throw "Index out of bounds.";
+    if (this.has(key)) throw "Duplicate key '" + key + "'.";
     this[_KEYS].insertAt(index, String(key));
     this[_HASH + key] = null; // placeholder
     this.put.apply(this, _slice.call(arguments, 1));
@@ -78,11 +78,12 @@ var Collection = Map.extend({
       item = klass.create.apply(klass, arguments);
     }
     this[_HASH + key] = item;
+    return item;
   },
 
   putAt: function(index, item) {
     arguments[0] = this[_KEYS].item(index);
-    assert(arguments[0] !== undefined, "Index out of bounds.");
+    if (arguments[0] == null) throw "Index out of bounds.";
     this.put.apply(this, arguments);
   },
 

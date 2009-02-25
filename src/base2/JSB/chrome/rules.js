@@ -1,7 +1,7 @@
 
 chrome.rules = new RuleList({
-  "input.combobox": ComboBox,
-  "input.progressbar": ProgressBar,
-  "input.slider": Slider,
-  "input.spinner": Spinner
+  "input.combobox": combobox,
+  "input.progressbar": progressbar,
+  "input.slider": slider,
+  "input.spinner": spinner
 });
