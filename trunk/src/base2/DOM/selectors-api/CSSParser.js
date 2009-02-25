@@ -45,7 +45,11 @@ var CSSParser = RegGrp.extend({
     return this.cache[selector] ||
       (this.cache[selector] = this.unescape(this.exec(this.escape(selector, simple))));
   },
-  
+
+  put: function(regexp, value) {
+    return this.base(regexp.replace(/ID/g, "\\w\\u00c0-\\uFFFF\\-"), value);
+  },
+
   unescape: function(selector) {
     // put string values back
     var strings = this._strings;
@@ -63,7 +67,7 @@ function _nthChild(match, args, position, last, not, and, mod, equals) {
   else if (args == "odd") args = "2n+1";
   args = args.split("n");
   var a = args[0] ? (args[0] == "-") ? -1 : parseInt(args[0]) : 1;
-  var b = parseInt(args[1]) || 0;
+  var b = parseInt(args[1], 10) || 0;
   var negate = a < 0;
   if (negate) {
     a = -a;

@@ -1,23 +1,25 @@
 
 // Browser chrome.
 
-// Credits: large parts of this code were written by Erik Arvidsson.
+// Credits: some code written by Erik Arvidsson.
 
-var chrome = new base2.Package(this, {
-  parent:  base2.JSB,
+base2.global.chrome = new base2.Package(this, {
+  parent:  null,
   name:    "chrome",
-  version: "0.2",
-  imports: "Enumerable,Function2,DOM,JSB",
-  exports: "Chrome,ComboBox,Range,ProgressBar,Slider,Spinner,Rect",
+  version: "0.4",
+  imports: "Enumerable,Function2,DOM,jsb",
+  exports: "Popup,MenuList,control,dropdown,combobox,number,range,progressbar,slider,spinner",
 
   //host:    ""
-  host:    "http://base2.googlecode.com/svn/trunk/src/base2/JSB/chrome/"
+  host:    "http://base2.googlecode.com/svn/trunk/src/base2/jsb/chrome/"
 });
+
+;;; chrome.host = "http://rekky.rosso.name/base2/trunk/src/base2/jsb/chrome/";
 
 eval(this.imports);
 
-if (detect("MSIE6")) {
+/*if (detect("MSIE6")) {
   try {
     document.execCommand("BackgroundImageCache", false, true);
   } catch (ex) {}
-}
+}*/

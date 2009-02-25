@@ -40,7 +40,7 @@ var FileSystem = Base.extend({
     path1 = String(path1 || "");
     path2 = String(path2 || "");
     // create a full path from two paths
-    if (path2.charAt(0) == "/") {
+    if (path2.indexOf("/") == 0) {
       var path = "";
     } else {
       path = path1.replace(_TRIM_PATH, "");

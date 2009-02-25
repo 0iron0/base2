@@ -13,7 +13,7 @@ var HTMLFormItem = HTMLElement.extend(null, {
         return item.checked;
       case "image":
       case "submit":
-        return ElementSelector.matchesSelector(item, ":active");
+        return Element.matchesSelector(item, ":active");
       default:
         return true;
     }

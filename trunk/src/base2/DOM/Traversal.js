@@ -7,7 +7,17 @@ var Traversal = Module.extend({
   getDefaultView: function(node) {
     return this.getDocument(node).defaultView;
   },
-  
+
+  getFirstElementChild: function(node) {
+    node = node.firstChild;
+    return this.isElement(node) ? node : this.getNextElementSibling(node);
+  },
+
+  getLastElementChild: function(node) {
+    node = node.lastChild;
+    return this.isElement(node) ? node : this.getPreviousElementSibling(node);
+  },
+
   getNextElementSibling: function(node) {
     // return the next element to the supplied element
     //  nextSibling is not good enough as it might return a text or comment node
@@ -70,6 +80,8 @@ var Traversal = Module.extend({
     }
   }
 }, {
+  TEXT: TEXT,
+  
   contains: function(node, target) {
     node.nodeType; // throw an error if no node supplied
     while (target && (target = target.parentNode) && node != target) continue;
@@ -95,7 +107,7 @@ var Traversal = Module.extend({
     }
   },
   
-  "@MSIE5": {
+  "@MSIE": {
     isElement: function(node) {
       return !!(node && node.nodeType == 1 && node.nodeName != "!");
     }

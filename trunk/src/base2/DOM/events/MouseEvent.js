@@ -2,7 +2,7 @@
 // NOT CURRENTLY USED
 
 var MouseEvent = UIEvent.extend({
-  "@!(document.createEvent)": {
+  "@!(document.createEvent('MouseEvents'))": {
     initMouseEvent: function(event, type, bubbles, cancelable, view, detail, screenX, screenY,
                              clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) {
       this.initUIEvent(event, type, bubbles, cancelable, view, detail);
@@ -18,7 +18,7 @@ var MouseEvent = UIEvent.extend({
       event.relatedTarget = relatedTarget;
     }
 }, {
-  "@!(document.createEvent)": {
+  "@!(document.createEvent('MouseEvents'))": {
     "@MSIE": {
       bind: function(event) {
         event.relatedTarget = event[(event.target == event.fromElement ? "to" : "from") + "Element"];

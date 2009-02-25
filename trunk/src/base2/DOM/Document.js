@@ -8,12 +8,5 @@ var Document = Node.extend(null, {
     if (document != window.document)
       new DOMContentLoadedEvent(document);
     return this.base(document);
-  },
-  
-  "@!(document.defaultView)": {
-    bind: function(document) {
-      document.defaultView = Traversal.getDefaultView(document);
-      return this.base(document);
-    }
   }
 });

@@ -16,7 +16,7 @@ var DOMContentLoadedEvent = Base.extend({
         }, 1);
       }
     };
-    // use the real event for browsers that support it (opera & firefox)
+    // use the real event for browsers that support it (Opera & Firefox)
     EventTarget.addEventListener(document, "DOMContentLoaded", function() {
       fired = true;
     }, false);
@@ -25,7 +25,7 @@ var DOMContentLoadedEvent = Base.extend({
 
   listen: Undefined,
 
-  "@!Gecko20([^0]|0[3-9])|Webkit[5-9]|Opera[19]|MSIE.+mac": {
+  "@!Gecko20([^0]|0[3-9])|Opera[19]|MSIE.+mac": {
     listen: function(document) {
       // if all else fails fall back on window.onload
       EventTarget.addEventListener(Traversal.getDefaultView(document), "load", this.fire, false);

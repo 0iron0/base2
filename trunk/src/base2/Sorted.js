@@ -4,7 +4,7 @@
 var Sorted = Trait.extend({  
   merge: function() {
     this._frozen = true;
-    base(this, arguments);
+    this.base.apply(this, arguments);
     delete this._frozen;
     this.sort();
     return this;
@@ -15,7 +15,7 @@ var Sorted = Trait.extend({
 });
 
 function _resort() {
-  var value = base(this, arguments);
+  var value = this.base.apply(this, arguments);
   if (!this._frozen) this.sort();
   return value;
 };

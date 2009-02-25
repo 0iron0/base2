@@ -51,7 +51,7 @@ var Selector = Base.extend({
   "@MSIE": {
     exec: function(context, count, simple) {
       if (typeof context.selectNodes != "undefined" && !_NOT_XPATH.test(this)) { // xml
-        var method = single ? "selectSingleNode" : "selectNodes";
+        var method = count == 1 ? "selectSingleNode" : "selectNodes";
         return context[method](this.toXPath(simple));
       }
       return this.base(context, count, simple);
@@ -77,7 +77,7 @@ var Selector = Base.extend({
 
 var _COMBINATOR = /[^,]\s|[+>~]/;
 
-var _NOT_XPATH = ":(checked|disabled|enabled|contains|hover|active|focus)|^(#[\\w-]+\\s*)?\\w+$";
+var _NOT_XPATH = ":(checked|disabled|enabled|contains|hover|active|focus|link|visited)|^(#[\\w-]+\\s*)?\\w+$";
 if (detect("KHTML")) {
   if (detect("WebKit5")) {
     _NOT_XPATH += "|nth\\-|,";
@@ -117,8 +117,8 @@ Selector.pseudoClasses = { //-dean: lang()
   "hover":       "DocumentState.getInstance(d).isHover(e%1)",
   "active":      "DocumentState.getInstance(d).isActive(e%1)",
   "focus":       "DocumentState.getInstance(d).hasFocus(e%1)",
-  "link":        "false", // not implemented (security)
-  "visited":     "false"
+  "link":        "d.links&&Array2.contains(d.links,e%1)",
+  "visited":     "false" // not implemented (security)
 // nth-child     // defined below
 // not
 };
@@ -154,7 +154,7 @@ function sum(list) {
 
 // a hideous parser
 var _parser = {
-  "^(\\*|[\\w-]+)": function(match, tagName) {
+  "^(\\*|[ID]+)": function(match, tagName) {
     return tagName == "*" ? "" : format("if(e0.nodeName=='%1'[c]()){", tagName);
   },
 
@@ -164,7 +164,7 @@ var _parser = {
     return format(replacement, _index++, _index);
   },
 
-  " (\\*|[\\w-]+)#([\\w-]+)": function(match, tagName, id) { // descendant selector followed by ID
+  " (\\*|[ID]+)#([ID]+)": function(match, tagName, id) { // descendant selector followed by ID
     _wild = false;
     var replacement = "var e%2=_byId(d,'%4');if(e%2&&";
     if (tagName != "*") replacement += "e%2.nodeName=='%3'[c]()&&";
@@ -173,7 +173,7 @@ var _parser = {
     return format(replacement, _index++, _index, tagName, id);
   },
 
-  " (\\*|[\\w-]+)": function(match, tagName) { // descendant selector
+  " (\\*|[ID]+)": function(match, tagName) { // descendant selector
     _duplicate++; // this selector may produce duplicates
     _wild = tagName == "*";
     var replacement = format(_VAR, _index++, "%2", _index);
@@ -184,7 +184,7 @@ var _parser = {
     return format(replacement, _index, sum(_list), tagName);
   },
 
-  ">(\\*|[\\w-]+)": function(match, tagName) { // child selector
+  ">(\\*|[ID]+)": function(match, tagName) { // child selector
     var children = _MSIE && _index;
     _wild = tagName == "*";
     var replacement = _VAR + (children ? "children" : "childNodes");
@@ -201,7 +201,7 @@ var _parser = {
     return format(replacement, _index, sum(_list), tagName);
   },
 
-  "\\+(\\*|[\\w-]+)": function(match, tagName) { // direct adjacent selector
+  "\\+(\\*|[ID]+)": function(match, tagName) { // direct adjacent selector
     var replacement = "";
     if (_wild && _MSIE) replacement += "if(e%1.nodeName!='!'){";
     _wild = false;
@@ -211,7 +211,7 @@ var _parser = {
     return format(replacement, _index, tagName);
   },
 
-  "~(\\*|[\\w-]+)": function(match, tagName) { // indirect adjacent selector
+  "~(\\*|[ID]+)": function(match, tagName) { // indirect adjacent selector
     var replacement = "";
     if (_wild && _MSIE) replacement += "if(e%1.nodeName!='!'){";
     _wild = false;
@@ -225,21 +225,21 @@ var _parser = {
     return format(replacement, _index, tagName);
   },
 
-  "#([\\w-]+)": function(match, id) { // ID selector
+  "#([ID]+)": function(match, id) { // ID selector
     _wild = false;
     var replacement = "if(e%1.id=='%2'){";
     if (_list[_group]) replacement += format("i%1=n%1.length;", sum(_list));
     return format(replacement, _index, id);
   },
 
-  "\\.([\\w-]+)": function(match, className) { // class selector
+  "\\.([ID]+)": function(match, className) { // class selector
     _wild = false;
     // store RegExp objects - slightly faster on IE
     _reg.push(new RegExp("(^|\\s)" + rescape(className) + "(\\s|$)"));
     return format("if(e%1.className&&reg[%2].test(e%1.className)){", _index, _reg.length - 1);
   },
 
-  ":not\\((\\*|[\\w-]+)?([^)]*)\\)": function(match, tagName, filters) { // :not pseudo class
+  ":not\\((\\*|[ID]+)?([^)]*)\\)": function(match, tagName, filters) { // :not pseudo class
     var replacement = (tagName && tagName != "*") ? format("if(e%1.nodeName=='%2'[c]()){", _index, tagName) : "";
     replacement += _parser.exec(filters);
     return "if(!" + replacement.slice(2, -1).replace(/\)\{if\(/g, "&&") + "){";
@@ -253,11 +253,11 @@ var _parser = {
     return format(replacement, _index) + _nthChild(match, args, "i", last, "!", "&&", "% ", "==") + "){";
   },
 
-  ":([\\w-]+)(\\(([^)]+)\\))?": function(match, pseudoClass, $2, args) { // other pseudo class selectors
+  ":([ID]+)(\\(([^)]+)\\))?": function(match, pseudoClass, $2, args) { // other pseudo class selectors
     return "if(" + format(Selector.pseudoClasses[pseudoClass] || "throw", _index, args || "") + "){";
   },
 
-  "\\[\\s*([\\w-]+)\\s*([^=]?=)?\\s*([^\\]\\s]*)\\s*\\]": function(match, attr, operator, value) { // attribute selectors
+  "\\[\\s*([ID]+)\\s*([^=]?=)?\\s*([^\\]\\s]*)\\s*\\]": function(match, attr, operator, value) { // attribute selectors
     value = trim(value);
     if (_MSIE) {
       var getAttribute = "Element.getAttribute(e%1,'%2')";
@@ -345,7 +345,6 @@ var _parser = {
       var total = sum(_list);
       for (var i = 1; i <= total; i++) {
         args += ",a" + i;
-        //state.push("i" + i);
         state.push("i" + i + "?(i" + i + "-1):0");
       }
       if (total) {

@@ -8,5 +8,4 @@ exports += this.exports;
 JavaScript = new Package(this, JavaScript);
 eval(exports + this.exports);
 
-lang.base = base;
 lang.extend = extend;

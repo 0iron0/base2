@@ -6,24 +6,21 @@ var EventDispatcher = Base.extend({
   },
 
   dispatch: function(nodes, event, phase) {
+    _currentEvent = Event.cloneEvent(event);
     event.eventPhase = phase;
     var map = this.events[event.type][phase];
     if (map) {
       var i = nodes.length;
       while (i-- && !event.cancelBubble) {
-        var currentTarget = nodes[i];
-        var listeners = map[currentTarget.base2ID];
+        _currentTarget = nodes[i];
+        var listeners = map[_currentTarget.base2ID];
         if (listeners) {
           listeners = copy(listeners);
-          event.currentTarget = currentTarget;
-          event.eventPhase = currentTarget == event.target ? _AT_TARGET : phase;
+          event.currentTarget = _currentTarget;
+          event.eventPhase = _currentTarget == event.target ? _AT_TARGET : phase;
           for (var listenerID in listeners) {
-            var listener = listeners[listenerID];
-            if (typeof listener == "function") {
-              listener.call(currentTarget, event);
-            } else {
-              listener.handleEvent(event);
-            }
+            _currentListener = listeners[listenerID];
+            _fire.base2Events++;
           }
         }
       }
@@ -35,7 +32,7 @@ var EventDispatcher = Base.extend({
     var type = event.type;
     var w3cType = _W3C_EVENT_TYPE[type];
     if (w3cType) {
-      event = copy(event);
+      event = Event.cloneEvent(event);
       type = event.type = w3cType;
     }
     if (this.events[type]) {
@@ -44,7 +41,7 @@ var EventDispatcher = Base.extend({
         var button = _MOUSE_CLICK.test(type) ? this.state._button : event.button;
         button = _TYPE_MAP[button] || 0;
         if (event.button != button) {
-          event = copy(event);
+          event = Event.cloneEvent(event);
           event.button = button;
         }
       }
@@ -70,13 +67,13 @@ var EventDispatcher = Base.extend({
       if (event.type == "scroll") {
         // horrible IE bug (setting style during scroll event causes crash)
         // the scroll event can't be cancelled so it's not a problem to use a timer
-        setTimeout(bind(this.base, this, copy(event), true), 0);
+        setTimeout(bind(this.base, this, Event.cloneEvent(event), true), 0);
         return true;
       } else {
         return this.base(event);
       }
     },
-    
+
     "@MSIE5": {
       dispatch: function(nodes, event, phase) {
         // IE5.x documentElement does not have a parentNode so document is missing
@@ -89,3 +86,23 @@ var EventDispatcher = Base.extend({
     }
   }
 });
+
+// this enables a real execution context for each event.
+if (_MSIE) {
+  var _fire = document.createElement("meta"),
+      _currentEvent,
+      _currentTarget,
+      _currentListener;
+
+  _fire.base2Events = 0;
+  _fire.attachEvent("onpropertychange", function(event) {
+    if (event.propertyName == "base2Events") {
+      if (typeof _currentListener == "function") {
+        _currentListener.call(_currentTarget, _currentEvent);
+      } else {
+        _currentListener.handleEvent(_currentEvent);
+      }
+    }
+  });
+  document.getElementsByTagName("head")[0].appendChild(_fire);
+}

@@ -39,7 +39,7 @@ function _createObject2(Native, constructor, generics, extensions) {
 
   // Remove methods that are already implemented.
   for (var name in INative) {
-    if (name != "prototype" && Native[name]) {
+    if (name != "prototype" && name != "toString" && Native[name]) {
       INative[name] = Native[name];
       delete INative.prototype[name];
     }

@@ -31,7 +31,7 @@ function _createDelegates(module, _interface) {
   var id = module.toString().slice(1, -1);
   for (var name in _interface) {
     var property = _interface[name];
-    if (name.charAt(0) == "@") {
+    if (name.indexOf("@") == 0) {
       _createDelegates(module, property);
     } else if (!module[name] && typeof property == "function" && property.call) {
       // delegate a static method to the bound object

@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="DOM/selectors-api" publish="false" closure="false">
   <include src="NodeSelector.js"/>
-  <include src="DocumentSelector.js"/>
-  <include src="ElementSelector.js"/>
   <include src="CSSParser.js"/>
   <include src="XPathParser.js"/>
   <include src="Selector.js"/>

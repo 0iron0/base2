@@ -1,55 +1,170 @@
 
-var _POPUP_METRICS = "left:%1px!important;top:%2px!important;width:%3px!important;";
-
 var Popup = Base.extend({
   constructor: function(owner) {
     this.owner = owner;
-    var popup = this.popup = document.createElement("div");
-    popup.className = this.appearance;
-    popup.innerHTML = this.html;
+    var body = this.body = this.createBody();
+    body.className = "chrome-popup";
+    var appearance = this.appearance;
+    if (appearance && appearance != "popup") {
+      body.className += " chrome-" + appearance;
+    }
+    var popup = this;
+    for (var i in this) {
+      if (_EVENT.test(i)) {
+        EventTarget.addEventListener(body, i.slice(2), function(event) {
+          switch (event.type) {
+            case "mousedown":
+              event.preventDefault();
+              break;
+            case "mouseover":
+            case "mouseout":
+              if (event.target == this) return;
+          }
+          popup["on" + event.type](event);
+        }, true);
+      }
+    }
   },
+
+  // properties
 
   appearance: "popup",
-  isOpen: false,
-
-  inherit: String2.csv("backgroundColor,color,fontFamily,fontSize,fontWeight,fontStyle"),
-  html: "<div>1 thousand</div><div>2 thousand</div><div>3 thousand</div><div>4 thousand</div><div>5 thousand</div>",
-
-  onkeydown: Undefined,
-  onkeyup: Undefined,
+  width: "auto",
+  height: "auto",
   
-  hide: function() {
-    this.popup.parentNode.removeChild(this.popup);
-    //MenuList.detach(popup);
-    this.isOpen = false;
+  // events
+
+  onkeydown: function(event) {
+    if (event.keyCode == 27) { // escape
+      this.hide();
+    }
   },
 
-  movesize: function(element) {
-    this.popup.style.cssText = format(_POPUP_METRICS, element.offsetLeft, element.offsetTop + element.offsetHeight, element.offsetWidth - 2);
-    element.offsetParent.appendChild(this.popup);
+  onmousedown: Undefined,
+  
+  // methods
+
+  createBody: function() {
+    return document.createElement("div");
+  },
+
+  hide: function() {
+    console2.log("SHOW");
+    var parent = this.body.parentNode;
+    if (parent) parent.removeChild(this.body);
+    delete this.element;
+    delete control._popup;
+  },
+
+  isOpen: function() {
+    return !!this.body.parentNode;
+  },
+
+  movesize: function() {
+    var element = this.element,
+        document = element.ownerDocument,
+        style = this.body.style,
+        offset = behavior.getOffsetFromBody(element);
+    style.left = offset.left + PX;
+    style.top = (offset.top + element.offsetHeight) + PX;
+    switch (this.width) {
+      case "auto":
+        style.minWidth = (element.offsetWidth - 2) + PX;
+        style.maxWidth = (document.documentElement.clientWidth - offset.left - 2) + PX;
+        break;
+      case "base":
+        style.width = (element.offsetWidth - 2) + PX;
+        break;
+      default:
+        style.width = this.width + PX;
+    }
+    document.body.appendChild(this.body);
+  },
+
+  render: function(html) {
+    this.body.innerHTML = html;
   },
 
   show: function(element) {
-    this.isOpen = true;
-    //MenuList.attach(popup);
-    this.movesize(element);
-    var style = this.popup.style;
-    var computedStyle = Behavior.getComputedStyle(element);
-    forEach (this.inherit, function(propertyName) {
+    console2.log("SHOW");
+    this.element = element;
+    this.render();
+    this.style();
+    this.movesize();
+    this.body.style.visibility = "visible";
+    control._popup = this;
+  },
+
+  style: function() {
+    var style = this.body.style;
+    style.cssText = "";
+    var computedStyle = behavior.getComputedStyle(this.element);
+    forEach.csv("backgroundColor,color,fontFamily,fontSize,fontWeight,fontStyle", function(propertyName) {
       style[propertyName] = computedStyle[propertyName];
     });
-    if (style.backgroundColor == "transparent") {
-      style.backgroundColor = "Window";
-    }
-    style.display = "block";
   },
-  
-  "@MSIE": {
-    movesize: function(element) {
-      var scrollParent = document.compatMode != "CSS1Compat" ? document.body: document.documentElement;
-      var rect = element.getBoundingClientRect();
-      this.popup.style.cssText = format(_POPUP_METRICS, scrollParent.scrollLeft + rect.left - 2, scrollParent.scrollTop + rect.bottom - 2, element.offsetWidth - 2);
-      document.body.appendChild(this.popup);
+
+  // Inserting content into the document body whilst it is loading will result
+  // in an "operation aborted" error. So we use a popup object instead. (MSIE)
+  "@(typeof createPopup=='object')": {
+    createBody: function() {
+      var popup = this.popup = createPopup(), document = popup.document, body = document.body;
+  		document.createStyleSheet().cssText = "body{margin:0}body *{cursor:default}" + _theme.cssText;
+      popup.show(); // init
+      popup.hide();
+      return body;
+    },
+    
+    hide: function() {
+      console2.log("HIDE");
+      setTimeout(bind(function() {
+        this.popup.hide();
+        try {
+          this.element.focus();
+          delete this.element;
+        } catch (ex){}
+      }, this), 0);
+      delete control._popup;
+    },
+
+    isOpen: function() {
+		  return this.popup.isOpen;
+    },
+
+    movesize: function() {
+  		var popup = this.popup,
+          body = this.body,
+          element = this.element;
+
+  		// size and position the popup window relative to the associated element
+  		var left = 0, top = element.offsetHeight - 1,
+          width = this.width, height = this.height; // TODO: Is there enough room below? Otherwise check above
+
+  		if (width == "base") {
+  			width = element.offsetWidth;
+  		} else if (width == "auto") {
+  			width = 2;
+  		}
+  		if (height == "auto") {
+  			height = 2;
+  		}
+
+  		// resize
+  		if (width == 2 || height == 2) {
+        body.onload = function() {
+    			setTimeout(function() {
+            var rect = element.getBoundingClientRect();
+      			if (width == 2) {
+      				width = Math.max(Math.min(body.scrollWidth + 2, document.documentElement.clientWidth - rect.left - 2), element.offsetWidth);
+      			}
+      			if (height == 2) {
+      				height = Math.min(body.scrollHeight + 2, 100);
+      			}
+  		      popup.show(0, top, width, height, element);
+          }, 1);
+        };
+  		}
+  		popup.show(0, top, width, height, element);
     }
   }
 });

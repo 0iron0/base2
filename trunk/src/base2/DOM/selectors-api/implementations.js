@@ -1,3 +1,3 @@
 
-Document.implement(DocumentSelector);
-Element.implement(ElementSelector);
+Document.implement(NodeSelector);
+Element.implement(NodeSelector);

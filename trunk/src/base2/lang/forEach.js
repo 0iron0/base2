@@ -30,7 +30,7 @@ forEach.csv = function(string, block, context) {
 
 forEach.detect = function(object, block, context) {
   forEach (object, function(value, key) {
-    if (key.charAt(0) == "@") { // object detection
+    if (key.indexOf("@") == 0) { // object detection
       if (detect(key.slice(1))) forEach (value, arguments.callee);
     } else block.call(context, value, key, object);
   });
@@ -46,8 +46,13 @@ function _Array_forEach(array, block, context) {
     for (i = 0; i < length; i++) {
       block.call(context, array.charAt(i), i, array);
     }
+  } else if (typeof array.item == "function" && !array.concat) {
+    // Objects with an item() method only.
+    for (i = 0; i < length; i++) {
+      block.call(context, array.item(i), i, array);
+    }
   } else { // Cater for sparse arrays.
-    for (i = 0; i < length; i++) {    
+    for (i = 0; i < length; i++) {
     /*@cc_on @*/
     /*@if (@_jscript_version < 5.2)
       if ($Legacy.has(array, i))

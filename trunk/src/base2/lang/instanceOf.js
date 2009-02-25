@@ -30,14 +30,14 @@ function instanceOf(object, klass) {
   if (Base.ancestorOf == object.constructor.ancestorOf) return klass == Object;
   
   switch (klass) {
-    case Array: // This is the only troublesome one.
-      return !!(typeof object == "object" && object.join && object.splice);
+    case Array:
+      return _toString.call(object) == "[object Array]";
+    case Date:
+      return _toString.call(object) == "[object Date]";
+    case RegExp:
+      return _toString.call(object) == "[object RegExp]";
     case Function:
       return typeOf(object) == "function";
-    case RegExp:
-      return typeof object.constructor.$1 == "string";
-    case Date:
-      return !!object.getTimezoneOffset;
     case String:
     case Number:
     case Boolean:
@@ -48,3 +48,5 @@ function instanceOf(object, klass) {
   
   return false;
 };
+
+var _toString = Object.prototype.toString;

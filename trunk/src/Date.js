@@ -17,7 +17,7 @@ _testDate.setUTCDate(15);
 if (_testDate.getUTCHours() != 0) {
   forEach.csv("FullYear,Month,Date,Hours,Minutes,Seconds,Milliseconds", function(type) {
     extend(Date.prototype, "setUTC" + type, function() {
-      var value = base(this, arguments);
+      var value = this.base.apply(this, arguments);
       if (value >= 57722401000) {
         value -= 3600000;
         this.setTime(value);

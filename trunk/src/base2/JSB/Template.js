@@ -1,24 +1,26 @@
 
-var Template = Behavior.modify({
+var template = behavior.extend({
   /* EVENT HANDLERS */
 
   onattach: function(element){},
+  ondetach: function(element){/* not currently supported */},
 
   oncontentready:  function(element){},
   ondocumentready: function(element){},
 
-  onclick:     function(element, event, offsetX, offsetY, screenX, screenY){},
-  ondblclick:  function(element, event, offsetX, offsetY, screenX, screenY){},
-  onmousedown: function(element, event, offsetX, offsetY, screenX, screenY){},
-  onmouseup:   function(element, event, offsetX, offsetY, screenX, screenY){},
-  onmousemove: function(element, event, offsetX, offsetY, screenX, screenY){},
-  onmouseover: function(element, event, offsetX, offsetY, screenX, screenY){},
-  onmouseout:  function(element, event, offsetX, offsetY, screenX, screenY){},
-  
-  onmousewheel: function(element, event, delta){},
+  onmouseover: function(element, event){},
+  onmouseout:  function(element, event){},
+
+  onclick:     function(element, event, x, y, screenX, screenY){},
+  ondblclick:  function(element, event, x, y, screenX, screenY){},
+  onmousedown: function(element, event, x, y, screenX, screenY){},
+  onmouseup:   function(element, event, x, y, screenX, screenY){},
+  onmousemove: function(element, event, x, y, screenX, screenY){},
   
   // ExtendedMouse
-  // on((dbl)?click|mouse(up|down)): function(element, event, button, offsetX, offsetY, screenX, screenY)
+  // on((dbl)?click|mouse(up|down)): function(element, event, button, x, y, screenX, screenY)
+  
+  onmousewheel: function(element, event, delta){},
 
   onkeydown: function(element, event, keyCode, shiftKey, ctrlKey, altKey){},
   onkeyup:   function(element, event, keyCode, shiftKey, ctrlKey, altKey){},
@@ -26,16 +28,16 @@ var Template = Behavior.modify({
   onfocus: function(element, event){},
   onblur:  function(element, event){},
   
+  onotherevent: function(element, event){},
+  
   /* PRE-DEFINED BEHAVIOR METHODS */
   
-  // You do not need to define these, they are already defined on the Behavior
-  // module and will be inherited by all Behaviors. You may override them if
+  // You do not need to define these, they are already defined on the behavior
+  // module and will be inherited by all behaviors. You may override them if
   // you wish.
   
   attach: function(element){return element;},
   detach: function(element){return element;},
-
-  handleEvent:   function(element, event, type){},
 
   addEventListener:    function(target, type, listener, useCapture){},
   removeEventListener: function(target, type, listener, useCapture){},
@@ -43,6 +45,9 @@ var Template = Behavior.modify({
   dispatchEvent: function(target, event|type, /* optional */ eventProperties){return Boolean;},
 
   compareDocumentPosition: function(node1, node2){return Number;},
+
+  getBoundingClientRect: function(element){return TextRectangle},
+  getOffsetFromBody:     function(element){return Offset},
 
   hasAttribute:    function(element, name){return Boolean;},
   getAttribute:    function(element, name){return String || null;},
@@ -56,15 +61,20 @@ var Template = Behavior.modify({
 
   querySelector:    function(context, selector){return Object;}, // return Element
   querySelectorAll: function(context, selector){return Object;}, // return StaticNodeList
+  
+  matchesSelector: function(element, selector){return Boolean;},
 
   getComputedStyle: function(element, /* optional */ propertyName){return Object || String;},
+
+  getProperty: function(element, propertyName){return Object;},
+  setProperty: function(element, propertyName, value){},
 
   getCSSProperty: function(element, propertyName){return String;},
   setCSSProperty: function(element, propertyName, value, /* optional */ important){},
 
-  // capture mousemove and mouseup events
-  setCapture:     function(element){},
-  releaseCapture: function(){},
+  // capture mouse events
+  captureMouse: function(element){},
+  releaseMouse: function(){},
 
   // bind a timer function to a behavior object
   setInterval: function(callback, delay, /* optional */ arg1, arg2, argN){return Number;}, // return timer id

@@ -82,8 +82,22 @@ var EventTarget = Interface.extend({
       }
     },
 
+    "@KHTML": {
+      addEventListener: function(target, type, listener, useCapture) {
+        if (type == "mousewheel") {
+          var originalListener = listener;
+          listener = _wrappedListeners[assignID(listener)] = function(event) {
+            event = Event.cloneEvent(event);
+            event.wheelDelta /= 3;
+            _handleEvent(target, originalListener, event);
+          };
+        }
+        this.base(target, type, listener, useCapture);
+      }
+    },
+
     // http://unixpapa.com/js/key.html
-    "@Linux|Mac|opera": {
+    "@Linux|Mac|Opera": {
       addEventListener: function(target, type, listener, useCapture) {
         // Some browsers do not fire repeated "keydown" events when a key
         // is held down. They do fire repeated "keypress" events though.
@@ -122,7 +136,7 @@ var EventTarget = Interface.extend({
   }
 });
 
-if (detect("Gecko")) {
+if (detect("Gecko")) { // this needs to be here
   EventTarget.removeEventListener._delegate = "removeEventListener";
   delete EventTarget.prototype.removeEventListener;
 }

@@ -1,24 +1,39 @@
 
 // http://www.w3.org/TR/selectors-api/
 
+var _VISITED = /:visited/; // security
+
 var NodeSelector = Interface.extend({
   "@(element.querySelector)": {
     querySelector: function(node, selector) {
-      try {
-        var element = this.base(node, trim(selector));
-        if (element) return element;
-      } catch(x) {}
-      // assume it's an unsupported selector
+      if (!_VISITED.test(selector)) {
+        try {
+          return this.base(node, trim(selector));
+        } catch (x) {
+          // assume it's an unsupported selector
+        }
+      }
       return new Selector(selector).exec(node, 1);
     },
     
     querySelectorAll: function(node, selector) {
-      try {
-        var nodeList = this.base(node, trim(selector));
-        if (nodeList) return new StaticNodeList(nodeList);
-      } catch(x) {}
-      // assume it's an unsupported selector
+      if (!_VISITED.test(selector)) {
+        try {
+          return new StaticNodeList(this.base(node, trim(selector)));
+        } catch (x) {
+          // assume it's an unsupported selector
+        }
+      }
       return new Selector(selector).exec(node);
+    },
+
+    "@KHTML": { // http://code.google.com/p/base2/issues/detail?id=100
+      querySelectorAll: function(node, selector) {
+        if (!/[A-Z]/.test(selector) || "BackCompat" != (node ? node.ownerDocument || node : document).compatMode) {
+          return this.base(node, selector);
+        }
+        return new Selector(selector).exec(node);
+      }
     }
   },
 

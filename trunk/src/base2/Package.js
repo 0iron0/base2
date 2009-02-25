@@ -1,44 +1,53 @@
 
 var Package = Base.extend({
   constructor: function(_private, _public) {
-    this.extend(_public);
-    if (this.init) this.init();
+    assertArity(arguments);
     
-    if (this.name && this.name != "base2") {
-      if (!this.parent) this.parent = base2;
-      this.parent.addName(this.name, this);
-      this.namespace = format("var %1=%2;", this.name, String2.slice(this, 1, -1));
+    var pkg = this;
+    
+    pkg.extend(_public);
+    if (pkg.init) pkg.init();
+    
+    if (pkg.name && pkg.name != "base2") {
+      if (_public.parent === undefined) pkg.parent = base2;
+      if (pkg.parent) pkg.parent.addName(pkg.name, pkg);
+      pkg.namespace = format("var %1=%2;", pkg.name, String2.slice(pkg, 1, -1));
     }
     
     if (_private) {
       // This next line gets round a bug in old Mozilla browsers
       var JSNamespace = base2.JavaScript ? base2.JavaScript.namespace : "";
+      
       // This string should be evaluated immediately after creating a Package object.
-      _private.imports = Array2.reduce(csv(this.imports), function(namespace, name) {
+      var namespace = "var base2=(function(){return this.base2})();" + base2.namespace + JSNamespace;
+      var imports = csv(pkg.imports), name;
+      for (var i = 0; name = imports[i]; i++) {
         var ns = lookup(name) || lookup("JavaScript." + name);
-        ;;; assert(ns, format("Object not found: '%1'.", name), ReferenceError);
-        return namespace += ns.namespace;
-      }, "var base2=(function(){return this.base2})();" + base2.namespace + JSNamespace) + lang.namespace;
+        if (!ns) throw new ReferenceError(format("Object not found: '%1'.", name));
+        namespace += ns.namespace;
+      }
+      _private.imports = namespace + lang.namespace;
       
       // This string should be evaluated after you have created all of the objects
       // that are being exported.
-      _private.exports = Array2.reduce(csv(this.exports), function(namespace, name) {
-        var fullName = this.name + "." + name;
-        this.namespace += "var " + name + "=" + fullName + ";";
-        return namespace += "if(!" + fullName + ")" + fullName + "=" + name + ";";
-      }, "", this) + "this._label_" + this.name + "();";
+      namespace = "";
+      var exports = csv(pkg.exports);
+      for (var i = 0; name = exports[i]; i++) {
+        var fullName = pkg.name + "." + name;
+        pkg.namespace += "var " + name + "=" + fullName + ";";
+        namespace += "if(!" + fullName + ")" + fullName + "=" + name + ";";
+      }
+      _private.exports = namespace + "this._label_" + pkg.name + "();";
       
-      var pkg = this;
-      var packageName = String2.slice(this, 1, -1);
-      _private["_label_" + this.name] = function() {
-        Package.forEach (pkg, function(object, name) {
-          if (object && object.ancestorOf == Base.ancestorOf) {
-            object.toString = K(format("[%1.%2]", packageName, name));
-            if (object.prototype.toString == Base.prototype.toString) {
-              object.prototype.toString = K(format("[object %1.%2]", packageName, name));
-            }
+      // give objects and classes pretty toString methods
+      var packageName = String2.slice(pkg, 1, -1);
+      _private["_label_" + pkg.name] = function() {
+        for (var name in pkg) {
+          var object = pkg[name];
+          if (object && object.ancestorOf == Base.ancestorOf) { // it's a class
+            object.toString = K("[" + packageName + "." + name + "]");
           }
-        });
+        }
       };
     }
 

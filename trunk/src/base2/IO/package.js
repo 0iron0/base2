@@ -1,7 +1,7 @@
 
 var IO = new base2.Package(this, {
   name:    "IO",
-  version: "0.9",
+  version: base2.version,
   imports: "Enumerable,Function2",
   exports: "NOT_SUPPORTED,READ,WRITE,FileSystem,Directory,LocalFileSystem,LocalDirectory,LocalFile"
 });
@@ -39,7 +39,7 @@ function _makeNativeAbsolutePath(path) {
   return LocalFileSystem.toNativePath(FileSystem.resolve(LocalFileSystem.getPath(), path));
 };
 
-var _fso;
+var _fso; // file system object
 function _activex_exec(method, path1, path2, flags) {
   if (!_fso) _fso = new ActiveXObject("Scripting.FileSystemObject");
   path1 = _makeNativeAbsolutePath(path1);
