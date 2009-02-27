@@ -12,16 +12,7 @@ var range = number.extend({
     onchange: Undefined
   },
 
-
-  "@MSIE": {
-    onfocus: function(element) {
-      if (!element.onscroll) {
-        element.onscroll = _resetScroll;
-        element.onscroll();
-      }
-      this.base(element);
-    }
-  },
+  "@MSIE": _preventScroll,
 
   "@!theme=aqua": {
     onfocus: function(element) {

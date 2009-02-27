@@ -31,7 +31,9 @@ var slider = range.extend({
       slider._value = this.getValueByPosition(element, x - this.THUMB_WIDTH / 2, y - this.THUMB_HEIGHT / 2);
       slider._direction = slider._value < this.getValue(element) ? -1 : 1;
     }
-    element.focus();
+    try {
+      element.focus();
+    } catch (ex) {}
   },
 
   onmouseup: function(element, event) {

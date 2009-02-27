@@ -1,0 +1,12 @@
+Base
+.jsb.behavior
+..chrome.control
+...chrome.dropdown
+....chrome.combobox
+...chrome.number
+....chrome.range
+.....chrome.progressbar
+.....chrome.slider
+....chrome.spinner
+.chrome.Rect
+.chrome.Theme

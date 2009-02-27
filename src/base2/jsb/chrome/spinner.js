@@ -20,9 +20,9 @@ var spinner = number.extend({
   // events
   
   onkeydown: function(element, event, keyCode) {
-    //;;; console2.log("onkeydown(" + event.eventPhase + "): " + keyCode);
     if (!this.isEditable(element)) return;
-    if (!/^(3[348]|40)$/.test(keyCode)) return;
+    
+    if (!/^(3[348]|40)$/.test(keyCode)) return; // valid key codes
 
     event.preventDefault();
 
@@ -39,9 +39,9 @@ var spinner = number.extend({
   },
 
   onkeyup: function(element, event, keyCode) {
-    //;;; console2.log("onkeyup(" + event.eventPhase + "): " + keyCode);
     if (!this.isEditable(element)) return;
-    if (!/^(3[348]|40)$/.test(keyCode)) return;
+    
+    if (!/^(3[348]|40)$/.test(keyCode)) return; // valid key codes
     
     this.stopTimer(element);
 

@@ -26,7 +26,6 @@ var number = control.extend({
   },
 
   onmousewheel: function(element, event, delta) {
-    console2.log(delta);
     if (this.isEditable(element) && control._focus == element) {
       this.increment(element, parseInt(delta / 120));
       event.preventDefault();
@@ -67,7 +66,7 @@ var number = control.extend({
   },
 
   getUnitIncrement: function(element) {
-    return this.getProperty(element, "step") || 1;
+    return this.get(element, "step") || 1;
   },
 
   getValue: function(element) {

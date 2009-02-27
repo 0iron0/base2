@@ -15,6 +15,16 @@ function _resetScroll() {
   this.scrollTop = 0;
 };
 
+var _preventScroll = {
+  onfocus: function(element) {
+    if (!element.onscroll) {
+      element.onscroll = _resetScroll;
+      element.onscroll();
+    }
+    this.base(element);
+  }
+};
+
 var _WIDTH  = "clientWidth",
     _HEIGHT = "clientHeight";
 

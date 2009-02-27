@@ -3,7 +3,7 @@ var template = behavior.extend({
   /* EVENT HANDLERS */
 
   onattach: function(element){},
-  ondetach: function(element){/* not currently supported */},
+  ondetach: function(element){}, /* ondetach is not currently supported */
 
   oncontentready:  function(element){},
   ondocumentready: function(element){},
@@ -39,6 +39,9 @@ var template = behavior.extend({
   attach: function(element){return element;},
   detach: function(element){return element;},
 
+  get: function(element, propertyName){return Object;},
+  set: function(element, propertyName, value){},
+
   addEventListener:    function(target, type, listener, useCapture){},
   removeEventListener: function(target, type, listener, useCapture){},
   
@@ -46,7 +49,7 @@ var template = behavior.extend({
 
   compareDocumentPosition: function(node1, node2){return Number;},
 
-  getBoundingClientRect: function(element){return TextRectangle},
+  getBoundingClientRect: function(element){return TextRectangle}, // {left:px, top:px, right:px, bottom:px}
   getOffsetFromBody:     function(element){return Offset},
 
   hasAttribute:    function(element, name){return Boolean;},
@@ -59,15 +62,12 @@ var template = behavior.extend({
   removeClass: function(element, className){},
   toggleClass: function(element, className){},
 
-  querySelector:    function(context, selector){return Object;}, // return Element
-  querySelectorAll: function(context, selector){return Object;}, // return StaticNodeList
+  querySelector:    function(node, selector){return Object;}, // return Element
+  querySelectorAll: function(node, selector){return Object;}, // return StaticNodeList
   
   matchesSelector: function(element, selector){return Boolean;},
 
   getComputedStyle: function(element, /* optional */ propertyName){return Object || String;},
-
-  getProperty: function(element, propertyName){return Object;},
-  setProperty: function(element, propertyName, value){},
 
   getCSSProperty: function(element, propertyName){return String;},
   setCSSProperty: function(element, propertyName, value, /* optional */ important){},
