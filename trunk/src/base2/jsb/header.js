@@ -15,7 +15,7 @@ var _EVENT              = /^on([a-z|DOM\w+]+)$/,
     _EVENT_CLICK        = /click$/,
     _EVENT_MOUSE        = /^mouse|click$/,
     _EVENT_OVER_OUT     = /^mouse(over|out)$/,
-    _EVENT_PSEUDO       = /^(attach|detach|(content|document)ready)/,
+    _EVENT_PSEUDO       = /^(attach|detach|(content|document)ready)$/,
     _EVENT_TEXT         = /^(key|text)/,
     _EVENT_USE_CAPTURE  = /^(focus|blur)$/;
 

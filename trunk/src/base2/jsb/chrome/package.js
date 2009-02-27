@@ -8,7 +8,7 @@ base2.global.chrome = new base2.Package(this, {
   name:    "chrome",
   version: "0.4",
   imports: "Enumerable,Function2,DOM,jsb",
-  exports: "Popup,MenuList,control,dropdown,combobox,number,range,progressbar,slider,spinner",
+  exports: "Popup,MenuList,control,dropdown,combobox,number,range,progressbar,slider,spinner,colorpicker",
 
   //host:    ""
   host:    "http://base2.googlecode.com/svn/trunk/src/base2/jsb/chrome/"

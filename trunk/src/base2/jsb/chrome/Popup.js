@@ -14,14 +14,21 @@ var Popup = Base.extend({
         EventTarget.addEventListener(body, i.slice(2), function(event) {
           switch (event.type) {
             case "mousedown":
-              event.preventDefault();
+              popup.active = true;
+              //event.preventDefault();
+              //event.stopPropagation();
+              break;
+            case "mouseup":
+              popup.active = false;
+              //event.preventDefault();
+              //event.stopPropagation();
               break;
             case "mouseover":
             case "mouseout":
               if (event.target == this) return;
           }
           popup["on" + event.type](event);
-        }, true);
+        }, false);
       }
     }
   },
@@ -41,6 +48,7 @@ var Popup = Base.extend({
   },
 
   onmousedown: Undefined,
+  onmouseup: Undefined,
   
   // methods
 
@@ -49,11 +57,15 @@ var Popup = Base.extend({
   },
 
   hide: function() {
-    console2.log("SHOW");
+    console2.log("HIDE");
     var parent = this.body.parentNode;
     if (parent) parent.removeChild(this.body);
     delete this.element;
     delete control._popup;
+  },
+
+  isActive: function() {
+    return true;
   },
 
   isOpen: function() {
@@ -82,7 +94,7 @@ var Popup = Base.extend({
   },
 
   render: function(html) {
-    this.body.innerHTML = html;
+    this.body.innerHTML = html || "";
   },
 
   show: function(element) {
@@ -110,6 +122,7 @@ var Popup = Base.extend({
     createBody: function() {
       var popup = this.popup = createPopup(), document = popup.document, body = document.body;
   		document.createStyleSheet().cssText = "body{margin:0}body *{cursor:default}" + _theme.cssText;
+  		assignID(document);
       popup.show(); // init
       popup.hide();
       return body;
@@ -117,13 +130,8 @@ var Popup = Base.extend({
     
     hide: function() {
       console2.log("HIDE");
-      setTimeout(bind(function() {
-        this.popup.hide();
-        try {
-          this.element.focus();
-          delete this.element;
-        } catch (ex){}
-      }, this), 0);
+      this.popup.hide();
+      delete this.element;
       delete control._popup;
     },
 

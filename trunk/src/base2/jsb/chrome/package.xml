@@ -8,12 +8,13 @@
   <include src="Popup.js"/>
   <include src="MenuList.js"/>
   <include src="control.js"/>
-  <include src="DropDown.js"/>
-  <include src="ComboBox.js"/>
+  <include src="dropdown.js"/>
+  <include src="combobox.js"/>
   <include src="Number.js"/>
-  <include src="Range.js"/>
-  <include src="ProgressBar.js"/>
-  <include src="Slider.js"/>
-  <include src="Spinner.js"/>
+  <include src="range.js"/>
+  <include src="progressbar.js"/>
+  <include src="slider.js"/>
+  <include src="spinner.js"/>
+  <include src="colorpicker.js"/>
   <include src="Rect.js"/>
 </package>

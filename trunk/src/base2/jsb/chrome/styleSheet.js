@@ -70,12 +70,12 @@ var css = {
 var styleSheet = {
   "default": {},
 
-  "dropdown,combobox": {
+  "dropdown,combobox,colorpicker": {
     "@theme=aqua": { // aqua
       width:              "10em",
       $boxSizing:         "border-box",
-      minHeight:          "15px",
-      maxHeight:          "21px",
+      minHeight:          "15px!",
+      maxHeight:          "21px!",
       $borderRadius:      "5px",
       $borderImage:       "url(%1menubutton.png) 2 23 1 6",
       $boxShadow:         "0 1px 0 rgba(160, 160, 160, 0.5)",
@@ -100,13 +100,13 @@ var styleSheet = {
       $borderImage:         "url(%1menubutton-active.png) 2 23 1 6"
     },
 
-    ".chrome-dropdown[readonly],.chrome-combobox[readonly],.chrome-dropdown[disabled],.chrome-combobox[disabled]": {
+    ".chrome-combobox[readonly],.chrome-combobox[disabled],.chrome-colorpicker[readonly],.chrome-colorpicker[disabled]": {
       $borderImage:         "url(%1menubutton-disabled.png) 2 23 1 6 !",
       $boxShadow:           "none"
     }
   },
   
-  "progressbar,slider": {
+  "progressbar,slider,colorpicker": {
     textIndent:           "-10em", // hide text for purely visual controls (Safari & Gecko)
     cursor:               "default",
     $userSelect:          "none",
@@ -135,8 +135,10 @@ var styleSheet = {
   },
 
   slider: {
-    minHeight:       "16px",
-    padding:         "3px",
+    _height:         "22px",
+    minHeight:       "22px",
+    verticalAlign:   "middle",
+    padding:         "0",
     border:          0,
     backgroundColor: "transparent",
     backgroundImage: "url(%1slider.png)!",
@@ -161,6 +163,10 @@ var styleSheet = {
     }
   },
 
+  colorpicker: {
+    width:         "4em"
+  },
+
   datalist: {
     display: "none!"
   },
@@ -171,13 +177,17 @@ var styleSheet = {
     position:    "absolute!",
     zIndex:      "999999!",
     cursor:      "default",
-    padding:     "0!",
+    padding:     "0",
     margin:      "0!",
 
     "@Gecko|Opera|theme=aqua|Webkit": {
       MozBorder:   "initial",
       borderColor: "black",
       borderStyle: "outset!",
+
+      "@Gecko": {
+        borderLeftWidth: "2px"
+      },
 
       "@Opera": {
         borderStyle: "solid!"
@@ -200,6 +210,24 @@ var styleSheet = {
     padding:     "1px 2px!",
     overflow:    "hidden!",
     whiteSpace:  "nowrap!"
+  },
+
+  ".chrome-colorpicker-popup": {
+    color:           "ButtonText!",
+    fontSize:        "11px!",
+    padding:         "4px!",
+    overflow:        "hidden!",
+    whiteSpace:      "nowrap!",
+    backgroundColor: "ButtonFace!",
+    
+    "@Webkit([1-4]|5[01]|52[^89])|theme=aqua": {
+      color:           "black!",
+      backgroundColor: "#ece9d8!"
+    }
+  },
+
+  ".chrome-colorpicker-popup input": {
+    margin:      "4px 2px"
   },
 
   spinner: {

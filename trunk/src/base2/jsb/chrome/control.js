@@ -33,7 +33,7 @@ var control = behavior.extend({
 
     if (!this.isEditable(element)) return;
 
-    control._activeThumb = this.hitTest(event.target, x, y);
+    control._activeThumb = this.hitTest(element, x, y);
     if (control._activeThumb) {
       this.captureMouse(element);
     }
@@ -50,7 +50,7 @@ var control = behavior.extend({
   },
 
   onmousemove: function(element, event, x, y) {
-    var thumb = this.hitTest(event.target, x, y);
+    var thumb = this.hitTest(element, x, y);
     if (thumb != control._hoverThumb) {
       control._hoverThumb = thumb;
       this.layout(element);
@@ -59,7 +59,7 @@ var control = behavior.extend({
 
   onmouseover: function(element, event, x, y) {
     control._hover = element;
-    control._hoverThumb = this.hitTest(event.target, x, y);
+    control._hoverThumb = this.hitTest(element, x, y);
     this.layout(element);
   },
 

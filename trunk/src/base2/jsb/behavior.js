@@ -1,30 +1,31 @@
 
+var allAttachments = {};
+
 var behavior = jsb.behavior = new Base({
   attach: I,
   detach: I,
   
-  extendedMouse: false,
+  extendedMouse: false, // allow right and middle button clicks
   
   ancestorOf: function(behavior) {
     return behavior instanceof this.constructor;
-  },
-
-  implement: function(_interface) {
-    return extend(this, _interface);
   },
 
   extend: function(_interface) {
     // Extend a behavior to create a new behavior.
     var behavior = pcopy(this); // beget
     if (this == jsb.behavior) behavior.extendedMouse = false; // preserve the default for direct descendants of jsb.behavior
-    behavior.implement(_interface);
+    extend(behavior, _interface);
     
     // Private.
-    var events,
-        delegatedEvents = [],
-        attachments = {}, // uniqueIDs
-        eventDispatcher = new EventDispatcher(behavior, attachments);
-
+    var attachments = {behavior: behavior},
+        delegatedEvents = [], events, type, // uniqueIDs
+        eventListener = {
+          handleEvent: function(event) {
+            _eventDispatcher.dispatchEvent(behavior, event.target, event);
+          }
+        };
+        
     // Extract events.
     forEach (behavior, function(property, name) {
       if (typeof property == "function" && _EVENT.test(name)) {
@@ -40,18 +41,24 @@ var behavior = jsb.behavior = new Base({
     });
 
     behavior.attach = function(element) {
-      var uniqueID = element.uniqueID || assignID(element, "uniqueID");
+      var document = element[_OWNER_DOCUMENT],
+          documentID = document.base2ID || assignID(document),
+          uniqueID = documentID + (element.uniqueID || assignID(element, "uniqueID"));
       if (!attachments[uniqueID]) { // don't attach more than once
         attachments[uniqueID] = true;
-        var document = element[_OWNER_DOCUMENT],
-            documentID = document.base2ID || assignID(document);
+        if (!allAttachments[uniqueID]) allAttachments[uniqueID] = 0;
+        allAttachments[uniqueID]++;
         // Add event handlers
         if (!delegatedEvents[documentID]) {
           delegatedEvents[documentID] = true; // we only need to attach these once
-          forEach (delegatedEvents, bind("delegate", eventDispatcher, document));
+          for (var i = 0; type = delegatedEvents[i]; i++) {
+            _eventDelegator.addEventListener(document, type, attachments);
+          }
         }
         if (events) {
-          forEach (events, bind("add", eventDispatcher, element));
+          for (var i = 0; type = events[i]; i++) {
+            EventTarget.addEventListener(element, type, eventListener, false);
+          }
         }
         // Pseudo events.
         if (behavior.onattach) behavior.onattach(element);
@@ -72,10 +79,68 @@ var behavior = jsb.behavior = new Base({
     };
 
     behavior.detach = function(element) {
-      delete attachments[element.uniqueID];
+      var uniqueID = element[_OWNER_DOCUMENT].base2ID + element.uniqueID;
+      if (attachments[uniqueID]) {
+        delete attachments[uniqueID];
+        if (allAttachments[uniqueID]) allAttachments[uniqueID]--;
+        if (events) {
+          for (var i = 0; type = events[i]; i++) {
+            EventTarget.removeEventListener(element, type, eventListener, false);
+          }
+        }
+      }
     };
 
     return behavior;
+  },
+
+  get: function(element, propertyName) {
+    // Retrieve a DOM property.
+    // The rules:
+    //  1. Look for the actual DOM property
+    //  2. If not found, look for an attribute
+    //  3. If not found, use the property defined on the behavior (default)
+    //  4. Cast the retrieved value to the same type as the default value
+    
+    var value = element[propertyName];
+    if (value == null) {
+      var defaultValue = value = this[propertyName];
+      if (element.hasAttribute(propertyName)) {
+        value = element.getAttribute(propertyName);
+        if (defaultValue != null) {
+          value = defaultValue.constructor(value); // cast
+        }
+      }
+    }
+    return value;
+  },
+
+  "@(element.getAttribute('expando'))": {
+    get: function(element, propertyName) {
+      var defaultValue = this[propertyName],
+          value = element[propertyName];
+      if (value == null) {
+        value = defaultValue;
+      } else if (defaultValue != null) {
+        value = defaultValue.constructor(value); // cast
+      }
+      return value;
+    }
+  },
+
+  set: function(element, propertyName, value, triggerEvent) {
+    // Set a DOM property.
+    // This basically delegates to element.settAttribute().
+    
+    // If triggerEvent is true then a change event is fired identifying the property.
+    //  e.g. behavior.set(element, "example", 99); // => fires onexamplechange
+    // Change events bubble but are not cancelable.
+    
+    var oldValue = this.get(element, propertyName);
+    if (oldValue !== value) {
+      this.setAttribute(element, propertyName, value);
+      if (triggerEvent) this.dispatchEvent(element, propertyName.toLowerCase() + "change");
+    }
   },
 
   dispatchEvent: function(node, event, data) {
@@ -101,43 +166,10 @@ var behavior = jsb.behavior = new Base({
   setCSSProperty: function(element, propertyName, value, important) {
     CSSStyleDeclaration.setProperty(element.style, propertyName, value, important ? "important" : "");
   },
-  
+
   getOffsetFromBody: function(element) {
+    // This is not defined as a standard but it's damned useful.
     return ElementView.getOffsetFromBody(element);
-  },
-
-  getProperty: function(element, propertyName) {
-    var value = element[propertyName];
-    if (value == null) {
-      value = this[propertyName];
-      if (element.hasAttribute(propertyName)) {
-        value = element.getAttribute(propertyName);
-        if (defaultValue != null) {
-          value = defaultValue.constructor(value); // cast
-        }
-      }
-    }
-    return value;
-  },
-
-  "@(element.getAttribute('expando'))": {
-    getProperty: function(element, propertyName) {
-      var value = element[propertyName];
-      if (value == null) {
-        value = this[propertyName];
-      } else if (defaultValue != null) {
-        value = defaultValue.constructor(value); // cast
-      }
-      return value;
-    }
-  },
-
-  setProperty: function(element, propertyName, value, triggerEvent) {
-    var oldValue = this.getProperty(element, propertyName);
-    if (oldValue !== value) {
-      this.setAttribute(element, propertyName, value);
-      if (triggerEvent) this.dispatchEvent(element, propertyName.toLowerCase() + "change");
-    }
   },
 
   captureMouse: function(element) {

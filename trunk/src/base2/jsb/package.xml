@@ -4,7 +4,8 @@
   <include src="header.js"/>
   <include src="Rule.js"/>
   <include src="RuleList.js"/>
-  <include src="EventDispatcher.js"/>
+  <include src="_eventDelegator.js"/>
+  <include src="_eventDispatcher.js"/>
   <include src="External.js"/>
   <include src="behavior.js"/>
   <include src="state.js"/>

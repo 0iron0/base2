@@ -6,14 +6,15 @@ var dropdown = control.extend({
   
   appearance: "dropdown",
   
-  "@theme=luna/blue": {
+  "@theme=luna\\/blue": {
     imageWidth: 15
   },
   
   // events
 
   onblur: function(element, event) {
-    if (this.isOpen(element)) this.hidePopup();
+    console2.log("BLUR");
+    if (this.isOpen(element) && !this._popup.active) this.hidePopup();
     this.base(element, event);
   },
   
@@ -40,7 +41,7 @@ var dropdown = control.extend({
   onmousedown: function(element, event, x) {
     this.base.apply(this, arguments);
     if (this.isEditable(element)) {
-      if (this.hitTest(event.target, x)) {
+      if (this.hitTest(element, x)) {
         if (this.isOpen(element)) {
           this.hidePopup();
         } else {
@@ -53,6 +54,14 @@ var dropdown = control.extend({
   },
 
   // methods
+  
+  extend: function(_interface) {
+    var dropdown = this.base(_interface);
+    if (!Popup.ancestorOf(dropdown.Popup)) {
+      dropdown.Popup = this.Popup.extend(dropdown.Popup);
+    }
+    return dropdown;
+  },
 
   getState: function(element) {
     if (element.disabled) {

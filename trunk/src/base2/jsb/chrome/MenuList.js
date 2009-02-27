@@ -59,7 +59,7 @@ var MenuList = Popup.extend({
   },
 
   render: function() {
-    var id = this.owner.getProperty(this.element, "list"),
+    var id = this.owner.get(this.element, "list"),
         lists = this.lists;
     if (id && !lists[id]) {
       var list = behavior.querySelector("#" + id);
