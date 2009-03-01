@@ -1,7 +1,7 @@
 
 var element = behavior.extend({
-  "repeat-min": 0,
-  "repeat-max": _MAX_VALUE,
+  "repeat-min":   0,
+  "repeat-max":   _MAX_VALUE,
   "repeat-start": 1,
   
   indexes: {},
@@ -170,7 +170,7 @@ var element = behavior.extend({
       if (repeat == "template") {
         return _REPETITION_TEMPLATE;
       }
-      if (this.testValidIndex(repeat)) {
+      if ((!isNaN(repeat) && repeat >= 0 && repeat < _MAX_VALUE)) {
         return _REPETITION_BLOCK;
       }
     }
@@ -203,8 +203,7 @@ var element = behavior.extend({
   getRepetitionTemplate: function(element) {
     if (this.isBlock(element)) {
       if (this.hasAttribute(element, "repeat-template")) {
-        var templateId = this.get(element, "repeat-template");
-        var template = this.querySelector(document, "#" + templateId);
+        var template = document.getElementById(this.get(element, "repeat-template"));
       } else {
         template = element;
         while ((template = template.nextSibling) && !this.isTemplate(template)) {
@@ -216,9 +215,5 @@ var element = behavior.extend({
       }
     }
     return null;
-  },
-
-  testValidIndex: function(index) {
-    return index && !isNaN(index) && index >= 0 && index < _MAX_VALUE;
   }
 });
