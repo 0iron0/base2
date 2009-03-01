@@ -2,30 +2,27 @@
 var add = button.extend({
   onattach: function(button) {
     if (this.hasAttribute(button, "template")) {
-      var template = this.getTemplate(button);
+      var template = this.getHtmlTemplate(button);
     } else {
-      var block = button;
-      while (block && !this.isBlock(block)) {
-        block = block.parentNode;
-      }
+      var block = this.getBlock(button);
       if (block) {
         template = this.getRepetitionTemplate(block);
       }
+    }
+    if (template) {
+      html5.template.attach(template);
     }
     button.disabled = !template;
   },
 
   onclick: function(button, event) {
-    event.preventDefault(); // preent submit
+    event.preventDefault(); // prevent submit
 
     if (this.hasAttribute(button, "template")) {
-      var template = this.getTemplate(button);
+      var template = this.getHtmlTemplate(button);
       var block = null;
     } else {
-      block = button;
-      while (block && !this.isBlock(block)) {
-        block = block.parentNode;
-      }
+      block = this.getBlock(button);
       if (block) {
         template = this.getRepetitionTemplate(block);
       }
@@ -35,11 +32,10 @@ var add = button.extend({
     }
   },
   
-  getTemplate: function(button) {
-    var templateId = this.get(button, "template"),
-        template = document.getElementById(templateId);
+  getHtmlTemplate: function(button) {
+    var template = document.getElementById(this.get(button, "template"));
 
-    if (template && this.isTemplate(template)) {
+    if (this.isTemplate(template)) {
       return template;
     }
     

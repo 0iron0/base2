@@ -1,20 +1,14 @@
 
 var remove = button.extend({
   onattach: function(button) {
-    var block = button;
-    while (block && !this.isBlock(block)) {
-      block = block.parentNode;
-    }
-    button.disabled = !block;
+    button.disabled = !this.getBlock(button);
+    console2.log("REMOVE: " + button.innerHTML + "=" + button.disabled);
   },
 
   onclick: function(button, event) {
-    event.preventDefault(); // preent submit
+    event.preventDefault(); // prevent submit
     
-    var block = button;
-    while (block && !this.isBlock(block)) {
-      block = block.parentNode;
-    }
+    var block = this.getBlock(button);
     if (block) {
       this.removeRepetitionBlock(block);
     }

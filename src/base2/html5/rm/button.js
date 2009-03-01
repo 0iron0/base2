@@ -1,4 +1,10 @@
 
 var button = element.extend({
-  // mmm. merely an abstraction then...
+  getBlock: function(button) {
+    var block = button;
+    while (block && !this.isBlock(block)) {
+      block = block.parentNode;
+    }
+    return block;
+  }
 });
