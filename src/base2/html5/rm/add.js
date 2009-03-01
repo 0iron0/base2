@@ -36,11 +36,13 @@ var add = button.extend({
   },
   
   getTemplate: function(button) {
-    var templateId = this.get(button, "template");
-    var template = this.querySelector(document, "#" + templateId);
+    var templateId = this.get(button, "template"),
+        template = document.getElementById(templateId);
+
     if (template && this.isTemplate(template)) {
       return template;
     }
+    
     return null;
   }
 });
