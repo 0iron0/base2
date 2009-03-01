@@ -15,6 +15,8 @@ var colorpicker = dropdown.extend({
         SLIDER.replace(/%1/, "G"),
         SLIDER.replace(/%1/, "B")
       ].join("<br>"));
+      
+      this.render = Undefined; // do once
     },
 
     getControls: function() {
@@ -34,8 +36,6 @@ var colorpicker = dropdown.extend({
         slider.attach(input);
       });
     },
-
-    onclick: Undefined,
 
     onchange: function(event) {
       var rgb = map(pluck(this.getControls(), "value"), Number);
@@ -63,8 +63,10 @@ var colorpicker = dropdown.extend({
   hitTest: True,
 
   setValue: function(element, value) {
-    element.value = value;
-    this.layout(element);
-    this.dispatchEvent(element, "change");
+    if (element.value != value) {
+      element.value = value;
+      this.layout(element);
+      this.dispatchEvent(element, "change");
+    }
   }
 });

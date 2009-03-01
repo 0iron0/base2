@@ -68,16 +68,21 @@ var slider = range.extend({
   layout: function(element, state) {
     if (state == null) state = this.getState(element);
     
-    var thumb = this.getThumbRect(element);
+    var thumb = this.getThumbRect(element),
+        style = element.style;
 
     if (element[_HEIGHT] > element[_WIDTH]) {
-      var left = thumb.left;
-      var top = thumb.top - Math.ceil((this.VERTICAL_HEIGHT - this.THUMB_HEIGHT) / 2) - state * this.VERTICAL_HEIGHT;
+      var left = thumb.left,
+          top = thumb.top - Math.ceil((this.VERTICAL_HEIGHT - this.THUMB_HEIGHT) / 2) - state * this.VERTICAL_HEIGHT;
     } else {
       left = thumb.left - Math.ceil((this.HORIZONTAL_WIDTH - this.THUMB_WIDTH) / 2) - state * this.HORIZONTAL_WIDTH;
       top = thumb.top;
     }
-    element.style.backgroundPosition = left + PX + " " + top + PX;
+    
+    var backgroundPosition = left + PX + " " + top + PX;
+    if (style.backgroundPosition != backgroundPosition) {
+      style.backgroundPosition = backgroundPosition;
+    }
   },
 
   getThumbRect: function(element) {

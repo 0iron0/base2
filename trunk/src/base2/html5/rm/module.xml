@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package name="html5/rm" publish="false" closure="false">
+  <include src="header.js"/>
+  <include src="element.js"/>
+  <include src="template.js"/>
+  <include src="button.js"/>
+  <include src="add.js"/>
+  <include src="remove.js"/>
+  <include src="move.js"/>
+  <include src="move-up.js"/>
+  <include src="move-down.js"/>
+</package>

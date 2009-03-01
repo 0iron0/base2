@@ -2,11 +2,11 @@
 var template = behavior.extend({
   /* EVENT HANDLERS */
 
-  onattach: function(element){},
-  ondetach: function(element){}, /* ondetach is not currently supported */
+  onattach: function(element, event){},
+  ondetach: function(element, event){}, /* ondetach is not currently supported */
 
-  oncontentready:  function(element){},
-  ondocumentready: function(element){},
+  oncontentready:  function(element, event){},
+  ondocumentready: function(element, event){},
 
   onmouseover: function(element, event){},
   onmouseout:  function(element, event){},
@@ -18,9 +18,9 @@ var template = behavior.extend({
   onmousemove: function(element, event, x, y, screenX, screenY){},
   
   // ExtendedMouse
-  // on((dbl)?click|mouse(up|down)): function(element, event, button, x, y, screenX, screenY)
+  // on((dbl)?click|mouse(up|down|move)): function(element, event, button, x, y, screenX, screenY)
   
-  onmousewheel: function(element, event, delta){},
+  onmousewheel: function(element, event, wheelDelta){},
 
   onkeydown: function(element, event, keyCode, shiftKey, ctrlKey, altKey){},
   onkeyup:   function(element, event, keyCode, shiftKey, ctrlKey, altKey){},
@@ -68,9 +68,8 @@ var template = behavior.extend({
   matchesSelector: function(element, selector){return Boolean;},
 
   getComputedStyle: function(element, /* optional */ propertyName){return Object || String;},
-
-  getCSSProperty: function(element, propertyName){return String;},
-  setCSSProperty: function(element, propertyName, value, /* optional */ important){},
+  
+  setStyle: function(element, propertyName, value, /* optional */ important){},
 
   // capture mouse events
   captureMouse: function(element){},
@@ -79,21 +78,4 @@ var template = behavior.extend({
   // bind a timer function to a behavior object
   setInterval: function(callback, delay, /* optional */ arg1, arg2, argN){return Number;}, // return timer id
   setTimeout:  function(callback, delay, /* optional */ arg1, arg2, argN){return Number;},
-
-  /* USER DEFINED METHODS */
-
-  staticMethod1: function(element, param1, param2){},
-
-  /* OVERRIDE EXISTING BEHAVIOR METHODS */
-  
-  setCSSProperty: function(element, propertyName, value) {
-    if (propertyName == "opacity") {
-      // do something different
-      
-      // NB: opacity is already supported by base2.DOM, this is just an example
-    } else {
-      // use the default behavior
-      this.base(element, propertyName, value);
-    }
-  }
 });

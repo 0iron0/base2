@@ -7,15 +7,36 @@
 var Selector = Base.extend({
   constructor: function(selector) {
     this.toString = K(trim(selector));
+    if (!_parser.exec) _parser = new CSSParser(_parser);
   },
 
   exec: function(context, count, simple) {
     return Selector.parse(this, simple)(context, count);
   },
 
+  getSpecificity: function() {
+    var selector = _parser.escape(this);
+    if (selector.indexOf(",") == -1) {
+    	return match(selector, _SPECIFICITY_ID).length * 10000 +
+    		match(selector, _SPECIFICITY_CLASS).length * 100 +
+    		match(selector, _SPECIFICITY_TAG).length;
+    } else {
+      return -1;
+    }
+  },
+
+  isPseudo: function() {
+    return _PSEUDO.test(_parser.escape(this));
+  },
+
   isSimple: function() {
-    if (!_parser.exec) _parser = new CSSParser(_parser);
     return !_COMBINATOR.test(trim(_parser.escape(this)));
+  },
+
+  split: function() {
+    return Array2.map(_parser.escape(this).split(","), function(selector) {
+      return new Selector(_parser.unescape(selector));
+    });
   },
 
   test: function(element) {
@@ -75,7 +96,12 @@ var Selector = Base.extend({
   }
 });
 
-var _COMBINATOR = /[^,]\s|[+>~]/;
+var _SPECIFICITY_ID = /#/g,
+    _SPECIFICITY_CLASS = /[.:\[]/g,
+    _SPECIFICITY_TAG = /^\w|[\s>+~]\w/g;
+    
+var _COMBINATOR = /[^,]\s|[+>~]/,
+    _PSEUDO = /:/;
 
 var _NOT_XPATH = ":(checked|disabled|enabled|contains|hover|active|focus|link|visited)|^(#[\\w-]+\\s*)?\\w+$";
 if (detect("KHTML")) {
@@ -319,7 +345,6 @@ var _parser = {
   Selector.parse = function(selector, simple) {
     var cache = simple ? _simple : _cache;
     if (!cache[selector]) {
-      if (!_parser.exec) _parser = new CSSParser(_parser);
       _reg = []; // store for RegExp objects
       _list = [];
       var fn = "";

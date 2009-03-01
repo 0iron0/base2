@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <title>Form Repeat Demo</title>
+ <script src="/base2/trunk/src/console2.js?<?php echo time() ?>" type="text/javascript"></script>
+ <script src="/base2/trunk/src/build.php?package=base2/html5/package.xml&amp;full&<?php echo time() ?>" type="text/javascript"></script>
+ <script type="text/javascript">
+ html5.rules.add("tr[repeat=template]", html5.template);
+ </script>
+ </head>
+ <body>
+  <form action="http://software.hixie.ch/utilities/cgi/test-tools/echo" method="post" enctype="multipart/form-data">
+   <table>
+    <thead>
+     <tr>
+      <th>Name</th>
+      <th>Number of Cats</th>
+      <th></th>
+     </tr>
+    </thead>
+    <tbody>
+     <tr repeat="0">
+      <td><input type="text2" name="name_0" value="John Smith"></td>
+      <td><input type="text" name="count_0" value="2"></td>
+      <td><button class="html5-remove" type="remove">Delete Row</button></td>
+      <td><button class="html5-move-up type="move-up">Move Up</button></td>
+      <td><button class="html5-move-down type="move-down">Move Down</button></td>
+      <td><button class="html5-add" type="add">Add Row</button></td>
+     </tr>
+     <tr repeat="template" id="row">
+      <td><input type="text" name="name_[row]" value="" autofocus></td>
+      <td><input type="text" name="count_[row]" value="1"></td>
+      <td><button class="html5-remove" type="remove">Delete Row</button></td>
+      <td><button class="html5-move-up type="move-up">Move Up</button></td>
+      <td><button class="html5-move-down type="move-down">Move Down</button></td>
+      <td><button class="html5-add" type="add">Add Row</button></td>
+     </tr>
+    </tbody>
+   </table>
+   <p>
+    <button class="html5-add" type="add" template="row">Add Row</button>
+    <button type="submit">Submit</button>
+   </p>
+  </form>
+ </body>
+</html>

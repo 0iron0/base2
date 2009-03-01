@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="JST">
+<package name="jst">
   <include src="package.js"/>
   <include src="Command.js"/>
   <include src="Environment.js"/>

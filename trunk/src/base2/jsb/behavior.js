@@ -1,9 +1,9 @@
 
-var allAttachments = {};
-
 var behavior = jsb.behavior = new Base({
   attach: I,
   detach: I,
+  get: Undefined,
+  modify: Null,
   
   extendedMouse: false, // allow right and middle button clicks
   
@@ -18,11 +18,12 @@ var behavior = jsb.behavior = new Base({
     extend(behavior, _interface);
     
     // Private.
-    var attachments = {behavior: behavior},
-        delegatedEvents = [], events, type, // uniqueIDs
+    var attachments = {behavior: behavior}, // uniqueIDs
+        modifications = {}, specificities = {},
+        delegatedEvents = [], events = null, type,
         eventListener = {
           handleEvent: function(event) {
-            _eventDispatcher.dispatchEvent(behavior, event.target, event);
+            _dispatchEvent(behavior, event.target, event);
           }
         };
         
@@ -44,10 +45,14 @@ var behavior = jsb.behavior = new Base({
       var document = element[_OWNER_DOCUMENT],
           documentID = document.base2ID || assignID(document),
           uniqueID = documentID + (element.uniqueID || assignID(element, "uniqueID"));
+          
       if (!attachments[uniqueID]) { // don't attach more than once
+      
+        // Maintain attachment state.
         attachments[uniqueID] = true;
-        if (!allAttachments[uniqueID]) allAttachments[uniqueID] = 0;
-        allAttachments[uniqueID]++;
+        if (!_allAttachments[uniqueID]) _allAttachments[uniqueID] = 0;
+        _allAttachments[uniqueID]++;
+        
         // Add event handlers
         if (!delegatedEvents[documentID]) {
           delegatedEvents[documentID] = true; // we only need to attach these once
@@ -55,22 +60,23 @@ var behavior = jsb.behavior = new Base({
             _eventDelegator.addEventListener(document, type, attachments);
           }
         }
-        if (events) {
+        if (events) { // these events cannot be delegated
           for (var i = 0; type = events[i]; i++) {
             EventTarget.addEventListener(element, type, eventListener, false);
           }
         }
-        // Pseudo events.
-        if (behavior.onattach) behavior.onattach(element);
+        
+        // JSB events.
+        if (behavior.onattach) _dispatchJSBEvent(behavior, element, "attach");
         if (behavior.oncontentready) {
-          if (state.isContentReady(element)) {
-            behavior.oncontentready(element);
+          if (_state.isContentReady(element)) {
+            _dispatchJSBEvent(behavior, element, "contentready");
           } else {
-            state.contentReadyQueue.push({behavior: behavior, element: element});
+            _state.contentReadyQueue.push({behavior: behavior, element: element});
           }
         }
-        if (behavior.ondocumentready && !state.ready) {
-          state.documentReadyQueue.push({behavior: behavior, element: element});
+        if (behavior.ondocumentready && !_state.ready) {
+          _state.documentReadyQueue.push({behavior: behavior, element: element});
         }
         if (behavior.onfocus && element == document.activeElement) {
           behavior.dispatchEvent(element, "focus");
@@ -82,7 +88,7 @@ var behavior = jsb.behavior = new Base({
       var uniqueID = element[_OWNER_DOCUMENT].base2ID + element.uniqueID;
       if (attachments[uniqueID]) {
         delete attachments[uniqueID];
-        if (allAttachments[uniqueID]) allAttachments[uniqueID]--;
+        if (_allAttachments[uniqueID]) _allAttachments[uniqueID]--;
         if (events) {
           for (var i = 0; type = events[i]; i++) {
             EventTarget.removeEventListener(element, type, eventListener, false);
@@ -91,55 +97,63 @@ var behavior = jsb.behavior = new Base({
       }
     };
 
+    behavior.modify = function(attributes) {
+      attributes = extend(pcopy(behavior), attributes);
+      return {
+        isModification: true,
+
+        attach: function(element, rule) {
+          var document = element[_OWNER_DOCUMENT],
+              documentID = document.base2ID || assignID(document),
+              uniqueID = documentID + (element.uniqueID || assignID(element, "uniqueID"));
+          if (rule.specificity >= (specificities[uniqueID] || 0)) { // this shouldn't be necessary as rules are sorted by specificity
+            specificities[uniqueID] = rule.specificity;
+            modifications[uniqueID] = attributes;
+          }
+          return behavior.attach(element);
+        }
+      };
+    };
+
+    // Retrieve a DOM property.
+    behavior.get = function(element, propertyName) {
+      var uniqueID = element[_OWNER_DOCUMENT].base2ID + element.uniqueID,
+          attributes = modifications[uniqueID] || behavior,
+          defaultValue = attributes[propertyName],
+          type = typeof defaultValue,
+          value = element[propertyName];
+      if (_hasExpandoProperties) {
+        if (value === undefined) return defaultValue;
+        if (typeof value == "string") {
+          switch (type) {
+            case "boolean": return true;
+            case "number":  return value - 0;
+          }
+        }
+      } else {
+        var hasAttribute = element.hasAttribute(propertyName);
+        if (type == "boolean") return hasAttribute;
+        if (hasAttribute) {
+          value = element.getAttribute(propertyName);
+        } else {
+          return defaultValue;
+        }
+        if (type == "number") value -= 0;
+      }
+      return value;
+    };
+
     return behavior;
   },
 
-  get: function(element, propertyName) {
-    // Retrieve a DOM property.
-    // The rules:
-    //  1. Look for the actual DOM property
-    //  2. If not found, look for an attribute
-    //  3. If not found, use the property defined on the behavior (default)
-    //  4. Cast the retrieved value to the same type as the default value
-    
-    var value = element[propertyName];
-    if (value == null) {
-      var defaultValue = value = this[propertyName];
-      if (element.hasAttribute(propertyName)) {
-        value = element.getAttribute(propertyName);
-        if (defaultValue != null) {
-          value = defaultValue.constructor(value); // cast
-        }
-      }
-    }
-    return value;
-  },
-
-  "@(element.getAttribute('expando'))": {
-    get: function(element, propertyName) {
-      var defaultValue = this[propertyName],
-          value = element[propertyName];
-      if (value == null) {
-        value = defaultValue;
-      } else if (defaultValue != null) {
-        value = defaultValue.constructor(value); // cast
-      }
-      return value;
-    }
-  },
-
-  set: function(element, propertyName, value, triggerEvent) {
+  set: function(element, propertyName, value) {
     // Set a DOM property.
-    // This basically delegates to element.settAttribute().
-    
-    // If triggerEvent is true then a change event is fired identifying the property.
-    //  e.g. behavior.set(element, "example", 99); // => fires onexamplechange
-    // Change events bubble but are not cancelable.
-    
-    var oldValue = this.get(element, propertyName);
-    if (oldValue !== value) {
-      this.setAttribute(element, propertyName, value);
-      if (triggerEvent) this.dispatchEvent(element, propertyName.toLowerCase() + "change");
+    this.setAttribute(element, propertyName, value);
+  },
+  
+  "@(element.getAttribute('expando'))": {
+    set: function(element, propertyName, value) {
+      element[propertyName] = value;
     }
   },
 
@@ -155,29 +169,35 @@ var behavior = jsb.behavior = new Base({
 
   getComputedStyle: function(element, propertyName) {
     var view = element[_OWNER_DOCUMENT].defaultView;
-    if (propertyName) return ViewCSS.getComputedPropertyValue(view, element, propertyName);
-    return ViewCSS.getComputedStyle(view, element, null);
+    if (arguments.length == 1) {
+      return ViewCSS.getComputedStyle(view, element, null);
+    } else {
+      return ViewCSS.getComputedPropertyValue(view, element, propertyName);
+    }
   },
 
-  getCSSProperty: function(element, propertyName) {
-    return ViewCSS.getComputedPropertyValue(element[_OWNER_DOCUMENT].defaultView, element, propertyName);
-  },
-
-  setCSSProperty: function(element, propertyName, value, important) {
-    CSSStyleDeclaration.setProperty(element.style, propertyName, value, important ? "important" : "");
+  setStyle: function(element, propertyName, value, important) {
+    var style = element.style;
+    if (arguments.length == 2) {
+      var properties = arguments[1];
+      for (propertyName in properties) {
+        CSSStyleDeclaration.setProperty(style, propertyName, properties[propertyName], "");
+      }
+    } else {
+      CSSStyleDeclaration.setProperty(style, propertyName, value, important ? "important" : "");
+    }
   },
 
   getOffsetFromBody: function(element) {
-    // This is not defined as a standard but it's damned useful.
     return ElementView.getOffsetFromBody(element);
   },
 
   captureMouse: function(element) {
-    if (!state._captureElement) state._captureElement = element;
+    if (!_state.captureElement) _state.captureElement = element;
   },
 
   releaseMouse: function() {
-    delete state._captureElement;
+    delete _state.captureElement;
   }
 });
 

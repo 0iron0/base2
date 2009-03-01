@@ -2,8 +2,8 @@
 eval(base2.namespace);
 DOM.bind(document);
 
-var parser = new JST.Parser;
-var interpreter = new JST.Interpreter;
+var parser = new jst.Parser;
+var interpreter = new jst.Interpreter;
 
 new JSB.RuleList({
   "#input": null,

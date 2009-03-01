@@ -39,7 +39,7 @@ var ElementTraversal = Interface.extend({
     return !!(node && node.nodeType == 1);
   },
 
-  "@MSIE": {
+  "@MSIE5": {
     isElement: function(node) {
       return !!(node && node.nodeType == 1 && node.nodeName != "!");
     }

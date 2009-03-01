@@ -19,7 +19,7 @@ var _eventDelegator = {
     
     var type = event.type,
         isMouseEvent = _EVENT_MOUSE.test(type),
-        capture = state._captureElement && isMouseEvent;
+        capture = _state.captureElement && isMouseEvent;
         
     // Don't process mouseover/out when using mouse capture.
     if (capture && _EVENT_OVER_OUT.test(type)) return;
@@ -43,7 +43,7 @@ var _eventDelegator = {
     }
     
     var cancelBubble = !event.bubbles || capture,
-        element = capture ? state._captureElement : target;
+        element = capture ? _state.captureElement : target;
 
     if (!cancelBubble) {
       extend(event, "stopPropagation", function() {
@@ -55,7 +55,7 @@ var _eventDelegator = {
     // Dispatch events.
     do {
       var uniqueID = documentID + element.uniqueID;
-      if (allAttachments[uniqueID]) {
+      if (_allAttachments[uniqueID]) {
         for (var i = 0, attachments; attachments = map[i]; i++) {
           // make sure it's an attached element
           if (attachments[uniqueID]) {

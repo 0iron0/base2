@@ -1,5 +1,13 @@
 
 var dropdown = control.extend({
+  extend: function(_interface) {
+    var dropdown = this.base(_interface);
+    if (!Popup.ancestorOf(dropdown.Popup)) {
+      dropdown.Popup = this.Popup.extend(dropdown.Popup);
+    }
+    return dropdown;
+  },
+  
   // properties
 
   Popup: Popup, // popup class
@@ -54,14 +62,6 @@ var dropdown = control.extend({
   },
 
   // methods
-  
-  extend: function(_interface) {
-    var dropdown = this.base(_interface);
-    if (!Popup.ancestorOf(dropdown.Popup)) {
-      dropdown.Popup = this.Popup.extend(dropdown.Popup);
-    }
-    return dropdown;
-  },
 
   getState: function(element) {
     if (element.disabled) {
