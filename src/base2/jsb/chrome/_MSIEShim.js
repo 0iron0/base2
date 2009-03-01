@@ -14,7 +14,7 @@ var _MSIEShim = {
     }
     shim.element = element;
     shim.behavior = behavior;
-    var style = shim.control.style;
+    var style = shim.control.runtimeStyle;
     style.cssText = "position:absolute;border:0;display:block;background-position-x:right";
     //;;; style.backgroundColor = "red";
     style.pixelHeight = element.clientHeight;
@@ -27,7 +27,7 @@ var _MSIEShim = {
       element.detachEvent("onpropertychange", change);
       element.detachEvent("onfocusout", arguments.callee);
       element.scrollLeft = 9999;
-      shim.element = undefined;
+      delete shim.element;
       style.display = "none";
       detachEvent("onresize", resize);
     });
@@ -76,7 +76,7 @@ var shim = behavior.extend({
 
   layout: function() {
     if (this.element) {
-      this.control.style.backgroundPositionY = this.element.currentStyle.backgroundPositionY;
+      this.control.runtimeStyle.backgroundPositionY = this.element.currentStyle.backgroundPositionY;
     }
   }
 });

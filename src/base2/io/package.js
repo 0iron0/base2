@@ -1,6 +1,6 @@
 
-var IO = new base2.Package(this, {
-  name:    "IO",
+var io = new base2.Package(this, {
+  name:    "io",
   version: base2.version,
   imports: "Enumerable,Function2",
   exports: "NOT_SUPPORTED,READ,WRITE,FileSystem,Directory,LocalFileSystem,LocalDirectory,LocalFile"

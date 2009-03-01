@@ -40,15 +40,7 @@ var number = control.extend({
       range._element = element;
       properties = range._properties = {min: 0, max: 0, step: 0};
       for (var attr in properties) {
-        var value = element[attr];
-        value = parseFloat(value);
-        if (isNaN(value) && (!element.hasAttribute || element.hasAttribute(attr))) {
-          value = parseFloat(element.getAttribute(attr));
-        }
-        if (isNaN(value)) {
-          value = this[attr];
-        }
-        properties[attr] = value;
+        properties[attr] = this.get(element, attr);
       }
     }
     properties.relativeValue = ((properties.value = parseFloat(element.value) || 0) - properties.min) / (properties.max - properties.min);

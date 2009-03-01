@@ -2,11 +2,11 @@
 <package name="jsb" requires="DOM">
   <include src="package.js"/>
   <include src="header.js"/>
+  <include src="behavior.js"/>
+  <include src="External.js"/>
   <include src="Rule.js"/>
   <include src="RuleList.js"/>
   <include src="_eventDelegator.js"/>
   <include src="_eventDispatcher.js"/>
-  <include src="External.js"/>
-  <include src="behavior.js"/>
-  <include src="state.js"/>
+  <include src="_state.js"/>
 </package>

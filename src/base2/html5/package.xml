@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package name="html5" requires="DOM,jsb">
+  <include src="package.js"/>
+  <include src="rm/module.xml"/>
+  <include src="rules.js"/>
+</package>

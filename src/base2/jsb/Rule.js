@@ -6,11 +6,12 @@ var Rule = Base.extend({
     if (!instanceOf(selector, Selector)) {
       selector = new Selector(selector);
     }
-    if (typeof behavior == "string") {
+    
+    if (typeof behavior == "string") { // external resource
       behavior = new External(behavior, function(external) {
         behavior = external;
       });
-    } else if (!jsb.behavior.ancestorOf(behavior)) {
+    } else if (!behavior.isModification && !jsb.behavior.ancestorOf(behavior)) {
       behavior = jsb.behavior.extend(behavior);
     }
     
@@ -20,7 +21,9 @@ var Rule = Base.extend({
 
     this.toString = selector.toString;
     
-    state.addRule(selector, behavior);
+    forEach (selector.split(), function(selector) {
+      _state.addRule(selector, behavior);
+    });
   },
   
   refresh: Undefined // defined in the constructor function

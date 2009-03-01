@@ -196,6 +196,34 @@ var ElementView = Interface.extend({
       
       return offset;
     }
+  },
+  
+  // Manage offsetX/Y.
+
+  getOffsetXY: function(element, clientX, clientY) {
+    if (element.clientLeft == null) {
+      var computedStyle = element.ownerDocument.defaultView.getComputedStyle(element, null);
+      clientX -= parseInt(computedStyle.borderLeftWidth);
+      clientY -= parseInt(computedStyle.borderTopWidth);
+    } else {
+      clientX -= element.clientLeft;
+      clientY -= element.clientTop;
+    }
+    var clientRect = this.getBoundingClientRect(element);
+    return {
+      x: clientX - clientRect.left,
+      y: clientY - clientRect.top
+    }
+  },
+
+  "@(element.getBoundingClientRect&&element.clientLeft===0)": { // slightly faster if these properties are defined
+    getOffsetXY: function(element, clientX, clientY) {
+      var clientRect = element.getBoundingClientRect();
+      return {
+        x: clientX - clientRect.left - element.clientLeft,
+        y: clientY - clientRect.top - element.clientTop
+      }
+    }
   }
 });
 
@@ -240,7 +268,6 @@ var _offsets = new Base({
         offset.left += viewportOffset.left;
         offset.top  += viewportOffset.top;
       }
-      
       return offset;
     }
   },
@@ -268,6 +295,6 @@ function _memoise(type) {
   return function(document) {
     var key = type + (document.base2ID || assignID(document));
     if (!_memoise[key]) _memoise[key] = this.base(document);
-    return _memoise[key];
+    return copy(_memoise[key]);
   };
 };

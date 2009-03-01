@@ -57,7 +57,7 @@ var Popup = Base.extend({
   },
 
   hide: function() {
-    console2.log("HIDE");
+    //console2.log("HIDE");
     var parent = this.body.parentNode;
     if (parent) parent.removeChild(this.body);
     delete this.element;
@@ -98,7 +98,7 @@ var Popup = Base.extend({
   },
 
   show: function(element) {
-    console2.log("SHOW");
+    //console2.log("SHOW");
     this.element = element;
     this.render();
     this.style();
@@ -114,13 +114,18 @@ var Popup = Base.extend({
     forEach.csv("backgroundColor,color,fontFamily,fontSize,fontWeight,fontStyle", function(propertyName) {
       style[propertyName] = computedStyle[propertyName];
     });
+    if (style.backgroundColor == "transparent") {
+      style.backgroundColor = "white";
+    }
   },
 
   // Inserting content into the document body whilst it is loading will result
   // in an "operation aborted" error. So we use a popup object instead. (MSIE)
   "@(typeof createPopup=='object')": {
     createBody: function() {
-      var popup = this.popup = createPopup(), document = popup.document, body = document.body;
+      var popup = this.popup = createPopup(),
+          document = popup.document,
+          body = document.body;
   		document.createStyleSheet().cssText = "body{margin:0}body *{cursor:default}" + _theme.cssText;
   		assignID(document);
       popup.show(); // init
@@ -129,7 +134,7 @@ var Popup = Base.extend({
     },
     
     hide: function() {
-      console2.log("HIDE");
+      //console2.log("HIDE");
       this.popup.hide();
       delete this.element;
       delete control._popup;

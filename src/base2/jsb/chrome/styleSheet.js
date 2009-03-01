@@ -167,6 +167,12 @@ var styleSheet = {
     width:         "4em"
   },
 
+  /*"@MSIE": {
+    ".chrome-colorpicker:hover": {
+      borderColor:    "ActiveCaption"
+    }
+  },*/
+
   datalist: {
     display: "none!"
   },
@@ -227,7 +233,9 @@ var styleSheet = {
   },
 
   ".chrome-colorpicker-popup input": {
-    margin:      "4px 2px"
+    fontSize:    "11px",
+    margin:      "4px 2px",
+    width:       "127px"
   },
 
   spinner: {

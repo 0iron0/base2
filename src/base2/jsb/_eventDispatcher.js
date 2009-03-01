@@ -3,6 +3,7 @@ var _MSIE = detect("MSIE");
 
 var _currentBehavior, _handler, _eventArgs;
 
+// The dispatch mechanism.
 if (_MSIE) {
   var _fire = document.createElement("meta");
   _fire.jsbEvents = 0;
@@ -27,6 +28,7 @@ function _dispatchEvent(behavior, element, event) {
   _currentBehavior = behavior;
   _eventArgs = [element, event];
   
+  // Build the event signature.
   if (_EVENT_MOUSE.test(type)) {
     if (type == "mousewheel") {
       _eventArgs.push(event.wheelDelta);
@@ -53,6 +55,10 @@ function _dispatchEvent(behavior, element, event) {
   } else if (_EVENT_TEXT.test(type)) {
     _eventArgs.push(event.keyCode, event.shiftKey, event.ctrlKey, event.altKey, event.metaKey);
   }
+  
+  // Trigger the underlying event.
+  // Use the host's underlying event dispatch mechanism so that we get a real
+  // execution context.
   if (event.bubbles) {
     if (_MSIE) {
       _fire.jsbEvents++;
@@ -64,4 +70,14 @@ function _dispatchEvent(behavior, element, event) {
   } else {
     _handler.apply(behavior, _eventArgs);
   }
+};
+
+var _jsbEvent = Document.createEvent(document, "Events");
+_jsbEvent.initEvent("dummy", false, false);
+_jsbEvent = Event.cloneEvent(_jsbEvent);
+
+function _dispatchJSBEvent(behavior, element, type) {
+  _jsbEvent.target = element;
+  _jsbEvent.type = type;
+  _dispatchEvent(behavior, element, _jsbEvent);
 };

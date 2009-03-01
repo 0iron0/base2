@@ -110,7 +110,7 @@ var XPathParser = CSSParser.extend({
       "$=": "[substring(@$1,string-length(@$1)-string-length('$2')+1)='$2']",
       "~=": "[contains(concat(' ',@$1,' '),' $2 ')]",
       "|=": "[contains(concat('-',@$1,'-'),'-$2-')]",
-      "!=": "[not(@$1='$2')]",
+//    "!=": "[not(@$1='$2')]",
       "=":  "[@$1='$2']"
     },
     

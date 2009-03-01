@@ -45,9 +45,11 @@ var Event = Binding.extend({
     clone.isClone = true;
     clone.stopPropagation = function() {
       event.stopPropagation();
+      this.cancelBubble = true;
     };
     clone.preventDefault = function() {
       event.preventDefault();
+      this.returnValue = false;
     };
     return clone;
   },

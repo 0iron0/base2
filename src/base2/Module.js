@@ -48,7 +48,7 @@ var Module = Abstract.extend({
           if (module[name] === undefined) {
             var property = _interface[name];
             if (typeof property == "function" && property.call && _interface.prototype[name]) {
-              property = _staticModuleMethod(_interface, name);
+              property = _createStaticModuleMethod(_interface, name);
             }
             module[name] = property;
           }
@@ -88,7 +88,7 @@ function _extendModule(module, _interface) {
         namespace = "var " + name + "=" + id + "." + name + ";";
       } else if (typeof property == "function" && property.call) {
         namespace = "var " + name + "=base2.lang.bind('" + name + "'," + id + ");";
-        proto[name] = _moduleMethod(module, name);
+        proto[name] = _createModuleMethod(module, name);
         ;;; proto[name]._module = module; // introspection
       }
       if (module.namespace.indexOf(namespace) == -1) {
@@ -98,13 +98,13 @@ function _extendModule(module, _interface) {
   }
 };
 
-function _staticModuleMethod(module, name) {
+function _createStaticModuleMethod(module, name) {
   return function() {
     return module[name].apply(module, arguments);
   };
 };
 
-function _moduleMethod(module, name) {
+function _createModuleMethod(module, name) {
   return function() {
     var args = _slice.call(arguments);
     args.unshift(this);
