@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="html5/rm" publish="false" closure="false">
+<package name="rm" publish="true" closure="true">
+  <include src="package.js"/>
+  <include src="style.js"/>
   <include src="header.js"/>
   <include src="element.js"/>
   <include src="template.js"/>

@@ -2,7 +2,6 @@
 var remove = button.extend({
   onattach: function(button) {
     button.disabled = !this.getBlock(button);
-    console2.log("REMOVE: " + button.innerHTML + "=" + button.disabled);
   },
 
   onclick: function(button, event) {

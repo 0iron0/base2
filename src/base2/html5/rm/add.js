@@ -10,7 +10,7 @@ var add = button.extend({
       }
     }
     if (template) {
-      html5.template.attach(template);
+      rm.template.attach(template);
     }
     button.disabled = !template;
   },

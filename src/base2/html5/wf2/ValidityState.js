@@ -1,0 +1,4 @@
+
+var ValidityState = Base.extend({
+});
+
