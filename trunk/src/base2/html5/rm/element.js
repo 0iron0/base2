@@ -78,6 +78,8 @@ var element = behavior.extend({
       refNode = refNode.nextSibling;
     }
     block.style.display = "";
+    ClassList.remove(block, "jsb-template");
+    ClassList.remove(block, "html5-template");
     refNode.parentNode.insertBefore(block, refNode);
 
     // maintain the index
