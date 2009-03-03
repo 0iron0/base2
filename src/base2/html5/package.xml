@@ -3,9 +3,10 @@
   <include src="package.js"/>
   <include src="header.js"/>
   <include src="~/base2/jsb/chrome/Theme.js"/>
-  <include src="~/base2/jsb/chrome/styleSheet.js"/>
+  <include src="~/base2/jsb/chrome/style.js"/>
   <include src="element.js"/>
   <include src="meter.js"/>
+  <include src="progress.js"/>
   <include src="style.js"/>
   <include src="rules.js"/>
   <include src="init.js"/>

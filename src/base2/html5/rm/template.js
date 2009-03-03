@@ -10,7 +10,7 @@ var template = element.extend({
     while (i++ < start) {
       this.addRepetitionBlock(template, null);
     }
-    
+
     i = this.getRepetitionBlocks(template).length;
     while (i++ < min) {
       this.addRepetitionBlock(template, null);

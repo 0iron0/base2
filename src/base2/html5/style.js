@@ -1,6 +1,6 @@
 
 var style = {
-  "audio,datalist,details:not([open])>:not(legend),eventsource,[repeat=template],.html5-template": {
+  "audio,datalist,details:not([open])>:not(legend),eventsource": {
     display: "none"
   },
   "audio[controls]": {
@@ -29,19 +29,24 @@ var style = {
     listStyleType: "circle"
   },
   "meter,progress": {
-    display: "inline-block"
+    display: "inline-block",
+    verticalAlign: "middle"
   },
   meter: {
     backgroundColor: "ThreeDFace",
     color: "Highlight",
-    borderLeft: "0px solid",
+    border: "1px solid",
     height: "1.5em",
-    paddingLeft: "2px",
+    lineHeight: "1.5em",
+    padding: "0 2px",
     fontSize: "0.67em",
-    width: "10em",
+    width: "100px",
     overflow: "hidden",
     $textOverflow: "ellipsis",
     $boxSizing: "border-box"
+  },
+  progress: {
+    minHeight: "0.5em"
   }
 };
 

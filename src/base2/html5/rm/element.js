@@ -9,6 +9,8 @@ var element = behavior.extend({
   addRepetitionBlock: function(template, refNode) {
     assertArity(arguments);
 
+    if (!this.isTemplate(template)) return;
+
     // count the preceding repetition blocks
     var count = 0;
     var block = template;
@@ -58,7 +60,8 @@ var element = behavior.extend({
       } else {
         dummy.appendChild(block);
       }
-      dummy.innerHTML = dummy.innerHTML.replace(pattern, repetitionIndex);
+      dummy.innerHTML = dummy.innerHTML.replace(_FIX_MSIE_BROKEN_TAG, "$1html:").replace(pattern, repetitionIndex);
+      //alert(dummy.innerHTML);
       block = dummy.getElementsByTagName(template.nodeName)[0];
       block.setAttribute("repeat-template", name);
       block.removeAttribute("id");
@@ -172,7 +175,7 @@ var element = behavior.extend({
       if (repeat == "template") {
         return _REPETITION_TEMPLATE;
       }
-      if ((!isNaN(repeat) && repeat >= 0 && repeat < _MAX_VALUE)) {
+      if (repeat != "" && repeat != null && !isNaN(repeat) && repeat >= 0 && repeat < _MAX_VALUE) {
         return _REPETITION_BLOCK;
       }
     }
