@@ -130,7 +130,7 @@ var behavior = jsb.behavior = new Base({
             case "number":  return value - 0;
           }
         }
-      } else {
+      } else if (value === undefined) {
         var hasAttribute = element.hasAttribute(propertyName);
         if (type == "boolean") return hasAttribute;
         if (hasAttribute) {
@@ -142,18 +142,21 @@ var behavior = jsb.behavior = new Base({
       }
       return value;
     };
+    
+    if (_interface && _interface.get) {
+      extend(behavior, "get", _interface.get);
+    }
 
     return behavior;
   },
-
-  set: function(element, propertyName, value) {
-    // Set a DOM property.
-    this.setAttribute(element, propertyName, value);
-  },
   
-  "@(element.getAttribute('expando'))": {
-    set: function(element, propertyName, value) {
-      element[propertyName] = value;
+  set: function(element, propertyName, value, triggerEvent) {
+    if (triggerEvent) {
+      var originalValue = this.get(element, propertyName);
+    }
+    element[propertyName] = value;
+    if (triggerEvent && originalValue != value) {
+      this.dispatchEvent(element, propertyName + "change", {originalValue: originalValue});
     }
   },
 

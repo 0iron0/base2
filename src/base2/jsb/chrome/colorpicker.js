@@ -9,7 +9,7 @@ var colorpicker = dropdown.extend({
     appearance: "colorpicker-popup",
   
     render: function() {
-      var SLIDER = '%1: <input class="chrome-slider" min="0" max="255">';
+      var SLIDER = '%1: <input class="jsb-slider" min="0" max="255">';
       this.base([
         SLIDER.replace(/%1/, "R"),
         SLIDER.replace(/%1/, "G"),
@@ -20,7 +20,7 @@ var colorpicker = dropdown.extend({
     },
 
     getControls: function() {
-      return behavior.querySelectorAll(this.body, "input.chrome-slider");
+      return behavior.querySelectorAll(this.body, "input.jsb-slider");
     },
 
     hide: function() {

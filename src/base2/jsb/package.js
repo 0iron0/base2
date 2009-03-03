@@ -3,8 +3,8 @@
 
 base2.global.jsb = new base2.Package(this, {
   name:    "jsb",
-  version: "0.9.4",
-  imports: "Function2,DOM",
+  version: "0.9.5",
+  imports: "Function2,Enumerable,DOM",
   exports: "Rule,RuleList,behavior",
   
   INTERVAL:  1, // milliseconds
@@ -16,7 +16,24 @@ base2.global.jsb = new base2.Package(this, {
 // This ensures that the tick() function does not run for too long.
 // It also ensures that elements are returned in batches appropriate
 // for consistent rendering.
-   QUERY_SIZE: 200
+  QUERY_SIZE: 200,
+
+  createStyleSheet: function(cssText) {
+    if (document.body) {
+      var style = document.createElement("style");
+      style.type = "text/css";
+      style.textContent = cssText;
+      new Selector("head").exec(document, 1).appendChild(style);
+    } else {
+      document.write(format('<style type="text/css">%1<\/style>', cssText));
+    }
+  },
+
+  "@MSIE": {
+    createStyleSheet: function(cssText) {
+      document.createStyleSheet().cssText = cssText;
+    }
+  }
 });
 
 eval(this.imports);

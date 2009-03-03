@@ -66,6 +66,7 @@ var slider = range.extend({
   // methods
 
   layout: function(element, state) {
+    console2.log([element.clientHeight,element.offsetHeight]);
     if (state == null) state = this.getState(element);
     
     var thumb = this.getThumbRect(element),

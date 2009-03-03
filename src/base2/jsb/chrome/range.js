@@ -6,6 +6,11 @@ var range = number.extend({
   max:  100,
   allowVertical: true,
 
+  onminchange: _range_layout,
+  onmaxchange: _range_layout,
+  onstepchange: _range_layout,
+  onvaluechange: _range_layout,
+
   // events
 
   "@!Opera(8|9.[0-4])": {
@@ -82,3 +87,7 @@ var range = number.extend({
 
   getCursor: K("")
 });
+
+function _range_layout(element) {
+  this.layout(element);
+};

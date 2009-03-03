@@ -1,6 +1,4 @@
 
-var _PREFIX = detect("Webkit") ? "-webkit-" : "-moz-";
-
 var PX = "px";
 
 var _ACTIVE = "\x5factive",
@@ -16,12 +14,12 @@ function _resetScroll() {
 };
 
 var _preventScroll = {
-  onfocus: function(element) {
+  onmousedown: function(element) {
     if (!element.onscroll) {
       element.onscroll = _resetScroll;
       element.onscroll();
     }
-    this.base(element);
+    this.base.apply(this, arguments);
   }
 };
 
