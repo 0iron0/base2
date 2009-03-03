@@ -122,7 +122,7 @@ var control = behavior.extend({
   setOrientation: function(element, orientation) {
     if (orientation == this.VERTICAL) {
       _vertical[element.uniqueID] = true;
-      this.setStyle(element, "background-image", "url(" + chrome.host + chrome.theme + "/" + this.appearance + "-vertical.png)", true);
+      this.setStyle(element, "background-image", "url(" + chrome.host + Theme.current + "/" + this.appearance + "-vertical.png)", true);
     } else {
       delete _vertical[element.uniqueID];
       element.style.backgroundImage = "";

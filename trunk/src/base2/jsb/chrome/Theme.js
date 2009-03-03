@@ -1,39 +1,5 @@
 
-var Theme = Base.extend({
-  constructor: function(name) {
-    this.load(name);
-  },
-
-  cssText: "",
-  name: "default",
-
-  createStyleSheet: function() {
-    if (document.body) {
-      var style = document.createElement("style");
-      style.type = "text/css";
-      style.textContent = this.cssText;
-      new Selector("head").exec(document, 1).appendChild(style);
-    } else {
-      document.write(format('<style type="text/css">%1<\/style>', this.cssText));
-    }
-  },
-
-  load: function(name) {
-    if (name) this.name = name;
-    this.cssText = format(css, this);
-    this.createStyleSheet();
-  },
-
-  toString: function() {
-    return chrome.host + this.name + "/";
-  },
-
-  "@MSIE": {
-    createStyleSheet: function() {
-      document.createStyleSheet().cssText = this.cssText;
-    }
-  }
-}, {
+jsb.theme = new Base({
   detect: K("default"),
 
   "@Windows": {
@@ -86,9 +52,9 @@ var _XP_DETECT = {
 
 var rgba = rgb;
 
-chrome.theme = Theme.detect();
+jsb.theme.toString = K(jsb.theme.detect());
 
-base2.userAgent += ";theme=" + chrome.theme;
+base2.userAgent += ";theme=" + jsb.theme;
 
 function rgb(r, g, b) {
   function toHex(value) {
@@ -96,3 +62,4 @@ function rgb(r, g, b) {
   };
   return "#" + toHex(r) + toHex(g) + toHex(b);
 };
+

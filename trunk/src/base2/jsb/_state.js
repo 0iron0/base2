@@ -24,6 +24,7 @@ var _state = new Base({
     if (!_state.ready && !_state.rules.length) {
       setTimeout(_state.fireReady, _state.getInterval());
     }
+    _state.isContentReady = True;
   },
 
   onkeydown: function() {
@@ -47,6 +48,10 @@ var _state = new Base({
   },
 
   onmousemove: function() {
+    if (!_state.busy) _state.setBusyState(true)
+  },
+
+  onmousewheel: function() {
     if (!_state.busy) _state.setBusyState(true)
   },
 
@@ -100,7 +105,7 @@ var _state = new Base({
 
   isContentReady: function(element) {
     if (_HTML_BODY.test(element.nodeName)) return false;
-    if (_state.loaded || !element.hasChildNodes()) return true;
+    if (!element.hasChildNodes()) return true;
     while (element && !element.nextSibling) {
       element = element.parentNode;
     }

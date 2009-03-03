@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package name="html5" requires="DOM,jsb">
+  <include src="package.js"/>
+  <include src="header.js"/>
+  <include src="~/base2/jsb/chrome/Theme.js"/>
+  <include src="~/base2/jsb/chrome/style.js"/>
+  <include src="element.js"/>
+  <include src="meter.js"/>
+  <include src="progress.js"/>
+  <include src="style.js"/>
+  <include src="rules.js"/>
+  <include src="init.js"/>
+</package>

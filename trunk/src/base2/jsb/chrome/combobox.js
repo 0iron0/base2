@@ -5,9 +5,13 @@ var combobox = dropdown.extend({
   list: "",
   
   // methods
-  
-  getList: function(element) {
-    return this.querySelector("#" + this.get(element, "list"));
+
+  get: function(element, propertyName) {
+    var value = this.base(element, propertyName);
+    if (propertyName == "list" && typeof value == "string") {
+      return this.querySelector("#" + value);
+    }
+    return null;
   },
 
   Popup: {
@@ -81,15 +85,21 @@ var combobox = dropdown.extend({
     },
 
     render: function() {
-      var id = this.owner.get(this.element, "list"),
-          lists = this.lists;
-      if (id && !lists[id]) {
-        var list = behavior.querySelector("#" + id);
-        if (list) {
-          lists[id] = trim(list.innerHTML.replace(/(<\/?)\w+/g, "$1p").replace(/>\s+</g, "><"));
+      var list = this.owner.get(this.element, "list"),
+          html = "";
+      if (list) {
+        if (list.nodeType == 1) {
+          html = trim(list.innerHTML.replace(/\s*<\/?select[^>]*>\s*/gi, "").replace(/(<\/?)\w+/g, "$1p").replace(/>\s+</g, "><"));
+        } else {
+          if (Array2.like(list)) {
+            list = Array2.combine(list);
+          }
+          html = reduce(list, function(html, text, value) {
+            return html += '<p value"' + value + '">' + text + '</p>';
+          });
         }
       }
-      this.base(lists[id] || "");
+      this.base(html);
     },
 
     reset: function(item) {

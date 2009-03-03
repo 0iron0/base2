@@ -2,8 +2,6 @@
 <package name="chrome" requires="DOM,jsb">
   <include src="package.js"/>
   <include src="header.js"/>
-  <include src="Theme.js"/>
-  <include src="styleSheet.js"/>
   <include src="_MSIEShim.js"/>
   <include src="Popup.js"/>
   <include src="control.js"/>
@@ -16,4 +14,6 @@
   <include src="spinner.js"/>
   <include src="colorpicker.js"/>
   <include src="Rect.js"/>
+  <include src="Theme.js"/>
+  <include src="style.js"/>
 </package>

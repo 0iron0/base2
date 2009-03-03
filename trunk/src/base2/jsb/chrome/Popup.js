@@ -3,10 +3,10 @@ var Popup = Base.extend({
   constructor: function(owner) {
     this.owner = owner;
     var body = this.body = this.createBody();
-    body.className = "chrome-popup";
+    body.className = "jsb-popup";
     var appearance = this.appearance;
     if (appearance && appearance != "popup") {
-      body.className += " chrome-" + appearance;
+      body.className += " jsb-" + appearance;
     }
     var popup = this;
     for (var i in this) {
@@ -60,7 +60,7 @@ var Popup = Base.extend({
     //console2.log("HIDE");
     var parent = this.body.parentNode;
     if (parent) parent.removeChild(this.body);
-    delete this.element;
+    //delete this.element;
     delete control._popup;
   },
 
@@ -99,9 +99,11 @@ var Popup = Base.extend({
 
   show: function(element) {
     //console2.log("SHOW");
-    this.element = element;
-    this.render();
-    this.style();
+    if (this.element != element) {
+      this.element = element;
+      this.render();
+      this.style();
+    }
     this.movesize();
     this.body.style.visibility = "visible";
     control._popup = this;
@@ -126,7 +128,8 @@ var Popup = Base.extend({
       var popup = this.popup = createPopup(),
           document = popup.document,
           body = document.body;
-  		document.createStyleSheet().cssText = "body{margin:0}body *{cursor:default}" + _theme.cssText;
+  		document.createStyleSheet().cssText = "body{margin:0}body *{cursor:default}" + jsb.theme.cssText;
+  		body.onscroll = False;
   		assignID(document);
       popup.show(); // init
       popup.hide();
@@ -136,7 +139,7 @@ var Popup = Base.extend({
     hide: function() {
       //console2.log("HIDE");
       this.popup.hide();
-      delete this.element;
+      //delete this.element;
       delete control._popup;
     },
 
