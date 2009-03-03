@@ -41,13 +41,12 @@ Example:
 	[/javascript]
 */
 
-eval(base2.namespace);
-eval(Enumerable.namespace);
-eval(lang.namespace);
+new base2.Package(this);
+eval(this.imports);
 
 function rgbToHex(value) {
   var rgb = map(value.match(/\d+/g), Number);
-  return reduce(rgb, function(value, channel) {
+  return Enumerable.reduce(rgb, function(value, channel) {
     return value += (channel < 16 ? "0" : "") + channel.toString(16);
   }, "#");
 };
@@ -63,6 +62,7 @@ var _contexts = {};
 
 html5.canvas = jsb.behavior.extend({
 	onattach: function(element) {
+    console2.log("CANVAS!");
     var dummy = document.createElement("div");
     this.setStyle(dummy, {
       width: element.clientWidth + "px",
@@ -71,7 +71,7 @@ html5.canvas = jsb.behavior.extend({
     element.appendChild(dummy);
 	},
 
-	onpropertychange: function(element, event) {
+	/*onpropertychange: function(element, event) {
 		var property = event.propertyName;
 		if (property == 'width' || property == 'height') {
 			element.style[property] = element[property];
@@ -84,7 +84,7 @@ html5.canvas = jsb.behavior.extend({
 			width = element.width;
 			height = element.height;
 		}
-	},
+	},*/
 	
 	getContext: function(element) {
     var uniqueID = element.uniqueID;

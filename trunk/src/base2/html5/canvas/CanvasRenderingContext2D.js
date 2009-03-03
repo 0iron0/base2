@@ -6,6 +6,24 @@ Arguments:
 	el - (element) An Element requesting the context2d.
 */
 
+if (detect("MSIE")) {
+  var frag = document.createElement("div");
+  var loaded = false;
+  attachEvent("onload", function() {
+    loaded = true;
+  });
+}
+
+var map = function(o, f) {
+  if (o.length === undefined) {
+    var m = {};
+    for (var i in o) m[i] = f(o[i], i);
+    return m;
+  } else {
+    return Array2.map(o, f);
+  }
+};
+
 var CanvasRenderingContext2D = Base.extend({
 
 	constructor: function(element) {
@@ -266,7 +284,7 @@ CanvasRenderingContext2D.implement({
 
 	/*
 	Property:
-		Method must fill forEach subpath of the current path in turn, using
+		Method must fill each subpath of the current path in turn, using
 		fillStyle, and using the non-zero winding number rule. Open subpaths
 		must be implicitly closed when being filled (without affecting the
 		actual subpaths).
@@ -278,7 +296,7 @@ CanvasRenderingContext2D.implement({
 
 	/*
 	Property:
-		Method must stroke forEach subpath of the current path in turn, using
+		Method must stroke each subpath of the current path in turn, using
 		the strokeStyle, lineWidth, lineJoin, and (if appropriate) miterLimit
 		attributes.
 
@@ -310,12 +328,22 @@ CanvasRenderingContext2D.implement({
 					'color=', color.color,
 					'opacity="', color.opacity, '" />']];
 
-		this.element.insertAdjacentHTML('beforeEnd', [
+    var vml = [
 			'<v:shape path="', this.path.join(''), '" coordorigin="0 0" coordsize="' + size + ' ' + size + '" ', a[0], 'false">',
 				a[1].join(' '),
 			'</v:shape>'
-		].join(''));
-
+		].join('');
+		
+		if (this._vml != vml) {
+      this._vml = vml;
+  		if (loaded) {
+  		  this.element.insertAdjacentHTML('beforeEnd', vml);
+  		} else {
+    		frag.innerHTML = vml;
+    		this.element.appendChild(frag.firstChild);
+  		}
+   }
+		
 		if(fill && fS.img) this.element.getLast().fill.alignshape = false; // not sure why this has to be called explicitly
 
 		this.beginPath();
@@ -613,7 +641,7 @@ CanvasRenderingContext2D.implement({
 	Property: drawImage
 		This method is overloaded with three variants: drawImage(image, dx, dy),
 		drawImage(image, dx, dy, dw, dh), and drawImage(image, sx, sy, sw, sh,
-		dx, dy, dw, dh). (Actually it is overloaded with six; forEach of those three
+		dx, dy, dw, dh). (Actually it is overloaded with six; each of those three
 		can take either an HTMLImageElement or an HTMLCanvasElement for the image
 		argument.) If not specified, the dw and dh arguments default to the values
 		of sw and sh, interpreted such that one CSS pixel in the image is treated
@@ -669,7 +697,7 @@ CanvasRenderingContext2D.implement({
 			')'
 		].join(' ');
 				
-		this.element.insertAdjacentHTML('beforeEnd', [
+		var vml = [
 			'<v:group style="', props, '" coordsize="', Z * 10, ',', Z * 10, '">',[
 				'<v:image',
 					'src=', image.src, 'style=width:' + Z * dw + ';height:' + Z * dh,
@@ -679,7 +707,17 @@ CanvasRenderingContext2D.implement({
 					'cropleft=', sxw,
 				'/>'].join(' '),
 			'</v:group>'
-		].join(' '));
+		].join(' ');
+
+		if (this._vml != vml) {
+      this._vml = vml;
+  		if (loaded) {
+  		  this.element.insertAdjacentHTML('beforeEnd', vml);
+  		} else {
+    		frag.innerHTML = vml;
+    		this.element.appendChild(frag.firstChild);
+  		}
+   }
 	},
 
 	drawImageFromRect: Undefined,
@@ -697,7 +735,7 @@ CanvasRenderingContext2D.implement({
 	/*
 	Property: putImageData
 		Method must take the given ImageData structure, and draw it at the
-		specified location dx,dy in the canvas coordinate space, mapping forEach
+		specified location dx,dy in the canvas coordinate space, mapping each
 		pixel represented by the ImageData structure into one device pixel.
 	*/
 	putImageData: Undefined
@@ -756,11 +794,12 @@ CanvasRenderingContext2D.implement({
 		state stack.
 	*/
 	save: function() {
-		var copy = {};
+		/*var copy = {};
 		forEach(this.states, function(prop) {
 			copy[prop] = this[prop];
 		}, this);
-		this.dStack.push(copy);
+		this.dStack.push(copy);*/
+		this.dStack.push(pcopy(this));
 		this.mStack.push(this.m);
 	},
 

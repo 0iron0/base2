@@ -14,6 +14,11 @@ function _meter_layout(element) {
   var min = this.get(element, "min"),
       max = this.get(element, "max"),
       value = this.get(element, "value"),
-      relativeValue = (value - min) / (max - min);
-  element.style.borderLeftWidth = (relativeValue * element.offsetWidth) + "px";
+      relativeValue = (value - min) / (max - min),
+      style = element.style,
+      width = element.clientWidth;
+  style.borderLeftWidth = (relativeValue * width) + "px";
+  if (!_SUPPORTS_BORDER_BOX) {
+    style.width = (width - (relativeValue * width)) + "px";
+  }
 };
