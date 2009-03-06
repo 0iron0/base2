@@ -1,5 +1,5 @@
 
-var form = html5.element.extend({
+html5.form = behavior.extend({
 	dispatchFormChange: function(form) {
 		this.dispatchEvent(form, "formchange");
 	},

@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<package name="canvas" publish="false" closure="true">
-  <include src="canvas.js"/>
-  <include src="CanvasRenderingContext2D.js"/>
-</package>

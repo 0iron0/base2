@@ -57,13 +57,13 @@ function _dispatchEvent(behavior, element, event) {
   }
   
   // Trigger the underlying event.
-  // Use the host's underlying event dispatch mechanism so that we get a real
+  // Use the host's event dispatch mechanism so that we get a real
   // execution context.
   if (event.bubbles) {
     if (_MSIE) {
       _fire.jsbEvents++;
     } else {
-      var fire = document.createEvent("Events");
+      var fire = document.createEvent("UIEvents");
       fire.initEvent("jsbEvents", false, false);
       document.dispatchEvent(fire);
     }
@@ -72,7 +72,7 @@ function _dispatchEvent(behavior, element, event) {
   }
 };
 
-var _jsbEvent = Document.createEvent(document, "Events");
+var _jsbEvent = Document.createEvent(document, "UIEvents");
 _jsbEvent.initEvent("dummy", false, false);
 _jsbEvent = Event.cloneEvent(_jsbEvent);
 

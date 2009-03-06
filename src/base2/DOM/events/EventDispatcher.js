@@ -32,7 +32,7 @@ if (_MSIE) {
       var i = nodes.length;
       while (i-- && !event.cancelBubble) {
         _currentTarget = nodes[i];
-        var listeners = map[_currentTarget.base2ID];
+        var listeners = map[_currentTarget.nodeType == 1 ? _currentTarget.uniqueID : _currentTarget.base2ID];
         if (listeners) {
           listeners = copy(listeners);
           event.currentTarget = _currentTarget;

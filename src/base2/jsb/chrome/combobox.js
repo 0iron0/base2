@@ -19,17 +19,6 @@ var combobox = dropdown.extend({
       this.base(owner);
       this.data = {};
     },
-    
-    // constants
-
-    HIGHLIGHT:      "Highlight",
-    HIGHLIGHT_TEXT: "HighlightText",
-
-
-    "@Webkit([1-4]|5[01]|52[^89])|theme=aqua": { // webkit pre 528 uses the same colours, no matter the theme
-      HIGHLIGHT:      "#427cd9",
-      HIGHLIGHT_TEXT: "white"
-    },
 
     // properties
 
@@ -72,16 +61,28 @@ var combobox = dropdown.extend({
     },
 
     // methods
+    
+    getUnitHeight: function() {
+      var item = Traversal.getFirstElementChild(this.body);
+      return item ? item.offsetHeight : 1;
+    },
 
     highlight: function(item) {
       if (item) {
         this.reset(this.currentItem);
         this.currentItem = item;
         with (item.style) {
-          backgroundColor = this.HIGHLIGHT;
-          color = this.HIGHLIGHT_TEXT;
+          backgroundColor = _HIGHLIGHT;
+          color = _HIGHLIGHT_TEXT;
         }
       }
+    },
+
+    layout: function() {
+      this.currentItem = null;
+      var data = this.data[this.element.uniqueID];
+      if (data) this.highlight(this.body.childNodes[data.index]);
+      else this.highlight(Traversal.getFirstElementChild(this.body));
     },
 
     render: function() {
@@ -110,7 +111,7 @@ var combobox = dropdown.extend({
     },
 
     select: function(item) {
-      var value = Element.getAttribute(item, "value") || item[Traversal.TEXT],
+      var value = Element.getAttribute(item, "value") || trim(item[Traversal.TEXT]),
           element = this.element;
       this.data[element.uniqueID] = {
         index: Traversal.getNodeIndex(item),
@@ -119,14 +120,6 @@ var combobox = dropdown.extend({
       element.value = value;
       element.focus();
       this.hide();
-    },
-
-    show: function(element) {
-      this.base(element);
-      this.currentItem = null;
-      var data = this.data[element.uniqueID];
-      if (data) this.highlight(this.body.childNodes[data.index]);
-      else this.highlight(Traversal.getFirstElementChild(this.body));
     }
   }
 });

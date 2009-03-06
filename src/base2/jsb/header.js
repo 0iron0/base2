@@ -12,10 +12,10 @@ var _CANNOT_DELEGATE    = /^(abort|error|load|scroll|(readystate|property|filter
     _HTML_BODY          = /^(HTML|BODY)$/,
     _MOUSE_BUTTON_LEFT  = /^[^12]$/,
     _OWNER_DOCUMENT     = detect("(element.ownerDocument)") ? "ownerDocument" : "document",
-    _PREFIX             = detect("MSIE")   ? "-ms-" :
-                          detect("Gecko")  ? "-moz-" :
-                          detect("Webkit") ? "-webkit-" :
-                          detect("Opera")  ? "-o-" :
+    _PREFIX             = detect("MSIE")   ? "Ms" :
+                          detect("Gecko")  ? "Moz" :
+                          detect("Webkit") ? "Webkit" :
+                          detect("Opera")  ? "O" :
                           "";
 
 var _allAttachments       = {},

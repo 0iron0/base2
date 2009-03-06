@@ -12,9 +12,10 @@ var ViewCSS = Interface.extend({
     "@MSIE": {
       getComputedStyle: function(view, element, pseudoElement) {
         // pseudoElement parameter is not supported
-        var currentStyle = element.currentStyle;
-        var computedStyle = {};
-        for (var propertyName in currentStyle) {
+        var style = element.style,
+            currentStyle = element.currentStyle,
+            computedStyle = {};
+        for (var propertyName in style) {
           if (_METRICS.test(propertyName) || _COLOR.test(propertyName)) {
             computedStyle[propertyName] = this.getComputedPropertyValue(view, element, propertyName);
           } else if (propertyName.indexOf("ruby") != 0) {
@@ -78,7 +79,7 @@ var ViewCSS = Interface.extend({
 
 function _MSIE_getPixelValue(element, value) {
   if (value == "none") return "0px";
-  if (!_NUMBER.test(value) || _PIXEL.test(value)) return value;
+  if (!_NUMBER.test(value) || _PIXEL.test(value) || value.indexOf(" ") != -1) return value;
   var styleLeft = element.style.left;
   var runtimeStyleLeft = element.runtimeStyle.left;
   element.runtimeStyle.left = element.currentStyle.left;

@@ -15,13 +15,12 @@ var _MSIEShim = {
     shim.element = element;
     shim.behavior = behavior;
     var style = shim.control.runtimeStyle;
-    style.cssText = "position:absolute;border:0;display:block;background-position-x:right";
+    style.cssText = "position:absolute;border:0;display:none;background-position-x:right";
     //;;; style.backgroundColor = "red";
     style.pixelHeight = element.clientHeight;
-    style.pixelWidth = behavior.imageWidth;
+    style.pixelWidth = behavior.IMAGE_WIDTH;
     style.backgroundImage = element.currentStyle.backgroundImage;
     shim.layout();
-    position();
     element.attachEvent("onpropertychange", change);
     element.attachEvent("onfocusout", function() {
       element.detachEvent("onpropertychange", change);
@@ -38,7 +37,7 @@ var _MSIEShim = {
       var offset = behavior.getOffsetFromBody(element),
           rect = element.getBoundingClientRect(),
           adjustRight = rect.right - rect.left - element.offsetWidth;
-      style.pixelLeft = offset.left + adjustRight + element.clientWidth - behavior.imageWidth + element.clientLeft;
+      style.pixelLeft = offset.left + adjustRight + element.clientWidth - behavior.IMAGE_WIDTH + element.clientLeft;
       style.pixelTop = offset.top + element.clientTop;
       timer = null;
     };
@@ -46,10 +45,18 @@ var _MSIEShim = {
       if (!timer) timer = setTimeout(position, 50);
     };
     attachEvent("onresize", resize);
+    position();
+    setTimeout(function() {
+      style.display = "";
+    }, 1);
   },
   
   onmouseover: _shimMouseOverOut,
   onmouseout: _shimMouseOverOut,
+  onmouseup: function(element) {
+    this.base.apply(this, arguments);
+    if (element == shim.element) shim.layout();
+  },
 
   onkeydown: function(element, event, keyCode) {
     this.base(element, event, keyCode);
@@ -68,7 +75,6 @@ var _MSIEShim = {
 
 var shim = behavior.extend({
   onmousedown: _shimMouse,
-  onmouseup: _shimMouse,
   onmousemove: _shimMouse,
 
   onmouseover: _shimMouseOverOut2,
@@ -84,8 +90,8 @@ var shim = behavior.extend({
 function _shimMouse(element, event, x, y, screenX, screenY) {
   if (event.type == "mousedown") {
     event.preventDefault();
-    event.stopPropagation();
   }
+    event.stopPropagation();
   var offset = ElementView.getOffsetXY(this.element, event.clientX, event.clientY);
   this.behavior["on" + event.type](this.element, event, offset.x, offset.y, screenX, screenY);
   this.layout();

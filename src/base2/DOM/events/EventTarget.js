@@ -9,7 +9,7 @@ var EventTarget = Interface.extend({
       var documentState = DocumentState.getInstance(target);
 
       // assign a unique id to both objects
-      var targetID = assignID(target);
+      var targetID = target.nodeType == 1 ? target.uniqueID : assignID(target);
       var listenerID = assignID(listener);
 
       // create a hash table of event types for the target object
@@ -38,7 +38,7 @@ var EventTarget = Interface.extend({
       if (typeMap) {
         var phaseMap = typeMap[useCapture ? _CAPTURING_PHASE : _BUBBLING_PHASE];
         if (phaseMap) {
-          var listeners = phaseMap[target.base2ID];
+          var listeners = phaseMap[target.nodeType == 1 ? target.uniqueID : target.base2ID];
           if (listeners) delete listeners[listener.base2ID];
         }
       }

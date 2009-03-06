@@ -11,8 +11,6 @@ var slider = range.extend({
 
   // properties
 
-  appearance: "slider",
-
   // events
 
   onmousedown: function(element, event, x, y, screenX, screenY) {
@@ -66,7 +64,6 @@ var slider = range.extend({
   // methods
 
   layout: function(element, state) {
-    console2.log([element.clientHeight,element.offsetHeight]);
     if (state == null) state = this.getState(element);
     
     var thumb = this.getThumbRect(element),

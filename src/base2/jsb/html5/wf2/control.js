@@ -1,5 +1,5 @@
 
-var control = html5.element.extend({
+var control = behavior.extend({
 	willValidate: false,
 	validationMessage: "",
 

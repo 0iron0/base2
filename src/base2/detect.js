@@ -12,7 +12,8 @@ function detect() {
   var javaEnabled = global.java ? true : false;
   if (global.navigator) { // browser
     var MSIE = /MSIE[\d.]+/g;
-    var element = document.createElement("span");
+    var element = document.createElement("span"),
+        style = element.style;
     element.expando = 1;
     // Close up the space between name and version number.
     //  e.g. MSIE 6 -> MSIE6
@@ -21,6 +22,7 @@ function detect() {
     if (!jscript) userAgent = userAgent.replace(MSIE, "");
     if (MSIE.test(userAgent)) userAgent = userAgent.match(MSIE)[0] + " " + userAgent.replace(MSIE, "");
     if (/Gecko/.test(userAgent)) userAgent = userAgent.replace(/rv:/, "Gecko");
+    if (!/Compat$/.test(document.compatMode)) userAgent += ";quirks";
     base2.userAgent = navigator.platform + " " + userAgent.replace(/like \w+/gi, "");
     javaEnabled &= navigator.javaEnabled();
 //} else if (java) { // rhino
@@ -38,7 +40,7 @@ function detect() {
       if (not) test = test.slice(1);
       if (test.indexOf("(") == 0) {
         try {
-          returnValue = new Function("element,jscript,java,global", "return !!" + test)(element, jscript, javaEnabled, global);
+          returnValue = new Function("element,style,jscript,java,global", "return !!" + test)(element, style, jscript, javaEnabled, global);
         } catch (ex) {
           // the test failed
         }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="wf2" publish="true" closure="true">
+<package name="wf2" publish="false" closure="true">
   <include src="package.js"/>
   <include src="form.js"/>
   <include src="control.js"/>

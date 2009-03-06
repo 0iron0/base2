@@ -4,6 +4,7 @@ var control = behavior.extend({
   
   HORIZONTAL: 0,
   VERTICAL: 1,
+  IMAGE_WIDTH: 17,
 
   states: {
     normal:   0,
@@ -16,8 +17,7 @@ var control = behavior.extend({
   // properties
 
   allowVertical: false,
-  appearance: "",
-  imageWidth: 17,
+  mask: "",
   
   // events
   
@@ -116,13 +116,14 @@ var control = behavior.extend({
   hitTest: function(element, x) {
     //var rtl = element.currentStyle.direction == "rtl";
     var rtl = false;
-    return rtl ? x <= this.imageWidth : x >= element[_WIDTH] - this.imageWidth;
+    return rtl ? x <= this.IMAGE_WIDTH : x >= element[_WIDTH] - this.IMAGE_WIDTH;
   },
 
   setOrientation: function(element, orientation) {
     if (orientation == this.VERTICAL) {
       _vertical[element.uniqueID] = true;
-      this.setStyle(element, "background-image", "url(" + chrome.host + Theme.current + "/" + this.appearance + "-vertical.png)", true);
+      var backgroundImage = "background-image";
+      this.setStyle(element, backgroundImage, this.getComputedStyle(element, backgroundImage).replace(/\.png/, "-vertical.png"), true);
     } else {
       delete _vertical[element.uniqueID];
       element.style.backgroundImage = "";

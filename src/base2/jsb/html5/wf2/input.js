@@ -1,12 +1,12 @@
 
-var input = html5.input = control.extend({
+html5.input = control.extend({
 	validity: null,
 	autofocus: false,
 	list: null,
 	pattern: "",
 	willValidate: true,
 	
-	//"@MSIE[56]": {
+	"@MSIE[567]": {
   	onattach: function(input) {
       switch (Element.getAttribute(input, "type")) {
         case "color":
@@ -20,7 +20,7 @@ var input = html5.input = control.extend({
           break;
       }
   	},
-  //},
+  },
 
 	dispatchChange: function(input) {
 		this.dispatchEvent(input, "change");

@@ -1,10 +1,7 @@
 
 var _moduleCount = 0;
 
-var Module = Abstract.extend({
-  base: _IGNORE,
-  extend: _IGNORE
-}, {
+var Module = Abstract.extend(null, {
   namespace: "",
 
   extend: function(_interface, _static) {
@@ -75,6 +72,10 @@ var Module = Abstract.extend({
     return module;
   }
 });
+
+
+Module.prototype.base =
+Module.prototype.extend = _IGNORE;
 
 function _extendModule(module, _interface) {
   var proto = module.prototype;

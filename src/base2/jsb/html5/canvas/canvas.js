@@ -62,7 +62,6 @@ var _contexts = {};
 
 html5.canvas = jsb.behavior.extend({
 	onattach: function(element) {
-    console2.log("CANVAS!");
     var dummy = document.createElement("div");
     this.setStyle(dummy, {
       width: element.clientWidth + "px",

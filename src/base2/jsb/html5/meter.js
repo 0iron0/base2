@@ -1,5 +1,5 @@
 
-var meter = element.extend({
+var meter = behavior.extend({
   value: 0,
   min: 0,
   max: 1,
