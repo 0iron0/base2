@@ -1,8 +1,7 @@
 
-var behavior = jsb.behavior = new Base({
+var Behavior = Base.extend({
   attach: I,
   detach: I,
-  get: Undefined,
   modify: Null,
   
   extendedMouse: false, // allow right and middle button clicks
@@ -13,7 +12,10 @@ var behavior = jsb.behavior = new Base({
 
   extend: function(_interface) {
     // Extend a behavior to create a new behavior.
-    var behavior = pcopy(this); // beget
+    var _constructor = function(){};
+    _constructor.prototype = new this.constructor;
+    _constructor.prototype.constructor = _constructor;
+    var behavior = _constructor.prototype;
     if (this == jsb.behavior) behavior.extendedMouse = false; // preserve the default for direct descendants of jsb.behavior
     extend(behavior, _interface);
     
@@ -26,10 +28,11 @@ var behavior = jsb.behavior = new Base({
             _dispatchEvent(behavior, event.target, event);
           }
         };
+    _constructor.modifications = modifications;
         
     // Extract events.
-    forEach (behavior, function(property, name) {
-      if (typeof property == "function" && _EVENT.test(name)) {
+    for (var name in behavior) {
+      if (typeof behavior[name] == "function" && _EVENT.test(name)) {
         var type = name.slice(2);
         // Store event handlers.
         if (_CANNOT_DELEGATE.test(type)) {
@@ -39,7 +42,7 @@ var behavior = jsb.behavior = new Base({
           delegatedEvents.push(type);
         }
       }
-    });
+    }
 
     behavior.attach = function(element) {
       var document = element[_OWNER_DOCUMENT],
@@ -47,7 +50,6 @@ var behavior = jsb.behavior = new Base({
           uniqueID = documentID + (element.uniqueID || assignID(element, "uniqueID"));
           
       if (!attachments[uniqueID]) { // don't attach more than once
-      
         // Maintain attachment state.
         attachments[uniqueID] = true;
         if (!_allAttachments[uniqueID]) _allAttachments[uniqueID] = 0;
@@ -55,7 +57,7 @@ var behavior = jsb.behavior = new Base({
         
         // Add event handlers
         if (!delegatedEvents[documentID]) {
-          delegatedEvents[documentID] = true; // we only need to attach these once
+          delegatedEvents[documentID] = true; // we only need to attach these once per document
           for (var i = 0; type = delegatedEvents[i]; i++) {
             _eventDelegator.addEventListener(document, type, attachments);
           }
@@ -67,7 +69,9 @@ var behavior = jsb.behavior = new Base({
         }
         
         // JSB events.
-        if (behavior.onattach) _dispatchJSBEvent(behavior, element, "attach");
+        if (behavior.onattach) {
+          _dispatchJSBEvent(behavior, element, "attach");
+        }
         if (behavior.oncontentready) {
           if (_state.isContentReady(element)) {
             _dispatchJSBEvent(behavior, element, "contentready");
@@ -75,8 +79,12 @@ var behavior = jsb.behavior = new Base({
             _state.contentReadyQueue.push({behavior: behavior, element: element});
           }
         }
-        if (behavior.ondocumentready && !_state.ready) {
-          _state.documentReadyQueue.push({behavior: behavior, element: element});
+        if (behavior.ondocumentready) {
+          if (_state.ready) {
+            _dispatchJSBEvent(behavior, element, "documentready");
+          } else {
+            _state.documentReadyQueue.push({behavior: behavior, element: element});
+          }
         }
         if (behavior.onfocus && element == document.activeElement) {
           behavior.dispatchEvent(element, "focus");
@@ -88,7 +96,7 @@ var behavior = jsb.behavior = new Base({
       var uniqueID = element[_OWNER_DOCUMENT].base2ID + element.uniqueID;
       if (attachments[uniqueID]) {
         delete attachments[uniqueID];
-        if (_allAttachments[uniqueID]) _allAttachments[uniqueID]--;
+        _allAttachments[uniqueID]--;
         if (events) {
           for (var i = 0; type = events[i]; i++) {
             EventTarget.removeEventListener(element, type, eventListener, false);
@@ -103,59 +111,38 @@ var behavior = jsb.behavior = new Base({
         isModification: true,
 
         attach: function(element, rule) {
-          var document = element[_OWNER_DOCUMENT],
-              documentID = document.base2ID || assignID(document),
-              uniqueID = documentID + (element.uniqueID || assignID(element, "uniqueID"));
+          behavior.attach(element);
+          var uniqueID = element[_OWNER_DOCUMENT].base2ID + element.uniqueID;
           if (rule.specificity >= (specificities[uniqueID] || 0)) { // this shouldn't be necessary as rules are sorted by specificity
             specificities[uniqueID] = rule.specificity;
             modifications[uniqueID] = attributes;
           }
-          return behavior.attach(element);
+          return element;
         }
       };
     };
 
-    // Retrieve a DOM property.
-    behavior.get = function(element, propertyName) {
-      var uniqueID = element[_OWNER_DOCUMENT].base2ID + element.uniqueID,
-          attributes = modifications[uniqueID] || behavior,
-          defaultValue = attributes[propertyName],
-          type = typeof defaultValue,
-          value = element[propertyName];
-      if (_hasExpandoProperties) {
-        if (value === undefined) return defaultValue;
-        if (typeof value == "string") {
-          switch (type) {
-            case "boolean": return true;
-            case "number":  return value - 0;
-          }
-        }
-      } else if (value === undefined) {
-        var hasAttribute = element.hasAttribute(propertyName);
-        if (type == "boolean") return hasAttribute;
-        if (hasAttribute) {
-          value = element.getAttribute(propertyName);
-        } else {
-          return defaultValue;
-        }
-        if (type == "number") value -= 0;
-      }
-      return value;
-    };
-    
-    if (_interface && _interface.get) {
-      extend(behavior, "get", _interface.get);
-    }
-
     return behavior;
   },
-  
-  set: function(element, propertyName, value, triggerEvent) {
-    if (triggerEvent) {
-      var originalValue = this.get(element, propertyName);
+
+  get: function(element, propertyName) {
+    // Retrieve a DOM property.
+    var uniqueID = element[_OWNER_DOCUMENT].base2ID + element.uniqueID,
+        attributes = this.constructor.modifications[uniqueID] || this,
+        defaultValue = attributes[propertyName],
+        value = Element.getAttribute(element, propertyName);
+    if (value == null) return defaultValue;
+    switch (typeof defaultValue) {
+      case "boolean": return true;
+      case "number":  return value - 0;
     }
-    element[propertyName] = value;
-    if (triggerEvent && originalValue != value) {
+    return value;
+  },
+
+  set: function(element, propertyName, value) {
+    var originalValue = this.get(element, propertyName);
+    Element.setAttribute(element, propertyName, value);
+    if (originalValue !== value) {
       this.dispatchEvent(element, propertyName + "change", {originalValue: originalValue});
     }
   },
@@ -203,6 +190,8 @@ var behavior = jsb.behavior = new Base({
     delete _state.captureElement;
   }
 });
+
+var behavior = Behavior.prototype;
 
 forEach.csv("setInterval,setTimeout", function(name) {
   behavior[name] = function(callback, delay) {

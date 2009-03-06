@@ -1,12 +1,9 @@
 
 var Package = Base.extend({
   constructor: function(_private, _public) {
-    assertArity(arguments);
-    
     var pkg = this;
     
     pkg.extend(_public);
-    if (pkg.init) pkg.init();
     
     if (pkg.name && pkg.name != "base2") {
       if (_public.parent === undefined) pkg.parent = base2;
@@ -26,7 +23,10 @@ var Package = Base.extend({
         if (!ns) throw new ReferenceError(format("Object not found: '%1'.", name));
         namespace += ns.namespace;
       }
-      _private.imports = namespace + lang.namespace;
+      _private.init = function() {
+        if (pkg.init) pkg.init();
+      };
+      _private.imports = namespace + lang.namespace + "this.init();";
       
       // This string should be evaluated after you have created all of the objects
       // that are being exported.

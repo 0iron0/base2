@@ -11,6 +11,7 @@ var NodeSelector = Interface.extend({
           return this.base(node, trim(selector));
         } catch (x) {
           // assume it's an unsupported selector
+          ;;; console2.log("UNSUPPORTED SELECTOR: " + selector);
         }
       }
       return new Selector(selector).exec(node, 1);
@@ -22,6 +23,7 @@ var NodeSelector = Interface.extend({
           return new StaticNodeList(this.base(node, trim(selector)));
         } catch (x) {
           // assume it's an unsupported selector
+          ;;; console2.log("UNSUPPORTED SELECTOR: " + selector);
         }
       }
       return new Selector(selector).exec(node);

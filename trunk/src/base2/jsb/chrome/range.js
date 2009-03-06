@@ -6,12 +6,12 @@ var range = number.extend({
   max:  100,
   allowVertical: true,
 
+  // events
+
   onminchange: _range_layout,
   onmaxchange: _range_layout,
   onstepchange: _range_layout,
   onvaluechange: _range_layout,
-
-  // events
 
   "@!Opera(8|9.[0-4])": {
     // The text is hidden for all but Opera < 9.5.

@@ -1,9 +1,9 @@
 
-// NOT USED
-
 chrome.rules = new RuleList({
-  "input.combobox": combobox,
-  "input.progressbar": progressbar,
-  "input.slider": slider,
-  "input.spinner": spinner
+  "input.jsb-combobox": combobox,
+  "input.jsb-progressbar": progressbar,
+  "input.jsb-slider": slider,
+  "input.jsb-spinner": spinner,
+  "input.jsb-colorpicker": colorpicker,
+  "input.jsb-datepicker": datepicker
 });

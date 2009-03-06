@@ -1,8 +1,7 @@
 
 var colorpicker = dropdown.extend({
   // properties
-
-  appearance: "colorpicker",
+  
   value: "#000000",
 
   Popup: {
@@ -20,7 +19,7 @@ var colorpicker = dropdown.extend({
     },
 
     getControls: function() {
-      return behavior.querySelectorAll(this.body, "input.jsb-slider");
+      return this.querySelectorAll("input.jsb-slider");
     },
 
     hide: function() {
@@ -28,26 +27,25 @@ var colorpicker = dropdown.extend({
       this.base();
     },
 
-    show: function(element) {
-      this.base(element);
-      var rgb = map(element.value.slice(1).match(/(\w\w)/g), partial(parseInt, undefined, 16));
+    layout: function() {
+      var rgb = map(this.element.value.slice(1).match(/(\w\w)/g), partial(parseInt, undefined, 16));
       this.getControls().forEach(function(input, i) {
         input.value = rgb[i];
         slider.attach(input);
       });
     },
 
-    onchange: function(event) {
+    onchange: function() {
       var rgb = map(pluck(this.getControls(), "value"), Number);
       var value = reduce(rgb, function(value, channel) {
         return value += (channel < 16 ? "0" : "") + channel.toString(16);
       }, "#");
       this.owner.setValue(this.element, value);
-    },
+    }/*,
 
     onmouseup: function(event) {
       this.element.focus();
-    }
+    }*/
   },
 
   "@MSIE": _preventScroll,

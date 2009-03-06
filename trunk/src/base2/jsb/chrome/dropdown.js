@@ -7,28 +7,28 @@ var dropdown = control.extend({
     }
     return dropdown;
   },
+
+  // constants
+
+  "@theme=luna\\/blue": {
+    IMAGE_WIDTH: 15
+  },
   
   // properties
 
   Popup: Popup, // popup class
   
-  appearance: "dropdown",
-  
-  "@theme=luna\\/blue": {
-    imageWidth: 15
-  },
-  
   // events
 
   onblur: function(element, event) {
-    console2.log("BLUR");
-    if (this.isOpen(element) && !this._popup.active) this.hidePopup();
+    ;;; console2.log("BLUR: "+this._popup.isActive());
+    if (this.isOpen(element) && !this._popup.isActive()) this.hidePopup();
     this.base(element, event);
   },
   
   "@Opera(8|9.[0-4])": {
     onblur: function(element, event) {
-      if (this.isOpen(element) && this.matchesSelector(this._popup.body, ":hover")) {
+      if (this.isOpen(element) && this._popup.isActive()) {
         event.preventDefault();
       } else {
         this.base(element, event);
@@ -106,14 +106,14 @@ var dropdown = control.extend({
     },
 
     hitTest: function(element, x) {
-      return x >= element.clientWidth + 8;
+      return x >= element.clientWidth;
     },
 
-    "@Safari": {
+    //"@Safari": {
       layout: function(element) {
         this.syncCursor(element);
       }
-    }
+    //}
   },
 
   "@MSIE.+win": _MSIEShim

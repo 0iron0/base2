@@ -1,4 +1,12 @@
 
+var _HIGHLIGHT =      "Highlight",
+    _HIGHLIGHT_TEXT = "HighlightText";
+
+if (detect("Webkit([1-4]|5[01]|52[^89])|theme=aqua")) { // webkit pre 528 uses the same colours, no matter the theme
+    _HIGHLIGHT =      "#427cd9";
+    _HIGHLIGHT_TEXT = "white";
+}
+
 jsb.theme.cssText = jsb.createStyleSheet({
   "*": {
     padding:                 "1px 2px 2px 1px",
@@ -49,18 +57,25 @@ jsb.theme.cssText = jsb.createStyleSheet({
     }
   },
 
-  ".jsb-dropdown,.jsb-combobox,.jsb-colorpicker": {
+  ".jsb-dropdown,.jsb-combobox,.jsb-colorpicker,.jsb-datepicker": {
     "@theme=aqua": { // aqua
       width:              "10em",
-      $boxSizing:         "border-box",
+      BoxSizing:          "border-box",
       minHeight:          "15px!",
       maxHeight:          "21px!",
-      $borderRadius:      "5px",
-      $borderImage:       "url(%theme%/menubutton.png) 2 23 1 6",
-      $boxShadow:         "0 1px 0 rgba(160, 160, 160, 0.5)",
+      BorderRadius:       "5px",
+      BorderImage:        "url(%theme%/menubutton.png) 2 23 1 6",
+      BoxShadow:          "0 1px 0 rgba(160, 160, 160, 0.5)",
       borderStyle:        "none",
-      borderWidth:        "2px 23px 1px 6px",
-      padding:            "1px"
+      borderWidth:        "2px 23px 1px 6px!",
+      padding:            "1px",
+      
+      "@(style.MozBorderImage===undefined&&style.WebkitBorderImage===undefined)": {
+        backgroundImage:        "url(%theme%/dropdown.png)!",
+        backgroundPosition:        "right center!",
+        padding: "1px 23px 1px 4px!",
+        border: "1px solid #939393!"
+      }
     },
 
     "@!theme=aqua": { // not aqua
@@ -70,11 +85,12 @@ jsb.theme.cssText = jsb.createStyleSheet({
       font:               "-webkit-small-control"
     }
   },
-  
+
   ".jsb-progressbar,.jsb-slider,.jsb-colorpicker": {
     textIndent:           "-10em", // hide text for purely visual controls (Safari & Gecko)
     cursor:               "default",
-    $userSelect:          "none",
+    UserModify:           "read-only",
+    UserSelect:           "none",
 
     "@MSIE": {
       verticalAlign:      "top",
@@ -82,11 +98,11 @@ jsb.theme.cssText = jsb.createStyleSheet({
       lineHeight:         "80em" // hide text for purely visual controls (MSIE)
     }
   },
-  
+
   ".jsb-progressbar": {
     padding:               "1px",
     border:                "2px solid ThreeDDarkShadow",
-    $borderRadius:         "5px",
+    BorderRadius:          "5px",
     MozBorderTopColors:    "ThreeDDarkShadow ThreeDHighlight",
     MozBorderRightColors:  "ThreeDDarkShadow ThreeDHighlight",
     MozBorderLeftColors:   "ThreeDDarkShadow ThreeDHighlight",
@@ -95,14 +111,13 @@ jsb.theme.cssText = jsb.createStyleSheet({
     width:                 "164px",
 
     "@theme=aqua": {
-      $borderRadius:       "5px"
+      BorderRadius:        "5px"
     }
   },
 
   ".jsb-slider": {
     _height:         "22px",
     minHeight:       "22px",
-    verticalAlign:   "middle",
     padding:         "0",
     border:          0,
     backgroundColor: "transparent",
@@ -121,10 +136,6 @@ jsb.theme.cssText = jsb.createStyleSheet({
     }
   },
 
-  ".jsb-colorpicker": {
-    width:         "4em"
-  },
-
   ".jsb-popup": {
     visibility:  "hidden",
     borderWidth: "1px",
@@ -136,16 +147,17 @@ jsb.theme.cssText = jsb.createStyleSheet({
 
     "@Gecko|Opera|theme=aqua|Webkit": {
       MozBorder:        "initial",
-      borderColor:      "black",
+      borderColor:      "black!",
       borderStyle:      "outset!",
 
-      "@Gecko": {
-        borderLeftWidth: "2px"
-      },
-
       "@Opera": {
-        borderStyle:  "solid!"
+        borderStyle:    "solid!"
       }
+    },
+
+    "@theme=classic": {
+      borderColor:      "black!",
+      borderStyle:      "solid!"
     }
   },
 
@@ -163,18 +175,12 @@ jsb.theme.cssText = jsb.createStyleSheet({
 });
 
 jsb.theme.cssText += jsb.createStyleSheet({
-  "@theme=aqua": {
-    color:            "black",
-    $opacity:         0.5,
+  ".jsb-colorpicker": {
+    width:         "4em"
+  },
 
-    ".dropdown_active": {
-      $borderImage:   "url(%theme%/menubutton-active.png) 2 23 1 6"
-    },
-
-    ".jsb-combobox[readonly],.jsb-combobox[disabled],.jsb-colorpicker[readonly],.jsb-colorpicker[disabled]": {
-      $borderImage:   "url(%theme%/menubutton-disabled.png) 2 23 1 6 !",
-      $boxShadow:     "none"
-    }
+  ".jsb-datepicker": {
+    width:         "12ex"
   },
 
   "@!Webkit": {
@@ -185,10 +191,18 @@ jsb.theme.cssText += jsb.createStyleSheet({
   },
 
   ".jsb-popup *": {
-    $boxSizing:       "border-box"
+    BoxSizing:       "border-box"
+  },
+
+  ".jsb-datalist": {
+    display:         "none!"
   },
 
   ".jsb-menulist": {
+    "@!MSIE": {
+      overflow:      "auto!"
+    },
+
     "@MSIE": {
       overflowY:      "auto!"
     }
@@ -207,10 +221,9 @@ jsb.theme.cssText += jsb.createStyleSheet({
     padding:         "4px!",
     overflow:        "hidden!",
     whiteSpace:      "nowrap!",
-    backgroundColor: "ButtonFace!",
+    color:           "black!",
 
-    "@Webkit([1-4]|5[01]|52[^89])|theme=aqua": {
-      color:           "black!",
+    "@Webkit([1-4]|5[01]|52[^89])": {
       backgroundColor: "#ece9d8!"
     }
   },
@@ -219,6 +232,87 @@ jsb.theme.cssText += jsb.createStyleSheet({
     fontSize:    "11px",
     margin:      "4px 2px",
     width:       "127px"
+  },
+
+  ".jsb-datepicker-popup": {
+    backgroundColor: "#fcfcfd!",
+    overflow:        "hidden!",
+    padding: "4px"
+  },
+
+  ".jsb-datepicker-popup table": {
+    border:          "1px solid InactiveCaption!",
+    backgroundColor: "ButtonHighlight!",
+    color:           "ButtonText!",
+    width:           "100%!",
+    margin:          "4px 0!"
+  },
+
+  ".jsb-datepicker-popup th": {
+    backgroundColor: "#89acd5!",
+    color:           "InactiveCaptionText!",
+    fontWeight:      "normal!"
+  },
+
+  ".jsb-datepicker-popup th,.jsb-datepicker-popup td": {
+    padding:         "2px 0!",
+    textAlign:       "center!",
+    width:           "14%!"
+  },
+
+  ".jsb-datepicker-popup td.disabled": {
+    color:           "#ccc!"
+  },
+
+  ".jsb-datepicker-popup td.selected": {
+    backgroundColor: _HIGHLIGHT,
+    color:           _HIGHLIGHT_TEXT
+  },
+
+  "@!MSIE": {
+    ".jsb-datepicker-popup select": {
+      "float": "left"
+    },
+
+    ".jsb-datepicker-popup input": {
+      "float": "right"
+    }
+  },
+
+  "@theme=aqua": {
+    ".jsb-colorpicker": {
+      BorderImage:        "url(%theme%/colorpicker.png) 2 23 1 6",
+      width:         "6em"
+    },
+
+    ".jsb-datepicker": {
+      width:         "8em"
+    },
+
+    ".jsb-datepicker-popup table": {
+      backgroundColor: "white!",
+      borderWidth:           "2px 1px 1px 1px!",
+      borderColor:           "#9e9e9e #b4b4b4 #dadada #b4b4b4!"
+    },
+
+    ".jsb-datepicker-popup th": {
+      color:         "white!"
+    },
+
+    ".dropdown_active": {
+      BorderImage:   "url(%theme%/menubutton-active.png) 2 23 1 6"
+    },
+
+    ".jsb-combobox[readonly],.jsb-combobox[disabled],.jsb-colorpicker[readonly],.jsb-colorpicker[disabled],.jsb-datepicker[readonly],.jsb-datepicker[disabled]": {
+      BorderImage:   "url(%theme%/menubutton-disabled.png) 2 23 1 6 !",
+      BoxShadow:     "none"
+    },
+
+    ".jsb-colorpicker-popup,.jsb-datepicker-popup": {
+      backgroundColor: "white!",
+      backgroundImage: "url(%theme%/metal.png)!",
+      backgroundRepeat: "repeat!"
+    }
   },
 
   "@WebKit|Opera": {

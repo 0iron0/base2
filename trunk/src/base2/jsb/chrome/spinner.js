@@ -14,8 +14,6 @@ var spinner = number.extend({
   },
 
   // properties
-  
-  appearance: "spinner",
 
   // events
   

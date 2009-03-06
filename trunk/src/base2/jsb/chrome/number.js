@@ -9,6 +9,19 @@ var number = control.extend({
   step: 1,
   value: 0,
 
+  "@Opera": {
+    get: function(element, propertyName) {
+      var value = this.base(element, propertyName);
+      switch (propertyName) {
+        case "min":
+        case "max":
+        case "step":
+          if (value === "") return this[propertyName];
+      }
+      return value;
+    }
+  },
+
   // events
 
   onchange: function(element) {

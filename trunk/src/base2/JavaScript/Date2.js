@@ -28,7 +28,7 @@ var Date2 = _createObject2(
   function(yy, mm, dd, h, m, s, ms) {
     switch (arguments.length) {
       case 0: return new Date;
-      case 1: return typeof yy == "number" ? new Date(yy) : Date2.parse(yy);
+      case 1: return typeof yy == "number" ? new Date(yy) : new Date(Date2.parse(yy));
       default: return new Date(yy, mm, arguments.length == 2 ? 1 : dd, h || 0, m || 0, s || 0, ms || 0);
     }
   }, "", {
@@ -82,7 +82,7 @@ Date2.parse = function(string, defaultDate) {
       var hours = Number(parts[_TIMEZONE_PARTS.Sign] + parts[_TIMEZONE_PARTS.Hours]);
       var minutes = Number(parts[_TIMEZONE_PARTS.Sign] + (parts[_TIMEZONE_PARTS.Minutes] || 0));
       date.setUTCMinutes(date.getUTCMinutes() + (hours * 60) + minutes);
-    } 
+    }
     return date.valueOf();
   } else {
     return Date.parse(string);

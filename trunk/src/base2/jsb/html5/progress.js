@@ -1,5 +1,5 @@
 
-var progress = element.extend({
+var progress = behavior.extend({
   max: 1,
   value: 0,
 
@@ -21,9 +21,8 @@ var progress = element.extend({
 function _progress_layout(element) {
   var max = this.get(element, "max"),
       value = this.get(element, "value"),
-      relativeValue = value / max;
-      
-  var clientWidth = element.clientWidth,
+      relativeValue = value / max,
+      clientWidth = element.clientWidth,
       clientHeight = element.clientHeight;
 
   if (clientHeight > clientWidth) {

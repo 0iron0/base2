@@ -42,8 +42,8 @@ var style = {
     fontSize: "0.67em",
     width: "100px",
     overflow: "hidden",
-    $textOverflow: "ellipsis",
-    $boxSizing: "border-box"
+    TextOverflow: "ellipsis",
+    BoxSizing: "border-box"
   },
   progress: {
     minHeight: "0.5em"

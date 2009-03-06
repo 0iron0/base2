@@ -5,9 +5,9 @@
   <include src="behavior.js"/>
   <include src="Rule.js"/>
   <include src="RuleList.js"/>
+  <include src="createStyleSheet.js"/>
   <include src="External.js"/>
   <include src="_eventDelegator.js"/>
   <include src="_eventDispatcher.js"/>
   <include src="_state.js"/>
-  <include src="createStyleSheet.js"/>
 </package>

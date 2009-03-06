@@ -163,7 +163,7 @@ var _state = new Base({
 
         if (length && behavior.constructor == External) {
           // Load the external behavior.
-          rule.behavior = behavior.getObject() || behavior;
+          rule.behavior = behavior.load() || behavior;
           delete query.state;
           elements = null;
           i++;

@@ -1,3 +1,3 @@
 
-var datalist = html5.element.extend({
+html5.datalist = behavior.extend({
 });
