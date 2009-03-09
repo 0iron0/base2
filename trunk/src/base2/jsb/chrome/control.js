@@ -17,7 +17,7 @@ var control = behavior.extend({
   // properties
 
   allowVertical: false,
-  mask: "",
+  appearance: "none",
   
   // events
   
@@ -25,7 +25,7 @@ var control = behavior.extend({
     if (this.allowVertical && element[_HEIGHT] > element[_WIDTH]) {
       this.setOrientation(element, this.VERTICAL);
     }
-    this.layout(element, this.states[element.disabled ? "disabled" : "normal"]);
+    this.layout(element, this.states[element.disabled ? "disabled" : "normal"]); // initial state
   },
 
   onmousedown: function(element, event, x, y) {
@@ -88,6 +88,18 @@ var control = behavior.extend({
   },
   
   // methods
+
+  getValue: function(element) {
+    return element.value;
+  },
+
+  setValue: function(element, value) {
+    if (value != element.value) {
+      element.value = value;
+      this.dispatchEvent(element, "change");
+      this.layout(element);
+    }
+  },
 
   isActive: function(element) {
     return control._activeThumb && (control._activeThumb == control._hoverThumb);

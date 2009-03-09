@@ -12,10 +12,9 @@ var ViewCSS = Interface.extend({
     "@MSIE": {
       getComputedStyle: function(view, element, pseudoElement) {
         // pseudoElement parameter is not supported
-        var style = element.style,
-            currentStyle = element.currentStyle,
+        var currentStyle = element.currentStyle,
             computedStyle = {};
-        for (var propertyName in style) {
+        for (var propertyName in currentStyle) {
           if (_METRICS.test(propertyName) || _COLOR.test(propertyName)) {
             computedStyle[propertyName] = this.getComputedPropertyValue(view, element, propertyName);
           } else if (propertyName.indexOf("ruby") != 0) {

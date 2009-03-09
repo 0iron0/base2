@@ -1,5 +1,7 @@
 
-var range = number.extend({
+var range = control.extend({
+  implements: [number],
+  
   // properties
   
   min:  0,
@@ -8,10 +10,10 @@ var range = number.extend({
 
   // events
 
-  onminchange: _range_layout,
-  onmaxchange: _range_layout,
-  onstepchange: _range_layout,
-  onvaluechange: _range_layout,
+  onminchange: _layout,
+  onmaxchange: _layout,
+  onstepchange: _layout,
+  onvaluechange: _layout,
 
   "@!Opera(8|9.[0-4])": {
     // The text is hidden for all but Opera < 9.5.
@@ -57,13 +59,19 @@ var range = number.extend({
 
   // methods
 
+  getProperties: function(element) {
+    var properties = this.base(element);
+    properties.relativeValue = ((properties.value = parseFloat(element.value) || 0) - properties.min) / (properties.max - properties.min);
+    return properties;
+  },
+
   getRelativeValue: function(element) {
     return this.getProperties(element).relativeValue;
   },
 
   setRelativeValue: function(element, relativeValue) {
     var properties = this.getProperties(element);
-    this.setValue(element, (properties.max - properties.min) * relativeValue);
+    this.setValueAsNumber(element, (properties.max - properties.min) * relativeValue);
   },
 
   increment: function(element, amount, block) {
@@ -87,7 +95,3 @@ var range = number.extend({
 
   getCursor: K("")
 });
-
-function _range_layout(element) {
-  this.layout(element);
-};

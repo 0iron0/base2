@@ -8,6 +8,8 @@ var dropdown = control.extend({
     return dropdown;
   },
 
+  "@MSIE.+win": _MSIEShim,
+
   // constants
 
   "@theme=luna\\/blue": {
@@ -16,12 +18,14 @@ var dropdown = control.extend({
   
   // properties
 
+  appearance: "dropdown",
+
   Popup: Popup, // popup class
   
   // events
 
   onblur: function(element, event) {
-    ;;; console2.log("BLUR: "+this._popup.isActive());
+    ;;; if(this._popup) console2.log("BLUR: "+this._popup.isActive());
     if (this.isOpen(element) && !this._popup.isActive()) this.hidePopup();
     this.base(element, event);
   },
@@ -42,6 +46,14 @@ var dropdown = control.extend({
         this.showPopup(element);
       } else if (this.isOpen(element)) {
         this._popup.onkeydown(event);
+      }
+    }
+  },
+
+  onkeypress: function(element, event, keyCode) {
+    if (this.isEditable(element)) {
+      if (this.isOpen(element)) {
+        this._popup.onkeypress(event);
       }
     }
   },
@@ -105,16 +117,14 @@ var dropdown = control.extend({
       this.removeClass(element, this.appearance + _ACTIVE);
     },
 
-    hitTest: function(element, x) {
-      return x >= element.clientWidth;
+    "@(style.MozBorderImage!==undefined||style.WebkitBorderImage!==undefined)": {
+      hitTest: function(element, x) {
+        return x >= element.clientWidth;
+      }
     },
 
-    //"@Safari": {
-      layout: function(element) {
-        this.syncCursor(element);
-      }
-    //}
-  },
-
-  "@MSIE.+win": _MSIEShim
+    layout: function(element) {
+      this.syncCursor(element);
+    }
+  }
 });

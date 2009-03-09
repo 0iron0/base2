@@ -11,6 +11,8 @@ var slider = range.extend({
 
   // properties
 
+  appearance: "slider",
+
   // events
 
   onmousedown: function(element, event, x, y, screenX, screenY) {
@@ -35,6 +37,7 @@ var slider = range.extend({
   },
 
   onmouseup: function(element, event) {
+    if (!this.isEditable(element)) return;
     this.base(element, event);
     delete control._dragInfo;
     if (!control._firedOnce) this.tick(element);
@@ -124,7 +127,7 @@ var slider = range.extend({
   },
 
   setValueByPosition: function(element, x, y) {
-    this.setValue(element, this.getValueByPosition(element, x, y));
+    this.setValueAsNumber(element, this.getValueByPosition(element, x, y));
   },
 
   getState: function(element) {
@@ -169,6 +172,7 @@ var slider = range.extend({
     // the aqua slider jumps immediatley to wherever you click
 
     onmousedown: function(element, event, x, y) {
+      if (!this.isEditable(element)) return;
       slider._activeElement = element;
       this.base.apply(this, arguments);
       if (!control._activeThumb) {

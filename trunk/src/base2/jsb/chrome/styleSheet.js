@@ -57,12 +57,10 @@ jsb.theme.cssText = jsb.createStyleSheet({
     }
   },
 
-  ".jsb-dropdown,.jsb-combobox,.jsb-colorpicker,.jsb-datepicker": {
+  ".jsb-dropdown,.jsb-combobox,.jsb-colorpicker,.jsb-datepicker,.jsb-weekpicker": {
     "@theme=aqua": { // aqua
       width:              "10em",
       BoxSizing:          "border-box",
-      minHeight:          "15px!",
-      maxHeight:          "21px!",
       BorderRadius:       "5px",
       BorderImage:        "url(%theme%/menubutton.png) 2 23 1 6",
       BoxShadow:          "0 1px 0 rgba(160, 160, 160, 0.5)",
@@ -72,17 +70,20 @@ jsb.theme.cssText = jsb.createStyleSheet({
       
       "@(style.MozBorderImage===undefined&&style.WebkitBorderImage===undefined)": {
         backgroundImage:        "url(%theme%/dropdown.png)!",
-        backgroundPosition:        "right center!",
-        padding: "1px 23px 1px 4px!",
-        border: "1px solid #939393!"
+        backgroundPosition:     "right center!",
+        padding:                "1px 23px 1px 4px!",
+        border:                 "1px solid #545454!"
+      },
+      
+      "@Webkit": {
+        fontSize:               "0.67em"
       }
     },
 
     "@!theme=aqua": { // not aqua
       width:              "8em",
       paddingRight:       "19px!",
-      backgroundImage:    "url(%theme%/menulist.png)!",
-      font:               "-webkit-small-control"
+      backgroundImage:    "url(%theme%/menulist.png)!"
     }
   },
 
@@ -168,25 +169,36 @@ jsb.theme.cssText = jsb.createStyleSheet({
     backgroundImage:  "url(%theme%/spinner.png)!"
   },
 
-  ".jsb-error": {
-    borderColor:      "#ff5e5e",
-    outlineColor:     "#ff5e5e"
+  ".jsb-spinner[disabled],.jsb-spinner[readonly]": {
+    borderColor:      "#d6d6d6 #e0e0e0 #f0f0f0 #e0e0e0"
+  },
+
+  ".jsb-datepicker-popup table": {
+    backgroundColor: "Window!",
+    color:           "WindowText!",
+    width:           "100%!",
+    margin:          "4px 0!",
+    UserSelect:      "none!",
   }
 });
 
 jsb.theme.cssText += jsb.createStyleSheet({
+  ".jsb-error": {
+    borderColor:      "#ff5e5e",
+    outlineColor:     "#ff5e5e"
+  },
+  
   ".jsb-colorpicker": {
     width:         "4em"
   },
 
-  ".jsb-datepicker": {
+  ".jsb-datepicker.,jsb-weekpicker": {
     width:         "12ex"
   },
 
   "@!Webkit": {
-    ".progressbar_focus,.slider_focus": {
-      outline:        "1px dotted",
-      MozOutline:     "1px dotted"
+    ".progressbar_focus,.slider_focus,.colorpicker_focus": {
+      Outline:        "1px dotted"
     }
   },
 
@@ -216,6 +228,7 @@ jsb.theme.cssText += jsb.createStyleSheet({
   },
 
   ".jsb-colorpicker-popup": {
+    backgroundColor: "ButtonFace!",
     color:           "ButtonText!",
     fontSize:        "11px!",
     padding:         "4px!",
@@ -240,18 +253,22 @@ jsb.theme.cssText += jsb.createStyleSheet({
     padding: "4px"
   },
 
-  ".jsb-datepicker-popup table": {
-    border:          "1px solid InactiveCaption!",
-    backgroundColor: "ButtonHighlight!",
-    color:           "ButtonText!",
-    width:           "100%!",
-    margin:          "4px 0!"
+  ".jsb-datepicker-popup table:focus": {
+    Outline:         "none",
+    borderColor:     _HIGHLIGHT + "!"
+  },
+
+  ".jsb-datepicker-popup input": {
+    backgroundColor: "Window",
+    padding:         "1px 2px",
+    color:           "WindowText"
   },
 
   ".jsb-datepicker-popup th": {
-    backgroundColor: "#89acd5!",
-    color:           "InactiveCaptionText!",
-    fontWeight:      "normal!"
+    backgroundColor: "InfoBackground!",
+    color:           "InfoText!",
+    fontWeight:      "normal!",
+    borderBottom:    "10px solid white"
   },
 
   ".jsb-datepicker-popup th,.jsb-datepicker-popup td": {
@@ -264,9 +281,15 @@ jsb.theme.cssText += jsb.createStyleSheet({
     color:           "#ccc!"
   },
 
-  ".jsb-datepicker-popup td.selected": {
+  ".jsb-datepicker-popup td.selected,.jsb-datepicker-popup tr.selected td": {
     backgroundColor: _HIGHLIGHT,
     color:           _HIGHLIGHT_TEXT
+  },
+
+  "@theme=luna\\/blue": {
+    ".jsb-datepicker-popup th": {
+      backgroundColor: "#ffffe1!"
+    }
   },
 
   "@!MSIE": {
@@ -280,31 +303,48 @@ jsb.theme.cssText += jsb.createStyleSheet({
   },
 
   "@theme=aqua": {
-    ".jsb-colorpicker": {
-      BorderImage:        "url(%theme%/colorpicker.png) 2 23 1 6",
-      width:         "6em"
+    ".jsb-menulist": {
+      Opacity:            0.95
     },
 
-    ".jsb-datepicker": {
+    ".jsb-spinner": {
+      paddingRight:          "15px!"
+    },
+
+    ".jsb-colorpicker": {
+      BorderImage:        "url(%theme%/colorpicker.png) 2 23 1 6",
+      width:              "6em"
+    },
+
+    ".jsb-datepicker,.jsb-weekpicker": {
       width:         "8em"
     },
 
     ".jsb-datepicker-popup table": {
-      backgroundColor: "white!",
-      borderWidth:           "2px 1px 1px 1px!",
-      borderColor:           "#9e9e9e #b4b4b4 #dadada #b4b4b4!"
+      backgroundColor:       "white!"
     },
 
     ".jsb-datepicker-popup th": {
-      color:         "white!"
+      backgroundColor: "#89acd5!",
+      color:           "white!"
     },
 
-    ".dropdown_active": {
+    ".dropdown_active,.combobox_active,.datepicker_active,.weekpicker_active,.colorpicker_active": {
       BorderImage:   "url(%theme%/menubutton-active.png) 2 23 1 6"
     },
 
-    ".jsb-combobox[readonly],.jsb-combobox[disabled],.jsb-colorpicker[readonly],.jsb-colorpicker[disabled],.jsb-datepicker[readonly],.jsb-datepicker[disabled]": {
+    ".jsb-combobox[readonly],.jsb-combobox[disabled],.jsb-datepicker[readonly],.jsb-datepicker[disabled],.jsb-weekpicker[readonly],.jsb-weekpicker[disabled]": {
       BorderImage:   "url(%theme%/menubutton-disabled.png) 2 23 1 6 !",
+      BoxShadow:     "none"
+    },
+
+    ".jsb-combobox[disabled],.jsb-datepicker[disabled],.jsb-weekpicker[disabled],.jsb-colorpicker[disabled],.jsb-progressbar[disabled]": {
+      color:         "black",
+      Opacity:       0.5
+    },
+
+    ".jsb-colorpicker[readonly],.jsb-colorpicker[disabled]": {
+      BorderImage:   "url(%theme%/colorpicker-disabled.png) 2 23 1 6 !",
       BoxShadow:     "none"
     },
 
