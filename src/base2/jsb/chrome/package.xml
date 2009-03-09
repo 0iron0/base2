@@ -5,6 +5,7 @@
   <include src="theme.js"/>
   <include src="_MSIEShim.js"/>
   <include src="Popup.js"/>
+  <include src="MenuList.js"/>
   <include src="control.js"/>
   <include src="dropdown.js"/>
   <include src="combobox.js"/>
@@ -15,7 +16,7 @@
   <include src="spinner.js"/>
   <include src="colorpicker.js"/>
   <include src="datepicker.js"/>
-  <include src="Month.js"/>
+  <include src="weekpicker.js"/>
   <include src="Rect.js"/>
   <include src="styleSheet.js"/>
   <include src="rules.js"/>

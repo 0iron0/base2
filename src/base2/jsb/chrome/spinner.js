@@ -1,5 +1,8 @@
 
-var spinner = number.extend({
+var spinner = control.extend({
+  implements: [number],
+
+  "@MSIE.+win": _MSIEShim,
 
   // constants
 
@@ -14,6 +17,8 @@ var spinner = number.extend({
   },
 
   // properties
+  
+  appearance: "spinner",
 
   // events
   
@@ -132,7 +137,41 @@ var spinner = number.extend({
       return element.nodeName == "INPUT" && element.type == "number";
     }
   },
-  
-  "@MSIE.+win": _MSIEShim
+
+  "@theme=aqua": {
+    layout: function(element, state) {
+      if (state == null) state = this.getState(element);
+      var height = element.clientHeight,
+          style = element.style,
+          imageHeight = 14,
+          top = -1,
+          offset = 19;
+      if (height >= 19) {
+        if (height > 24) {
+          top = -315;
+          imageHeight = 22;
+          offset = 200;
+        } else {
+          top = -76;
+          imageHeight = 19;
+          offset = 24;
+        }
+      }
+      top += Math.round((height - imageHeight) / 2);
+      switch (state) {
+        case 5: // disabled
+          top -= offset;
+        case 4: // down
+          top -= offset;
+        case 2: // up
+          top -= offset;
+      }
+      var backgroundPosition = "right " + top + PX;
+      if (style.backgroundPosition != backgroundPosition) {
+        style.backgroundPosition = backgroundPosition;
+      }
+      this.syncCursor(element);
+    }
+  }
 });
 

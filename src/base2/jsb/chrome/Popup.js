@@ -11,8 +11,18 @@ var Popup = Base.extend({
     var popup = this;
     for (var i in popup) {
       if (_EVENT.test(i)) {
-        EventTarget.addEventListener(body, i.slice(2), this, false);
+        EventTarget.addEventListener(body, i.slice(2), this, /onblur|onfocus/.test(i));
       }
+    }
+  },
+  
+  "@!Gecko": {
+    constructor: function(owner) {
+      this.base(owner);
+      var body = this.body;
+      body.onselect =
+      body.onselectstart = False;
+      body.setAttribute("unselectable", "on");
     }
   },
 
@@ -21,8 +31,8 @@ var Popup = Base.extend({
   appearance: "popup",
   width: "auto",
   height: "auto",
-  unitHeight: 1,
-  unitWidth: 1,
+  element: null,
+  body: null,
 
   scrollX: true,
   scrollY: true,
@@ -30,10 +40,12 @@ var Popup = Base.extend({
   // events
 
   handleEvent: function(event) {
+    //event.stopPropagation();
+    
     switch (event.type) {
-      case "mousedown":
-        event.preventDefault();
-        break;
+    //case "mousedown":
+    ////event.preventDefault();
+    //  break;
       case "mouseover":
       case "mouseout":
         if (event.target == this.body) return;
@@ -47,13 +59,13 @@ var Popup = Base.extend({
     }
   },
 
-  onmousedown: Undefined,
-  onmouseup: Undefined,
+  //onmousedown: Undefined,
+  //onmouseup: Undefined,
   
   // methods
   
   isActive: function() {
-    return Element.matchesSelector(this.body, ":hover");
+    return this._active || Element.matchesSelector(this.body, ":hover");
   },
 
   createBody: function() {
@@ -110,7 +122,7 @@ var Popup = Base.extend({
     if (parent) parent.removeChild(this.body);
     this.previousElement = this.element;
     delete this.element;
-    delete control._popup;
+    Popup.current = null;
   },
 
   isOpen: function() {
@@ -152,7 +164,7 @@ var Popup = Base.extend({
     this.movesize();
     this.layout();
     this.body.style.visibility = "visible";
-    control._popup = this;
+    Popup.current = this;
   },
 
   style: function() {
@@ -194,7 +206,7 @@ var Popup = Base.extend({
       this.popup.hide();
       this.previousElement = this.element;
       delete this.element;
-      delete control._popup;
+      Popup.current = null;
     },
 
     isOpen: function() {
@@ -204,7 +216,7 @@ var Popup = Base.extend({
     movesize: function() {
       var self = this,
           popup = self.popup;
-      // resize
+          
       if (self.width == "auto" || self.height == "auto") {
         this.body.onload = function() {
           setTimeout(show, 1);
@@ -219,5 +231,19 @@ var Popup = Base.extend({
         popup.show(rect.left, rect.top, rect.width, rect.height, self.element);
       };
     }
+  }
+}, {
+  current: null,
+  
+  init: function() {
+    EventTarget.addEventListener(window, "blur", hidePopup, false);
+    EventTarget.addEventListener(document, "mousedown", hidePopup, false);
+    function hidePopup(event) {
+      var popup = Popup.current,
+          target = event.target;
+      if (popup && target != document && target != popup.element && target != shim.control && !Traversal.contains(popup.body, target)) {
+        popup.hide();
+      }
+    };
   }
 });

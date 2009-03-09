@@ -14,6 +14,8 @@ var progressbar = range.extend({
 
   // properties
 
+  appearance: "progressbar",
+
   // events
 
   onmouseover: Undefined,

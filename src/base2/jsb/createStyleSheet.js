@@ -33,6 +33,7 @@ extend(jsb, "createStyleSheet", function(cssText, document) {
         var rule = styleSheet[selector];
         if (!rule) rule = styleSheet[selector] = extend({toString: baseRule.toString}, baseRule);
         forEach.detect (properties, function(value, propertyName) {
+          if (/^Webkit/.test(propertyName)) arguments.callee(value, "Khtml" + propertyName.slice(6));
           if (LEADING_CAP.test(propertyName) && propertyName.indexOf(_PREFIX) != 0) {
             arguments.callee(value, propertyName.replace(LEADING_CAP, String2.toLowerCase));
             propertyName = _PREFIX + propertyName;

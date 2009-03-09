@@ -64,7 +64,7 @@ var _MSIEShim = {
   },
 
   onkeyup: function(element, event, keyCode) {
-    if (!control._popup && keyCode == 35) { // END key
+    if (!Popup.current && keyCode == 35) { // END key
       element.scrollLeft = 9999;
     } else {
       this.base(element, event, keyCode);

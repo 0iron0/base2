@@ -1,5 +1,5 @@
 
-var Behavior = Base.extend({
+var _Behavior = Base.extend({
   attach: I,
   detach: I,
   modify: Null,
@@ -12,12 +12,16 @@ var Behavior = Base.extend({
 
   extend: function(_interface) {
     // Extend a behavior to create a new behavior.
-    var _constructor = function(){};
-    _constructor.prototype = new this.constructor;
-    _constructor.prototype.constructor = _constructor;
-    var behavior = _constructor.prototype;
-    if (this == jsb.behavior) behavior.extendedMouse = false; // preserve the default for direct descendants of jsb.behavior
-    extend(behavior, _interface);
+    var Behavior = function(){};
+    Behavior.prototype = new this.constructor;
+    Behavior.prototype.constructor = Behavior;
+    var interfaces = _interface["implements"] || [];
+    delete _interface["implements"];
+    interfaces.push(_interface);
+    for (var i = 0; _interface = interfaces[i]; i++) {
+      extend(Behavior.prototype, _interface);
+    }
+    var behavior = new Behavior;
     
     // Private.
     var attachments = {behavior: behavior}, // uniqueIDs
@@ -28,7 +32,7 @@ var Behavior = Base.extend({
             _dispatchEvent(behavior, event.target, event);
           }
         };
-    _constructor.modifications = modifications;
+    Behavior.modifications = modifications;
         
     // Extract events.
     for (var name in behavior) {
@@ -191,7 +195,7 @@ var Behavior = Base.extend({
   }
 });
 
-var behavior = Behavior.prototype;
+var behavior = _Behavior.prototype;
 
 forEach.csv("setInterval,setTimeout", function(name) {
   behavior[name] = function(callback, delay) {
@@ -232,3 +236,5 @@ forEach ([
 ClassList.forEach(function(method, name) {
   behavior[name + "Class"] = bind(method, ClassList);
 });
+
+behavior = new _Behavior;
