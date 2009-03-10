@@ -11,57 +11,60 @@ if (detect("Webkit([1-4]|5[01]|52[^89])|theme=aqua")) { // webkit pre 528 uses t
 
 jsb.theme.cssText = jsb.createStyleSheet({
   "*": {
-    padding:                 "1px 2px 2px 1px",
-    borderWidth:             "2px 1px 1px 2px",
-    borderStyle:             "solid",
-    borderColor:             "#444 #ddd #ddd #444",
-    backgroundPosition:      "9999px 9999px",
-    backgroundAttachment:    "scroll!",
-    backgroundRepeat:        "no-repeat!",
+    backgroundPosition:        "9999px 9999px",
+    backgroundAttachment:      "scroll!",
+    backgroundRepeat:          "no-repeat!",
+    padding:                   "2px",
+    borderWidth:               "1px",
+    borderStyle:               "solid",
+    borderColor:               "#a7a6aa",
 
-    "@MSIE.+theme=classic": {
-      padding:               "1px",
-      borderWidth:           "2px",
-      borderStyle:           "inset",
-      borderColor:           "#fff"
-    },
+    "@theme=classic": {
+      padding:                 "1px 2px 2px 1px",
+      borderWidth:             "2px 1px 1px 2px",
+      borderColor:             "#444 #ddd #ddd #444",
 
-    "@Gecko.+theme=classic": {
-      padding:               "1px",
-      borderWidth:           "2px",
-      MozBorderTopColors:    "ThreeDShadow ThreeDDarkShadow",
-      MozBorderRightColors:  "ThreeDHighlight ThreeDLightShadow",
-      MozBorderLeftColors:   "ThreeDShadow ThreeDDarkShadow",
-      MozBorderBottomColors: "ThreeDHighlight ThreeDLightShadow"
+      "@MSIE": {
+        padding:               "1px",
+        borderWidth:           "2px",
+        borderStyle:           "inset",
+        borderColor:           "#fff"
+      },
+
+      "@Gecko": {
+        padding:               "1px",
+        borderWidth:           "2px",
+        MozBorderTopColors:    "ThreeDShadow ThreeDDarkShadow",
+        MozBorderRightColors:  "ThreeDHighlight ThreeDLightShadow",
+        MozBorderLeftColors:   "ThreeDShadow ThreeDDarkShadow",
+        MozBorderBottomColors: "ThreeDHighlight ThreeDLightShadow"
+      }
     },
 
     "@theme=aqua": {
-      padding:               "1px 2px 2px 2px",
-      borderWidth:           "2px 1px 1px 1px",
-      borderColor:           "#9e9e9e #b4b4b4 #dadada #b4b4b4"
+      padding:                 "1px 2px 2px 2px",
+      borderWidth:             "2px 1px 1px 1px",
+      borderColor:             "#9e9e9e #b4b4b4 #dadada #b4b4b4"
     },
 
-    "@theme=(luna|royale|aero|zune)": {
-      padding:               "2px",
-      borderWidth:           "1px",
-      borderStyle:           "solid",
-      borderColor:           "#a7a6aa",
-
-      "@luna\\/blue": {
-        borderColor:         "#7f9db9"
-      },
-      "@luna\\/olive": {
-        borderColor:         "#a4b97f"
-      },
-      "@luna\\/silver": {
-        borderColor:         "#a5acb2"
-      },
-      "@aero": {
-        borderColor:         "#a5acb2"
-      },
-      "@aero": {
-        borderColor:         "#969696"
-      }
+    "@theme=luna\\/blue": {
+      borderColor:             "#7f9db9"
+    },
+    
+    "@theme=luna\\/olive": {
+      borderColor:             "#a4b97f"
+    },
+    
+    "@theme=luna\\/silver": {
+      borderColor:             "#a5acb2"
+    },
+    
+    "@theme=aero": {
+      borderColor:             "#abadb3 #dbdfe6 #e3e9ef #e2e3ea"
+    },
+    
+    "@theme=zune": {
+      borderColor:             "#969696"
     }
   },
 
@@ -293,6 +296,12 @@ jsb.theme.cssText += jsb.createStyleSheet({
   "@theme=luna\\/blue": {
     ".jsb-datepicker-popup th": {
       backgroundColor: "#ffffe1!"
+    }
+  },
+
+  "@theme=aero": {
+    ".jsb-dropdown:focus,.jsb-combobox:focus,.jsb-colorpicker:focus,.jsb-datepicker:focus,.jsb-weekpicker:focus,.jsb-spinner:focus,.jsb-timepicker:focus": {
+      borderColor:     "#3d7bad #a4c9e3 #b7d9ed #b5cfe7"
     }
   },
 

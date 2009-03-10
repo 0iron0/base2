@@ -10,12 +10,12 @@ jsb.theme = new Base({
       // detect XP theme by inspecting the ActiveCaption colour
       element.style.color = "ActiveCaption";
       var color = element.style.color;
-      if (!_XP_DETECT[color]) {
+      if (!_WIN_DETECT[color]) {
         color = ViewCSS.getComputedPropertyValue(document.defaultView, element, "color");
         if (/rgb/.test(color)) color = eval(color);
       }
       head.removeChild(element);
-      return _XP_DETECT[color];
+      return _WIN_DETECT[color];
     },
 
     "@MSIE": {
@@ -42,19 +42,19 @@ jsb.theme = new Base({
   }
 });
 
-var _XP_DETECT = {
+var _WIN_DETECT = {
   "#0a246a": "classic",
   "#0054e3": "luna/blue",
   "#8ba169": "luna/olive",
   "#c0c0c0": "luna/silver",
   "#335ea8": "royale",
-  "#dfeafc": "aero",
+  "#99b4d1": "aero",
   "#343434": "zune"
 };
 
 var rgba = rgb;
 
-jsb.theme.toString = K("default");//K(jsb.theme.detect());
+jsb.theme.toString = K("aero/alternative");//K(jsb.theme.detect());
 
 base2.userAgent += ";theme=" + jsb.theme;
 

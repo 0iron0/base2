@@ -84,15 +84,6 @@ var dropdown = control.extend({
     return this.states[state];
   },
 
-  "@theme=aero": {
-    getState: function(element) {
-      if (element == control._focus && !control._activeThumb) {
-        return this.states.hover;
-      }
-      return this.base(element);
-    }
-  },
-
   hidePopup: function(element) {
     if (this._popup) this._popup.hide();
   },
