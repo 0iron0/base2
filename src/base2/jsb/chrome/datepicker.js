@@ -36,56 +36,76 @@ var datepicker = dropdown.extend({
     currentDate: new Date,
   
     render: function() {
-      var days = locale.days.split(",");
-      for (var i = 0; i < locale.firstDay; i++) days.push(days.shift());
       this.base(
-'<div style="white-space:nowrap">\
-<select>' +
-wrap(locale.months.split(","), "option") +
-'</select>\
- <input class="jsb-spinner" size="4">\
-</div>\
-<div style="clear:both;"></div>\
-<table cellspacing="0" tabindex="1">' +
-'<tr unselectable="on">' + wrap(days, "th") + '</tr>' +
+'<table style="margin:4px" cellspacing="0">\
+<tr>\
+<td><select>' +
+wrap(chrome.locale.months, "option") +
+'</select></td>\
+<td align="right"><input type="text" class="jsb-spinner" size="4"></td>\
+</tr>\
+<tr>\
+<td colspan="2">\
+<table style="width:100%;margin-top:2px;padding:2px" class="jsb-datepicker-days" cellspacing="0" tabindex="1">' +
+'<tr unselectable="on">' + wrap(chrome.locale.days, "th", 'unselectable="on"') + '</tr>' +
 Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0</td>') + '</tr>') +
-'</table>'
+'</table>\
+</td>\
+</tr>\
+</table>'
 );
       
       this.year = this.querySelector("input");
       this.month = this.querySelector("select");
-      this.days = this.querySelector("table");
+      this.days = this.querySelector("table.jsb-datepicker-days");
       
       this.year.onscroll = _resetScroll;
       spinner.attach(this.year);
       
-      this.days.setAttribute("unselectable", "on");
+      this.setUnselectable(this.days);
       
       this.render = Undefined; // do once
       
-      function wrap(items, tagName) {
+      function wrap(items, tagName, attributes) {
         return reduce(items, function(html, text) {
-          return html += "<" + tagName + ">" + text + "</" + tagName + ">";
+          return html += "<" + tagName + " " + attributes + ">" + text + "</" + tagName + ">";
         }, "");
       };
+    },
+
+    onblur: function(event) {
+      console2.log("onblur: "+event.target.nodeName);
+      if (/INPUT|SELECT/.test(event.target.nodeName)) {
+        ClassList.remove(this.days, "jsb-days_inactive");
+      }
+    },
+
+    onfocus: function(event) {
+      console2.log("onfocus: "+event.target.nodeName);
+      if (/INPUT|SELECT/.test(event.target.nodeName)) {
+        ClassList.add(this.days, "jsb-days_inactive");
+      } else {
+        ClassList.remove(this.days, "jsb-days_inactive");
+      }
     },
 
     onchange: function(event) {
       this.fill();
     },
 
-    onclick: function(event) {
-      var target = event.target;
-      if (target.nodeName == "TD" && target.className != "disabled") {
+    onmouseup: function(event) {
+      if (!Traversal.contains(this.days, event.target)) return;
+      var target = this.currentItem;
+      //if (target.nodeName == "TD" && target.className != "disabled") {
         var value = pad(this.year.value, 4) + "-" + pad(this.month.selectedIndex + 1, 2) + "-" + pad(target[_TEXT], 2);
         this.owner.setValue(this.element, value);
         this.hide();
         this.reset(target);
         this.previousElement.focus();
-      }
+      //}
     },
     
-    "@Webkit": {
+    "@MSIE|Webkit": {
       onkeydown: function(event) {
         if (event.keyCode == 9) { // tab
           if (this.tab()) event.preventDefault();
@@ -101,12 +121,17 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
 
     onmouseover: function(event) {
       var target = event.target;
-      if (target.nodeName == "TD" && target.className != "disabled") {
+      if (target.nodeName == "TD" && target.className != "disabled" && Traversal.contains(this.days, target)) {
         this.highlight(target);
       }
     },
     
     // methods
+    
+    hide: function() {
+      this.base();
+      ClassList.remove(this.days, "jsb-days_inactive");
+    },
 
     tab: function() {
       var popup = this,
@@ -115,6 +140,7 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
       switch (popup.querySelector(":focus")) {
         case null:
           popup.month.focus();
+          ClassList.add(this.days, "jsb-days_inactive");
           return true;
         //case popup.month:
         //  popup.year.select();
@@ -128,14 +154,14 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
           delete popup._active;
           popup.element.focus();
       }
-      setTimeout(function() {
+      //setTimeout(function() {
         //delete popup._active;
         //days.removeAttribute("tabindex");
-      }, 1);
+      //}, 1);
       return false;
     },
 
-    "@Gecko|Webkit": {
+    "@MSIE|Gecko|Webkit": {
       tab: function() {
         var popup = this,
             days = popup.days;
@@ -152,8 +178,6 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
         return this.base();
       }
     },
-
-    onfocus: Undefined,
 
     "@Opera": {
       onfocus: function(event) {
@@ -172,7 +196,7 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
           d = new Date(month),
           d2 = new Date(d);
           
-      d.setDate(d.getUTCDate() - d.getUTCDay() + locale.firstDay);
+      d.setDate(d.getUTCDate() - d.getUTCDay() + chrome.locale.firstDay);
       // we need to ensure that we do not start after the first of the month
       if (d > d2) {
         d.setDate(d.getUTCDate() - 7);
@@ -183,7 +207,7 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
             cells = row.cells, cell,
             hasDays = false;
         for (var j = 0; cell = cells[j]; j++) {
-          cell[_TEXT] = d.getUTCDate();
+          cell.innerHTML = d.getUTCDate();
           var isSameMonth = this.isSameMonth(month, d);
           hasDays |= isSameMonth;
           cell.className = isSameMonth ? "" : "disabled";
@@ -225,32 +249,56 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
       var bodyStyle = this.body.style,
           monthStyle = this.month.style,
           yearStyle = this.year.style,
+          daysStyle = this.days.style,
           days = this.body.getElementsByTagName("td");
-      forEach.csv("fontFamily,fontSize,fontWeight,fontStyle", function(propertyName) {
+      forEach.csv("fontFamily,fontSize,fontWeight,fontStyle,color", function(propertyName) {
+        daysStyle[propertyName] =
         monthStyle[propertyName] =
         yearStyle[propertyName] = bodyStyle[propertyName];
       });
-      yearStyle.height = this.month.offsetHeight + "px";
+      //daysStyle.backgroundColor =
+      yearStyle.backgroundColor = bodyStyle.backgroundColor;
+      //yearStyle.height = this.month.offsetHeight + "px";
       spinner.layout(this.year);
       this.highlight(days[14 - days[14][_TEXT] + this.currentDate.getUTCDate()]);
       //this.month.focus();
     },
     
     "@MSIE": {
+      /*tab: function() {
+        var popup = this,
+            days = popup.days;
+        popup._active = true;
+        console2.log(popup.querySelector(":focus"));
+        switch (popup.querySelector(":focus")) {
+          case null:
+            popup.year.select();
+            return true;
+          case popup.month:
+            //popup.year.focus();
+            popup.year.select();
+            return true;
+          case popup.year:
+            days.focus();
+            return true;
+        }
+      },*/
+      
       render: function() {
         this.base();
         var popup = this;
         this.month.attachEvent("onchange", function(event) {
           popup.handleEvent(Event.bind(event));
         });
-        jsb.createStyleSheet("td,th{font-size:10px}", this.popup.document);
+        //jsb.createStyleSheet("td,th{font-size:10px;color:black}", this.popup.document);
       },
 
       style: function() {
         this.base();
-        forEach (this.popup.document.styleSheets[1].rules, function(rule) {
-          rule.style.cssText = "font-size:" + this.body.style.fontSize;
-        }, this);
+        var style= this.body.style;
+        //forEach (this.popup.document.styleSheets[1].rules, function(rule) {
+        //  rule.style.cssText = "font-size:" + style.fontSize + ";color:" + style.color;
+        //}, this);
       }
     }
   }

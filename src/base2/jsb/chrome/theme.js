@@ -18,7 +18,7 @@ jsb.theme = new Base({
       return _XP_DETECT[color];
     },
 
-    "@MSIE6": {
+    "@MSIE": {
       detect: function() {
         return this.base() || {
         	"#ece9d8": "luna/blue",
@@ -47,12 +47,14 @@ var _XP_DETECT = {
   "#0054e3": "luna/blue",
   "#8ba169": "luna/olive",
   "#c0c0c0": "luna/silver",
-  "#335ea8": "royale"
+  "#335ea8": "royale",
+  "#dfeafc": "aero",
+  "#343434": "zune"
 };
 
 var rgba = rgb;
 
-jsb.theme.toString = K(jsb.theme.detect());
+jsb.theme.toString = K("inspirat/blue");//K(jsb.theme.detect());
 
 base2.userAgent += ";theme=" + jsb.theme;
 

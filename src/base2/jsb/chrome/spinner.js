@@ -136,7 +136,7 @@ var spinner = control.extend({
     isNativeControl: function(element) {
       return element.nodeName == "INPUT" && element.type == "number";
     }
-  },
+  }/*,
 
   "@theme=aqua": {
     layout: function(element, state) {
@@ -172,6 +172,6 @@ var spinner = control.extend({
       }
       this.syncCursor(element);
     }
-  }
+  }*/
 });
 

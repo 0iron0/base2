@@ -1,10 +1,12 @@
 
-var _HIGHLIGHT =      "Highlight",
+var _WINDOW =         "Window",
+    _HIGHLIGHT =      "Highlight",
     _HIGHLIGHT_TEXT = "HighlightText";
 
 if (detect("Webkit([1-4]|5[01]|52[^89])|theme=aqua")) { // webkit pre 528 uses the same colours, no matter the theme
+    _WINDOW =         "#fff";
     _HIGHLIGHT =      "#427cd9";
-    _HIGHLIGHT_TEXT = "white";
+    _HIGHLIGHT_TEXT = "#fff";
 }
 
 jsb.theme.cssText = jsb.createStyleSheet({
@@ -39,7 +41,7 @@ jsb.theme.cssText = jsb.createStyleSheet({
       borderColor:           "#9e9e9e #b4b4b4 #dadada #b4b4b4"
     },
 
-    "@theme=(luna|royale)": {
+    "@theme=(luna|royale|aero|zune)": {
       padding:               "2px",
       borderWidth:           "1px",
       borderStyle:           "solid",
@@ -53,6 +55,12 @@ jsb.theme.cssText = jsb.createStyleSheet({
       },
       "@luna\\/silver": {
         borderColor:         "#a5acb2"
+      },
+      "@aero": {
+        borderColor:         "#a5acb2"
+      },
+      "@aero": {
+        borderColor:         "#969696"
       }
     }
   },
@@ -60,7 +68,7 @@ jsb.theme.cssText = jsb.createStyleSheet({
   ".jsb-dropdown,.jsb-combobox,.jsb-colorpicker,.jsb-datepicker,.jsb-weekpicker": {
     "@theme=aqua": { // aqua
       width:              "10em",
-      BoxSizing:          "border-box",
+      //BoxSizing:          "border-box",
       BorderRadius:       "5px",
       BorderImage:        "url(%theme%/menubutton.png) 2 23 1 6",
       BoxShadow:          "0 1px 0 rgba(160, 160, 160, 0.5)",
@@ -83,7 +91,7 @@ jsb.theme.cssText = jsb.createStyleSheet({
     "@!theme=aqua": { // not aqua
       width:              "8em",
       paddingRight:       "19px!",
-      backgroundImage:    "url(%theme%/menulist.png)!"
+      backgroundImage:    "url(%theme%/dropdown.png)!"
     }
   },
 
@@ -101,13 +109,10 @@ jsb.theme.cssText = jsb.createStyleSheet({
   },
 
   ".jsb-progressbar": {
-    padding:               "1px",
-    border:                "2px solid ThreeDDarkShadow",
+    padding:               "2px",
+    borderColor:           "ThreeDDarkShadow",
+    borderWidth:           "1px",
     BorderRadius:          "5px",
-    MozBorderTopColors:    "ThreeDDarkShadow ThreeDHighlight",
-    MozBorderRightColors:  "ThreeDDarkShadow ThreeDHighlight",
-    MozBorderLeftColors:   "ThreeDDarkShadow ThreeDHighlight",
-    MozBorderBottomColors: "ThreeDDarkShadow ThreeDHighlight",
     backgroundImage:       "url(%theme%/progressbar.png)!",
     width:                 "164px",
 
@@ -138,13 +143,14 @@ jsb.theme.cssText = jsb.createStyleSheet({
   },
 
   ".jsb-popup": {
-    visibility:  "hidden",
-    borderWidth: "1px",
-    position:    "absolute!",
-    zIndex:      "999999!",
-    cursor:      "default",
-    padding:     "0",
-    margin:      "0!",
+    visibility:        "hidden",
+    backgroundColor:   _WINDOW,
+    borderWidth:       "1px",
+    position:          "absolute!",
+    zIndex:            "999999!",
+    cursor:            "default",
+    padding:           "0",
+    margin:            "0!",
 
     "@Gecko|Opera|theme=aqua|Webkit": {
       MozBorder:        "initial",
@@ -169,16 +175,8 @@ jsb.theme.cssText = jsb.createStyleSheet({
     backgroundImage:  "url(%theme%/spinner.png)!"
   },
 
-  ".jsb-spinner[disabled],.jsb-spinner[readonly]": {
-    borderColor:      "#d6d6d6 #e0e0e0 #f0f0f0 #e0e0e0"
-  },
-
-  ".jsb-datepicker-popup table": {
-    backgroundColor: "Window!",
-    color:           "WindowText!",
-    width:           "100%!",
-    margin:          "4px 0!",
-    UserSelect:      "none!",
+  ".jsb-datepicker-days": {
+    UserSelect:      "none!"
   }
 });
 
@@ -202,9 +200,9 @@ jsb.theme.cssText += jsb.createStyleSheet({
     }
   },
 
-  ".jsb-popup *": {
-    BoxSizing:       "border-box"
-  },
+  //".jsb-popup *": {
+  //  BoxSizing:       "border-box"
+  //},
 
   ".jsb-datalist": {
     display:         "none!"
@@ -249,19 +247,20 @@ jsb.theme.cssText += jsb.createStyleSheet({
 
   ".jsb-datepicker-popup": {
     backgroundColor: "#fcfcfd!",
-    overflow:        "hidden!",
-    padding: "4px"
+    overflow:        "hidden!"
   },
-
-  ".jsb-datepicker-popup table:focus": {
+  
+  /*".jsb-datepicker-days:focus": {
     Outline:         "none",
     borderColor:     _HIGHLIGHT + "!"
-  },
+  },*/
 
   ".jsb-datepicker-popup input": {
-    backgroundColor: "Window",
-    padding:         "1px 2px",
-    color:           "WindowText"
+    width:             "5ex",
+
+    "@!MSIE[567]|Opera": {
+      padding:         "1px 19px 1px 2px!"
+    }
   },
 
   ".jsb-datepicker-popup th": {
@@ -271,34 +270,29 @@ jsb.theme.cssText += jsb.createStyleSheet({
     borderBottom:    "10px solid white"
   },
 
-  ".jsb-datepicker-popup th,.jsb-datepicker-popup td": {
+  ".jsb-datepicker-popup th,.jsb-datepicker-days td": {
     padding:         "2px 0!",
     textAlign:       "center!",
     width:           "14%!"
   },
 
-  ".jsb-datepicker-popup td.disabled": {
-    color:           "#ccc!"
+  ".jsb-datepicker-days td.disabled": {
+    color:           "#ddd!"
   },
 
-  ".jsb-datepicker-popup td.selected,.jsb-datepicker-popup tr.selected td": {
+  ".jsb-datepicker-days td.selected,.jsb-datepicker-days tr.selected td": {
     backgroundColor: _HIGHLIGHT,
     color:           _HIGHLIGHT_TEXT
+  },
+
+  ".jsb-days_inactive td.selected,.jsb-days_inactive tr.selected td": {
+    backgroundColor: "#f00",
+    color:           "#000"
   },
 
   "@theme=luna\\/blue": {
     ".jsb-datepicker-popup th": {
       backgroundColor: "#ffffe1!"
-    }
-  },
-
-  "@!MSIE": {
-    ".jsb-datepicker-popup select": {
-      "float": "left"
-    },
-
-    ".jsb-datepicker-popup input": {
-      "float": "right"
     }
   },
 
@@ -308,25 +302,17 @@ jsb.theme.cssText += jsb.createStyleSheet({
     },
 
     ".jsb-spinner": {
-      paddingRight:          "15px!"
+      borderTopWidth: "1px",
+      paddingTop: "2px",
+      borderRightColor:                "transparent",
+      WebkitBorderTopRightRadius:      "5px",
+      WebkitBorderBottomRightRadius:   "5px",
+      "MozBorderRadius-topright":      "5px",
+      "MozBorderRadius-bottomright":   "5px"
     },
 
-    ".jsb-colorpicker": {
-      BorderImage:        "url(%theme%/colorpicker.png) 2 23 1 6",
-      width:              "6em"
-    },
-
-    ".jsb-datepicker,.jsb-weekpicker": {
-      width:         "8em"
-    },
-
-    ".jsb-datepicker-popup table": {
-      backgroundColor:       "white!"
-    },
-
-    ".jsb-datepicker-popup th": {
-      backgroundColor: "#89acd5!",
-      color:           "white!"
+    ".jsb-spinner[disabled],.jsb-spinner[readonly]": {
+      borderColor:      "#d6d6d6 #e0e0e0 #f0f0f0 #e0e0e0"
     },
 
     ".dropdown_active,.combobox_active,.datepicker_active,.weekpicker_active,.colorpicker_active": {
@@ -349,9 +335,27 @@ jsb.theme.cssText += jsb.createStyleSheet({
     },
 
     ".jsb-colorpicker-popup,.jsb-datepicker-popup": {
-      backgroundColor: "white!",
+      backgroundColor: _WINDOW + "!",
       backgroundImage: "url(%theme%/metal.png)!",
       backgroundRepeat: "repeat!"
+    },
+
+    ".jsb-colorpicker": {
+      BorderImage:        "url(%theme%/colorpicker.png) 2 23 1 6",
+      width:              "6em"
+    },
+
+    ".jsb-datepicker,.jsb-weekpicker": {
+      width:         "8em"
+    },
+
+    ".jsb-datepicker-days": {
+      backgroundColor:       _WINDOW + "!"
+    },
+
+    ".jsb-datepicker-popup th": {
+      backgroundColor: "#89acd5!",
+      color:           "white!"
     }
   },
 
