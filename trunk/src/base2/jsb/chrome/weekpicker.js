@@ -34,9 +34,10 @@ var weekpicker = datepicker.extend({
   },
   
   Popup: {
-    onclick: function(event) {
-      var target = event.target;
-      if (target.nodeName == "TD") {
+    onmouseup: function(event) {
+      if (!Traversal.contains(this.days, event.target)) return;
+      var target = this.currentItem;
+      //if (target.nodeName == "TD" && Traversal.contains(this.days, target)) {
         var day = NodeSelector.querySelector(target.parentNode, "td:not(.disabled)"),
             year = this.year.value,
             jan1 = new Date(year, 0, 1),
@@ -47,12 +48,13 @@ var weekpicker = datepicker.extend({
         this.hide();
         this.reset(target);
         this.previousElement.focus();
-      }
+      //}
     },
 
     onmouseover: function(event) {
-      if (event.target.nodeName == "TD") {
-        this.highlight(event.target.parentNode);
+      var target = event.target;
+      if (target.nodeName == "TD" && Traversal.contains(this.days, target)) {
+        this.highlight(target.parentNode);
       }
     },
 

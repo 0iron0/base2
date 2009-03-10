@@ -15,16 +15,6 @@ var Popup = Base.extend({
       }
     }
   },
-  
-  "@!Gecko": {
-    constructor: function(owner) {
-      this.base(owner);
-      var body = this.body;
-      body.onselect =
-      body.onselectstart = False;
-      body.setAttribute("unselectable", "on");
-    }
-  },
 
   // properties
 
@@ -38,6 +28,12 @@ var Popup = Base.extend({
   scrollY: true,
   
   // events
+  
+  setUnselectable: function(element) {
+    element.onselect =
+    element.onselectstart = False;
+    element.setAttribute("unselectable", "on");
+  },
 
   handleEvent: function(event) {
     //event.stopPropagation();
@@ -72,7 +68,7 @@ var Popup = Base.extend({
     return document.createElement("div");
   },
 
-  getPopupRect: function() {
+  getRect: function() {
     var self = this,
         body = self.body,
         element = self.element,
@@ -101,8 +97,9 @@ var Popup = Base.extend({
         width = body.scrollWidth + 2;
         if (height < body.scrollHeight + 2) width += 22; // scrollbars
         if (self.scrollX) {
-          width =  Math.max(Math.min(width, Math.max(client.clientWidth - rect.left - 2, rect.right - 2)), element.offsetWidth);
+          width = Math.min(width, Math.max(client.clientWidth - rect.left - 2, rect.right - 2));
         }
+        width =  Math.max(width, element.offsetWidth);
       }
     }
     if (height > client.clientHeight - rect.bottom && height < rect.bottom) {
@@ -134,10 +131,11 @@ var Popup = Base.extend({
   movesize: function() {
     document.body.appendChild(this.body);
     var style = this.body.style,
-        rect = this.getPopupRect(),
-        offset = ElementView.getBoundingClientRect(this.element);
-    style.left = (rect.left + offset.left + pageXOffset) + PX;
-    style.top = (offset.top + rect.top + pageYOffset) + PX;
+        rect = this.getRect(),
+        offset = ElementView.getBoundingClientRect(this.element),
+        client = document.documentElement;
+    style.left = (rect.left + offset.left + client.scrollLeft) + PX;
+    style.top = (offset.top + rect.top + client.scrollTop) + PX;
     style.width = (rect.width - 2) + PX;
     style.height = (rect.height - 2) + PX;
   },
@@ -169,7 +167,8 @@ var Popup = Base.extend({
 
   style: function() {
     var style = this.body.style;
-    style.cssText = "left:-999px;top:-999px;width:auto;height:auto;";
+    //style.cssText = "left:-999px;top:-999px;width:2px;height:2px;overflow:hidden!important";
+    style.cssText = "left:-999px;top:-999px;";
     var computedStyle = behavior.getComputedStyle(this.element);
     forEach.csv("backgroundColor,color,fontFamily,fontSize,fontWeight,fontStyle", function(propertyName) {
       style[propertyName] = computedStyle[propertyName];
@@ -178,10 +177,38 @@ var Popup = Base.extend({
       style.backgroundColor = "white";
     }
   },
+  
+  "@MSIE[56]": {
+    hide: function() {
+      this.base();
+      if (this._iframe) {
+        document.body.removeChild(this._iframe);
+        delete this._iframe;
+      }
+    },
+    
+    show: function(element) {
+      this.base(element);
+      var iframe = this._iframe = document.createElement("iframe"),
+          style = iframe.style,
+          body = this.body,
+          bodyStyle = body.style;
+          
+      style.cssText = "position:absolute;z-index:999998!important";
+      iframe.frameBorder = "0";
+      style.left = bodyStyle.left;
+      style.top = bodyStyle.top;
+      style.pixelWidth = body.offsetWidth;
+      style.pixelHeight = body.offsetHeight;
+      document.body.appendChild(iframe);
+    }
+  }
+
+/* - this.problem does not seem to occur.
 
   // Inserting content into the document body whilst it is loading will result
   // in an "operation aborted" error. So we use a popup object instead. (MSIE)
-  "@(typeof createPopup=='object')": {
+  "@(typeof createPopup=='object2')": {
     createBody: function() {
       var popup = this.popup = createPopup(),
           document = popup.document,
@@ -227,11 +254,11 @@ var Popup = Base.extend({
       }
 
       function show() {
-        var rect = self.getPopupRect();
+        var rect = self.getRect();
         popup.show(rect.left, rect.top, rect.width, rect.height, self.element);
       };
     }
-  }
+  }*/
 }, {
   current: null,
   

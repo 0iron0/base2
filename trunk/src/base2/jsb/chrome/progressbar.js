@@ -26,8 +26,8 @@ var progressbar = range.extend({
   hitTest: False,
 
   layout: function(element) {
-    var clientWidth = element[_WIDTH],
-        clientHeight = element[_HEIGHT],
+    var clientWidth = element[_WIDTH] - 2,
+        clientHeight = element[_HEIGHT] - 2,
         relativeValue = this.getProperties(element).relativeValue;
 
     if (clientHeight > clientWidth) {
@@ -40,6 +40,6 @@ var progressbar = range.extend({
       top = (-clientHeight / 2) * (clientHeight + 3) - 2;
     }
     
-    element.style.backgroundPosition = left + PX + " " + top + PX;
+    element.style.backgroundPosition = ++left + PX + " " + ++top + PX;
   }
 });

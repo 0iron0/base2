@@ -105,7 +105,7 @@ function _shimMouseOverOut(element, event) {
 };
 
 function _shimMouseOverOut2(element, event) {
-  if (event.relatedTarget != this.element) {
+  if (this.element && event.relatedTarget != this.element) {
     this.behavior["on" + event.type](this.element, event);
   }
   this.layout();

@@ -9,12 +9,6 @@ var dropdown = control.extend({
   },
 
   "@MSIE.+win": _MSIEShim,
-
-  // constants
-
-  "@theme=luna\\/blue": {
-    IMAGE_WIDTH: 15
-  },
   
   // properties
 
@@ -88,6 +82,15 @@ var dropdown = control.extend({
       state = "normal";
     }
     return this.states[state];
+  },
+
+  "@theme=aero": {
+    getState: function(element) {
+      if (element == control._focus && !control._activeThumb) {
+        return this.states.hover;
+      }
+      return this.base(element);
+    }
   },
 
   hidePopup: function(element) {
