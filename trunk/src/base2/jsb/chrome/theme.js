@@ -54,7 +54,7 @@ var _XP_DETECT = {
 
 var rgba = rgb;
 
-jsb.theme.toString = K("inspirat/blue");//K(jsb.theme.detect());
+jsb.theme.toString = K("default");//K(jsb.theme.detect());
 
 base2.userAgent += ";theme=" + jsb.theme;
 
