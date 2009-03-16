@@ -8,7 +8,7 @@ extend(jsb, "createStyleSheet", function(cssText, document) {
       toString: function() {
         return map(this, function(properties, selector) {
           return selector + properties;
-        }).join("\n").replace(/!/g, "!important");
+        }).join("\n").replace(/!([^\w])/g, "!important$1");
       }
     };
 
@@ -34,9 +34,9 @@ extend(jsb, "createStyleSheet", function(cssText, document) {
         if (!rule) rule = styleSheet[selector] = extend({toString: baseRule.toString}, baseRule);
         forEach.detect (properties, function(value, propertyName) {
           if (/^Webkit/.test(propertyName)) arguments.callee(value, "Khtml" + propertyName.slice(6));
-          if (LEADING_CAP.test(propertyName) && propertyName.indexOf(_PREFIX) != 0) {
+          if (LEADING_CAP.test(propertyName) && propertyName.indexOf(ViewCSS.VENDOR) != 0) {
             arguments.callee(value, propertyName.replace(LEADING_CAP, String2.toLowerCase));
-            propertyName = _PREFIX + propertyName;
+            propertyName = ViewCSS.VENDOR + propertyName;
           }
           if (value == "initial") {
             forEach (rule, function(initialPropertyValue, initialPropertyName) {
@@ -60,7 +60,7 @@ extend(jsb, "createStyleSheet", function(cssText, document) {
   if (script) host = script.src || host;
   host = host.replace(/[\?#].*$/, "").replace(/[^\/]*$/, "");
   
-  cssText = cssText.replace(/%theme%/g, jsb.theme);
+  cssText = cssText.replace(/%theme%/g, "themes/" + jsb.theme);
   
   var URL = /(url\s*\(\s*['"]?)([\w\.]+[^:\)]*['"]?\))/gi;
   this.base(cssText.replace(URL, "$1" + host + "$2"), document);

@@ -1,15 +1,14 @@
 
 var _eventDelegator = {
-  documents: {},
+  types: {},
 
-  addEventListener: function(document, type, attachments) {
-    var typeMap = this.documents[document.base2ID];
-    if (!typeMap) typeMap = this.documents[document.base2ID] = {};
-    if (!typeMap[type]) {
-      typeMap[type] = [];
+  addEventListener: function(type, attachments) {
+    var types = this.types;
+    if (!types[type]) {
+      types[type] = [];
       EventTarget.addEventListener(document, type, this, _EVENT_USE_CAPTURE.test(type));
     }
-    typeMap[type].push(attachments);
+    types[type].push(attachments);
   },
 
   handleEvent: function(event) {
@@ -23,13 +22,8 @@ var _eventDelegator = {
         
     // Don't process mouseover/out when using mouse capture.
     if (capture && _EVENT_OVER_OUT.test(type)) return;
-
-    var documentID = target[_OWNER_DOCUMENT].base2ID,
-        typeMap = this.documents[documentID];
-        
-    if (!typeMap) return;
     
-    var map = typeMap[type];
+    var map = this.types[type];
     if (!map || !map.length) return;
 
     // Fix offsetX/Y.
@@ -54,11 +48,10 @@ var _eventDelegator = {
     
     // Dispatch events.
     do {
-      var uniqueID = documentID + element.uniqueID;
-      if (_allAttachments[uniqueID]) {
+      if (_allAttachments[element.uniqueID]) {
         for (var i = 0, attachments; attachments = map[i]; i++) {
           // make sure it's an attached element
-          if (attachments[uniqueID]) {
+          if (attachments[element.uniqueID]) {
             _dispatchEvent(attachments.behavior, element, event);
           }
         }

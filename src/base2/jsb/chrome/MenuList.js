@@ -1,5 +1,5 @@
 
-var MenuList = Popup.extend({
+var MenuList = PopupWindow.extend({
   constructor: function(owner) {
     this.base(owner);
     this.data = {};
@@ -11,7 +11,7 @@ var MenuList = Popup.extend({
 
   // events
 
-  onmouseup: function(event) {
+  onmouseup: function() {
     this.select(this.currentItem);
   },
 
@@ -101,7 +101,7 @@ var MenuList = Popup.extend({
       index: Traversal.getNodeIndex(item),
       value: value
     };
-    element.value = value;
+    this.owner.setValue(element, value);
     element.focus();
     this.hide();
   }

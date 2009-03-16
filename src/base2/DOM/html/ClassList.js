@@ -12,7 +12,7 @@ var ClassList = Module.extend({
 
   has: function(element, token) {
     var regexp = new RegExp("(^|\\s)" + token + "(\\s|$)");
-    return regexp.test(element.className);
+    return regexp.test(element.className || "");
   },
 
   remove: function(element, token) {

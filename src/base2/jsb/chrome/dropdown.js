@@ -2,7 +2,7 @@
 var dropdown = control.extend({
   extend: function(_interface) {
     var dropdown = this.base(_interface);
-    if (!Popup.ancestorOf(dropdown.Popup)) {
+    if (!PopupWindow.ancestorOf(dropdown.Popup)) {
       dropdown.Popup = this.Popup.extend(dropdown.Popup);
     }
     return dropdown;
@@ -14,19 +14,18 @@ var dropdown = control.extend({
 
   appearance: "dropdown",
 
-  Popup: Popup, // popup class
+  Popup: PopupWindow, // popup class
   
   // events
 
   onblur: function(element, event) {
-    ;;; if(this._popup) console2.log("BLUR: "+this._popup.isActive());
-    if (this.isOpen(element) && !this._popup.isActive()) this.hidePopup();
+    if (this.isOpen(element) && !this.popup.isActive()) this.hidePopup();
     this.base(element, event);
   },
   
   "@Opera(8|9.[0-4])": {
     onblur: function(element, event) {
-      if (this.isOpen(element) && this._popup.isActive()) {
+      if (this.isOpen(element) && this.popup.isActive()) {
         event.preventDefault();
       } else {
         this.base(element, event);
@@ -39,15 +38,7 @@ var dropdown = control.extend({
       if (keyCode == 40 && !this.isOpen(element)) {
         this.showPopup(element);
       } else if (this.isOpen(element)) {
-        this._popup.onkeydown(event);
-      }
-    }
-  },
-
-  onkeypress: function(element, event, keyCode) {
-    if (this.isEditable(element)) {
-      if (this.isOpen(element)) {
-        this._popup.onkeypress(event);
+        this.popup.onkeydown(event);
       }
     }
   },
@@ -85,33 +76,21 @@ var dropdown = control.extend({
   },
 
   hidePopup: function(element) {
-    if (this._popup) this._popup.hide();
+    if (this.popup) this.popup.hide();
   },
 
   isOpen: function(element) {
-    var popup = this._popup;
+    var popup = this.popup;
     return popup && popup.isOpen() && popup.element == element;
   },
 
   showPopup: function(element) {
-    if (!this._popup) this._popup = new this.Popup(this);
-    this._popup.show(element);
+    if (!this.popup) this.popup = new this.Popup(this);
+    this.popup.show(element);
   },
 
   "@theme=aqua": {
-    onmousedown: function(element) {
-      this.base.apply(this, arguments);
-      if (control._activeThumb) {
-        this.addClass(element, this.appearance + _ACTIVE);
-      }
-    },
-    
-    onmouseup: function(element) {
-      this.base.apply(this, arguments);
-      this.removeClass(element, this.appearance + _ACTIVE);
-    },
-
-    "@(style.MozBorderImage!==undefined||style.WebkitBorderImage!==undefined)": {
+    "@borderImage": {
       hitTest: function(element, x) {
         return x >= element.clientWidth;
       }

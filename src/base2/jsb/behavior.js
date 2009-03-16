@@ -49,9 +49,7 @@ var _Behavior = Base.extend({
     }
 
     behavior.attach = function(element) {
-      var document = element[_OWNER_DOCUMENT],
-          documentID = document.base2ID || assignID(document),
-          uniqueID = documentID + (element.uniqueID || assignID(element, "uniqueID"));
+      var uniqueID = element.uniqueID || assignID(element, "uniqueID");
           
       if (!attachments[uniqueID]) { // don't attach more than once
         // Maintain attachment state.
@@ -60,11 +58,11 @@ var _Behavior = Base.extend({
         _allAttachments[uniqueID]++;
         
         // Add event handlers
-        if (!delegatedEvents[documentID]) {
-          delegatedEvents[documentID] = true; // we only need to attach these once per document
+        if (delegatedEvents) {
           for (var i = 0; type = delegatedEvents[i]; i++) {
-            _eventDelegator.addEventListener(document, type, attachments);
+            _eventDelegator.addEventListener(type, attachments);
           }
+          delegatedEvents = null; // we only need to attach these once per document
         }
         if (events) { // these events cannot be delegated
           for (var i = 0; type = events[i]; i++) {
@@ -97,7 +95,7 @@ var _Behavior = Base.extend({
     };
 
     behavior.detach = function(element) {
-      var uniqueID = element[_OWNER_DOCUMENT].base2ID + element.uniqueID;
+      var uniqueID = element.uniqueID;
       if (attachments[uniqueID]) {
         delete attachments[uniqueID];
         _allAttachments[uniqueID]--;
@@ -116,7 +114,7 @@ var _Behavior = Base.extend({
 
         attach: function(element, rule) {
           behavior.attach(element);
-          var uniqueID = element[_OWNER_DOCUMENT].base2ID + element.uniqueID;
+          var uniqueID = element.uniqueID;
           if (rule.specificity >= (specificities[uniqueID] || 0)) { // this shouldn't be necessary as rules are sorted by specificity
             specificities[uniqueID] = rule.specificity;
             modifications[uniqueID] = attributes;
@@ -131,7 +129,7 @@ var _Behavior = Base.extend({
 
   get: function(element, propertyName) {
     // Retrieve a DOM property.
-    var uniqueID = element[_OWNER_DOCUMENT].base2ID + element.uniqueID,
+    var uniqueID = element.uniqueID,
         attributes = this.constructor.modifications[uniqueID] || this,
         defaultValue = attributes[propertyName],
         value = Element.getAttribute(element, propertyName);
@@ -162,7 +160,7 @@ var _Behavior = Base.extend({
   },
 
   getComputedStyle: function(element, propertyName) {
-    var view = element[_OWNER_DOCUMENT].defaultView;
+    var view = document.defaultView;
     if (arguments.length == 1) {
       return ViewCSS.getComputedStyle(view, element, null);
     } else {

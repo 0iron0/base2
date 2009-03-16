@@ -30,8 +30,8 @@ var Element = Node.extend({
         }
       } else if (name == "type" && element.nodeName == "INPUT") {
         var outerHTML = element.outerHTML;
-  			with (outerHTML) outerHTML = slice(0, indexOf(">") + 1);
-  			return match(outerHTML, /type="?([^\s">]*)"?/i)[1] || "text";
+        with (outerHTML) outerHTML = slice(0, indexOf(">") + 1);
+        return match(outerHTML, /type="?([^\s">]*)"?/i)[1] || "text";
       }
       return null;
     },
