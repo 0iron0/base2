@@ -5,7 +5,8 @@ var _NUMBER  = /\d/,
     _PIXEL   = /^\d+(px)?$/i,
     _METRICS = /(width|height|top|bottom|left|right|fontSize)$/i,
     _COLOR   = /color$/i,
-    _BLACK   = "rgb(0, 0, 0)";
+    _BLACK   = "rgb(0, 0, 0)",
+    _WHITE   = "rgb(255, 255, 255)";
 
 var ViewCSS = Interface.extend({
   "@!(document.defaultView.getComputedStyle)": {
@@ -44,11 +45,19 @@ var ViewCSS = Interface.extend({
     }
   }
 }, {
+  VENDOR: "",
+  "@Gecko": {VENDOR: "Moz"},
+  "@KHTML": {VENDOR: "Khtml"},
+  "@Webkit": {VENDOR: "Webkit"},
+  "@Opera": {VENDOR: "O"},
+  
   getComputedPropertyValue: function(view, element, propertyName) {
     return CSSStyleDeclaration.getPropertyValue(this.getComputedStyle(view, element, null), propertyName);
   },
   
   "@MSIE": {
+    VENDOR: "Ms",
+    
     getComputedPropertyValue: function(view, element, propertyName) {
       propertyName = this.toCamelCase(propertyName);
       var value = element.currentStyle[propertyName];
@@ -64,7 +73,7 @@ var ViewCSS = Interface.extend({
             return value;
           default:
             var rgb = _MSIE_getColorValue(element, propertyName == "color" ? "ForeColor" : "BackColor");
-            return rgb == _BLACK ? _toRGB(value) : rgb;
+            return rgb == _BLACK || rgb == _WHITE ? _toRGB(value) : rgb;
         }
       }
       return value;

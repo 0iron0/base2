@@ -7,14 +7,14 @@ var locales = {
   },
   
   de: {
-		days: "S,M,D,M,D,F,S",
-		months: "Januar,Februar,März,April,Mai,Juni,Juli,August,September,Oktober,November,Dezember"
+    days: "S,M,D,M,D,F,S",
+    months: "Januar,Februar,März,April,Mai,Juni,Juli,August,September,Oktober,November,Dezember"
   },
   
   es: {
-		days: "D,L,M,Mi,J,V,S",
+    days: "D,L,M,Mi,J,V,S",
     months: "Enero,Febrero,Marzo,Abril,Mayo,Junio,Julio,Agosto,Septiembre,Octubre,Noviembre,Diciembre",
-		firstDay: 0
+    firstDay: 0
   },
   
   fr: {
@@ -23,18 +23,18 @@ var locales = {
   },
   
   it: {
-		days: "D,L,M,M,G,V,S",
-		months: "Gennaio,Febbraio,Marzo,Aprile,Maggio,Giugno,Luglio,Agosto,Settembre,Ottobre,Novembre,Dicembre"
+    days: "D,L,M,M,G,V,S",
+    months: "Gennaio,Febbraio,Marzo,Aprile,Maggio,Giugno,Luglio,Agosto,Settembre,Ottobre,Novembre,Dicembre"
   },
   
   nl: {
-		days: "zo,ma,di,wo,do,vr,za",
-		months: "januari,februari,maart,april,mei,juni,juli,augustus,september,oktober,november,december"
+    days: "zo,ma,di,wo,do,vr,za",
+    months: "januari,februari,maart,april,mei,juni,juli,augustus,september,oktober,november,december"
   },
   
   ru: {
-		days: "Вс,Пн,Вт,Ср,Чт,Пт,Сб",
-		months: "Январь,Февраль,Март,Апрель,Май,Июнь,Июль,Август,Сентябрь,Октябрь,Ноябрь,Декабрь"
+    days: "Вс,Пн,Вт,Ср,Чт,Пт,Сб",
+    months: "Январь,Февраль,Март,Апрель,Май,Июнь,Июль,Август,Сентябрь,Октябрь,Ноябрь,Декабрь"
   }
 };
 

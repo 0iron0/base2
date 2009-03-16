@@ -7,9 +7,8 @@ var _MSIEShim = {
     this.base.apply(this, arguments);
     var behavior = this, timer;
     if (!shim.control) {
-      var document = element.document;
-      shim.control = document.createElement("!");
-      document.body.insertBefore(shim.control, document.body.firstChild);
+      shim.control = _document.createElement("!");
+      _document.body.insertBefore(shim.control, _document.body.firstChild);
       shim.attach(shim.control);
     }
     shim.element = element;
@@ -70,6 +69,13 @@ var _MSIEShim = {
       this.base(element, event, keyCode);
     }
     if (shim.element == element) shim.layout();
+  },
+  
+  layout: function(element, state) {
+    this.base(element, state);
+    if (element == shim.element) {
+      shim.layout();
+    }
   }
 };
 
@@ -91,9 +97,11 @@ function _shimMouse(element, event, x, y, screenX, screenY) {
   if (event.type == "mousedown") {
     event.preventDefault();
   }
-    event.stopPropagation();
-  var offset = ElementView.getOffsetXY(this.element, event.clientX, event.clientY);
-  this.behavior["on" + event.type](this.element, event, offset.x, offset.y, screenX, screenY);
+  event.stopPropagation();
+  if (this.element) {
+    var offset = ElementView.getOffsetXY(this.element, event.clientX, event.clientY);
+    this.behavior["on" + event.type](this.element, event, offset.x, offset.y, screenX, screenY);
+  }
   this.layout();
 };
 

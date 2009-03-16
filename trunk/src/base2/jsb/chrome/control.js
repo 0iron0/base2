@@ -77,13 +77,10 @@ var control = behavior.extend({
 
   onblur: function(element) {
     delete control._focus;
+    this.removeClass(element, this.appearance + _FOCUS);
     this.layout(element);
-  },
-
-  "@!MSIE[567]": {
-    onblur: function(element) {
-      this.removeClass(element, this.appearance + _FOCUS);
-      this.base(element);
+    if (control.tooltip) {
+      control.tooltip.hide();
     }
   },
   
@@ -140,6 +137,16 @@ var control = behavior.extend({
       delete _vertical[element.uniqueID];
       element.style.backgroundImage = "";
     }
+  },
+
+  showToolTip: function(element, text) {
+    var tooltip = control.tooltip;
+    if (!tooltip) {
+      tooltip = control.tooltip = new ToolTip;
+    }
+    setTimeout(function() {
+      tooltip.show(element, text);
+    }, 1);
   },
 
   hasTimer: function(element, id) {

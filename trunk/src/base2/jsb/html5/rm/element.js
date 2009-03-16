@@ -61,7 +61,6 @@ var element = behavior.extend({
         dummy.appendChild(block);
       }
       dummy.innerHTML = dummy.innerHTML.replace(_FIX_MSIE_BROKEN_TAG, "$1html:").replace(pattern, repetitionIndex);
-      //alert(dummy.innerHTML);
       block = dummy.getElementsByTagName(template.nodeName)[0];
       block.setAttribute("repeat-template", name);
       block.removeAttribute("id");

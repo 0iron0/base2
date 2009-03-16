@@ -130,8 +130,8 @@ var ElementView = Interface.extend({
         left += element.offsetLeft;
         top += element.offsetTop;
         if (_FIX_BORDER.test(element.nodeName)) {
-  				top  += (element.clientLeft || 0);
-  				left += (element.clientTop || 0);
+          top  += (element.clientLeft || 0);
+          left += (element.clientTop || 0);
         }
         element = element.offsetParent;
       }

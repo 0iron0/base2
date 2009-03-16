@@ -17,9 +17,9 @@ var Selector = Base.extend({
   getSpecificity: function() {
     var selector = _parser.escape(this);
     if (selector.indexOf(",") == -1) {
-    	return match(selector, _SPECIFICITY_ID).length * 10000 +
-    		match(selector, _SPECIFICITY_CLASS).length * 100 +
-    		match(selector, _SPECIFICITY_TAG).length;
+      return match(selector, _SPECIFICITY_ID).length * 10000 +
+        match(selector, _SPECIFICITY_CLASS).length * 100 +
+        match(selector, _SPECIFICITY_TAG).length;
     } else {
       return -1;
     }

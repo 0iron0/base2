@@ -2,7 +2,7 @@
 var datepicker = dropdown.extend({
   implements: [number],
 
-	//PATTERN: /^\d{4}-(0\d|10|11|12)-\d{2}$/,
+  //PATTERN: /^\d{4}-(0\d|10|11|12)-\d{2}$/,
 
   appearance: "datepicker",
   stepScale: 86400000,
@@ -10,11 +10,31 @@ var datepicker = dropdown.extend({
   // events
 
   onchange: function(element) {
-    if (isNaN(Date2.parse(element.value + "T"))) {
-      this.addClass(element, "jsb-error");
-    } else {
+    if (this.getValueAsDate(element)) {
       this.removeClass(element, "jsb-error");
+    } else {
+      this.addClass(element, "jsb-error");
     }
+  },
+  
+  "@(Date.prototype.toLocaleDateString)": {
+    onchange: function(element) {
+      this.base(element);
+      if (!this.hasClass(element, "jsb-error")) {
+        this.showToolTip(element, this.getValueAsDate(element).toLocaleDateString());
+      }
+    }
+  },
+  
+  // methods
+
+  getValueAsDate: function(element) {
+    var number = this.convertValueToNumber(element.value);
+    return isNaN(number) ? null : new Date(number);
+  },
+
+  setValueAsDate: function(element, date) {
+    this.setValueAsNumber(element, date.valueOf());
   },
 
   convertValueToNumber: function(value) {
@@ -22,7 +42,7 @@ var datepicker = dropdown.extend({
   },
   
   convertNumberToValue: function(number) {
-    return Date2.toISOString(new Date(number)).replace(/T.*$/, "");
+    return isNaN(number) ? "" : Date2.toISOString(new Date(number)).slice(0, 10);
   },
   
   // properties
@@ -33,11 +53,11 @@ var datepicker = dropdown.extend({
     scrollX: false,
     scrollY: false,
 
-    currentDate: new Date,
+    currentDate: 0,
   
     render: function() {
       this.base(
-'<table style="margin:4px" cellspacing="0">\
+'<div style="padding:4px"><table style="margin:0" cellspacing="0">\
 <tr>\
 <td><select>' +
 wrap(chrome.locale.months, "option") +
@@ -46,18 +66,20 @@ wrap(chrome.locale.months, "option") +
 </tr>\
 <tr>\
 <td colspan="2">\
-<table style="width:100%;margin-top:2px;padding:2px" class="jsb-datepicker-days" cellspacing="0" tabindex="1">' +
-'<tr unselectable="on">' + wrap(chrome.locale.days, "th", 'unselectable="on"') + '</tr>' +
+<table style="width:100%;margin:2px 0 0 0;padding:2px" class="jsb-datepicker-days" cellspacing="0" tabindex="1">\
+<tr unselectable="on">' + wrap(chrome.locale.days, "th", 'unselectable="on"') + '</tr>' +
 Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0</td>') + '</tr>') +
 '</table>\
 </td>\
 </tr>\
-</table>'
+</table></div>'
 );
       
       this.year = this.querySelector("input");
       this.month = this.querySelector("select");
       this.days = this.querySelector("table.jsb-datepicker-days");
+      
+      this.controls = new Array2(this.month, this.year, this.days);
       
       this.year.onscroll = _resetScroll;
       spinner.attach(this.year);
@@ -73,178 +95,172 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
       };
     },
 
-    onblur: function(event) {
-      console2.log("onblur: "+event.target.nodeName);
-      if (/INPUT|SELECT/.test(event.target.nodeName)) {
-        ClassList.remove(this.days, "jsb-days_inactive");
-      }
-    },
-
-    onfocus: function(event) {
-      console2.log("onfocus: "+event.target.nodeName);
-      if (/INPUT|SELECT/.test(event.target.nodeName)) {
-        ClassList.add(this.days, "jsb-days_inactive");
-      } else {
-        ClassList.remove(this.days, "jsb-days_inactive");
-      }
-    },
-
     onchange: function(event) {
       this.fill();
     },
 
-    onmouseup: function(event) {
-      if (!Traversal.contains(this.days, event.target)) return;
-      var target = this.currentItem;
-      //if (target.nodeName == "TD" && target.className != "disabled") {
-        var value = pad(this.year.value, 4) + "-" + pad(this.month.selectedIndex + 1, 2) + "-" + pad(target[_TEXT], 2);
-        this.owner.setValue(this.element, value);
-        this.hide();
-        this.reset(target);
-        this.previousElement.focus();
-      //}
-    },
-    
-    "@MSIE|Webkit": {
-      onkeydown: function(event) {
-        if (event.keyCode == 9) { // tab
-          if (this.tab()) event.preventDefault();
+    onkeydown: function(event) {
+      var keyCode = event.keyCode,
+          target = event.target;
+      
+      if (keyCode == 13) { // enter
+        this.select(this.currentItem);
+        event.preventDefault();
+        return;
+      }
+          
+      if (target != this.year && target != this.month && /^(3[3467809]|40)$/.test(keyCode)) {
+        var startDate = this.getDate(),
+            date = new Date(startDate);
+            
+        event.preventDefault();
+        
+        switch (keyCode) {
+          case 36: // home
+            date = this.owner.getValueAsDate(this.element) || new Date;
+            break;
+          case 37: // left
+            date.setUTCDate(date.getUTCDate() - 1);
+            break;
+          case 39: // right
+            date.setUTCDate(date.getUTCDate() + 1);
+            break;
+          case 38: // up
+            date.setUTCDate(date.getUTCDate() - 7);
+            break;
+          case 40: // down
+            date.setUTCDate(date.getUTCDate() + 7);
+            break;
+          case 34: // page up
+            if (event.ctrlKey) { // increment by year if the ctrl key is down
+              date.setUTCFullYear(date.getUTCFullYear() - 1);
+            } else { // by month
+              date.setUTCDate(date.getUTCDate() - 28);
+              if (date.getUTCMonth() == startDate.getUTCMonth()) {
+                date.setUTCDate(date.getUTCDate() - 7);
+              }
+            }
+            break;
+          case 33: // page down
+            if (event.ctrlKey) {
+              date.setUTCFullYear(date.getUTCFullYear() + 1);
+            } else {
+              date.setUTCDate(date.getUTCDate() + 28);
+              if (date.getUTCMonth() == startDate.getUTCMonth()) {
+                date.setUTCDate(date.getUTCDate() + 7);
+              }
+            }
+            break;
         }
+        this.currentDate = date.getUTCDate();
+        if (date.getUTCMonth() == startDate.getUTCMonth() && date.getUTCFullYear() == startDate.getUTCFullYear()) {
+          this.highlightByDate();
+        } else {
+          this.year.value = date.getUTCFullYear();
+          this.month.selectedIndex = date.getUTCMonth();
+          this.fill();
+        }
+      } else {
+        this.base(event);
       }
     },
 
-    onkeypress: function(event) {
-      if (event.keyCode == 9) { // tab
-        if (this.tab()) event.preventDefault();
-      }
+    onmouseup: function(event) {
+      var day = event.target;
+      if (!Traversal.contains(this.days, day)) return;
+      if (day.className == "disabled") return;
+      this.select(this.currentItem);
     },
 
     onmouseover: function(event) {
       var target = event.target;
       if (target.nodeName == "TD" && target.className != "disabled" && Traversal.contains(this.days, target)) {
         this.highlight(target);
+        this.currentDate = parseInt(target[_TEXT]);
       }
     },
-    
+
     // methods
-    
-    hide: function() {
-      this.base();
-      ClassList.remove(this.days, "jsb-days_inactive");
-    },
-
-    tab: function() {
-      var popup = this,
-          days = popup.days;
-      popup._active = true;
-      switch (popup.querySelector(":focus")) {
-        case null:
-          popup.month.focus();
-          ClassList.add(this.days, "jsb-days_inactive");
-          return true;
-        //case popup.month:
-        //  popup.year.select();
-        //  popup.year.focus();
-        //  return true;
-        //case popup.year:
-          //days.tabIndex = "-1";
-          //days.focus();
-          //return true;
-        case popup.days:
-          delete popup._active;
-          popup.element.focus();
-      }
-      //setTimeout(function() {
-        //delete popup._active;
-        //days.removeAttribute("tabindex");
-      //}, 1);
-      return false;
-    },
-
-    "@MSIE|Gecko|Webkit": {
-      tab: function() {
-        var popup = this,
-            days = popup.days;
-        popup._active = true;
-        switch (popup.querySelector(":focus")) {
-          case popup.month:
-            //popup.year.focus();
-            popup.year.select();
-            return true;
-          case popup.year:
-            days.focus();
-            return true;
-        }
-        return this.base();
-      }
-    },
-
-    "@Opera": {
-      onfocus: function(event) {
-        if (event.target == this.days) {
-          getSelection().collapse(this.days, 0); // prevent text selection
-        }
-      }
-    },
 
     getDate: function() {
-      return new Date(Date2.parse(this.element.value + "T00:00:00Z") || Date2.now());
+      return new Date(Date.UTC(this.year.value, this.month.selectedIndex, this.currentDate, 12));
     },
 
     fill: function() {
-      var month = new Date(this.year.value, this.month.selectedIndex, 1, 12),
-          d = new Date(month),
+      var month = this.month.selectedIndex,
+          d = new Date(this.year.value, month, 1, 12),
           d2 = new Date(d);
           
-      d.setDate(d.getUTCDate() - d.getUTCDay() + chrome.locale.firstDay);
+      d.setUTCDate(d.getUTCDate() - d.getDay() + chrome.locale.firstDay);
       // we need to ensure that we do not start after the first of the month
       if (d > d2) {
-        d.setDate(d.getUTCDate() - 7);
+        d.setUTCDate(d.getUTCDate() - 7);
       }
 
-      for (var i = 1; i < 7; i++) {
-        var row = this.days.rows[i],
-            cells = row.cells, cell,
+      var rows = this.days.rows, row,
+          currentCell, lastCell;
+      for (var i = 1; row = rows[i]; i++) {
+        var cells = row.cells, cell,
             hasDays = false;
         for (var j = 0; cell = cells[j]; j++) {
-          cell.innerHTML = d.getUTCDate();
-          var isSameMonth = this.isSameMonth(month, d);
-          hasDays |= isSameMonth;
+          var date = d.getUTCDate(),
+              isSameMonth = month == d.getUTCMonth();
+          cell.innerHTML = date;
           cell.className = isSameMonth ? "" : "disabled";
-          d.setUTCDate(d.getUTCDate() + 1);
+          if (isSameMonth) {
+            lastCell = cell;
+            if (this.currentDate == date) currentCell = cell;
+          }
+          hasDays |= isSameMonth;
+          d.setUTCDate(date + 1);
         }
         row.style.visibility = hasDays ? "" : "hidden";
       }
+      this.highlight(currentCell || lastCell);
     },
 
-    highlight: function(day) {
-      if (day) {
+    highlight: function(item) {
+      if (item) {
         this.reset(this.currentItem);
-        this.currentItem = day;
-        ClassList.add(day, "selected");
+        this.currentItem = item;
+        ClassList.add(item, "selected");
       }
     },
 
-    isSameMonth: function(date1, date2) {
-      return this.isSameYear(date1, date2) && date1.getUTCMonth() == date2.getUTCMonth();
-    },
-
-    isSameYear: function(date1, date2) {
-      return date1 && date2 && date1.getUTCFullYear() == date2.getUTCFullYear();
+    highlightByDate: function() {
+      var rows = this.days.rows, row;
+      for (var i = 1; row = rows[i]; i++) {
+        var cells = row.cells, cell;
+        for (var j = 0; cell = cells[j]; j++) {
+          if (cell[_TEXT] == this.currentDate && cell.className != "disabled") {
+            this.highlight(cell);
+            return;
+          }
+        }
+      }
     },
 
     layout: function() {
-      this.currentDate = this.getDate();
-      this.year.value = this.currentDate.getUTCFullYear();
-      this.month.selectedIndex = this.currentDate.getUTCMonth();
+      var date = this.owner.getValueAsDate(this.element) || new Date;
+      this.year.value = date.getUTCFullYear();
+      this.month.selectedIndex = date.getUTCMonth();
+      this.currentDate = date.getUTCDate();
       this.fill();
+      spinner.layout(this.year);
     },
 
-    reset: function(day) {
-      if (day) ClassList.remove(day, "selected");
+    reset: function(item) {
+      if (item) ClassList.remove(item, "selected");
     },
 
-    show: function(element) {
+    select: function() {
+      var element = this.element;
+      this.owner.setValueAsDate(element, this.getDate());
+      this.hide();
+      element.focus();
+    },
+
+    style: function(element) {
       this.base(element);
       var bodyStyle = this.body.style,
           monthStyle = this.month.style,
@@ -256,50 +272,9 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
         monthStyle[propertyName] =
         yearStyle[propertyName] = bodyStyle[propertyName];
       });
-      //daysStyle.backgroundColor =
+      daysStyle.backgroundColor =
       yearStyle.backgroundColor = bodyStyle.backgroundColor;
-      //yearStyle.height = this.month.offsetHeight + "px";
-      spinner.layout(this.year);
-      this.highlight(days[14 - days[14][_TEXT] + this.currentDate.getUTCDate()]);
-      //this.month.focus();
-    },
-    
-    "@MSIE": {
-      /*tab: function() {
-        var popup = this,
-            days = popup.days;
-        popup._active = true;
-        console2.log(popup.querySelector(":focus"));
-        switch (popup.querySelector(":focus")) {
-          case null:
-            popup.year.select();
-            return true;
-          case popup.month:
-            //popup.year.focus();
-            popup.year.select();
-            return true;
-          case popup.year:
-            days.focus();
-            return true;
-        }
-      },*/
-      
-      render: function() {
-        this.base();
-        var popup = this;
-        this.month.attachEvent("onchange", function(event) {
-          popup.handleEvent(Event.bind(event));
-        });
-        //jsb.createStyleSheet("td,th{font-size:10px;color:black}", this.popup.document);
-      },
-
-      style: function() {
-        this.base();
-        var style= this.body.style;
-        //forEach (this.popup.document.styleSheets[1].rules, function(rule) {
-        //  rule.style.cssText = "font-size:" + style.fontSize + ";color:" + style.color;
-        //}, this);
-      }
+      this.highlight(days[14 - days[14][_TEXT] + this.currentDate]);
     }
   }
 });

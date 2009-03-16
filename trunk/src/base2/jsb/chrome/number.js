@@ -25,19 +25,22 @@ var number = {
 
   // events
 
-  onchange: function(element) {
+  /*onchange: function(element) {
     // allow values like "5+6" and "15 * 33"
     this.removeClass(element, "jsb-error");
-    var _value = element.value;
-    if (isNaN(_value)) {
+    var value = element.value;
+    if (isNaN(value)) {
       try {
-        eval("_value=" + _value);
-        this.setValue(element, _value);
+        value = (new Function(
+          'with(Math){var e=E,pi=PI; return ' + value + '}'
+        ))();
+        this.setValue(element, value);
+        element.scrollLeft = 9999;
       } catch(ex) {
         this.addClass(element, "jsb-error");
       }
     }
-  },
+  },*/
 
   onmousewheel: function(element, event, delta) {
     if (this.isEditable(element) && control._focus == element && element.value != "") {
@@ -64,7 +67,7 @@ var number = {
         scale = step * this.stepScale;
     // check min/max
     value = value > max ? max : value < min ? min : value;
-    value = Math.round(value / scale) * scale;
+    value = Math.round(value / step) * step;
     if (scale < 1) value = value.toFixed(String(step).replace(/^.*\.|^\d+$/, "").length);
     // round to step
     this.setValue(element, this.convertNumberToValue(value));

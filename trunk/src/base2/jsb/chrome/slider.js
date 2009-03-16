@@ -17,39 +17,36 @@ var slider = range.extend({
 
   onmousedown: function(element, event, x, y, screenX, screenY) {
     this.base.apply(this, arguments);
-    event.preventDefault();
+    
     if (!this.isEditable(element)) return;
     if (control._activeThumb) {
       var thumb = this.getThumbRect(element);
-      control._dragInfo = {
+      slider._dragInfo = {
         dx: screenX - thumb.left,
         dy: screenY - thumb.top
       };
-      control._firedOnce = true;
+      slider._firedOnce = true;
     } else {
       this.startTimer(element);
       slider._value = this.getValueByPosition(element, x - this.THUMB_WIDTH / 2, y - this.THUMB_HEIGHT / 2);
       slider._direction = slider._value < this.getValue(element) ? -1 : 1;
     }
-    try {
-      element.focus();
-    } catch (ex) {}
   },
 
   onmouseup: function(element, event) {
     if (!this.isEditable(element)) return;
     this.base(element, event);
-    delete control._dragInfo;
-    if (!control._firedOnce) this.tick(element);
+    delete slider._dragInfo;
+    if (!slider._firedOnce) this.tick(element);
     this.stopTimer(element);
-    delete control._value;
-    delete control._direction;
-    delete control._firedOnce;
+    delete slider._value;
+    delete slider._direction;
+    delete slider._firedOnce;
   },
 
   onmousemove: function(element, event, x, y, screenX, screenY) {
-    if (control._dragInfo) {
-      this.setValueByPosition(element, screenX - control._dragInfo.dx, screenY - control._dragInfo.dy);
+    if (slider._dragInfo) {
+      this.setValueByPosition(element, screenX - slider._dragInfo.dx, screenY - slider._dragInfo.dy);
     } else {
       this.base.apply(this, arguments);
     }
@@ -57,7 +54,7 @@ var slider = range.extend({
 
   "@Opera(8|9.[0-4])": {
     onmousemove: function(element) {
-      if (control._dragInfo) {
+      if (slider._dragInfo) {
         getSelection().collapse(element.ownerDocument.body, 0); // prevent text selection
       }
       this.base.apply(this, arguments);
@@ -147,12 +144,12 @@ var slider = range.extend({
     var properties = this.getProperties(element);
     var amount = this.getBlockIncrement(element) * (properties.max - properties.min);
     if (Math.abs(slider._value - this.getValue(element)) < amount) {
-      this.setValue(element, slider._value);
+      this.setValueAsNumber(element, slider._value);
       this.stopTimer(element);
     } else {
       this.increment(element, slider._direction, true);
     }
-    control._firedOnce = true;
+    slider._firedOnce = true;
   },
 
   "@KHTML|Opera[91]": {
