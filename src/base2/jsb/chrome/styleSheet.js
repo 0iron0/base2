@@ -171,6 +171,12 @@ jsb.theme.cssText = jsb.createStyleSheet({
     backgroundImage:  "url(%theme%/spinner.png)!"
   },
 
+  ".jsb-timepicker,.jsb-monthpicker": {
+    width:            "4em",
+    paddingRight:     "19px!",
+    backgroundImage:  "url(%theme%/spinner.png)!"
+  },
+
   ".jsb-datepicker-days": {
     UserSelect:      "none!"
   }
@@ -299,7 +305,7 @@ jsb.theme.cssText += jsb.createStyleSheet({
       Opacity:            0.95
     },
 
-    ".jsb-spinner": {
+    ".jsb-spinner,.jsb-timepicker,.jsb-monthpicker": {
       borderTopWidth: "1px",
       paddingTop: "2px",
       borderRightColor:                "transparent",
@@ -309,7 +315,7 @@ jsb.theme.cssText += jsb.createStyleSheet({
       "MozBorderRadius-bottomright":   "5px"
     },
 
-    ".jsb-spinner[disabled],.jsb-spinner[readonly]": {
+    ".jsb-spinner[disabled],.jsb-spinner[readonly],.jsb-timepicker[disabled],.jsb-timepicker[readonly],.jsb-monthpicker[disabled],.jsb-monthpicker[readonly]": {
       borderColor:      "#d6d6d6 #e0e0e0 #f0f0f0 #e0e0e0"
     },
 

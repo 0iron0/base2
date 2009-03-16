@@ -7,7 +7,7 @@ base2.global.chrome = new base2.Package(this, {
   name:    "chrome",
   version: "0.5",
   imports: "Enumerable,Function2,DOM,jsb",
-  exports: "Popup,MenuList,ToolTip,dropdown,combobox,number,range,progressbar,slider,spinner,datepicker,weekpicker,colorpicker",
+  exports: "Popup,MenuList,ToolTip,dropdown,combobox,number,range,progressbar,slider,spinner,timepicker,datepicker,weekpicker,monthpicker,colorpicker",
   parent:  base2.jsb
 });
 

@@ -10,17 +10,17 @@ var weekpicker = datepicker.extend({
   convertValueToNumber: function(value) {
     if (!this.PATTERN.test(value)) return NaN;
     var parts = String(value).split("-W"),
-        date = new Date(Date.UTC(parts[0], 0, 1));
-    while (date.getUTCDay() != chrome.locale.firstDay) date.setUTCDate(date.getUTCDate() + 1);
+        date = new Date(parts[0], 0, 1);
+    while (date.getDay() != chrome.locale.firstDay) date.setDate(date.getDate() + 1);
     date = new Date(date.valueOf() + (parts[1] - 1) * this.stepScale);
-    return (date.getUTCFullYear() == parts[0]) ? date.valueOf() : NaN;
+    return (date.getFullYear() == parts[0]) ? date.valueOf() : NaN;
   },
 
   convertNumberToValue: function(number) {
     var date = new Date(number),
-        jan1 = new Date(Date.UTC(date.getFullYear(), 0, 1)),
+        jan1 = new Date(date.getFullYear(), 0, 1),
         week = Math.floor((date - jan1) / this.stepScale) + 1;
-    return pad(date.getUTCFullYear(), 4) + "-W" + pad(week);
+    return pad(date.getFullYear(), 4) + "-W" + pad(week);
   },
   
   Popup: {

@@ -93,7 +93,7 @@ var number = {
   },
 
   getBlockIncrement: function(element) {
-    return this.getUnitIncrement(element) * 10 * this.stepScale;
+    return this.getUnitIncrement(element) * 10;
   },
 
   getUnitIncrement: function(element) {
