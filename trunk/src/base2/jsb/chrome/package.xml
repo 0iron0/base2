@@ -16,9 +16,11 @@
   <include src="progressbar.js"/>
   <include src="slider.js"/>
   <include src="spinner.js"/>
-  <include src="colorpicker.js"/>
+  <include src="timepicker.js"/>
   <include src="datepicker.js"/>
   <include src="weekpicker.js"/>
+  <include src="monthpicker.js"/>
+  <include src="colorpicker.js"/>
   <include src="Rect.js"/>
   <include src="styleSheet.js"/>
   <include src="rules.js"/>

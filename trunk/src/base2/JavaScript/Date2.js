@@ -20,8 +20,8 @@ var _TIMEZONE_PARTS = { // idem, but without the getter/setter usage on Date obj
   Minutes: 20
 };
 
-var _TRIM_ZEROES   = /(((00)?:0+)?:0+)?\.0+$/;
-var _TRIM_TIMEZONE = /(T[0-9:.]+)$/;
+//var _TRIM_ZEROES   = /(((00)?:0+)?:0+)?\.0+$/;
+//var _TRIM_TIMEZONE = /(T[0-9:.]+)$/;
 
 var Date2 = _createObject2(
   Date, 
@@ -41,8 +41,9 @@ var Date2 = _createObject2(
           return ("000" + value).slice(-digits.length); // pad
         });
       }
-      // remove trailing zeroes, and remove UTC timezone, when time's absent
-      return string.replace(_TRIM_ZEROES, "").replace(_TRIM_TIMEZONE, "$1Z");
+      //// remove trailing zeroes, and remove UTC timezone, when time's absent
+      //return string.replace(_TRIM_ZEROES, "").replace(_TRIM_TIMEZONE, "$1Z");
+      return string + "Z";
     }
   }
 );
@@ -55,7 +56,7 @@ Date2.now = function() {
 
 Date2.parse = function(string, defaultDate) {
   if (arguments.length > 1) {
-    assertType(defaultDate, "number", "default date should be of type 'number'.")
+    assertType(defaultDate, "number", "Default date should be of type 'number'.")
   }
   // parse ISO date
   var parts = match(string, _DATE_PATTERN);
