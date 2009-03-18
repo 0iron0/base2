@@ -23,6 +23,6 @@
   <include src="colorpicker.js"/>
   <include src="Rect.js"/>
   <include src="styleSheet.js"/>
-  <include src="rules.js"/>
   <include src="locale.js"/>
+  <include src="rules.js"/>
 </package>

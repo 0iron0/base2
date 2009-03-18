@@ -16,6 +16,7 @@ var _state = new Base({
   documentReadyQueue: [],
   liveRules: new Array2,
   rules: new Array2,
+  transitions: new Transitions,
 
   onDOMContentLoaded: function() {
     _state.loaded = true;
@@ -86,20 +87,14 @@ var _state = new Base({
   },
 
   fireReady: function() {
-    var documentReadyQueue = _state.documentReadyQueue,
-        now = Date2.now(), start = now, k = 0;
-    while (documentReadyQueue.length && (now - start < jsb.TIMEOUT)) {
-      var item = documentReadyQueue.shift();
-      _dispatchJSBEvent(item.behavior, item.element, "documentready");
-      if (k++ < 5 || k % 50 == 0) now = Date2.now();
-    }
-    if (documentReadyQueue.length) {
-      setTimeout(arguments.callee, _state.getInterval());
-    } else {
+    if (!_state.ready) {
+      _state.ready = true;
       ;;; console2.log("documentready");
       ;;; console2.log("Document ready time: " + (Date2.now()  - begin));
-      _state.ready = true;
-      setTimeout(_state.parseComplete, _state.getInterval());
+      Array2.batch(_state.documentReadyQueue, function(item) {
+        _dispatchJSBEvent(item.behavior, item.element, "documentready");
+      }, jsb.TIMEOUT, _state.parseComplete);
+      _state.documentReadyQueue = [];
     }
   },
 
@@ -219,3 +214,24 @@ for (var i in _state) if (_EVENT.test(i)) {
 function _by_specificity(selector1, selector2) {
   return selector2.specificity - selector1.specificity;
 };
+
+// text resize
+
+EventTarget.addEventListener(window, "load", function() {
+  var dummy = document.createElement("span"), height;
+  dummy.style.cssText = "position:absolute;left:0;top:-9999px;";
+  dummy.innerHTML = "&nbsp;";
+  document.body.appendChild(dummy);
+  setTimeout(function() {
+    if (!_state.busy) {
+      var resized = height != null && height != dummy.clientHeight;
+      height = dummy.clientHeight;
+      if (resized) {
+        var event = Document.createEvent(document, "UIEvents");
+        event.initEvent("textresize", false, false);
+        EventTarget.dispatchEvent(document, event);
+      }
+    }
+    setTimeout(arguments.callee, _state.busy || resized ? 500 : 100);
+  }, 100);
+}, false);

@@ -18,7 +18,15 @@ var slider = range.extend({
   onmousedown: function(element, event, x, y, screenX, screenY) {
     this.base.apply(this, arguments);
     
-    if (!this.isEditable(element)) return;
+    if (element.disabled) return;
+    
+    element.focus();
+    event.preventDefault();
+    
+    if (element.readOnly) return;
+
+    // This is the behavior for Windows and Linux
+    
     if (control._activeThumb) {
       var thumb = this.getThumbRect(element);
       slider._dragInfo = {
@@ -34,8 +42,8 @@ var slider = range.extend({
   },
 
   onmouseup: function(element, event) {
-    if (!this.isEditable(element)) return;
     this.base(element, event);
+    if (!this.isEditable(element)) return;
     delete slider._dragInfo;
     if (!slider._firedOnce) this.tick(element);
     this.stopTimer(element);
@@ -169,13 +177,13 @@ var slider = range.extend({
     // the aqua slider jumps immediatley to wherever you click
 
     onmousedown: function(element, event, x, y) {
-      if (!this.isEditable(element)) return;
       slider._activeElement = element;
       this.base.apply(this, arguments);
+      if (!this.isEditable(element)) return;
       if (!control._activeThumb) {
         this.setValueByPosition(element, x - this.THUMB_WIDTH / 2, y - this.THUMB_HEIGHT / 2);
       }
-      this.base.apply(this, arguments);
+      this.base.apply(this, arguments); // why am I doing this twice?
     },
 
     getState: function(element) {

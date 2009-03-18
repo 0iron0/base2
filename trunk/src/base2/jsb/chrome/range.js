@@ -18,7 +18,7 @@ var range = control.extend({
   "@!Opera(8|9.[0-4])": {
     // The text is hidden for all but Opera < 9.5.
     // So disallow the default number behavior.
-    onchange: Undefined
+    onchange: null
   },
 
   "@MSIE": _preventScroll,

@@ -18,8 +18,9 @@ var progressbar = range.extend({
 
   // events
 
-  onmouseover: Undefined,
-  onmouseout: Undefined,
+  onmouseover: null,
+  onmousemove: null,
+  onmouseout: null,
 
   // methods
 

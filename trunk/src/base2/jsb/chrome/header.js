@@ -26,6 +26,14 @@ function _layout(element) {
   this.layout(element);
 };
 
+function _date_onchange(element) {
+  if (element.value == "" || this.getValueAsDate(element)) {
+    this.removeClass(element, "jsb-error");
+  } else {
+    this.addClass(element, "jsb-error");
+  }
+};
+
 var _WIDTH  = "clientWidth",
     _HEIGHT = "clientHeight";
 
@@ -36,11 +44,8 @@ function pad(number, length) {
   return "0000".slice(0, (length || 2) - String(number).length) + number;
 };
 
-var _document = document,
-    _documentElement = _document.documentElement;
-
 if (window.pageXOffset == null) {
-  var _CLIENT      = _documentElement,
+  var _CLIENT      = document.documentElement,
       _SCROLL_LEFT = "scrollLeft",
       _SCROLL_TOP  = "scrollTop";
 } else {

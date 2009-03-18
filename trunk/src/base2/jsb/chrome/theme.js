@@ -21,7 +21,7 @@ jsb.theme = new Base({
       "@MSIE": {
         detect: function() {
           var value = _WIN_DETECT[_getActiveCaptionColor()],
-              scrollbarFaceColor = _documentElement.currentStyle.scrollbarFaceColor;
+              scrollbarFaceColor = document.documentElement.currentStyle.scrollbarFaceColor;
           if (value == "classic") {
             if (scrollbarFaceColor == "#ffffff") return "classic/contrast/white";
             if (scrollbarFaceColor == "#88c0b8") return "classic/marine";
@@ -102,14 +102,14 @@ function rgb(r, g, b) {
 };
 
 function _getActiveCaptionColor() {
-  var element = _document.createElement("input");
+  var element = document.createElement("input");
   var head = behavior.querySelector("body,head");
   head.appendChild(element);
   // detect XP theme by inspecting the ActiveCaption colour
   element.style.color = "ActiveCaption";
   var color = element.style.color;
   if (!_WIN_DETECT[color]) {
-    color = ViewCSS.getComputedPropertyValue(_document.defaultView, element, "color");
+    color = ViewCSS.getComputedPropertyValue(document.defaultView, element, "color");
     if (/rgb/.test(color)) color = eval(color);
   }
   head.removeChild(element);

@@ -5,6 +5,8 @@
   <include src="behavior.js"/>
   <include src="Rule.js"/>
   <include src="RuleList.js"/>
+  <include src="Transition.js"/>
+  <include src="Transitions.js"/>
   <include src="createStyleSheet.js"/>
   <include src="External.js"/>
   <include src="_eventDelegator.js"/>
