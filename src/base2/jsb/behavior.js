@@ -126,6 +126,12 @@ var _Behavior = Base.extend({
 
     return behavior;
   },
+  
+  animate: function(element, transitions) {
+    for (var i in transitions) {
+      _state.transitions.add("", this, element, i, transitions[i]);
+    }
+  },
 
   get: function(element, propertyName) {
     // Retrieve a DOM property.

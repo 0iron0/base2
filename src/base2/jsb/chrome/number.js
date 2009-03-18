@@ -25,23 +25,6 @@ var number = {
 
   // events
 
-  /*onchange: function(element) {
-    // allow values like "5+6" and "15 * 33"
-    this.removeClass(element, "jsb-error");
-    var value = element.value;
-    if (isNaN(value)) {
-      try {
-        value = (new Function(
-          'with(Math){var e=E,pi=PI; return ' + value + '}'
-        ))();
-        this.setValue(element, value);
-        element.scrollLeft = 9999;
-      } catch(ex) {
-        this.addClass(element, "jsb-error");
-      }
-    }
-  },*/
-
   onmousewheel: function(element, event, delta) {
     if (this.isEditable(element) && control._focus == element && element.value != "") {
       this.increment(element, parseInt(delta / 120));
@@ -67,10 +50,19 @@ var number = {
         scale = step * this.stepScale;
     // check min/max
     value = value > max ? max : value < min ? min : value;
-    value = Math.round(value / step) * step;
+    value = Math.round(value / scale) * scale;
     if (scale < 1) value = value.toFixed(String(step).replace(/^.*\.|^\d+$/, "").length);
     // round to step
     this.setValue(element, this.convertNumberToValue(value));
+  },
+
+  getValueAsDate: function(element) {
+    var number = this.convertValueToNumber(element.value);
+    return isNaN(number) ? null : new Date(number);
+  },
+
+  setValueAsDate: function(element, date) {
+    this.setValueAsNumber(element, date.valueOf());
   },
 
   getProperties: function(element) {

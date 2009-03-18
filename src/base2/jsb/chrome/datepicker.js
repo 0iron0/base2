@@ -2,20 +2,12 @@
 var datepicker = dropdown.extend({
   implements: [number],
 
-  //PATTERN: /^\d{4}-(0\d|10|11|12)-\d{2}$/,
-
   appearance: "datepicker",
   stepScale: 86400000,
   
   // events
 
-  onchange: function(element) {
-    if (this.getValueAsDate(element)) {
-      this.removeClass(element, "jsb-error");
-    } else {
-      this.addClass(element, "jsb-error");
-    }
-  },
+  onchange: _date_onchange,
   
   "@(Date.prototype.toLocaleDateString)": {
     onchange: function(element) {
@@ -28,17 +20,8 @@ var datepicker = dropdown.extend({
   
   // methods
 
-  getValueAsDate: function(element) {
-    var number = this.convertValueToNumber(element.value);
-    return isNaN(number) ? null : new Date(number);
-  },
-
-  setValueAsDate: function(element, date) {
-    this.setValueAsNumber(element, date.valueOf());
-  },
-
   convertValueToNumber: function(value) {
-    return value == "" ? NaN : Date2.parse(value + "T00:00:00.000Z");
+    return value == "" ? NaN : Date2.parse(value + "T");
   },
   
   convertNumberToValue: function(number) {
@@ -110,7 +93,7 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
       }
           
       if (target != this.year && target != this.month && /^(3[3467809]|40)$/.test(keyCode)) {
-        var startDate = this.getDate(),
+        var startDate = this.getUTCDate(),
             date = new Date(startDate);
             
         event.preventDefault();
@@ -120,44 +103,44 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
             date = this.owner.getValueAsDate(this.element) || new Date;
             break;
           case 37: // left
-            date.setDate(date.getDate() - 1);
+            date.setUTCDate(date.getUTCDate() - 1);
             break;
           case 39: // right
-            date.setDate(date.getDate() + 1);
+            date.setUTCDate(date.getUTCDate() + 1);
             break;
           case 38: // up
-            date.setDate(date.getDate() - 7);
+            date.setUTCDate(date.getUTCDate() - 7);
             break;
           case 40: // down
-            date.setDate(date.getDate() + 7);
+            date.setUTCDate(date.getUTCDate() + 7);
             break;
           case 34: // page up
             if (event.ctrlKey) { // increment by year if the ctrl key is down
-              date.setFullYear(date.getFullYear() - 1);
+              date.setUTCFullYear(date.getUTCFullYear() - 1);
             } else { // by month
-              date.setDate(date.getDate() - 28);
-              if (date.getMonth() == startDate.getMonth()) {
-                date.setDate(date.getDate() - 7);
+              date.setUTCDate(date.getUTCDate() - 28);
+              if (date.getUTCMonth() == startDate.getUTCMonth()) {
+                date.setUTCDate(date.getUTCDate() - 7);
               }
             }
             break;
           case 33: // page down
             if (event.ctrlKey) {
-              date.setFullYear(date.getFullYear() + 1);
+              date.setUTCFullYear(date.getUTCFullYear() + 1);
             } else {
-              date.setDate(date.getDate() + 28);
-              if (date.getMonth() == startDate.getMonth()) {
-                date.setDate(date.getDate() + 7);
+              date.setUTCDate(date.getUTCDate() + 28);
+              if (date.getUTCMonth() == startDate.getUTCMonth()) {
+                date.setUTCDate(date.getUTCDate() + 7);
               }
             }
             break;
         }
-        this.currentDate = date.getDate();
-        if (date.getMonth() == startDate.getMonth() && date.getFullYear() == startDate.getFullYear()) {
+        this.currentDate = date.getUTCDate();
+        if (date.getUTCMonth() == startDate.getUTCMonth() && date.getUTCFullYear() == startDate.getUTCFullYear()) {
           this.highlightByDate();
         } else {
-          this.year.value = date.getFullYear();
-          this.month.selectedIndex = date.getMonth();
+          this.year.value = date.getUTCFullYear();
+          this.month.selectedIndex = date.getUTCMonth();
           this.fill();
         }
       } else {
@@ -182,8 +165,8 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
 
     // methods
 
-    getDate: function() {
-      return new Date(this.year.value, this.month.selectedIndex, this.currentDate, 12);
+    getUTCDate: function() {
+      return new Date(Date.UTC(this.year.value, this.month.selectedIndex, this.currentDate, 0));
     },
 
     fill: function() {
@@ -191,10 +174,10 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
           d = new Date(this.year.value, month, 1, 12),
           d2 = new Date(d);
           
-      d.setDate(d.getDate() - d.getDay() + chrome.locale.firstDay);
+      d.setUTCDate(d.getUTCDate() - d.getUTCDay() + chrome.locale.firstDay);
       // ensure that we do not start after the first of the month
       if (d > d2) {
-        d.setDate(d.getDate() - 7);
+        d.setUTCDate(d.getUTCDate() - 7);
       }
 
       var rows = this.days.rows, row,
@@ -203,8 +186,8 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
         var cells = row.cells, cell,
             hasDays = false;
         for (var j = 0; cell = cells[j]; j++) {
-          var date = d.getDate(),
-              isSameMonth = month == d.getMonth();
+          var date = d.getUTCDate(),
+              isSameMonth = month == d.getUTCMonth();
           cell.innerHTML = date;
           cell.className = isSameMonth ? "" : "disabled";
           if (isSameMonth) {
@@ -212,7 +195,7 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
             if (this.currentDate == date) currentCell = cell;
           }
           hasDays |= isSameMonth;
-          d.setDate(date + 1);
+          d.setUTCDate(date + 1);
         }
         row.style.visibility = hasDays ? "" : "hidden";
       }
@@ -242,9 +225,9 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
 
     layout: function() {
       var date = this.owner.getValueAsDate(this.element) || new Date;
-      this.year.value = date.getFullYear();
-      this.month.selectedIndex = date.getMonth();
-      this.currentDate = date.getDate();
+      this.year.value = date.getUTCFullYear();
+      this.month.selectedIndex = date.getUTCMonth();
+      this.currentDate = date.getUTCDate();
       this.fill();
       spinner.layout(this.year);
     },
@@ -255,7 +238,7 @@ Array(7).join('<tr unselectable="on">' + Array(8).join('<td unselectable="on">0<
 
     select: function() {
       var element = this.element;
-      this.owner.setValueAsDate(element, this.getDate());
+      this.owner.setValueAsDate(element, this.getUTCDate());
       this.hide();
       element.focus();
     },

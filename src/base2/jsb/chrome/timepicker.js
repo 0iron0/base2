@@ -6,13 +6,16 @@ var timepicker = spinner.extend({
 
   // events
 
-  onchange: function(element) {
-    if (this.getValueAsDate(element)) {
-      this.removeClass(element, "jsb-error");
-    } else {
-      this.addClass(element, "jsb-error");
+  onchange: _date_onchange,
+
+  /*"@(Date.prototype.toLocaleTimeString)": {
+    onchange: function(element) {
+      this.base(element);
+      if (!this.hasClass(element, "jsb-error")) {
+        this.showToolTip(element, this.getValueAsDate(element).toLocaleTimeString());
+      }
     }
-  },
+  },*/
 
   // methods
 
@@ -20,20 +23,13 @@ var timepicker = spinner.extend({
     return this.getUnitIncrement(element) * 60;
   },
 
-  getValueAsDate: function(element) {
-    var number = this.convertValueToNumber(element.value);
-    return isNaN(number) ? null : new Date(number);
-  },
-
-  setValueAsDate: function(element, date) {
-    this.setValueAsNumber(element, date.valueOf());
-  },
-
   convertValueToNumber: function(value) {
-    return value == "" ? NaN : Date2.parse("1970-01-01T" + value);
+    return value == "" ? NaN : Date2.parse("T" + value) + 500;
   },
 
   convertNumberToValue: function(number) {
-    return isNaN(number) ? "" : Date2.toISOString(new Date(number)).slice(11).replace(/:\d\d\.\d{3}Z$/, "");
+    if (isNaN(number)) return "";
+    var value = Date2.toISOString(new Date(number)).slice(11).replace(/\.\d{3}Z$/, "");
+    return value.replace(/:00$/, "");
   }
 });

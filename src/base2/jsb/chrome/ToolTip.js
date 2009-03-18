@@ -1,6 +1,7 @@
 
-var ToolTip = Popup.extend({ // helper text for date controls
+var ToolTip = Popup.extend({ // helper text
   appearance: "tooltip",
+  //position: "above",
   text: "",
 
   hide: function() {
@@ -23,7 +24,7 @@ var ToolTip = Popup.extend({ // helper text for date controls
     clearTimeout(tooltip._timeout);
     tooltip._timeout = setTimeout(function() {
       if (Element.matchesSelector(element, ":hover") || Element.matchesSelector(tooltip.body, ":hover")) {
-        tooltip._timeout = setTimeout(arguments.callee, ToolTip.TIMEOUT / 3); // user is hovering over the control, pause before hiding
+        tooltip._timeout = setTimeout(arguments.callee, ToolTip.TIMEOUT / 3); // user is hovering over the control
       } else {
         delete tooltip._timeout;
         tooltip.hide();

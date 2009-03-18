@@ -7,15 +7,14 @@ var _MSIEShim = {
     this.base.apply(this, arguments);
     var behavior = this, timer;
     if (!shim.control) {
-      shim.control = _document.createElement("!");
-      _document.body.insertBefore(shim.control, _document.body.firstChild);
+      shim.control = document.createElement("!");
+      document.body.insertBefore(shim.control, document.body.firstChild);
       shim.attach(shim.control);
     }
     shim.element = element;
     shim.behavior = behavior;
     var style = shim.control.runtimeStyle;
     style.cssText = "position:absolute;border:0;display:none;background-position-x:right";
-    //;;; style.backgroundColor = "red";
     style.pixelHeight = element.clientHeight;
     style.pixelWidth = behavior.IMAGE_WIDTH;
     style.backgroundImage = element.currentStyle.backgroundImage;

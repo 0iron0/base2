@@ -13,7 +13,13 @@ base2.global.chrome = new base2.Package(this, {
 
 eval(this.imports);
 
-;;; chrome.host = "http://rekky.rosso.name/base2/trunk/src/base2/jsb/chrome/";
+EventTarget.addEventListener(document, "textresize", function() {
+  Array2.batch(document.getElementsByTagName("input"), function(input,i) {
+    var type = input.className.replace(/^.*jsb\-(\w+).*$/, "$1"),
+        behavior = chrome[type];
+    if (behavior) behavior.layout(input);
+  }, 100);
+}, false);
 
 /*if (detect("MSIE6")) {
   try {

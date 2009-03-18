@@ -47,7 +47,6 @@ var PopupWindow = Popup.extend({
   tab: function(direction) {
     if (!this.controls) return true;
     var popup = this,
-        days = popup.days,
         controls = this.controls.map(I),
         current = popup.querySelector(":focus");
     popup._active = false;

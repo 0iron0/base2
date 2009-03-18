@@ -22,6 +22,7 @@ var Popup = Base.extend({
   height: "auto",
   element: null,
   body: null,
+  position: "below",
 
   scrollX: false,
   scrollY: false,
@@ -40,16 +41,17 @@ var Popup = Base.extend({
   // methods
 
   createBody: function() {
-    return _document.createElement("div");
+    return document.createElement("div");
   },
 
   getRect: function() {
-    var self = this,
+    var documentElement = document.documentElement,
+        self = this,
         body = self.body,
         element = self.element,
         rect = ElementView.getBoundingClientRect(element),
         left = 0,
-        top = element.offsetHeight - 1,
+        top = self.position == "below" ? element.offsetHeight - 1 : - 1 - element.offsetHeight,
         width = self.width,
         height = self.height;
 
@@ -63,7 +65,7 @@ var Popup = Base.extend({
         height = body.scrollHeight + 2;
         var unitHeight = self.getUnitHeight();
         if (self.scrollY) {
-          height = Math.min(height, Math.max(_documentElement.clientHeight - rect.bottom - 2, rect.top - 2));
+          height = Math.min(height, Math.max(documentElement.clientHeight - rect.bottom - 2, rect.top - 2));
         }
         if (unitHeight > 1) height = 2 + Math.floor(height / unitHeight) * unitHeight;
       }
@@ -71,15 +73,15 @@ var Popup = Base.extend({
         width = body.scrollWidth + 2;
         if (height < body.scrollHeight + 2) width += 22; // scrollbars
         if (self.scrollX) {
-          width = Math.min(width, Math.max(_documentElement.clientWidth - rect.left - 2, rect.right - 2));
+          width = Math.min(width, Math.max(documentElement.clientWidth - rect.left - 2, rect.right - 2));
         }
         width =  Math.max(width, element.offsetWidth);
       }
     }
-    if (height > _documentElement.clientHeight - rect.bottom && height < rect.bottom) {
+    if (height > documentElement.clientHeight - rect.bottom && height < rect.bottom) {
       top = -height;
     }
-    if (width > _documentElement.clientWidth - rect.right && width < rect.right) {
+    if (width > documentElement.clientWidth - rect.right && width < rect.right) {
       left = element.offsetWidth - width;
     }
     return new Rect(left, top, width, height);
@@ -100,7 +102,7 @@ var Popup = Base.extend({
   layout: Undefined,
 
   movesize: function() {
-    _document.body.appendChild(this.body);
+    document.body.appendChild(this.body);
     var style = this.body.style,
         rect = this.getRect(),
         offset = ElementView.getBoundingClientRect(this.element);
@@ -152,29 +154,30 @@ var Popup = Base.extend({
     }
   },
   
-  "@MSIE[56]": {
+  "@MSIE[56]": { // prevent <select> boxes from bleeding through
     hide: function() {
       this.base();
-      if (this._iframe) {
-        _document.body.removeChild(this._iframe);
-        delete this._iframe;
+      if (this._iframe.parentNode) {
+        document.body.removeChild(this._iframe);
       }
     },
     
     show: function(element) {
       this.base(element);
-      var iframe = this._iframe = _document.createElement("iframe"),
-          style = iframe.style,
-          body = this.body,
-          bodyStyle = body.style;
-          
-      style.cssText = "position:absolute;z-index:999998!important";
-      iframe.frameBorder = "0";
-      style.left = bodyStyle.left;
-      style.top = bodyStyle.top;
-      style.pixelWidth = body.offsetWidth;
-      style.pixelHeight = body.offsetHeight;
-      _document.body.appendChild(iframe);
+      if (!this._iframe) {
+        var iframe = this._iframe = document.createElement("iframe"),
+            style = iframe.style,
+            body = this.body,
+            bodyStyle = body.style;
+
+        style.cssText = "position:absolute;z-index:999998!important";
+        iframe.frameBorder = "0";
+        style.left = bodyStyle.left;
+        style.top = bodyStyle.top;
+        style.pixelWidth = body.offsetWidth;
+        style.pixelHeight = body.offsetHeight;
+      }
+      document.body.appendChild(this._iframe);
     }
   }
 });
