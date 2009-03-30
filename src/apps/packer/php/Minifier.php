@@ -53,6 +53,7 @@ class Minifier {
     '\\b\\s+@' => ' @',
     '(\\d)\\s+(\\.\\s*[a-z\\$_\\[(])' => '$1 $2', // http://dean.edwards.name/weblog/2007/04/packer3/#comment84066
     '([+-])\\s+([+-])' => '$1 $2', // c = a++ +b;
+    '(\\w)\\s+(\\pL)' => '$1 $2', // http://code.google.com/p/base2/issues/detail?id=78
     '\\b\\s+\\$\\s+\\b' => ' $ ', // var $ in
     '\\$\\s+\\b' => '$ ', // object$ in
     '\\b\\s+\\$' => ' $', // return $object

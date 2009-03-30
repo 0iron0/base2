@@ -24,3 +24,5 @@ if (_MSIE) {
 }
 
 var _CAN_DELEGATE = /^(blur|submit|reset|change|select)$|^(mouse|key|focus)|click$/;
+
+var _DELTA_SCALE = detect("Chrome2") ? 100 : 3;

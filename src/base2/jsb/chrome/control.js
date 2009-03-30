@@ -22,10 +22,14 @@ var control = behavior.extend({
   // events
   
   onattach: function(element) {
-    if (this.allowVertical && element[_HEIGHT] > element[_WIDTH]) {
-      this.setOrientation(element, this.VERTICAL);
+    if (this.isNativeControl != False && this.isNativeControl(element)) {
+      this.detach(element);
+    } else {
+      if (this.allowVertical && element[_HEIGHT] > element[_WIDTH]) {
+        this.setOrientation(element, this.VERTICAL);
+      }
+      this.layout(element, this.states[element.disabled ? "disabled" : "normal"]); // initial state
     }
-    this.layout(element, this.states[element.disabled ? "disabled" : "normal"]); // initial state
   },
 
   onmousedown: function(element, event, x, y) {
@@ -130,11 +134,9 @@ var control = behavior.extend({
 
   setOrientation: function(element, orientation) {
     if (orientation == this.VERTICAL) {
-      _vertical[element.uniqueID] = true;
       var backgroundImage = "background-image";
       this.setStyle(element, backgroundImage, this.getComputedStyle(element, backgroundImage).replace(/\.png/, "-vertical.png"), true);
-    } else {
-      delete _vertical[element.uniqueID];
+    } else if (element.style.backgroundImage) {
       element.style.backgroundImage = "";
     }
   },

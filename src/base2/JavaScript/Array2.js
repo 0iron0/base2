@@ -4,6 +4,22 @@ var Array2 = _createObject2(
   Array,
   "concat,join,pop,push,reverse,shift,slice,sort,splice,unshift", // generics
   Enumerable, {
+    batch: function(array, block, timeout, oncomplete, context) {
+      var index = 0, length = array.length;
+      setTimeout(function() {
+        var now = Date2.now(), start = now, k = 0;
+        while (index < length && (now - start < timeout)) {
+          block.call(context, array[index], index++, array);
+          if (k++ < 5 || k % 50 == 0) now = Date2.now();
+        }
+        if (index < length) {
+          setTimeout(arguments.callee, 10);
+        } else {
+          if (oncomplete) oncomplete.call(context);
+        }
+      }, 1);
+    },
+
     combine: function(keys, values) {
       // Combine two arrays to make a hash.
       if (!values) values = keys;
@@ -74,7 +90,7 @@ var Array2 = _createObject2(
   
     map: function(array, block, context) {
       var result = [];
-      Array2.forEach (array, function(item, index) {
+      _Array_forEach (array, function(item, index) {
         result[index] = block.call(context, item, index, array);
       });
       return result;

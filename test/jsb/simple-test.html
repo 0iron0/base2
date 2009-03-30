@@ -9,7 +9,7 @@
  	p.binding2 {font-weight: bold;}
  </style>
  <script type="text/javascript">
-	var MyBehavior = base2.JSB.Behavior.modify({
+	var MyBehavior = jsb.behavior.extend({
 		ondocumentready: function(element) {
 			element.innerHTML = "ondocumentready!";
 		},
@@ -22,7 +22,7 @@
 			this.removeClass(element, "binding2");
 		}
 	});
-	new base2.JSB.RuleList({
+	new jsb.RuleList({
 		"p": {
 			onmouseover: function(element) {
 				this.addClass(element, "binding1");

@@ -3,7 +3,7 @@ eval (base2.lang.namespace);
 
 var packer = new Packer;
 
-new base2.JSB.RuleList({
+new jsb.RuleList({
   "form": {
     oncontentready: function(form) {
       form.output.value = "";

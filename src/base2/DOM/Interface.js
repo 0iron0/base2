@@ -40,8 +40,8 @@ function _createDelegates(module, _interface) {
       //  forwards to:
       //    element.addEventListener(type, listener, capture)
       var args = "abcdefghij".slice(0, property.length).split("");
-      //var fn = new Function(args.join(","), format("%2.base=%2.%1.ancestor;var m=%2.base?'base':'%1';return %2[m](%3)", name, args[0], args.slice(1)));
-      var fn = new Function(args.join(","), format("var t=%2.%1.ancestor;if(t)%2.base=t;var m=%2.base?'base':'%1';return %2[m](%3)", name, args[0], args.slice(1)));
+      var fn = new Function(args.join(","), format("%2.base=%2.%1.ancestor;var m=%2.base?'base':'%1';return %2[m](%3)", name, args[0], args.slice(1)));
+      //var fn = new Function(args.join(","), format("var t=%2.%1.ancestor;if(t)%2.base=t;var m=%2.base?'base':'%1';return %2[m](%3)", name, args[0], args.slice(1)));
       fn._delegate = name;
       module[name] = fn;
       module.namespace += "var " + name + "=base2.lang.bind('" + name + "'," + id + ");";

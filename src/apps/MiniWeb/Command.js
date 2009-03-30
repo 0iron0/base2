@@ -7,7 +7,7 @@ var Command = FileSystem.extend({
   constructor: function() {
     this.base();
     var command = this;
-    var jst = new JST.Interpreter(this);
+    var interpreter = new jst.Interpreter(this);
     this[Command.INCLUDES] = {};
     this.exec = function(template, target) {
       var result = "";
@@ -23,7 +23,7 @@ var Command = FileSystem.extend({
         command.self = this.makepath(template);
         command.chdir(dir);
         command.target = target || "";
-        result = jst.interpret(this.read(template));
+        result = interpreter.interpret(this.read(template));
         command.target = restore;
         command.path = path;
         command.self = command.parent;

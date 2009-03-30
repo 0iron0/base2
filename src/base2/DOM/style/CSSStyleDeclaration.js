@@ -3,7 +3,9 @@
 
 var _CSSStyleDeclaration_ReadOnly = Binding.extend({
   getPropertyValue: function(style, propertyName) {
-    var value = this.base(style, _CSSPropertyNameMap[propertyName] || propertyName);
+    propertyName = _CSSPropertyNameMap[propertyName] || propertyName;
+    var value = style[propertyName];
+    if (value == undefined) value = this.base(style, propertyName);
     if (_COLOR.test(propertyName)) value = _toRGB(value);
     return value;
   },
@@ -17,14 +19,15 @@ var _CSSStyleDeclaration_ReadOnly = Binding.extend({
 
 var CSSStyleDeclaration = _CSSStyleDeclaration_ReadOnly.extend({
   setProperty: function(style, propertyName, value, priority) {
-    return this.base(style, _CSSPropertyNameMap[propertyName] || propertyName, value, priority);
+    propertyName = _CSSPropertyNameMap[propertyName] || propertyName;
+    this.base(style, propertyName.replace(/[A-Z]/g, _dash_lower), value, priority);
   },
   
   "@MSIE.+win": {
     setProperty: function(style, propertyName, value, priority) {
       if (propertyName == "opacity") {
-        value *= 100;
         style.opacity = value;
+        value *= 100;
         style.zoom = 1;
         style.filter = "Alpha(opacity=" + value + ")";
       } else {
@@ -45,6 +48,10 @@ var CSSStyleDeclaration = _CSSStyleDeclaration_ReadOnly.extend({
     }
   }
 });
+
+function _dash_lower(string) {
+  return "-" + string.toLowerCase();
+};
 
 var _CSSPropertyNameMap = new Base({
   "@Gecko": {

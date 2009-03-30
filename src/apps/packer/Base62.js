@@ -134,7 +134,7 @@ var Base62 = Encoder.extend({
   },
 
   getPattern: function(words) {
-    var words = words.map(String).join("|").replace(/\|{2,}/g, "|").replace(/^\|+|\|+$/g, "") || "\\x0";
+    words = words.map(String).join("|").replace(/\|{2,}/g, "|").replace(/^\|+|\|+$/g, "") || "\\x0";
     return new RegExp("\\b(" + words + ")\\b", "g");
   }
 }, {

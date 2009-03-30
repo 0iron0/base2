@@ -22,7 +22,7 @@ function detect() {
     if (!jscript) userAgent = userAgent.replace(MSIE, "");
     if (MSIE.test(userAgent)) userAgent = userAgent.match(MSIE)[0] + " " + userAgent.replace(MSIE, "");
     if (/Gecko/.test(userAgent)) userAgent = userAgent.replace(/rv:/, "Gecko");
-    if (!/Compat$/.test(document.compatMode)) userAgent += ";quirks";
+    if (!/Compat$/.test(document.compatMode)) userAgent += ";QuirksMode";
     base2.userAgent = navigator.platform + " " + userAgent.replace(/like \w+/gi, "");
     javaEnabled &= navigator.javaEnabled();
 //} else if (java) { // rhino

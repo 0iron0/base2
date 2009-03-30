@@ -70,12 +70,12 @@ var Collection = Map.extend({
   },
 
   put: function(key, item) {
-    if (!this.has(key)) {
-      this[_KEYS].push(String(key));
-    }
     var klass = this.constructor;
     if (klass.Item && !instanceOf(item, klass.Item)) {
       item = klass.create.apply(klass, arguments);
+    }
+    if (!this.has(key)) {
+      this[_KEYS].push(String(key));
     }
     this[_HASH + key] = item;
     return item;

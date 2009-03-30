@@ -8,7 +8,7 @@
 var MiniWeb = new base2.Package(this, {
   name:    "MiniWeb",
   exports: "Client,Server,JSONFileSystem,JSONDirectory,FileSystem,Command,Interpreter,Terminal,Request,History",
-  imports: "Enumerable,IO",
+  imports: "Enumerable,io",
   version: "0.7.1",
   
   $$: {data: {}},
@@ -53,7 +53,7 @@ var MiniWeb = new base2.Package(this, {
   },
   
   resolve: function(path, filename) {
-    return IO.FileSystem.resolve(path, filename);
+    return io.FileSystem.resolve(path, filename);
   },
   
   save: function(name) {
@@ -77,7 +77,7 @@ var MiniWeb = new base2.Package(this, {
     // update the revision number of the document
     var REVISION = "/system/About/revision";
     var io = this.server.io;
-    var revision = parseInt(io.read(REVISION));
+    var revision = parseInt(io.read(REVISION), 10);
     io.write(REVISION, String(++revision));
 
     // collect external scripts
@@ -135,8 +135,6 @@ MiniWeb.toString = function() {
 };
 
 eval(this.imports);
-
-JavaScript.bind(global);
 
 var _WILD_CARD      = /\*$/,
     _TRIM_PATH      = /[^\/]+$/,

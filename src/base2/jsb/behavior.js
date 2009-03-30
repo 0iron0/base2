@@ -128,15 +128,62 @@ var _Behavior = Base.extend({
   },
   
   animate: function(element, transitions) {
-    for (var i in transitions) {
-      _state.transitions.add("", this, element, i, transitions[i]);
-    }
+    // An ugly method. I may move it to Transitions.js. ;-)
+    
+    var defaultTransition;
+    forEach (transitions, function(transition, propertyName) {
+      var recurse = arguments.callee; // recurse after we've broken down shorthand properties
+      if (typeof transition == "string") {
+        transition = {end: transition};
+      }
+      // The first transition in the list defines the default
+      // values for duration and  delay for subsequent transitions.
+      if (!defaultTransition) defaultTransition = transition;
+      transition = copy(transition);
+      if (transition.delay == null && defaultTransition.delay != null) {
+        transition.delay = defaultTransition.delay;
+      }
+      if (transition.duration == null && defaultTransition.duration != null) {
+        transition.duration = defaultTransition.duration;
+      }
+      // Break shorthand properties into the longhand version.
+      // This only parses property names. Values are parsed in Transition.js.
+      // Some shorthand properties cannot be parsed. (I should fix backgroundPosition eventually)
+      if (/^(font|background(Position)?)$/.test(propertyName)) {
+        throw "Cannot animate complex property '" + propertyName + "'.";
+      } else if (/^border(Top|Right|Bottom|Left)?$/.test(propertyName)) { // shorthand border properties
+        var property = propertyName,
+            start = _split(transition.start),
+            end = _split(transition.end),
+            names = ["Width", "Style", "Color"];
+        forEach (end, function(end, i) {
+          var params = copy(transition);
+          params.start = start[i];
+          params.end = end;
+          recurse(params, property + names[i]);
+        });
+      } else if (/^(margin|padding|border(Width|Color|Style))$/.test(propertyName)) { // shorthand rect properties (T,R,B,L)
+        var property = propertyName.replace(/Width|Color|Style/, ""),
+            name = propertyName.replace(property, "");
+        start = _split(transition.start, true);
+        end = _split(transition.end, true);
+        forEach.csv ("Top,Right,Bottom,Left", function(side, i) {
+          var params = copy(transition);
+          params.start = start[i];
+          params.end = end[i];
+          _state.transitions.add(element, property + side + name, params);
+        });
+      } else {
+        _state.transitions.add(element, propertyName, transition);
+      }
+    });
   },
+  
+  // Manage properties
 
   get: function(element, propertyName) {
     // Retrieve a DOM property.
-    var uniqueID = element.uniqueID,
-        attributes = this.constructor.modifications[uniqueID] || this,
+    var attributes = this.constructor.modifications[element.uniqueID] || this,
         defaultValue = attributes[propertyName],
         value = Element.getAttribute(element, propertyName);
     if (value == null) return defaultValue;
@@ -158,13 +205,20 @@ var _Behavior = Base.extend({
   dispatchEvent: function(node, event, data) {
     if (typeof event == "string") {
       var type = event;
-      event = DocumentEvent.createEvent(Traversal.getDocument(node), "Events");
-      Event.initEvent(event, type, true, false);
+      event = DocumentEvent.createEvent(document, "Events");
+      var bubbles = true, cancelable = false;
+      if (data) {
+        if (data.bubbles != null) bubbles = !!data.bubbles;
+        if (data.cancelable != null) cancelable = !!data.cancelable;
+        delete data.bubbles;
+        delete data.cancelable;
+      }
+      Event.initEvent(event, type, bubbles, cancelable);
     }
     if (data) extend(event, data);
     EventTarget.dispatchEvent(node, event);
   },
-
+  
   getComputedStyle: function(element, propertyName) {
     var view = document.defaultView;
     if (arguments.length == 1) {
@@ -173,11 +227,14 @@ var _Behavior = Base.extend({
       return ViewCSS.getComputedPropertyValue(view, element, propertyName);
     }
   },
+  
+  // Setting element.style is quicker but this offers cross-browser safety and the
+  // ability to set the !important flag.
 
   setStyle: function(element, propertyName, value, important) {
     var style = element.style;
     if (arguments.length == 2) {
-      var properties = arguments[1];
+      var properties = extend({}, arguments[1]);
       for (propertyName in properties) {
         CSSStyleDeclaration.setProperty(style, propertyName, properties[propertyName], "");
       }
@@ -185,10 +242,14 @@ var _Behavior = Base.extend({
       CSSStyleDeclaration.setProperty(style, propertyName, value, important ? "important" : "");
     }
   },
+  
+  // For positioning popups.
 
   getOffsetFromBody: function(element) {
     return ElementView.getOffsetFromBody(element);
   },
+  
+  // Mouse capture. Useful for drag/drop. Not perfect, but almost always good enough.
 
   captureMouse: function(element) {
     if (!_state.captureElement) _state.captureElement = element;
@@ -201,7 +262,7 @@ var _Behavior = Base.extend({
 
 var behavior = _Behavior.prototype;
 
-forEach.csv("setInterval,setTimeout", function(name) {
+forEach.csv ("setInterval,setTimeout", function(name) {
   behavior[name] = function(callback, delay) {
     if (typeof callback == "string") callback = this[callback];
     var args = Array2.slice(arguments, 2);
@@ -214,7 +275,7 @@ forEach.csv("setInterval,setTimeout", function(name) {
 
 // Additional methods (from base2.DOM)
 
-forEach.csv("querySelector,querySelectorAll", function(name) {
+forEach.csv ("querySelector,querySelectorAll", function(name) {
   behavior[name] = function(node, selector) {
     if (arguments.length == 1) {
       selector = node;
@@ -224,7 +285,7 @@ forEach.csv("querySelector,querySelectorAll", function(name) {
   };
 });
 
-forEach ([
+forEach ([ // attach generic DOM methods
   EventTarget,
   ElementView,
   Node,
@@ -241,4 +302,4 @@ ClassList.forEach(function(method, name) {
   behavior[name + "Class"] = bind(method, ClassList);
 });
 
-behavior = new _Behavior;
+behavior = new _Behavior; // seal-off

@@ -150,7 +150,7 @@ var DocumentState = Base.extend({
         if (target["on" + type] !== undefined) {
           var state = this;
           target.attachEvent("on" + type, function(event) {
-            event.target = event.srcElement || state.document;
+            event.target = event.srcElement || target;
             state.handleEvent(event);
             if (state["after" + type]) {
               state["after" + type](event);

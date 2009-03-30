@@ -14,7 +14,7 @@ if (_MSIE) {
   });
   document.getElementsByTagName("head")[0].appendChild(_fire);
 } else {
-  document.addEventListener("jsbEvents", function(event) {
+  document.addEventListener("jsbEvents", function() {
     _handler.apply(_currentBehavior, _eventArgs);
   }, false);
 }

@@ -46,11 +46,6 @@ function _Array_forEach(array, block, context) {
     for (i = 0; i < length; i++) {
       block.call(context, array.charAt(i), i, array);
     }
-  } else if (typeof array.item == "function" && !array.concat) {
-    // Objects with an item() method only.
-    for (i = 0; i < length; i++) {
-      block.call(context, array.item(i), i, array);
-    }
   } else { // Cater for sparse arrays.
     for (i = 0; i < length; i++) {
     /*@cc_on @*/

@@ -7,11 +7,13 @@ function typeOf(object) {
     case "object":
       return object == null
         ? "null"
-        : typeof object.constructor == "undefined" // COM object
+        : typeof object.constructor != "function" // COM object
           ? _MSIE_NATIVE_FUNCTION.test(object)
             ? "function"
             : type
-          : typeof object.constructor.prototype.valueOf(); // underlying type
+          : _toString.call(object) == "[object Date]"
+            ? type
+            : typeof object.constructor.prototype.valueOf(); // underlying type
     case "function":
       return typeof object.call == "function" ? type : "object";
     default:

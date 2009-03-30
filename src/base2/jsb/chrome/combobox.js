@@ -15,5 +15,11 @@ var combobox = dropdown.extend({
     return null;
   },
 
+  "@Opera[91]": {
+    isNativeControl: function(element) {
+      return element.nodeName == "INPUT" && element.list;
+    }
+  },
+
   Popup: MenuList
 });

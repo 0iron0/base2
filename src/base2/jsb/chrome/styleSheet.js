@@ -86,7 +86,7 @@ jsb.theme.cssText = jsb.createStyleSheet({
         BorderImage:        "url(%theme%/dropdown.png) 1 18 1 4",
         borderStyle:        "none",
         borderWidth:        "1px 18px 1px 4px!",
-        padding:            "1px",
+        padding:            "1px"
       }
     },
 
@@ -104,7 +104,7 @@ jsb.theme.cssText = jsb.createStyleSheet({
     UserSelect:           "none",
 
     "@MSIE": {
-      verticalAlign:        "top",
+      verticalAlign:      "top",
       textIndent:         0,
       lineHeight:         "80em" // hide text for purely visual controls (MSIE)
     }
@@ -387,15 +387,16 @@ jsb.theme.cssText += jsb.createStyleSheet({
     backgroundColor:    "InfoBackground!",
     color:              "InfoText!",
     fontSize:           "small!",
-    BoxShadow:          "2px 4px 4px rgba(160, 160, 160, 0.5)",
+    BoxShadow:          "2px 4px 4px rgba(160, 160, 160, 0.5)"
   },
 
-  "@WebKit|Opera": {
-    "input[type=range]": {
-      background: "initial",
-      height:     "initial",
-      padding:    "initial",
-      border:     "initial"
+  "@Opera[91]": {
+    "input[list],input[type=number],input[type=date],input[type=time],input[type=month],input[type=week],input[type=range]": {
+      border: "initial",
+      borderWidth:             "initial",
+      borderColor:             "initial",
+      backgroundImage: "none!"
     }
   }
 });
+//;;;console2.log(jsb.theme.cssText);

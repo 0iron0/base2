@@ -56,8 +56,9 @@ extend(NodeSelector.prototype, {
   },
 
   querySelectorAll: function(selector) {
-    return extend(this.base(selector), "item", function(index) {
-      return DOM.bind(this.base(index));
-    });
+    var staticNodeList = this.base(selector),
+        i = staticNodeList.length;
+    while (i--) staticNodeList[i] = DOM.bind(staticNodeList[i]);
+    return staticNodeList;
   }
 });
