@@ -11,5 +11,27 @@ var _EVENT              = /^on([a-z|DOM\w+]+)$/,
 var _CANNOT_DELEGATE    = /^(abort|error|load|scroll|(readystate|property|filter)change)$/,
     _HTML_BODY          = /^(HTML|BODY)$/,
     _MOUSE_BUTTON_LEFT  = /^[^12]$/;
+    
+var _DIGITS             = /\d+/g;
 
 var _allAttachments       = {};
+
+var _parseInt16 = partial(parseInt, undefined, 16);
+
+function _createDummyElement(tagName) {
+  var dummy = document.createElement(tagName || "span");
+  dummy.style.cssText = "position:absolute;left:0;top:-9999px;";
+  document.body.appendChild(dummy);
+  return dummy;
+};
+
+function _split(value, fill) { // uased for splitting multiple CSS values
+  if (value == null) return [];
+  value = trim(value).split(/\s+/);
+  if (fill) {
+    if (value.length == 1) value[1] = value[0];
+    if (value.length == 2) value[2] = value[0];
+    if (value.length == 3) value[3] = value[1];
+  }
+  return value;
+};

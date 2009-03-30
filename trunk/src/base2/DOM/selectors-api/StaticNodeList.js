@@ -8,23 +8,21 @@
 var StaticNodeList = Base.extend({
   constructor: function(nodes) {
     nodes = nodes || [];
-    this.length = nodes.length;
-    this.item = function(index) {
-      if (index < 0) index += this.length; // starting from the end
-      return nodes[index];
-    };
     if (nodes.unsorted) nodes.sort(_SORTER);
+    var i = this.length = nodes.length;
+    while (i--) this[i] = nodes[i];
   },
   
   length: 0,
-  
+
   forEach: function(block, context) {
-    for (var i = 0; i < this.length; i++) {
-      block.call(context, this.item(i), i, this);
+    var length = this.length;
+    for (var i = 0; i < length; i++) {
+      block.call(context, this[i], i, this);
     }
   },
 
-  item: Undefined, // defined in the constructor function
+  item: Array2.prototype.item,
 
   not: function(test, context) {
     return this.filter(not(test), context);
@@ -37,11 +35,8 @@ var StaticNodeList = Base.extend({
   "@(XPathResult)": {
     constructor: function(nodes) {
       if (nodes && nodes.snapshotItem) {
-        this.length = nodes.snapshotLength;
-        this.item = function(index) {
-          if (index < 0) index += this.length; // starting from the end
-          return nodes.snapshotItem(index);
-        };
+        var i = this.length = nodes.snapshotLength;
+        while (i--) this[i] = nodes.snapshotItem(i);
       } else this.base(nodes);
     }
   }

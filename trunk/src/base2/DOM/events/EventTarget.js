@@ -88,7 +88,7 @@ var EventTarget = Interface.extend({
           var originalListener = listener;
           listener = _wrappedListeners[assignID(listener)] = function(event) {
             event = Event.cloneEvent(event);
-            event.wheelDelta /= 3;
+            event.wheelDelta /= _DELTA_SCALE;
             _handleEvent(target, originalListener, event);
           };
         }

@@ -7,7 +7,6 @@ var _ACTIVE = "\x5factive",
     _TIMER  = "\x5ftimer";
 
 var _timers   = {}, // store for timeouts
-    _vertical = {}, // vertical controls
     _preventScroll = {
       onfocus: function(element, event) {
         if (!element.onscroll) {
@@ -54,6 +53,6 @@ if (window.pageXOffset == null) {
       _SCROLL_TOP  = "pageYOffset";
 }
 
-if (detect("(style.MozBorderImage!==undefined||style.WebkitBorderImage!==undefined)")) {
+if (detect("(style." + ViewCSS.VENDOR + "BorderImage!==undefined||style.borderImage!==undefined)")) {
   base2.userAgent += ";borderImage=true";
 }

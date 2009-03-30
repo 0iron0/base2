@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+ <head>
+  <title>base2: Selectors API Test Page</title>
+  <style type="text/css">
+	body {font-family: Arial, Geneva, sans-serif; font-size: x-small;}
+	h1 {text-decoration: underline;}
+	h1,h2 {font-size: 1.5em; margin: 0.5em 0;}
+	pre {padding: 0.25em; margin: 0.5em 0 0 0; color: maroon; font-weight: bold; font-size: 1em;}
+	p.test {margin: 0 1ex 0 1ex; color: gray;}
+	p.test a {background-color: red; color: black;}
+ </style>
+ <script src="../../../lib/base2-legacy-p.js" type="text/javascript"></script>
+ <script src="../../../lib/base2-dom-fp.js" type="text/javascript"></script>
+ <script type="text/javascript">
+ 	base2.DOM.bind(document);
+	document.addEventListener("DOMContentLoaded", function() {
+		this.querySelectorAll("pre").forEach(function(pre) {
+			// get the CSS rule from the pre tag
+			var rule = pre.firstChild.nodeValue;
+			// extract the selector part
+			var selector = rule.slice(0, rule.indexOf("{"));
+			// the tests have been constructed to match only one element
+			var element = document.querySelector(selector);
+			if (element) element.style.backgroundColor = "lime";
+		});
+	}, false);
+ </script>
+</head>
+
+<body lang="en">
+ <h1>base2: Selectors API</h1>
+ 
+ <h2><abbr>CSS</abbr> Level 1</h2>
+ 
+ <pre>#test1-1 p a {background-color: lime;}</pre>
+ <div id="test1-1"><p class="test link"><span>This</span> is a <a href="#" title="This is a link">test</a> link.</p></div>
+
+ <h2><abbr>CSS</abbr> Level 2</h2>
+
+ <pre>#test2-1 p.test.link a {background-color: lime;}</pre>
+ <div id="test2-1"><p class="test link"><span>This</span> is a <a href="#" title="This is a link">test</a> link.</p></div>
+
+ <pre>#test2-2 p > a {background-color: lime;}</pre>
+ <div id="test2-2"><p class="test link"><span>This</span> is a <a href="#" title="This is a link">test</a> link.</p></div>
+
+ <pre>#test2-h2 span + a {background-color: lime;}</pre>
+ <div id="test2-h2"><p class="test link"><span>This</span> is a <a href="#" title="This is a link">test</a> link.</p></div>
+
+ <pre>#test2-4 p:first-child a {background-color: lime;}</pre>
+ <div id="test2-4"><p class="test link"><span>This</span> is a <a href="#" title="This is a link">test</a> link.</p></div>
+
+ <pre>#test2-6 a[href] {background-color: lime;}</pre>
+ <div id="test2-6"><p class="test link"><span>This</span> is a <a href="#" title="This is a link">test</a> link.</p></div>
+
+ <pre>#test2-7 a[title="This is a link"] {background-color: lime;}</pre>
+ <div id="test2-7"><p class="test link"><span>This</span> is a <a href="#" title="This is a link">test</a> link.</p></div>
+
+ <pre>#test2-8 a[title~="is"] {background-color: lime;}</pre>
+ <div id="test2-8"><p class="test link"><span>This</span> is a <a href="#" title="This is a link">test</a> link.</p></div>
+
+ <pre>div[id|=test2-9] a {background-color: lime;}</pre>
+ <div id="test2-9"><p class="test link"><span>This</span> is a <a href="#" title="This is a link">test</a> link.</p></div>
+
+ <h2><abbr>CSS</abbr> Level 3</h2>
+
+ <pre>#test3-2 p:last-child a {background-color: lime;}</pre>
+ <div id="test3-2"><p class="test link"><span>This</span> is a <a href="#" title="This is a link">test</a> link.</p></div>
+
+ <pre>#test3-9 a[title^="This"] {background-color: lime;}</pre>
+ <div id="test3-9"><p class="test link"><span>This</span> is a <a href="#" title="This is a link">test</a> link.</p></div>
+
+ <pre>#test3-10 a[title*="is a"] {background-color: lime;}</pre>
+ <div id="test3-10"><p class="test link"><span>This</span> is a <a href="#" title="This is a link">test</a> link.</p></div>
+
+ <pre>#test3-11 a[title$="link"] {background-color: lime;}</pre>
+ <div id="test3-11"><p class="test link"><span>This</span> is a <a href="#" title="This is a link">test</a> link.</p></div>
+</body>
+</html>

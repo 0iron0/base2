@@ -218,10 +218,8 @@ function _by_specificity(selector1, selector2) {
 // text resize
 
 EventTarget.addEventListener(window, "load", function() {
-  var dummy = document.createElement("span"), height;
-  dummy.style.cssText = "position:absolute;left:0;top:-9999px;";
+  var dummy = _createDummyElement(), height;
   dummy.innerHTML = "&nbsp;";
-  document.body.appendChild(dummy);
   setTimeout(function() {
     if (!_state.busy) {
       var resized = height != null && height != dummy.clientHeight;

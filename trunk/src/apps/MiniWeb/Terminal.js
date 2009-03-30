@@ -8,7 +8,7 @@ var Terminal = Command.extend({
     Terminal.load(this);
     this.extend("exec", function() {
       try {
-        return base(this, arguments);
+        return this.base.apply(this, arguments);
       } catch (error) {
         return String(error.message || error);
       }

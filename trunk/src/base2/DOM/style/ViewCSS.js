@@ -14,7 +14,7 @@ var ViewCSS = Interface.extend({
       getComputedStyle: function(view, element, pseudoElement) {
         // pseudoElement parameter is not supported
         var currentStyle = element.currentStyle,
-            computedStyle = {};
+            computedStyle = {opacity: 1, clip: ViewCSS.getComputedPropertyValue(view, element, "clip")};
         for (var propertyName in currentStyle) {
           if (_METRICS.test(propertyName) || _COLOR.test(propertyName)) {
             computedStyle[propertyName] = this.getComputedPropertyValue(view, element, propertyName);
@@ -29,8 +29,8 @@ var ViewCSS = Interface.extend({
   
   getComputedStyle: function(view, element, pseudoElement) {
     return _CSSStyleDeclaration_ReadOnly.bind(this.base(view, element, pseudoElement));
-  },
-  
+  }/*,
+
   "@Opera": {
     getComputedStyle: function(view, element, pseudoElement) {
       var computedStyle = this.base(view, element, pseudoElement);
@@ -43,7 +43,7 @@ var ViewCSS = Interface.extend({
       }
       return fixedStyle;
     }
-  }
+  }*/
 }, {
   VENDOR: "",
   "@Gecko": {VENDOR: "Moz"},
@@ -60,7 +60,17 @@ var ViewCSS = Interface.extend({
     
     getComputedPropertyValue: function(view, element, propertyName) {
       propertyName = this.toCamelCase(propertyName);
-      var value = element.currentStyle[propertyName];
+      var currentStyle  = element.currentStyle,
+          value = currentStyle[propertyName];
+      if (propertyName == "opacity" && value == null) return 1;
+      if (propertyName == "clip") {
+        return "rect(" + [
+          currentStyle.clipTop,
+          currentStyle.clipRight,
+          currentStyle.clipBottom,
+          currentStyle.clipLeft
+        ].join(", ") + ")";
+      }
       if (_METRICS.test(propertyName))
         return _MSIE_getPixelValue(element, value);
       if (!_MSIE5 && _COLOR.test(propertyName)) {
@@ -68,22 +78,26 @@ var ViewCSS = Interface.extend({
           case "black":
             return _BLACK;
           case "white":
-            return "rgb(255, 255, 255)";
+            return _WHITE;
           case "transparent":
             return value;
           default:
+            if (propertyName != "color") element.runtimeStyle.backgroundColor = value;
             var rgb = _MSIE_getColorValue(element, propertyName == "color" ? "ForeColor" : "BackColor");
+            if (propertyName != "color") element.runtimeStyle.backgroundColor = "";
             return rgb == _BLACK || rgb == _WHITE ? _toRGB(value) : rgb;
         }
       }
       return value;
     }
   },
-  
+
   toCamelCase: function(string) {
-    return string.replace(/\-([a-z])/g, flip(String2.toUpperCase));
+    return string.replace(/\-([a-z])/g, _toUpperCase);
   }
 });
+
+var _toUpperCase = flip(String2.toUpperCase);
 
 function _MSIE_getPixelValue(element, value) {
   if (value == "none") return "0px";
@@ -103,7 +117,7 @@ function _MSIE_getColorValue(element, type) {
   // elements need to have "layout" for this to work.
   var zoom = element.style.zoom;
   if (!element.currentStyle.hasLayout) {
-    element.style.zoom = "100%"; // runtimeStyle is screwy fro zoom
+    element.style.zoom = "100%"; // runtimeStyle is screwy for zoom
   }
   if (element.createTextRange) {
     var range = element.createTextRange();

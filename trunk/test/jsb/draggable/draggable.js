@@ -1,9 +1,7 @@
 
 //console2.log("draggable.js");
 
-eval(base2.JSB.namespace);
-
-var Draggable = Behavior.modify({
+var draggable = jsb.behavior.extend({
   index: 100,
   
   onmousedown: function(element, event) {
@@ -11,8 +9,8 @@ var Draggable = Behavior.modify({
       this.dragElement = element;
       this.dragX = event.screenX - element.offsetLeft;
       this.dragY = event.screenY - element.offsetTop;
-      this.setCapture(element);
-      element.style.zIndex = Draggable.index++;
+      this.captureMouse(element);
+      element.style.zIndex = draggable.index++;
       this.dispatchEvent(element, "dragstart");
     }
     event.preventDefault();
@@ -21,7 +19,7 @@ var Draggable = Behavior.modify({
   onmouseup: function(element) {
     if (this.dragElement == element) {
       this.dragElement = null;
-      this.releaseCapture(element);
+      this.releaseMouse();
       this.dispatchEvent(element, "dragstop");
     }
   },
@@ -45,7 +43,7 @@ var Draggable = Behavior.modify({
   }
 });
 
-Draggable.Dean = Behavior.modify({
+draggable.dean = jsb.behavior.extend({
   messages: [
     "This example demonstrates cross-browser JavaScript Behaviors (JSB).",
     "Drag these boxes around. The drag/drop mechanism is implemented entirely in a JavaScript Behavior.",
@@ -76,9 +74,9 @@ Draggable.Dean = Behavior.modify({
     pointer.style.top = (element.offsetTop + 75) + "px";
     bubble.style.top = (pointer.offsetTop - 10) + "px";
     // bring the bubble to the top
-    pointer.style.zIndex = Draggable.index;
-    bubble.style.zIndex = Draggable.index;
-    element.style.zIndex = ++Draggable.index;
+    pointer.style.zIndex = draggable.index;
+    bubble.style.zIndex = draggable.index;
+    element.style.zIndex = ++draggable.index;
     // change the image so that I'm looking the right way
     element.style.backgroundImage = "url(me_" + position + ".jpg)";
   },

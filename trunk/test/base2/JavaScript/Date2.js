@@ -2,13 +2,13 @@ var date2tests = {};
 date2tests.testToISOString = function() {
   var date = Date2(new Date(0));
   date.setUTCFullYear(1972, 11-1, 14);
-  assertEqual(date.toISOString(), "1972-11-14T", "yyyy-MM-dd format");
+  assertEqual(date.toISOString(), "1972-11-14T00:00:00.000Z", "yyyy-MM-dd format");
   date.setUTCHours(5);
-  assertEqual(date.toISOString(), "1972-11-14T05Z", "yyyy-MM-ddThhZ format");
+  assertEqual(date.toISOString(), "1972-11-14T05:00:00.000Z", "yyyy-MM-ddThhZ format");
   date.setUTCMinutes(12);
-  assertEqual(date.toISOString(), "1972-11-14T05:12Z", "yyyy-MM-ddThh:mmZ format");
+  assertEqual(date.toISOString(), "1972-11-14T05:12:00.000Z", "yyyy-MM-ddThh:mmZ format");
   date.setUTCSeconds(59);
-  assertEqual(date.toISOString(), "1972-11-14T05:12:59Z", "yyyy-MM-ddThh:mm:ssZ format");
+  assertEqual(date.toISOString(), "1972-11-14T05:12:59.000Z", "yyyy-MM-ddThh:mm:ssZ format");
   date.setUTCMilliseconds(1);
   assertEqual(date.toISOString(), "1972-11-14T05:12:59.001Z", "yyyy-MM-ddThh:mm:ss:milZ format");
   date.setUTCMilliseconds(12);

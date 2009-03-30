@@ -33,7 +33,7 @@ var template = behavior.extend({
   /* PRE-DEFINED BEHAVIOR METHODS */
   
   // You do not need to define these, they are already defined on the behavior
-  // module and will be inherited by all behaviors. You may override them if
+  // object and will be inherited by all behaviors. You may override them if
   // you wish.
   
   attach: function(element){return element;},

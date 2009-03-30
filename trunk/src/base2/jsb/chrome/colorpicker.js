@@ -37,13 +37,13 @@ var colorpicker = dropdown.extend({
     onchange: function() {
       var rgb = map(pluck(this.controls, "value"), Number); // array of rgb values
       var value = reduce(rgb, function(value, channel) {    // convert to: #string
-        return value += (channel < 16 ? "0" : "") + channel.toString(16);
+        return value += pad(channel.toString(16));
       }, "#");
       this.owner.setValue(this.element, value);
     },
 
     layout: function() {
-      var rgb = map(this.element.value.toLowerCase().slice(1).match(/(\w\w)/g), partial(parseInt, undefined, 16)); // array of rgb values
+      var rgb = map(this.element.value.slice(1).match(/(\w\w)/g), partial(parseInt, undefined, 16)); // array of rgb values
       this.controls.forEach(function(input, i) {
         input.value = rgb[i];
         slider.layout(input); // redraw
@@ -51,11 +51,11 @@ var colorpicker = dropdown.extend({
     },
 
     render: function() {
-      var SLIDER = '%1: <input class="jsb-slider" min="0" max="255">';
+      var SLIDER = ': <input class="jsb-slider" min="0" max="255">';
       this.base([
-        SLIDER.replace(/%1/, "R"),
-        SLIDER.replace(/%1/, "G"),
-        SLIDER.replace(/%1/, "B")
+        "R" + SLIDER,
+        "G" + SLIDER,
+        "B" + SLIDER
       ].join("<br>"));
 
       this.controls = this.querySelectorAll("input.jsb-slider");

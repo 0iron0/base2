@@ -45,9 +45,8 @@ extend(jsb, "createStyleSheet", function(cssText, document) {
               }
             });
             delete rule[propertyName];
-          } else {
-            rule[propertyName] = value;
           }
+          rule[propertyName] = value;
         });
       }
     });
@@ -58,6 +57,7 @@ extend(jsb, "createStyleSheet", function(cssText, document) {
   var host = location.pathname;
   var script = Array2.item(document.getElementsByTagName("script"), -1);
   if (script) host = script.src || host;
+  ;;; host = host.replace(/\/build\.php.*$/, '/base2/jsb/chrome/themes/');
   host = host.replace(/[\?#].*$/, "").replace(/[^\/]*$/, "");
   
   cssText = cssText.replace(/%theme%/g, "themes/" + jsb.theme);

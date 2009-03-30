@@ -12,11 +12,11 @@ function instanceOf(object, klass) {
   /*@cc_on  
   // COM objects don't have a constructor
   if (typeof object.constructor != "function") {
-    return typeOf(object) == typeof klass.prototype.valueOf();
+    return klass == Object;
   }
   @*/
-    if (object.constructor == klass) return true;
-    if (klass.ancestorOf) return klass.ancestorOf(object.constructor);
+  if (object.constructor == klass) return true;
+  if (klass.ancestorOf) return klass.ancestorOf(object.constructor);
   /*@if (@_jscript_version < 5.1)
     // do nothing
   @else @*/

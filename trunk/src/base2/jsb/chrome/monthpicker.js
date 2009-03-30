@@ -1,8 +1,6 @@
 
 var monthpicker = spinner.extend({
   appearance: "monthpicker",
-  step: 1,
-  stepScale: 1,
 
   // events
 
@@ -25,9 +23,9 @@ var monthpicker = spinner.extend({
   increment: function(element, amount, block) {
     var date = this.getValueAsDate(element) || new Date;
     if (block) {
-      date.setFullYear(date.getFullYear() + amount);
+      date.setUTCFullYear(date.getUTCFullYear() + amount);
     } else {
-      date.setMonth(date.getMonth() + amount);
+      date.setUTCMonth(date.getUTCMonth() + amount);
     }
     this.setValueAsDate(element, date);
   }

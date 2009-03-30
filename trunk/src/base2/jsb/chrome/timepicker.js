@@ -30,6 +30,6 @@ var timepicker = spinner.extend({
   convertNumberToValue: function(number) {
     if (isNaN(number)) return "";
     var value = Date2.toISOString(new Date(number)).slice(11).replace(/\.\d{3}Z$/, "");
-    return value.replace(/:00$/, "");
+    return value.replace(/:00$/, ""); // fix me: this should be dependant on an element's step attribute
   }
 });

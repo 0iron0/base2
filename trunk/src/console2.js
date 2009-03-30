@@ -2,7 +2,7 @@
 // Dean Edwards, 2008
 
 (function() {
-var CONSOLE_CSS = "position:fixed;top:0;right:0;height:800px;width:25%;border:1px solid silver;overflow:auto;background:white;z-index:999";
+var CONSOLE_CSS = "position:fixed;top:0;right:0;height:800px;width:25%;border:1px solid silver;overflow:auto;z-index:999;background:Window;color:WindowText";
 var lines = [];
 if (typeof console2 == "undefined") {
   if (document.body) {
