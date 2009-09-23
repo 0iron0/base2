@@ -26,7 +26,7 @@ var Enumerable = Module.extend({
   invoke: function(object, method) {
     // Apply a method to each item in the enumerated object.
     var args = _slice.call(arguments, 2);
-    return this.map(object, (typeof method == "function") ? function(item) {
+    return this.map(object, typeof method == "function" ? function(item) {
       return item == null ? undefined : method.apply(item, args);
     } : function(item) {
       return item == null ? undefined : item[method].apply(item, args);

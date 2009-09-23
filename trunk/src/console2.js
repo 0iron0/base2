@@ -2,23 +2,30 @@
 // Dean Edwards, 2008
 
 (function() {
-var CONSOLE_CSS = "position:fixed;top:0;right:0;height:800px;width:25%;border:1px solid silver;overflow:auto;z-index:999;background:Window;color:WindowText";
-var lines = [];
+var CONSOLE_CSS = "position:fixed;top:0;right:0;height:800px;width:25%;border:1px solid silver;overflow:auto;z-index:999;background:window;color:windowtext;font-size:11px";
+var lines = null;//[];
+var dummy = document.createElement("div");
 if (typeof console2 == "undefined") {
   if (document.body) {
-    console2 = document.createElement("pre");
+    window.console2 = document.createElement("pre");
     console2.style.cssText = CONSOLE_CSS;
     document.body.appendChild(console2);
   } else {
     document.write('<pre id="console2" style="' + CONSOLE_CSS + '"></pre>');
     try {
-      console2 = document.getElementById("console2");
+      window.console2 = document.getElementById("console2");
     } catch (e){}
   }
   if (!console2) {
-    console2 = {temp: 1};
+    window.console2 = {temp: 1};
   }
   console2.log = function(line) {
+    if (this.textContent === undefined) {
+      dummy.innerText = line;
+    } else {
+      dummy.textContent = line;
+    }
+    line = dummy.innerHTML || line;
     if (lines) {
       lines.push(line);
     } else {
@@ -38,7 +45,7 @@ if (typeof console2 == "undefined") {
       setTimeout(function() {
         console2.update();
       }, 0);
-    } else {
+    } else if (lines) {
       this.innerHTML = lines.reverse().join("<br>") + "<br>";
       //this.scrollTop = this.scrollHeight;
       lines = null;
@@ -48,7 +55,7 @@ if (typeof console2 == "undefined") {
     this.innerHTML = "";
   };
   // fixed positioning for MSIE6
-  if (console2.runtimeStyle && navigator.appVersion.match(/MSIE (\d\.\d)/)[1] < 7) {
+  if (console2.runtimeStyle && (navigator.appVersion.match(/MSIE (\d\.\d)/)[1] < 7 || document.compatMode != "CSS1Compat")) {
     setTimeout(function() {
       if (document.body) {
         with (document.body.style) {

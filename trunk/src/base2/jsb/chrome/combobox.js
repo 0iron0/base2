@@ -9,13 +9,13 @@ var combobox = dropdown.extend({
 
   get: function(element, propertyName) {
     var value = this.base(element, propertyName);
-    if (value && propertyName == "list" && typeof value == "string") {
+    if (propertyName == "list" && value && typeof value == "string") {
       return this.querySelector("#" + value);
     }
-    return null;
+    return value;
   },
 
-  "@Opera[91]": {
+  "@(hasFeature('WebForms','2.0'))": {
     isNativeControl: function(element) {
       return element.nodeName == "INPUT" && element.list;
     }

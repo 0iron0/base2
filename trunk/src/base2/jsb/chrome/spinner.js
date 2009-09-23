@@ -1,8 +1,8 @@
 
 var spinner = control.extend({
-  implements: [number],
+  "implements": [number],
 
-  "@MSIE.+win": _MSIEShim,
+  "@MSIE.+win": _MSIEShim, // prevent typing over the background image
 
   // constants
 
@@ -17,8 +17,10 @@ var spinner = control.extend({
   },
 
   // properties
-  
+
+  type: "number", // web forms 2.0 type
   appearance: "spinner",
+  //role: "spinbutton",
 
   // events
   
@@ -45,8 +47,6 @@ var spinner = control.extend({
     if (!this.isEditable(element)) return;
     
     if (!/^(3[348]|40)$/.test(keyCode)) return; // valid key codes
-    
-    this.stopTimer(element);
 
     this.deactivate(element);
   },
@@ -58,10 +58,9 @@ var spinner = control.extend({
     }
   },
 
-  onmouseup: function(element, event) {
-    this.stopTimer(element);
-    // call afterward because we don't want to clear the state yet
+  onlosecapture: function(element, event) {
     this.base(element, event);
+    this.deactivate(element);
   },
 
   // methods
@@ -70,13 +69,13 @@ var spinner = control.extend({
     control._activeThumb = control._hoverThumb = direction;
     this.layout(element);
     spinner._block = block;
-    this.startTimer(element, _ACTIVE);
+    this.startTimer(element);
   },
 
   deactivate: function(element) {
-    this.stopTimer(element, _ACTIVE);
+    this.stopTimer(element);
     delete control._activeThumb;
-    delete control._hoverThumb;
+    //delete control._hoverThumb;
     delete spinner._block;
     this.layout(element);
   },
@@ -84,7 +83,7 @@ var spinner = control.extend({
   getState: function(element) {
     if (element.disabled) {
       var state = "disabled";
-    } else if (element.readOnly) {
+    } else if (element.readOnly && element != control._readOnlyTemp) {
       state = "normal";
     } else if ((element == control._hover || element == control._focus) && control._activeThumb) {
       state = control._activeThumb + _ACTIVE;
@@ -114,24 +113,14 @@ var spinner = control.extend({
       this.base(element);
       if (!spinner._firedOnce) this.tick(element);
       delete spinner._firedOnce;
-      element.select();
+      if (element.select) element.select();
+      this.syncCursor(element)
     }
   },
 
   tick: function(element) {
-    this.increment(element, Math.floor(spinner._steps * spinner._direction), spinner._block);
+    this.increment(element, ~~(spinner._steps * spinner._direction), !!spinner._block);
     spinner._steps *= 1.05; // accelerate
     spinner._firedOnce = true;
-  },
-
-  increment: function(element, amount, block) {
-    this.base(element, amount, block);
-  },
-
-  "@Opera[91]": {
-    isNativeControl: function(element) {
-      return element.nodeName == "INPUT" && element.type == "number";
-    }
   }
 });
-

@@ -6,7 +6,6 @@ var remove = button.extend({
 
   onclick: function(button, event) {
     event.preventDefault(); // prevent submit
-    
     var block = this.getBlock(button);
     if (block) {
       this.removeRepetitionBlock(block);

@@ -8,13 +8,13 @@ function instanceOf(object, klass) {
   }
 
   if (object == null) return false;
-  
-  /*@cc_on  
+   
   // COM objects don't have a constructor
-  if (typeof object.constructor != "function") {
-    return klass == Object;
-  }
-  @*/
+  /*@if (@_jscript)
+    if (typeof object.constructor != "function") {
+      return klass == Object;
+    }
+  /*@end @*/
   if (object.constructor == klass) return true;
   if (klass.ancestorOf) return klass.ancestorOf(object.constructor);
   /*@if (@_jscript_version < 5.1)

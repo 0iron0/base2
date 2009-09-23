@@ -1,6 +1,6 @@
 
-var JavaScript = {
-  name:      "JavaScript",
+var js = {
+  name:      "js",
   version:   base2.version,
   exports:   "Array2,Date2,Function2,String2",
   namespace: "", // fixed later
@@ -39,8 +39,9 @@ function _createObject2(Native, constructor, generics, extensions) {
 
   // Remove methods that are already implemented.
   for (var name in INative) {
-    if (name != "prototype" && name != "toString" && Native[name]) {
-      INative[name] = Native[name];
+    var method = Native[name];
+    if (method && name != "prototype" && name != "toString" && method != Function.prototype[name]) {
+      INative[name] = method;
       delete INative.prototype[name];
     }
     Native2[name] = INative[name];

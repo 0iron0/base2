@@ -39,7 +39,7 @@ function _makeNativeAbsolutePath(path) {
   return LocalFileSystem.toNativePath(FileSystem.resolve(LocalFileSystem.getPath(), path));
 };
 
-var _fso; // file system object
+var _fso; // FileSystemObject
 function _activex_exec(method, path1, path2, flags) {
   if (!_fso) _fso = new ActiveXObject("Scripting.FileSystemObject");
   path1 = _makeNativeAbsolutePath(path1);
@@ -51,7 +51,7 @@ function _activex_exec(method, path1, path2, flags) {
     case 3: return _fso[method](path1, path2);
     case 4: return _fso[method](path1, path2, flags);
   }
-  return undefined; // prevent strict warnings
+  return undefined; // Prevent strict warnings
 };
 
 function _xpcom_createFile(path) {

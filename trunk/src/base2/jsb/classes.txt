@@ -1,6 +1,8 @@
 Base
-.jsb.behavior
-.jsb.Rule
+.behavior
 .Map
 ..Collection
-...jsb.RuleList
+...RuleList
+...Transitions
+.Rule
+.Transition

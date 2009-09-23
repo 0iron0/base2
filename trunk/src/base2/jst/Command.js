@@ -3,8 +3,9 @@ var STDOUT = 1;
 
 var Command = Base.extend({
   constructor: function(command) {
-    this[STDOUT] = [];    
-    this.extend(command); // additional commands
+    this[STDOUT] = [];
+    // Additional commands.
+    this.extend(command);
   },
   
   echo: function(string) {

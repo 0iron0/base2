@@ -5,43 +5,45 @@
 // http://www.w3.org/TR/2007/WD-ElementTraversal-20070727/
 
 var ElementTraversal = Interface.extend({
-  getChildElementCount: function(node) {
+  getChildElementCount: function(element) {
     var count = 0;
-    node = node.firstChild;
-    while (node) {
-      if (this.isElement(node)) count++;
-      node = node.nextSibling;
+    element = element.firstChild;
+    while (element) {
+      if (this.isElement(element)) count++;
+      element = element.nextSibling;
     }
     return count;
   },
 
-  getFirstElementChild: function(node) {
-    node = node.firstChild;
-    return this.isElement(node) ? node : this.getNextElementSibling(node);
+  getFirstElementChild: function(element) {
+    element = element.firstChild;
+    return this.isElement(element) ? element : this.getNextElementSibling(element);
   },
 
-  getLastElementChild: function(node) {
-    node = node.lastChild;
-    return this.isElement(node) ? node : this.getPreviousElementSibling(node);
+  getLastElementChild: function(element) {
+    element = element.lastChild;
+    return this.isElement(element) ? element : this.getPreviousElementSibling(element);
   },
 
-  getNextElementSibling: function(node) {
-    while (node && (node = node.nextSibling) && !this.isElement(node)) continue;
-    return node;
+  getNextElementSibling: function(element) {
+    // return the next element to the supplied element
+    while (element && (element = element.nextSibling) && !this.isElement(element)) continue;
+    return element;
   },
 
-  getPreviousElementSibling: function(node) {
-    while (node && (node = node.previousSibling) && !this.isElement(node)) continue;
-    return node;
-  }
+  getPreviousElementSibling: function(element) {
+    // return the previous element to the supplied element
+    while (element && (element = element.previousSibling) && !this.isElement(element)) continue;
+    return element;
+  },
 }, {
-  isElement: function(node) {
-    return !!(node && node.nodeType == 1);
+  isElement: function(element) {
+    return !!element && element.nodeType == 1;
   },
 
-  "@MSIE5": {
-    isElement: function(node) {
-      return !!(node && node.nodeType == 1 && node.nodeName != "!");
+  "@(jscript<5.6)": {
+    isElement: function(element) {
+      return !!element && element.nodeType == 1 && element.nodeName != "!";
     }
   }
 });

@@ -10,7 +10,7 @@ var FileSystem = Base.extend({
   path: "/",
 
   chdir: function(path) {
-    // set the current path
+    // Set the current path.
     assert(this.isDirectory(path), path + " is not a directory.");
     path = this.makepath(path);
     if (!_TRAILING_SLASH.test(path)) path += "/";
@@ -36,17 +36,17 @@ var FileSystem = Base.extend({
   write: NOT_SUPPORTED
 }, {
   resolve: function(path1, path2) {
-    // stringify
+    // Stringify.
     path1 = String(path1 || "");
     path2 = String(path2 || "");
-    // create a full path from two paths
+    // Create a full path from two paths.
     if (path2.indexOf("/") == 0) {
       var path = "";
     } else {
       path = path1.replace(_TRIM_PATH, "");
     }
     path += path2;
-    // resolve relative paths
+    // Resolve relative paths.
     while (_RELATIVE.test(path)) {
       path = path.replace(_RELATIVE, "");
     }

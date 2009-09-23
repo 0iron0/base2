@@ -3,6 +3,7 @@
 
 /*
   Based on the work of Erik Arvidsson:
+  
     http://erik.eae.net/archives/2005/05/27/01.03.26/
 */
 

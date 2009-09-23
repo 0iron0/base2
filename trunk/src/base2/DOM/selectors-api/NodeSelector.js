@@ -1,14 +1,12 @@
 
-// http://www.w3.org/TR/selectors-api/
-
-var _VISITED = /:visited/; // security
+// http://www.w3.org/TR/selectors-api/#nodeselector
 
 var NodeSelector = Interface.extend({
   "@(element.querySelector)": {
     querySelector: function(node, selector) {
-      if (!_VISITED.test(selector)) {
+      if (!_USE_BASE2.test(selector)) {
         try {
-          return this.base(node, trim(selector));
+          return this.base(node, selector);
         } catch (x) {
           // assume it's an unsupported selector
         }
@@ -17,23 +15,14 @@ var NodeSelector = Interface.extend({
     },
     
     querySelectorAll: function(node, selector) {
-      if (!_VISITED.test(selector)) {
+      if (!_USE_BASE2.test(selector)) {
         try {
-          return new StaticNodeList(this.base(node, trim(selector)));
+          return StaticNodeList.bind(this.base(node, selector));
         } catch (x) {
           // assume it's an unsupported selector
         }
       }
       return new Selector(selector).exec(node);
-    },
-
-    "@KHTML": { // http://code.google.com/p/base2/issues/detail?id=100
-      querySelectorAll: function(node, selector) {
-        if (!/[A-Z]/.test(selector) || "BackCompat" != (node ? node.ownerDocument || node : document).compatMode) {
-          return this.base(node, selector);
-        }
-        return new Selector(selector).exec(node);
-      }
     }
   },
 
@@ -48,17 +37,32 @@ var NodeSelector = Interface.extend({
   }
 });
 
-// automatically bind objects retrieved using the Selectors API on a bound node
+if (_element.querySelectorAll) { // http://code.google.com/p/base2/issues/detail?id=100
+  _element.innerHTML = '<a id="X"></a>';
+  if (_element.querySelectorAll("#X").length == 0) {
+    NodeSelector.implement({
+      querySelectorAll: function(node, selector) {
+        if (/[A-Z]/.test(selector)) {
+          if (!/^CSS/.test(Traversal.getDocument(node).compatMode)) {
+            return new Selector(selector).exec(node);
+          }
+        }
+        return this.base(node, selector);
+      }
+    });
+  }
+}
 
+// automatically bind objects retrieved using the Selectors API on a bound node
 extend(NodeSelector.prototype, {
   querySelector: function(selector) {
-    return DOM.bind(this.base(selector));
+    return dom.bind(this.base(selector));
   },
 
   querySelectorAll: function(selector) {
-    var staticNodeList = this.base(selector),
-        i = staticNodeList.length;
-    while (i--) staticNodeList[i] = DOM.bind(staticNodeList[i]);
-    return staticNodeList;
+    var match = this.base(selector);
+    var i = match.length;
+    while (i--) dom.bind(match[i]);
+    return match;
   }
 });

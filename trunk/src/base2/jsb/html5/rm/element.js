@@ -9,12 +9,12 @@ var element = behavior.extend({
   addRepetitionBlock: function(template, refNode) {
     assertArity(arguments);
 
-    if (!this.isTemplate(template)) return;
+    if (!this.isTemplate(template)) return null;
 
     // count the preceding repetition blocks
     var count = 0;
     var block = template;
-    while (block = block.previousSibling) {
+    while ((block = block.previousSibling)) {
       if (this.getRepetitionTemplate(block) == template) {
         if (this.getRepetitionIndex(block) >= this.getRepetitionIndex(template)) {
           this.setRepetitionIndex(template, this.getRepetitionIndex(block) + 1);
@@ -68,7 +68,7 @@ var element = behavior.extend({
     block.removeAttribute("repeat-start");
     block.removeAttribute("repeat-min");
     block.removeAttribute("repeat-max");
-    block.setAttribute("repeat", this.getRepetitionIndex(template));
+    block.setAttribute("repeat", String(this.getRepetitionIndex(template)));
 
     // insert the node
     if (refNode == null) {
@@ -82,6 +82,9 @@ var element = behavior.extend({
     block.style.display = "";
     ClassList.remove(block, "jsb-template");
     ClassList.remove(block, "html5-template");
+    forEach (this.querySelectorAll(block, "input[autofocus],textarea[autofocus],select[autofocus]"), function(element) {
+      element.removeAttribute("autofocus");
+    });
     refNode.parentNode.insertBefore(block, refNode);
 
     // maintain the index
@@ -174,7 +177,7 @@ var element = behavior.extend({
       if (repeat == "template") {
         return _REPETITION_TEMPLATE;
       }
-      if (repeat != "" && repeat != null && !isNaN(repeat) && repeat >= 0 && repeat < _MAX_VALUE) {
+      if (repeat !== "" && repeat !== null && !isNaN(repeat) && repeat >= 0 && repeat < _MAX_VALUE) {
         return _REPETITION_BLOCK;
       }
     }

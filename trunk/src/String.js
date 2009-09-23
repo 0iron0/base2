@@ -1,6 +1,5 @@
 
 // A KHTML bug.
-
 if ("".replace(/^/, K("$$")) == "$") {
   extend(String.prototype, "replace", function(expression, replacement) {
     if (typeof replacement == "function") {

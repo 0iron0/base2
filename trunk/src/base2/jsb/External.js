@@ -3,7 +3,7 @@ var External = Base.extend({
   constructor: function(url, register) {
     url = url.split("#");
     this.src = url[0];
-    this.id = url[1].split(".");
+    this.path = url[1].split(".");
     this.register = register;
   },
 
@@ -11,10 +11,12 @@ var External = Base.extend({
 //src: "",
 //script: null,
 
+  attach: true,
+
   getObject: function() {
     var object = global, i = 0;
-    while (object && i < this.id.length) {
-      object = object[this.id[i++]];
+    while (object && i < this.path.length) {
+      object = object[this.path[i++]];
     }
     return object;
   },
@@ -35,17 +37,9 @@ var External = Base.extend({
     }
     if (object) {
       this.register(object);
-      this.unload();
+      if (!object.attach) this.attach = false;
     }
     return object;
-  },
-
-  unload: function() {
-    // remove the external script (keeps the DOM clean)
-    if (this.script) {
-      this.script.parentNode.removeChild(this.script);
-      this.script = null;
-    }
   }
 }, {
   SCRIPT: document.createElement("script"),

@@ -8,23 +8,29 @@ var dropdown = control.extend({
     return dropdown;
   },
 
-  "@MSIE.+win": _MSIEShim,
+  "@MSIE.+win": _MSIEShim, // prevent typing over the background image
+  
+  _KEYCODE_ACTIVATE: /^(38|40)$/,
   
   // properties
 
   appearance: "dropdown",
+  //role: "combobox",
 
   Popup: PopupWindow, // popup class
   
   // events
 
   onblur: function(element, event) {
-    if (this.isOpen(element) && !this.popup.isActive()) this.hidePopup();
+    if (this.isOpen(element) && !this.popup.isActive()) {
+      this.hidePopup();
+    }
     this.base(element, event);
   },
   
   "@Opera(8|9.[0-4])": {
     onblur: function(element, event) {
+      // Early Opera: mousedown doesn't cancel but blur does. I should fix this in base2.dom. -@DRE
       if (this.isOpen(element) && this.popup.isActive()) {
         event.preventDefault();
       } else {
@@ -35,8 +41,9 @@ var dropdown = control.extend({
 
   onkeydown: function(element, event, keyCode) {
     if (this.isEditable(element)) {
-      if (keyCode == 40 && !this.isOpen(element)) {
+      if (this._KEYCODE_ACTIVATE.test(keyCode) && !this.isOpen(element)) {
         this.showPopup(element);
+        event.preventDefault();
       } else if (this.isOpen(element)) {
         this.popup.onkeydown(event);
       }
@@ -57,13 +64,13 @@ var dropdown = control.extend({
       }
     }
   },
-
+  
   // methods
 
   getState: function(element) {
     if (element.disabled) {
       var state = "disabled";
-    } else if (element.readOnly) {
+    } else if (element.readOnly && element != control._readOnlyTemp) {
       state = "normal";
     } else if (element == control._active && control._activeThumb) {
       state = "active";
@@ -81,7 +88,7 @@ var dropdown = control.extend({
 
   isOpen: function(element) {
     var popup = this.popup;
-    return popup && popup.isOpen() && popup.element == element;
+    return popup && popup == PopupWindow.current && popup.element == element && popup.isOpen();
   },
 
   showPopup: function(element) {
@@ -90,14 +97,14 @@ var dropdown = control.extend({
   },
 
   "@theme=aqua": {
-    "@borderImage": {
+    "@!(style.borderImage)": {
       hitTest: function(element, x) {
-        return x >= element.clientWidth;
+        return x >= element[_WIDTH];
       }
     },
 
-    layout: function(element) {
-      this.syncCursor(element);
+    layout: function(element, state) {
+      if (state != null) this.syncCursor(element);
     }
   }
 });

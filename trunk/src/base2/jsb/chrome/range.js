@@ -1,41 +1,50 @@
 
 var range = control.extend({
-  implements: [number],
+  "implements": [number],
+
+  // constants
+
+  _IMAGE_SIZE: 3000,
+
+  "@Opera8": {
+    _IMAGE_SIZE: 2000
+  },
   
   // properties
   
-  min:  0,
-  max:  100,
+  min:  "0",
+  max:  "100",
+  
   allowVertical: true,
+  type: "range", // web forms 2.0 type
 
   // events
 
-  onminchange: _layout,
-  onmaxchange: _layout,
-  onstepchange: _layout,
-  onvaluechange: _layout,
+  "@MSIE(5.5|[^5])": _preventScroll,
 
-  "@!Opera(8|9.[0-4])": {
-    // The text is hidden for all but Opera < 9.5.
-    // So disallow the default number behavior.
-    onchange: null
-  },
-
-  "@MSIE": _preventScroll,
-
-  "@!theme=aqua": {
-    onfocus: function(element) {
-      if (element != control._active) {
-        this.addClass(element, this.appearance + _FOCUS);
-      }
-      this.base(element);
+  onpropertyset: function(element, event, propertyName) {
+    if (/^(max|min|step|value)$/.test(propertyName)) {
+      this.layout(element);
+    } else {
+      this.base(element, event, propertyName);
     }
   },
 
-  onkeydown: function(element, event, keyCode) {
-    if (!this.isEditable(element) || keyCode < 33 || keyCode > 40) return;
+  "@!theme=aqua": {
+    onfocus: function(element, event) {
+      if (element != control._active) {
+        this.addClass(element, this.appearance + _FOCUS);
+      }
+      this.base(element, event);
+    }
+  },
+
+  onkeydown: function(element, event, keyCode, shiftKey, ctrlKey, altKey, metaKey) {
+    if (!this.isEditable(element) || keyCode < 33 || shiftKey || ctrlKey || altKey || metaKey) return;
 
     event.preventDefault();
+    
+    if (keyCode > 40) return;
 
     var amount = 1;
 
@@ -72,6 +81,10 @@ var range = control.extend({
   setRelativeValue: function(element, relativeValue) {
     var properties = this.getProperties(element);
     this.setValueAsNumber(element, (properties.max - properties.min) * relativeValue);
+  },
+
+  getValidValue: function(element, value, round) {
+    return this.base(element, value, round || "round");
   },
 
   increment: function(element, amount, block) {

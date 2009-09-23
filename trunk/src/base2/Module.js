@@ -42,7 +42,7 @@ var Module = Abstract.extend(null, {
       if (_ancestorOf(Module, _interface)) {
         // Implement static methods.
         for (var name in _interface) {
-          if (module[name] === undefined) {
+          if (typeof module[name] == "undefined") {
             var property = _interface[name];
             if (typeof property == "function" && property.call && _interface.prototype[name]) {
               property = _createStaticModuleMethod(_interface, name);

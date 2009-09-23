@@ -16,11 +16,11 @@ var Function2 = _createObject2(
   }
 );
 
-function I(i) { // return first argument
+function I(i) { // Return first argument.
   return i;
 };
 
-function II(i, ii) { // return second argument
+function II(i, ii) { // Return second argument.
   return ii;
 };
 
@@ -37,7 +37,7 @@ function bind(fn, context) {
     return function() {
       return (lateBound ? context[fn] : fn).apply(context, args.concat.apply(args, arguments));
     };
-  } else { // faster if there are no additional arguments
+  } else { // Faster if there are no additional arguments.
     return function() {
       return (lateBound ? context[fn] : fn).apply(context, arguments);
     };
@@ -73,9 +73,8 @@ function not(fn) {
   };
 };
 
-function partial(fn) {
+function partial(fn) { // Based on Oliver Steele's version.
   var args = _slice.call(arguments, 1);
-  // based on Oliver Steele's version
   return function() {
     var specialised = args.concat(), i = 0, j = 0;
     while (i < args.length && j < arguments.length) {

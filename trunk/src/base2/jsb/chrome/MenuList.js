@@ -11,7 +11,7 @@ var MenuList = PopupWindow.extend({
 
   // events
 
-  onmouseup: function() {
+  onmouseup: function(event) {
     this.select(this.currentItem);
   },
 
@@ -35,6 +35,12 @@ var MenuList = PopupWindow.extend({
           this.highlight(Traversal.getFirstElementChild(this.body));
         }
         break;
+      case 36: // home
+        this.highlight(Traversal.getFirstElementChild(this.body));
+        break;
+      case 35: // end
+        this.highlight(Traversal.getLastElementChild(this.body));
+        break;
       default:
         this.base(event);
     }
@@ -45,7 +51,7 @@ var MenuList = PopupWindow.extend({
   },
 
   // methods
-  
+
   getUnitHeight: function() {
     var item = Traversal.getFirstElementChild(this.body);
     return item ? item.offsetHeight : 1;
@@ -73,18 +79,28 @@ var MenuList = PopupWindow.extend({
     var list = this.owner.get(this.element, "list"),
         html = "";
     if (list) {
+      //var attributes = 'role="listitem" unselectable="on" tabindex="-1"';
+      var attributes = 'role="listitem" unselectable="on"';
       if (list.nodeType == 1) {
-        html = match(list.innerHTML, /<option[^>]*>[^<]+/gi).join("").replace(/<option/gi, '<p unselectable="on"');
+        if (list.nodeName != "SELECT") {
+          list = NodeSelector.querySelector(list, "select");
+        }
+        if (list) {
+          var options = list.innerHTML.split(/<\/option>/i).join("");
+          html = trim(options).replace(/<option/gi, '</div><div ' + attributes).slice(6) + '</div>';
+        }
       } else {
         if (Array2.like(list)) {
-          list = Array2.combine(list);
+          html = wrap(list, "div", attributes);
+        } else {
+          html = reduce(list, function(html, text, value) {
+            return html += '<div ' + attributes + ' value="' + value + '">' + text + '</div>';
+          });
         }
-        html = reduce(list, function(html, text, value) {
-          return html += '<p unselectable="on" value"' + value + '">' + text + '</p>';
-        });
       }
     }
     this.base(html);
+    this.body.setAttribute("role", "list");
   },
 
   reset: function(item) {
@@ -95,8 +111,9 @@ var MenuList = PopupWindow.extend({
   },
 
   select: function(item) {
-    var value = Element.getAttribute(item, "value") || trim(item[Traversal.TEXT]),
+    var value = Element.getAttribute(item, "value") || trim(item[_TEXT_CONTENT]),
         element = this.element;
+        
     this.data[element.uniqueID] = {
       index: Traversal.getNodeIndex(item),
       value: value

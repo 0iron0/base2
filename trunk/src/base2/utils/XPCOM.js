@@ -1,5 +1,5 @@
 
-// some useful methods for dealing with XPCOM
+// Some useful methods for dealing with XPCOM.
 
 var XPCOM = Module.extend({
   privelegedMethod: I, // no such thing as priveleged for non-Mozilla browsers

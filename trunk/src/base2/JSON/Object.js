@@ -1,5 +1,6 @@
 
 JSON.Object = Module.extend({
+
   toJSONString: function(object) {
     return object == null ? "null" : "{" + reduce(object, function(properties, property, name) {
       if (JSON.Object.isValid(property)) {
@@ -8,6 +9,7 @@ JSON.Object = Module.extend({
       return properties;
     }, []).join(",") + "}";
   }
+  
 }, {
   VALID_TYPE: /^(object|boolean|number|string)$/,
   

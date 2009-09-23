@@ -1,6 +1,6 @@
 
 // A collection of stubs that map out the directory structure.
-// -- it's too expensive to create full file objects...
+// Tt's too expensive to create full file objects...
 
 var Directory = Collection.extend({
   sort: function() {

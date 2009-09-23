@@ -1,53 +1,56 @@
 
-var _CSS_ESCAPE =           /'(\\.|[^'\\])*'|"(\\.|[^"\\])*"/g,
-    _CSS_IMPLIED_ASTERISK = /([\s>+~,]|[^(]\+|^)([#.:\[])/g,
-    _CSS_IMPLIED_SPACE =    /(^|,)([^\s>+~])/g,
-    _CSS_WHITESPACE =       /\s*([\s>+~,]|^|$)\s*/g,
-    _CSS_WILD_CARD =        /\s\*\s/g,
-    _CSS_UNESCAPE =         /\x01(\d+)/g,
-    _QUOTE =                /'/g;
-  
 var CSSParser = RegGrp.extend({
   constructor: function(items) {
     this.base(items);
     this.cache = {};
     this.sorter = new RegGrp;
     this.sorter.add(/:not\([^)]*\)/, RegGrp.IGNORE);
+    // $1: tag name
+    // $3: selector part
+    // $4: *-child pseudo class
+    // $6: selector part
     this.sorter.add(/([ >](\*|[\w-]+))([^: >+~]*)(:\w+-child(\([^)]+\))?)([^: >+~]*)/, "$1$3$6$4");
   },
   
   cache: null,
   ignoreCase: true,
 
-  escape: function(selector, simple) {
+  escape: function(selector) {
     // remove strings
     var strings = this._strings = [];
-    selector = this.optimise(this.format(String(selector).replace(_CSS_ESCAPE, function(string) {
-      return "\x01" + strings.push(string.slice(1, -1).replace(_QUOTE, "\\'"));
-    })));
-    if (simple) selector = selector.replace(/(^|,) \*?/g, "$1");
-    return selector;
+    return String(selector).replace(_CSS_ESCAPE, function(string) {
+      if (string.indexOf("\\") != 0) {
+        string = string.slice(1, -1).replace(_QUOTE, "\\'");
+      }
+      return "\x01" + strings.push(string) + "\x01";
+    });
+  },
+
+  format: function(selector) {
+    return this.normalise(this.escape(selector + ""));
   },
   
-  format: function(selector) {
+  normalise: function(selector) {
     return selector
-      .replace(_CSS_WHITESPACE, "$1")
+      .replace(_CSS_TRIM, "$1")
+      .replace(_CSS_LTRIM, "$1")
+      .replace(_CSS_RTRIM, "$1")
       .replace(_CSS_IMPLIED_SPACE, "$1 $2")
       .replace(_CSS_IMPLIED_ASTERISK, "$1*$2");
-  },
-  
-  optimise: function(selector) {
-    // optimise wild card descendant selectors
-    return this.sorter.exec(selector.replace(_CSS_WILD_CARD, ">* "));
+    //.replace(/\\/g, "");
   },
   
   parse: function(selector, simple) {
     return this.cache[selector] ||
-      (this.cache[selector] = this.unescape(this.exec(this.escape(selector, simple))));
+      (this.cache[selector] = this.revert(this.exec(this.format(selector, simple))));
   },
 
-  put: function(regexp, value) {
-    return this.base(regexp.replace(/ID/g, "\\w\\u00c0-\\uFFFF\\-"), value);
+  put: function(pattern, value) {
+    return this.base(pattern.replace(/ID/g, "\\w\u00a1-\uffff\\-\\x01"), value);
+  },
+
+  revert: function(selector) {
+    return this.unescape(selector);
   },
 
   unescape: function(selector) {
@@ -58,22 +61,3 @@ var CSSParser = RegGrp.extend({
     });
   }
 });
-
-function _nthChild(match, args, position, last, not, and, mod, equals) {
-  // ugly but it works for both CSS and XPath
-  last = /last/i.test(match) ? last + "+1-" : "";
-  if (!isNaN(args)) args = "0n+" + args;
-  else if (args == "even") args = "2n";
-  else if (args == "odd") args = "2n+1";
-  args = args.split("n");
-  var a = args[0] ? (args[0] == "-") ? -1 : parseInt(args[0]) : 1;
-  var b = parseInt(args[1], 10) || 0;
-  var negate = a < 0;
-  if (negate) {
-    a = -a;
-    if (a == 1) b++;
-  }
-  var query = format(a == 0 ? "%3%7" + (last + b) : "(%4%3-%2)%6%1%70%5%4%3>=%2", a, b, position, last, and, mod, equals);
-  if (negate) query = not + "(" + query + ")";
-  return query;
-};

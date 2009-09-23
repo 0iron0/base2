@@ -1,5 +1,5 @@
 
 var movedown = move.extend({
-  RELATIVE_NODE: "nextSibling",
-  DIRECTION:     1
+  RELATIVE_NODE:  "nextSibling",
+  DIRECTION:      1
 });

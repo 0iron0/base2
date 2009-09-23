@@ -42,3 +42,7 @@ JSON.toString = function(object) {
   }
   return module.toJSONString(object);
 };
+
+function pad(number, length) {
+  return "0000".slice(0, (length || 2) - String(number).length) + number;
+};

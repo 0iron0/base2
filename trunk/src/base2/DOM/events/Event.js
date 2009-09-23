@@ -10,26 +10,38 @@ var Event = Binding.extend({
     },
 
     preventDefault: function(event) {
-      if (event.cancelable !== false) {
-        event.returnValue = false;
+      if (event.cancelable !== false) event.returnValue = false;
+      if (event.type == "mousedown") { // cancel a mousedown event
+        var activeElement = Traversal.getDocument(event.target).activeElement,
+            suppress = _private.suppress;
+        var onblur = function(event) {
+          suppress.focus = true;
+          activeElement.focus();
+          _private.detachEvent(activeElement, "onblur", onblur, true);
+          setTimeout(function() {
+            delete suppress.focus;
+            delete suppress.blur;
+          }, 1);
+        };
+        suppress.blur = true;
+        _private.attachEvent(activeElement, "onblur", onblur);
       }
     },
 
     stopPropagation: function(event) {
       event.cancelBubble = true;
     },
-    
-    "@MSIE": {
+
+    "@(element.onbeforedeactivate)": {
       preventDefault: function(event) {
-        this.base(event);
-        if (event.type == "mousedown") {
-          var type = "onbeforedeactivate";
-          var document = Traversal.getDocument(event.target);
-          document.attachEvent(type, function(event) {
-            // Allow a mousedown event to cancel a focus event.
+        if (event.cancelable !== false) event.returnValue = false;
+        if (event.type == "mousedown") { // cancel a mousedown event
+          var body = Traversal.getDocument(event.target).body;
+          var onbeforedeactivate = function(event) {
+            _private.detachEvent(body, "onbeforedeactivate", onbeforedeactivate, true);
             event.returnValue = false;
-            document.detachEvent(type, arguments.callee);
-          });
+          };
+          _private.attachEvent(body, "onbeforedeactivate", onbeforedeactivate);
         }
       }
     }
@@ -53,19 +65,16 @@ var Event = Binding.extend({
     };
     return clone;
   },
-    
+
   "@!(document.createEvent)": {
-    "@MSIE": {
-      bind: function(event) {
-        var type = event.type;
-        if (!event.timeStamp) {
-          event.bubbles = _BUBBLES.test(type);
-          event.cancelable = _CANCELABLE.test(type);
-          event.timeStamp = new Date().valueOf();
-        }
-        event.relatedTarget = event[(event.target == event.fromElement ? "to" : "from") + "Element"];
-        return this.base(event);
+    bind: function(event) {
+      if (!event.timeStamp) {
+        event.bubbles = !_NO_BUBBLE.test(event.type);
+        event.cancelable = _CANCELABLE.test(event.type);
+        event.timeStamp = new Date().valueOf();
       }
+      event.relatedTarget = event[(event.target == event.fromElement ? "to" : "from") + "Element"];
+      return this.base(event);
     }
   }
 });

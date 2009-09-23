@@ -25,7 +25,6 @@ var map = function(o, f) {
 };
 
 var CanvasRenderingContext2D = Base.extend({
-
 	constructor: function(element) {
 		this.element = element;
 

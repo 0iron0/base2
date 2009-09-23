@@ -5,19 +5,21 @@ var Array2 = _createObject2(
   "concat,join,pop,push,reverse,shift,slice,sort,splice,unshift", // generics
   Enumerable, {
     batch: function(array, block, timeout, oncomplete, context) {
-      var index = 0, length = array.length;
-      setTimeout(function() {
+      var index = 0,
+          length = array.length;
+      var batch = function() {
         var now = Date2.now(), start = now, k = 0;
         while (index < length && (now - start < timeout)) {
           block.call(context, array[index], index++, array);
           if (k++ < 5 || k % 50 == 0) now = Date2.now();
         }
         if (index < length) {
-          setTimeout(arguments.callee, 10);
+          setTimeout(batch, 10);
         } else {
           if (oncomplete) oncomplete.call(context);
         }
-      }, 1);
+      };
+      setTimeout(batch, 1);
     },
 
     combine: function(keys, values) {
@@ -41,14 +43,15 @@ var Array2 = _createObject2(
 
     flatten: function(array) {
       var i = 0;
-      return Array2.reduce(array, function(result, item) {
+      var flatten = function(result, item) {
         if (Array2.like(item)) {
-          Array2.reduce(item, arguments.callee, result);
+          Array2.reduce(item, flatten, result);
         } else {
           result[i++] = item;
         }
         return result;
-      }, []);
+      };
+      return Array2.reduce(array, flatten, []);
     },
     
     forEach: _Array_forEach,

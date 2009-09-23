@@ -3,64 +3,65 @@
 
 var _CSSStyleDeclaration_ReadOnly = Binding.extend({
   getPropertyValue: function(style, propertyName) {
-    propertyName = _CSSPropertyNameMap[propertyName] || propertyName;
-    var value = style[propertyName];
-    if (value == undefined) value = this.base(style, propertyName);
-    if (_COLOR.test(propertyName)) value = _toRGB(value);
-    return value;
+    if (style[propertyName] == null) propertyName = _getPropertyName(propertyName);
+    return style[propertyName] || "";
   },
-  
-  "@MSIE.+win": {
+
+  "@MSIE5": {
     getPropertyValue: function(style, propertyName) {
-      return propertyName == "float" ? style.styleFloat : style[ViewCSS.toCamelCase(propertyName)];
+      if (style[propertyName] == null) propertyName = _getPropertyName(propertyName);
+      var value = style[propertyName];
+      if (propertyName == "cursor" && value == "hand") {
+        value = "pointer";
+      }
+      return value || "";
     }
   }
 });
 
 var CSSStyleDeclaration = _CSSStyleDeclaration_ReadOnly.extend({
   setProperty: function(style, propertyName, value, priority) {
-    propertyName = _CSSPropertyNameMap[propertyName] || propertyName;
-    this.base(style, propertyName.replace(/[A-Z]/g, _dash_lower), value, priority);
+    if (style[propertyName] == null) propertyName = _getPropertyName(propertyName);
+    if (priority) {
+      this.base(style, propertyName.replace(_CHAR_UPPER, _dash_lower), value, priority);
+    } else {
+      style[propertyName] = value;
+    }
   },
-  
-  "@MSIE.+win": {
+
+  "@!(style['setProperty'])": {
     setProperty: function(style, propertyName, value, priority) {
-      if (propertyName == "opacity") {
-        style.opacity = value;
-        value *= 100;
-        style.zoom = 1;
-        style.filter = "Alpha(opacity=" + value + ")";
-      } else {
-        if (priority == "important") {
-          style.cssText += format(";%1:%2!important;", propertyName, value);
-        } else {
-          style.setAttribute(ViewCSS.toCamelCase(propertyName), value);
+      if (style[propertyName] == null) propertyName = _getPropertyName(propertyName);
+      /*@if (@_jscript)
+        if (@_jscript_version < 5.6 && propertyName == "cursor" && value == "pointer") {
+          value = "hand";
+        } else if (propertyName == "opacity") {
+          value *= 100;
+          style.zoom = "100%";
+          style.filter = "alpha(opacity=" + Math.round(value) + ")";
         }
+      /*@end @*/
+      if (priority == "important") {
+        style.cssText += format(";%1:%2!important;", propertyName.replace(_CHAR_UPPER, _dash_lower), value);
+      } else {
+        style[propertyName] = value;
       }
     }
   }
 }, {
-  "@MSIE": {
-    bind: function(style) {
-      style.getPropertyValue = this.prototype.getPropertyValue;
-      style.setProperty = this.prototype.setProperty;
-      return style;
+  getPropertyName: _getPropertyName,
+
+  setProperties: function(style, properties) {
+    properties = extend({}, properties);
+    for (var propertyName in properties) {
+      var value = properties[propertyName];
+      if (style[propertyName] == null) propertyName = _getPropertyName(propertyName);
+      if (typeof value == "number" && _METRICS.test(propertyName)) value += "px";
+      if (_SPECIAL[propertyName]) {
+        this.setProperty(style, propertyName, value, "");
+      } else {
+        style[propertyName] = value;
+      }
     }
   }
 });
-
-function _dash_lower(string) {
-  return "-" + string.toLowerCase();
-};
-
-var _CSSPropertyNameMap = new Base({
-  "@Gecko": {
-    opacity: "-moz-opacity"
-  },
-
-  "@KHTML": {
-    opacity: "-khtml-opacity"
-  }
-});
-
-with (CSSStyleDeclaration.prototype) getPropertyValue.toString = setProperty.toString = K("[base2]");

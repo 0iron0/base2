@@ -4,6 +4,13 @@ var Privates = Encoder.extend({
     return this.base(Privates.PATTERN, function(index) {
       return "_" + Packer.encode62(index);
     }, Privates.IGNORE);
+  },
+
+  search: function(script) {
+    var words = this.base(script),
+       _private = words.get("_private");
+    if (_private) _private.count = 99999;
+    return words;
   }
 }, {
   IGNORE: {

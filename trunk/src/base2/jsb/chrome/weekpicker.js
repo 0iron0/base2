@@ -1,28 +1,54 @@
 
 var weekpicker = datepicker.extend({
+  // constants
+  
+  FORMAT: "yyyy-Www",
   PATTERN: /^\d{4}-W([0-4]\d|5[0-3])$/,
+  
+  // properties
 
+  baseValue: Date.UTC(1969, 11, 29),
+  type: "week", // web forms 2.0 type
   appearance: "weekpicker",
-  stepScale: 604800000, // milliseconds in a week
+  stepScale: 7 * _DAY,
+  
+  onfocus: function(element, event) {
+    this.base(element, event);
+    element.setAttribute("spellcheck", "false");
+  },
 
-  showToolTip: Undefined,
+  showLocaleString: Undefined,
 
   convertValueToNumber: function(value) {
     if (!this.PATTERN.test(value)) return NaN;
     var parts = String(value).split("-W"),
-        date = new Date(parts[0], 0, 1);
-    while (date.getDay() != chrome.locale.firstDay) date.setDate(date.getDate() + 1);
-    date = new Date(date.valueOf() + (parts[1] - 1) * this.stepScale);
-    return (date.getFullYear() == parts[0]) ? date.valueOf() : NaN;
+        year = parts[0],
+        week1 = this.getFirstWeek(year),
+        week = parts[1],
+        date = new Date(week1.valueOf() + (week - 1) * this.stepScale);
+    return (week == 53 && new Date(Date.UTC(year, 0, 1)).getUTCDay() != chrome.locale.firstDay + 3) ? NaN : date.valueOf();
   },
 
   convertNumberToValue: function(number) {
-    var date = new Date(number),
-        jan1 = new Date(date.getFullYear(), 0, 1),
-        week = Math.floor((date - jan1) / this.stepScale) + 1;
-    return pad(date.getFullYear(), 4) + "-W" + pad(week);
+    var date = this.normalise(number),
+        year = date.getUTCFullYear(),
+        week1 = this.getFirstWeek(year),
+        week = ~~((date - week1) / this.stepScale) + 1;
+    return pad(year, 4) + "-W" + pad(week);
   },
   
+  getFirstWeek: function(year) {
+    var date = new Date(Date.UTC(year, 0, 1)),
+  	    day = date.getUTCDay() - chrome.locale.firstDay;
+    if (day > 3) day -= 7;
+    date.setUTCDate(date.getUTCDate() - day);
+    return date;
+  },
+
+  normalise: function(value) {
+    return new Date(this.baseValue + ~~((value - this.baseValue) / this.stepScale) * this.stepScale + 3 * _DAY);
+  },
+
   Popup: {
     onkeydown: function(event) {
       if (!/^(37|39)$/.test(event.keyCode)) { // ignore datepicker behavior for left/right arrows
@@ -32,23 +58,35 @@ var weekpicker = datepicker.extend({
     
     onmouseover: function(event) {
       var target = event.target;
-      if (target.nodeName == "TD" && Traversal.contains(this.days, target)) {
-        this.highlight(target.parentNode);
-        this.currentDate = parseInt(NodeSelector.querySelector(target.parentNode, "td:not(.disabled)")[_TEXT]);
+      if (target.nodeName == "TD") {
+        target = target.parentNode;
+      }
+      if (target.nodeName == "TR" && Traversal.contains(this.days, target) && !ClassList.has(target, "disabled")) {
+        var cell = NodeSelector.querySelector(target, "td:not(.disabled)");
+        if (cell) {
+          this.highlight(target);
+          this.currentDate = ~~cell[_TEXT_CONTENT];
+        }
       }
     },
 
     onmouseup: function(event) {
-      if (Traversal.contains(this.days, event.target)) {
-        this.select(this.currentItem);
+      var target = event.target;
+      if (target.nodeName == "TD") {
+        target = target.parentNode;
+      }
+      if (target.nodeName == "TR" && Traversal.contains(this.days, target) && !ClassList.has(target, "disabled")) {
+        this.select();
       }
     },
     
     highlight: function(item) {
-      if (item.nodeName == "TD") {
+      if (item && item.nodeName == "TD") {
         item = item.parentNode;
       }
-      this.base(item);
+      if (!ClassList.has(item, "disabled")) {
+        this.base(item);
+      }
     }
   }
 });

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="lang" closure="false" publish="false">
+<package name="lang" publish="false" closure="false">
   <include src="package.js"/>
   <include src="assert.js"/>
   <include src="copy.js"/>

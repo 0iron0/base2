@@ -1,5 +1,5 @@
 
-// NOT CURRENTLY USED
+// NOT CURRENTLY USED.
 
 var UIEvent = Event.extend({
   "@!(document.createEvent('UIEvents'))": {

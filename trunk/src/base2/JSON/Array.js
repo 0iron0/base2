@@ -1,11 +1,8 @@
 
 JSON.Array = JSON.Object.extend({
   toJSONString: function(array) {
-    return "[" + reduce(array, function(items, item) {
-      if (JSON.Object.isValid(item)) {
-        items.push(JSON.toString(item));
-      }
-      return items;
-    }, []).join(",") + "]";
+    var i = array.length, strings = [];
+    while (i--) strings[i] = JSON.Object.isValid(array[i]) ? JSON.toString(array[i]) : "null";
+    return "[" + strings.join(",") + "]";
   }
 });

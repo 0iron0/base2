@@ -18,7 +18,6 @@ var move = button.extend({
 
   onclick: function(button, event) {
     event.preventDefault(); // prevent submit
-    
     var block = this.getBlock(button);
     if (block) {
       this.moveRepetitionBlock(block, this.DIRECTION);

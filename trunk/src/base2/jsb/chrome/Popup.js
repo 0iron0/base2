@@ -10,7 +10,7 @@ var Popup = Base.extend({
     var popup = this;
     for (var i in popup) {
       if (_EVENT.test(i)) {
-        EventTarget.addEventListener(body, i.slice(2), this, /onblur|onfocus/.test(i));
+        EventTarget.addEventListener(body, i.slice(2), this, true);
       }
     }
   },
@@ -18,16 +18,29 @@ var Popup = Base.extend({
   // properties
 
   appearance: "popup",
-  width: "auto",
-  height: "auto",
   element: null,
   body: null,
-  position: "below",
+  
+  // the following properties describe how the popup should be positioned/
+  
+  width: "auto", // "auto" or length
+  height: "auto",
+  
+  position: "below", // show above or below the control?
 
-  scrollX: false,
+  scrollX: false, // allow scrolling?
   scrollY: false,
+
+  offsetX: 0, // offset distance from the control
+  offsetY: 0,
   
   // events
+
+  "@Gecko1\\.[^9]": {
+    onmousedown: function(event) {
+      event.preventDefault();
+    }
+  },
 
   handleEvent: function(event) {
     switch (event.type) {
@@ -44,16 +57,22 @@ var Popup = Base.extend({
     return document.createElement("div");
   },
 
+  removeBody: function() {
+    var parent = this.body[_PARENT];
+    if (parent) parent.removeChild(this.body);
+  },
+
   getRect: function() {
-    var documentElement = document.documentElement,
-        self = this,
-        body = self.body,
-        element = self.element,
-        rect = ElementView.getBoundingClientRect(element),
-        left = 0,
-        top = self.position == "below" ? element.offsetHeight - 1 : - 1 - element.offsetHeight,
-        width = self.width,
-        height = self.height;
+    var viewport = detect("QuirksMode|Gecko1\\.[0-3]") ? document.body : document.documentElement,
+        popup    = this.body,
+        element  = this.element,
+        rect     = ElementView.getBoundingClientRect(element),
+        left     = 0,
+        top      = this.position == "below" ? element.offsetHeight - 1 : - 1 - element.offsetHeight,
+        width    = this.width,
+        height   = this.height,
+        offsetX  = this.offsetX,
+        offsetY  = this.offsetY;
 
     if (width == "base") {
       width = element.offsetWidth;
@@ -62,54 +81,55 @@ var Popup = Base.extend({
     // resize
     if (width == "auto" || height == "auto") {
       if (height == "auto") {
-        height = body.scrollHeight + 2;
-        var unitHeight = self.getUnitHeight();
-        if (self.scrollY) {
-          height = Math.min(height, Math.max(documentElement.clientHeight - rect.bottom - 2, rect.top - 2));
+        height = popup.scrollHeight + 2;
+        var unitHeight = this.getUnitHeight();
+        if (this.scrollY) {
+          height = Math.min(height, Math.max(viewport[_HEIGHT] - rect.bottom - 2, rect.top - 2));
         }
-        if (unitHeight > 1) height = 2 + Math.floor(height / unitHeight) * unitHeight;
+        if (unitHeight > 1) height = 2 + ~~(height / unitHeight) * unitHeight;
       }
       if (width == "auto") {
-        width = body.scrollWidth + 2;
-        if (height < body.scrollHeight + 2) width += 22; // scrollbars
-        if (self.scrollX) {
-          width = Math.min(width, Math.max(documentElement.clientWidth - rect.left - 2, rect.right - 2));
+        width = popup.scrollWidth + 2;
+        if (height < popup.scrollHeight + 2) width += 22; // scrollbars
+        if (this.scrollX) {
+          width = Math.min(width, Math.max(viewport[_WIDTH] - rect.left - 2, rect.right - 2));
         }
         width =  Math.max(width, element.offsetWidth);
       }
     }
-    if (height > documentElement.clientHeight - rect.bottom && height < rect.bottom) {
+    if (height > viewport[_HEIGHT] - rect.bottom && height < rect.bottom) {
       top = -height;
+      offsetY *= -1;
     }
-    if (width > documentElement.clientWidth - rect.right && width < rect.right) {
+    if (width > viewport[_WIDTH] - rect.right && width < rect.right) {
       left = element.offsetWidth - width;
+      offsetX *= -1;
     }
-    return new Rect(left, top, width, height);
+    return new Rect(left + offsetX, top + offsetY, width, height);
   },
   
   getUnitHeight: K(1),
 
   hide: function() {
-    var parent = this.body.parentNode;
-    if (parent) parent.removeChild(this.body);
-    delete this.element;
+    this.removeBody();
   },
 
   isOpen: function() {
-    return !!this.body.parentNode;
+    return !!this.body[_PARENT];;// && this.body.style.visibility == "visible";
   },
 
   layout: Undefined,
 
   movesize: function() {
     document.body.appendChild(this.body);
-    var style = this.body.style,
-        rect = this.getRect(),
-        offset = ElementView.getBoundingClientRect(this.element);
-    style.left = (rect.left + offset.left + _CLIENT[_SCROLL_LEFT]) + PX;
-    style.top = (offset.top + rect.top + _CLIENT[_SCROLL_TOP]) + PX;
-    style.width = (rect.width - 2) + PX;
-    style.height = (rect.height - 2) + PX;
+    var rect    = this.getRect(),
+        offset  = ElementView.getOffsetFromBody(this.element);
+    behavior.setStyle(this.body, {
+      left: offset.left,
+      top: offset.top + rect.top,
+      width: Math.max(rect.width - 2, 100),
+      height: Math.max(rect.height - 2, 22)
+    });
   },
 
   querySelector: function(selector) {
@@ -121,15 +141,12 @@ var Popup = Base.extend({
   },
 
   render: function(html) {
-    this.body.innerHTML = html || "";
+    this.body.innerHTML = trim(html) || "";
   },
 
   setUnselectable: function(element) {
-    //element.onselect =
-    //element.onselectstart = False;
     element.unselectable = "on";
-    element.style.userSelect = "none";
-    element.style[ViewCSS.VENDOR + "UserSelect"] = "none";
+    behavior.setStyle(element, "userSelect", "none");
   },
 
   show: function(element) {
@@ -143,41 +160,62 @@ var Popup = Base.extend({
 
   style: function() {
     var style = this.body.style;
-    style.cssText = "left:-999px;top:-999px;";
+    style.left = "-999px";
+    style.top = "-999px";
+    style.width = "";
+    style.height = "";
     var computedStyle = behavior.getComputedStyle(this.element);
     forEach.csv("backgroundColor,color,fontFamily,fontWeight,fontStyle", function(propertyName) {
       style[propertyName] = computedStyle[propertyName];
     });
+    if (style.fontFamily == "MS She") { // old versions of gecko truncate this font for some reason
+      style.fontFamily = "MS Shell Dlg"
+    }
     style.fontSize = parseInt(computedStyle.fontSize) + PX;
     if (style.backgroundColor == "transparent") {
       style.backgroundColor = "white";
     }
   },
-  
-  "@MSIE[56]": { // prevent <select> boxes from bleeding through
-    hide: function() {
-      this.base();
-      if (this._iframe.parentNode) {
-        document.body.removeChild(this._iframe);
+
+  "@MSIE(5.5|6)": { // prevent <select> boxes from bleeding through (doesn't work in MSIE5.0)
+    removeBody: function() {
+      var iframe = Popup._iframe;
+      if (iframe[_PARENT]) {
+        document.body.removeChild(iframe);
       }
+      this.base();
     },
-    
+
+    createBody: function() {
+      var iframe = Popup._iframe;
+      if (!iframe) {
+        iframe = Popup._iframe = document.createElement("iframe"),
+        iframe.style.cssText = "position:absolute;z-index:999998!important";
+        iframe.frameBorder = "0";
+        iframe.scrolling = "no";
+      }
+      return this.base();
+    },
+
     show: function(element) {
       this.base(element);
-      if (!this._iframe) {
-        var iframe = this._iframe = document.createElement("iframe"),
-            style = iframe.style,
-            body = this.body,
-            bodyStyle = body.style;
-
-        style.cssText = "position:absolute;z-index:999998!important";
-        iframe.frameBorder = "0";
-        style.left = bodyStyle.left;
-        style.top = bodyStyle.top;
-        style.pixelWidth = body.offsetWidth;
-        style.pixelHeight = body.offsetHeight;
-      }
-      document.body.appendChild(this._iframe);
+      var iframe = Popup._iframe,
+          //style = iframe.style,
+          body = this.body,
+          bodyStyle = body.currentStyle;
+      behavior.setStyle(iframe, {
+        left: bodyStyle.left,
+        top: bodyStyle.top,
+        width: body.offsetWidth,
+        height: body.offsetHeight,
+        backgroundColor: bodyStyle.backgroundColor
+      });
+      /*style.left = bodyStyle.left;
+      style.top = bodyStyle.top;
+      style.width = body.offsetWidth + PX;
+      style.height = body.offsetHeight + PX;
+      style.backgroundColor = bodyStyle.backgroundColor;*/
+      document.body.appendChild(iframe);
     }
   }
 });

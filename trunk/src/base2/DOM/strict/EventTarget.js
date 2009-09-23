@@ -6,6 +6,7 @@ EventTarget.implement({
     assertArity(arguments);
     assertEventTarget(target);
     assert(event && event.type, "Invalid event object.", TypeError);
+    
     return this.base(target, event);
   },
 
@@ -17,6 +18,7 @@ function strictEventListener(target, type, listener, capture) {
   assertEventTarget(target);
   assertType(listener.handleEvent || listener, "function", "Invalid event listener.");
   assertType(capture, "boolean", "Invalid capture argument.");
+  
   return this.base(target, type, listener, capture);
 };
 

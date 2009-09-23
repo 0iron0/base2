@@ -3,6 +3,7 @@ var LocalDirectory = Directory.extend({
   "@(ActiveXObject)": {
     constructor: function(path) {
       this.base();
+      
       if (typeof path == "string") {
         var directory = _activex_exec("GetFolder", path);
         forEach ([directory.SubFolders, directory.Files], function(list) {
@@ -20,6 +21,7 @@ var LocalDirectory = Directory.extend({
   "@(Components)": { // XPCOM
     constructor: function(path) {
       this.base();
+      
       if (typeof path == "string") {
         var file = _xpcom_createFile(path);
         var directory = file.directoryEntries;
@@ -35,6 +37,7 @@ var LocalDirectory = Directory.extend({
   "@(java && !global.Components)": {
     constructor: function(path) {
       this.base();
+      
       if (typeof path == "string") {
         var file = _java_createFile(path);
         var directory = file.list();

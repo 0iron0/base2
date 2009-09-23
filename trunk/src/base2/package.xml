@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="base2" publish="false">
+  <!-- includes lang/js -->
   <include src="header.js"/>
   <include src="Base.js"/>
   <include src="Package.js"/>

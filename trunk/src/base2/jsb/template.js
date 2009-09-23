@@ -10,14 +10,19 @@ var template = behavior.extend({
 
   onmouseover: function(element, event){},
   onmouseout:  function(element, event){},
+  
+  onmouseenter: function(element, event){},
+  onmouseleave: function(element, event){},
+
+  onmousemove: function(element, event, x, y, screenX, screenY){},
+  
+  onmousedown: function(element, event, x, y, screenX, screenY){},
+  onmouseup:   function(element, event, x, y, screenX, screenY){},
 
   onclick:     function(element, event, x, y, screenX, screenY){},
   ondblclick:  function(element, event, x, y, screenX, screenY){},
-  onmousedown: function(element, event, x, y, screenX, screenY){},
-  onmouseup:   function(element, event, x, y, screenX, screenY){},
-  onmousemove: function(element, event, x, y, screenX, screenY){},
   
-  // ExtendedMouse
+  // jsbExtendedMouse
   // on((dbl)?click|mouse(up|down|move)): function(element, event, button, x, y, screenX, screenY)
   
   onmousewheel: function(element, event, wheelDelta){},
@@ -41,6 +46,7 @@ var template = behavior.extend({
 
   get: function(element, propertyName){return Object;},
   set: function(element, propertyName, value){},
+  toggle: function(element, propertyName){},
 
   addEventListener:    function(target, type, listener, useCapture){},
   removeEventListener: function(target, type, listener, useCapture){},
@@ -72,8 +78,8 @@ var template = behavior.extend({
   setStyle: function(element, propertyName, value, /* optional */ important){},
 
   // capture mouse events
-  captureMouse: function(element){},
-  releaseMouse: function(){},
+  setCapture: function(element){},
+  releaseCapture: function(){},
 
   // bind a timer function to a behavior object
   setInterval: function(callback, delay, /* optional */ arg1, arg2, argN){return Number;}, // return timer id

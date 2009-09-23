@@ -1,6 +1,8 @@
 
 // employ strict validation of DOM calls
 
-eval(base2.namespace);
-eval(DOM.namespace);
-eval(lang.namespace);
+eval(
+  base2.namespace +
+  base2.dom.namespace +
+  base2.lang.namespace
+);

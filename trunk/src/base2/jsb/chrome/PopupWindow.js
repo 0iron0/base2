@@ -18,9 +18,12 @@ var PopupWindow = Popup.extend({
     switch (event.keyCode) {
       case 27: // escape
         this.hide();
+        //this.element.value = this.originalValue;
+        this.element.focus();
+        //event.preventDefault();
         break;
       case 9: // tab
-        if (!this.tab(event.shiftKey ? -1 : 1)) event.preventDefault();
+        if (this.tab(event.shiftKey ? -1 : 1)) event.preventDefault();
         break;
     }
   },
@@ -37,47 +40,63 @@ var PopupWindow = Popup.extend({
       if (control.blur) control.blur();
     });
     this.base();
+    ClassList.remove(document.body, "jsb-popupshowing");
+  },
+
+  render: function(html) {
+    this.base(html);
+    this.controls = this.querySelectorAll("button,input,select,textarea");
   },
 
   show: function(element) {
+    ClassList.add(document.body, "jsb-popupshowing");
     this.base(element);
+    //this.originalValue = this.element.value;
     PopupWindow.current = this;
   },
 
   tab: function(direction) {
-    if (!this.controls) return true;
+    if (!this.controls.length) return false;
     var popup = this,
+        element = popup.element,
         controls = this.controls.map(I),
-        current = popup.querySelector(":focus");
+        current = popup.querySelector(":focus") || element;
     popup._active = false;
-    controls.unshift(null);
+    controls.unshift(element);
+    controls.push(element);
     try {
       forEach (controls, function(control, i) {
         if (control == current) {
           var next = controls[i + direction];
-          if (next) {
-            popup._active = true;
-            next.focus();
-            if (next.select) next.select();
-            throw StopIteration;
-          } else {
-            popup.element.focus();
-          }
+          popup._active = next != element;
+          next.focus();
+          if (next.select) next.select();
+          throw StopIteration;
         }
       });
-    } catch (ex) {}
-    return !popup._active;
+    } catch (error) {
+      ;;; if (error != StopIteration) throw error;
+    }
+    return true;
   }
 }, {
   current: null,
   
   init: function() {
-    EventTarget.addEventListener(window, "blur", hidePopup, false);
-    EventTarget.addEventListener(document, "mousedown", hidePopup, false);
+    var mousedown = true;
+    EventTarget.addEventListener(window, "blur", hidePopup, true);
+    EventTarget.addEventListener(document, "mousedown", hidePopup, true);
+    EventTarget.addEventListener(document, "mouseup", function() {
+      mousedown = false;
+    }, true);
     function hidePopup(event) {
       var popup = PopupWindow.current,
           target = event.target;
-      if (popup && target != document && target != popup.element && target != shim.control && !Traversal.contains(popup.body, target)) {
+          
+      if (event.type == "blur" && mousedown) return;
+      mousedown = event.type == "mousedown";
+      
+      if (popup && target != document && target != popup.element && target != shim.control && !Traversal.includes(popup.body, target)) {
         popup.hide();
       }
     };

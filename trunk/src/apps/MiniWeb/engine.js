@@ -1,5 +1,5 @@
 /*
-  base2 - copyright 2007-2008, Dean Edwards
+  base2 - copyright 2007-2009, Dean Edwards
   http://code.google.com/p/base2/
   http://www.opensource.org/licenses/mit-license.php
 
@@ -7,7 +7,7 @@
     Doeke Zanstra
 */
 
-// timestamp: Sat, 06 Sep 2008 16:52:33
+// timestamp: Wed, 23 Sep 2009 19:38:57
 
 new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 
@@ -24,7 +24,7 @@ new function(_no_shrink_) { ///////////////  BEGIN: CLOSURE  ///////////////
 var MiniWeb = new base2.Package(this, {
   name:    "MiniWeb",
   exports: "Client,Server,JSONFileSystem,JSONDirectory,FileSystem,Command,Interpreter,Terminal,Request,History",
-  imports: "Enumerable,IO",
+  imports: "Enumerable,io",
   version: "0.7.1",
   
   $$: {data: {}},
@@ -69,7 +69,7 @@ var MiniWeb = new base2.Package(this, {
   },
   
   resolve: function(path, filename) {
-    return IO.FileSystem.resolve(path, filename);
+    return io.FileSystem.resolve(path, filename);
   },
   
   save: function(name) {
@@ -93,7 +93,7 @@ var MiniWeb = new base2.Package(this, {
     // update the revision number of the document
     var REVISION = "/system/About/revision";
     var io = this.server.io;
-    var revision = parseInt(io.read(REVISION));
+    var revision = parseInt(io.read(REVISION), 10);
     io.write(REVISION, String(++revision));
 
     // collect external scripts
@@ -151,8 +151,6 @@ MiniWeb.toString = function() {
 };
 
 eval(this.imports);
-
-JavaScript.bind(global);
 
 var _WILD_CARD      = /\*$/,
     _TRIM_PATH      = /[^\/]+$/,
@@ -598,7 +596,7 @@ var JSONFileSystem = FileSystem.extend({
   },
   
   mkdir: function(path) {
-    // create a directory
+    // Create a directory.
     this.write(path, {});
   },
   
@@ -609,14 +607,14 @@ var JSONFileSystem = FileSystem.extend({
   },
 
   read: function(path) {    
-    // read text from the JSON object
+    // Read text from the JSON object.
     var file = this[_FETCH](path);
     return typeof file == "object" ?
       new JSONDirectory(file) : file || ""; // make read safe
   },
   
   remove: function(path) {
-    // remove data from the JSON object
+    // Remove data from the JSON object.
     path = path.replace(/\/$/, "").split("/");
     var filename = path.splice(path.length - 1, 1);
     var directory = this[_FETCH](path.join("/"));
@@ -624,7 +622,7 @@ var JSONFileSystem = FileSystem.extend({
   },
 
   write: function(path, data) {
-    // write data to the JSON object
+    // Write data to the JSON object.
     path = path.split("/");
     var filename = path.splice(path.length - 1, 1);
     var directory = this[_FETCH](path.join("/"));
@@ -638,9 +636,11 @@ var JSONFileSystem = FileSystem.extend({
 // =========================================================================
 
 var JSONDirectory = Directory.extend(null, {
+
   create: function(name, item) {
     return new this.Item(name, typeof item == "object", typeof item == "string" ? item.length : 0);
   }
+  
 });
 
 // =========================================================================
@@ -682,7 +682,7 @@ var Command = FileSystem.extend({
   constructor: function() {
     this.base();
     var command = this;
-    var jst = new JST.Interpreter(this);
+    var interpreter = new jst.Interpreter(this);
     this[Command.INCLUDES] = {};
     this.exec = function(template, target) {
       var result = "";
@@ -698,7 +698,7 @@ var Command = FileSystem.extend({
         command.self = this.makepath(template);
         command.chdir(dir);
         command.target = target || "";
-        result = jst.interpret(this.read(template));
+        result = interpreter.interpret(this.read(template));
         command.target = restore;
         command.path = path;
         command.self = command.parent;
@@ -859,7 +859,7 @@ var Terminal = Command.extend({
     Terminal.load(this);
     this.extend("exec", function() {
       try {
-        return base(this, arguments);
+        return this.base.apply(this, arguments);
       } catch (error) {
         return String(error.message || error);
       }
@@ -917,6 +917,8 @@ var HTMLElement = Module.extend();
 // MiniWeb/~/base2/DOM/html/HTMLFormElement.js
 // =========================================================================
 
+// Not used.
+
 var HTMLFormElement = HTMLElement.extend({
   serialize: function(form) {
     return filter(form.elements, HTMLFormItem.isSuccessful).map(HTMLFormItem.serialize).join("&");
@@ -928,6 +930,8 @@ var HTMLFormElement = HTMLElement.extend({
 // =========================================================================
 // MiniWeb/~/base2/DOM/html/HTMLFormItem.js
 // =========================================================================
+
+// Not used.
 
 var HTMLFormItem = HTMLElement.extend(null, {
   tags: "BUTTON,INPUT,SELECT,TEXTAREA",
@@ -943,7 +947,7 @@ var HTMLFormItem = HTMLElement.extend(null, {
         return item.checked;
       case "image":
       case "submit":
-        return ElementSelector.matchesSelector(item, ":active");
+        return Element.matchesSelector(item, ":active");
       default:
         return true;
     }

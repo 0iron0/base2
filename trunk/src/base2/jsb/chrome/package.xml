@@ -2,6 +2,8 @@
 <package name="chrome" requires="DOM,jsb">
   <include src="package.js"/>
   <include src="header.js"/>
+  <include src="../dimensions.js"/>
+  <include src="locale.js"/>
   <include src="theme.js"/>
   <include src="_MSIEShim.js"/>
   <include src="Popup.js"/>
@@ -9,9 +11,9 @@
   <include src="MenuList.js"/>
   <include src="ToolTip.js"/>
   <include src="control.js"/>
+  <include src="number.js"/>
   <include src="dropdown.js"/>
   <include src="combobox.js"/>
-  <include src="number.js"/>
   <include src="range.js"/>
   <include src="progressbar.js"/>
   <include src="slider.js"/>
@@ -23,6 +25,6 @@
   <include src="colorpicker.js"/>
   <include src="Rect.js"/>
   <include src="styleSheet.js"/>
-  <include src="locale.js"/>
+  <include src="init.js"/>
   <include src="rules.js"/>
 </package>

@@ -1,27 +1,32 @@
 
 var slider = range.extend({
   // constants
-  
-  HORIZONTAL_WIDTH: 3000,
-  HORIZONTAL_HEIGHT: 21,
-  VERTICAL_WIDTH: 22,
-  VERTICAL_HEIGHT: 3000,
-  THUMB_WIDTH: 11,
-  THUMB_HEIGHT: 11,
+
+  _HORIZONTAL_HEIGHT: 21,
+  _VERTICAL_WIDTH: 22,
+  _THUMB_SIZE: 11,
+  _IMAGE_SIZE: 3000,
+
+  "@Opera8": {
+    _IMAGE_SIZE: 500
+  },
 
   // properties
 
   appearance: "slider",
+  //role: "slider",
 
   // events
 
   onmousedown: function(element, event, x, y, screenX, screenY) {
     this.base.apply(this, arguments);
-    
+
     if (element.disabled) return;
-    
-    element.focus();
-    event.preventDefault();
+
+    if (element.type == this.type) {
+      event.preventDefault();
+      if (element.readOnly) element.focus();
+    }
     
     if (element.readOnly) return;
 
@@ -34,17 +39,26 @@ var slider = range.extend({
         dy: screenY - thumb.top
       };
       slider._firedOnce = true;
+      event.preventDefault();
     } else {
       this.startTimer(element);
-      slider._value = this.getValueByPosition(element, x - this.THUMB_WIDTH / 2, y - this.THUMB_HEIGHT / 2);
-      slider._direction = slider._value < this.getValue(element) ? -1 : 1;
+      slider._value = this.getValueByPosition(element, x - this._THUMB_SIZE / 2, y - this._THUMB_SIZE / 2);
+      slider._direction = slider._value < parseFloat(element.value) ? -1 : 1;
+      if (element.type == this.type) {
+        element.focus();
+      }
+      slider._firedOnce = false;
     }
   },
 
-  onmouseup: function(element, event) {
-    this.base(element, event);
-    if (!this.isEditable(element)) return;
+  onlosecapture: function(element) {
     delete slider._dragInfo;
+    this.base(element);
+  },
+
+  onmouseup: function(element) {
+    this.base.apply(this, arguments);
+    if (!this.isEditable(element)) return;
     if (!slider._firedOnce) this.tick(element);
     this.stopTimer(element);
     delete slider._value;
@@ -60,35 +74,28 @@ var slider = range.extend({
     }
   },
 
-  "@Opera(8|9.[0-4])": {
+  /*"@Opera(8|9.[0-4])": { // prevent text selection for early versions of Opera
     onmousemove: function(element) {
       if (slider._dragInfo) {
-        getSelection().collapse(element.ownerDocument.body, 0); // prevent text selection
+        document.getSelection().collapse(element.ownerDocument.body, 0);
       }
       this.base.apply(this, arguments);
     }
-  },
+  },*/
 
   // methods
 
-  layout: function(element, state) {
-    if (state == null) state = this.getState(element);
-    
-    var thumb = this.getThumbRect(element),
-        style = element.style;
-
-    if (element[_HEIGHT] > element[_WIDTH]) {
-      var left = thumb.left,
-          top = thumb.top - Math.ceil((this.VERTICAL_HEIGHT - this.THUMB_HEIGHT) / 2) - state * this.VERTICAL_HEIGHT;
+  getState: function(element) {
+    if (element.disabled) {
+      var state = "disabled";
+    } else if (element == control._active && control._activeThumb) {
+      state = "active";
+    } else if (element == control._focus || (!element.readOnly && element == control._hover && control._hoverThumb)) {
+      state = "hover";
     } else {
-      left = thumb.left - Math.ceil((this.HORIZONTAL_WIDTH - this.THUMB_WIDTH) / 2) - state * this.HORIZONTAL_WIDTH;
-      top = thumb.top;
+      state = "normal";
     }
-    
-    var backgroundPosition = left + PX + " " + top + PX;
-    if (style.backgroundPosition != backgroundPosition) {
-      style.backgroundPosition = backgroundPosition;
-    }
+    return this.states[state];
   },
 
   getThumbRect: function(element) {
@@ -97,24 +104,19 @@ var slider = range.extend({
         relativeValue = this.getProperties(element).relativeValue;
     if (clientHeight > clientWidth) {
       return new Rect(
-        (clientWidth - this.VERTICAL_WIDTH) / 2,
-        (clientHeight -= this.THUMB_HEIGHT) - Math.floor(clientHeight * relativeValue),
-        this.VERTICAL_WIDTH,
-        this.THUMB_HEIGHT
+        (clientWidth - this._VERTICAL_WIDTH) / 2,
+        (clientHeight -= this._THUMB_SIZE) - ~~(clientHeight * relativeValue),
+        this._VERTICAL_WIDTH,
+        this._THUMB_SIZE
       );
     } else {
       return new Rect(
-        Math.floor((clientWidth - this.THUMB_WIDTH) * relativeValue),
-        Math.floor((clientHeight - this.HORIZONTAL_HEIGHT) / 2),
-        this.THUMB_WIDTH,
-        this.HORIZONTAL_HEIGHT
+        ~~((clientWidth - this._THUMB_SIZE) * relativeValue),
+        ~~((clientHeight - this._HORIZONTAL_HEIGHT) / 2),
+        this._THUMB_SIZE,
+        this._HORIZONTAL_HEIGHT
       );
     }
-  },
-
-  hitTest: function(element, x, y) {
-    if (element.disabled || this.isNativeControl(element)) return null;
-    return this.getThumbRect(element).contains(x, y);
   },
 
   getValueByPosition: function(element, x, y) {
@@ -122,48 +124,55 @@ var slider = range.extend({
         clientHeight = element[_HEIGHT],
         properties = this.getProperties(element);
     if (clientWidth >= clientHeight) {
-      var size = clientWidth - this.THUMB_WIDTH;
+      var size = clientWidth - this._THUMB_SIZE;
       var pos = x;
     } else {
-      size = clientHeight - this.THUMB_HEIGHT;
+      size = clientHeight - this._THUMB_SIZE;
       pos = size - y;
     }
     return (properties.max - properties.min) * (pos / size);
+  },
+
+  hitTest: function(element, x, y) {
+    if (element.disabled || this.isNativeControl(element)) return null;
+    return this.getThumbRect(element).contains(x, y);
+  },
+
+  layout: function(element, state) {
+    if (state == null) state = this.getState(element);
+
+    var thumb = this.getThumbRect(element),
+        style = element.style,
+        thumbOffset = Math.ceil((this._IMAGE_SIZE - this._THUMB_SIZE) / 2) + state * this._IMAGE_SIZE;
+
+    if (element[_HEIGHT] > element[_WIDTH]) {
+      var left = thumb.left,
+          top = thumb.top - thumbOffset;
+    } else {
+      left = thumb.left - thumbOffset;
+      top = thumb.top;
+    }
+
+    var backgroundPosition = left + PX + " " + top + PX;
+    if (style.backgroundPosition != backgroundPosition) {
+      style.backgroundPosition = backgroundPosition;
+    }
   },
 
   setValueByPosition: function(element, x, y) {
     this.setValueAsNumber(element, this.getValueByPosition(element, x, y));
   },
 
-  getState: function(element) {
-    if (element.disabled) {
-      var state = "disabled";
-    } else if (element == control._active && control._activeThumb) {
-      state = "active";
-    } else if (element == control._focus || (element == control._hover && control._hoverThumb)) {
-      state = "hover";
-    } else {
-      state = "normal";
-    }
-    return this.states[state];
-  },
-
   tick: function(element) {
-    var properties = this.getProperties(element);
-    var amount = this.getBlockIncrement(element) * (properties.max - properties.min);
-    if (Math.abs(slider._value - this.getValue(element)) < amount) {
+    var properties = this.getProperties(element),
+        amount = this.getBlockIncrement(element) * (properties.max - properties.min);
+    if (Math.abs(slider._value - element.value) < amount) {
       this.setValueAsNumber(element, slider._value);
       this.stopTimer(element);
     } else {
       this.increment(element, slider._direction, true);
     }
     slider._firedOnce = true;
-  },
-
-  "@KHTML|Opera[91]": {
-    isNativeControl: function(element) {
-      return element.nodeName == "INPUT" && element.type == "range";
-    }
   },
 
   "@theme=aqua": {
@@ -181,7 +190,7 @@ var slider = range.extend({
       this.base.apply(this, arguments);
       if (!this.isEditable(element)) return;
       if (!control._activeThumb) {
-        this.setValueByPosition(element, x - this.THUMB_WIDTH / 2, y - this.THUMB_HEIGHT / 2);
+        this.setValueByPosition(element, x - this._THUMB_SIZE / 2, y - this._THUMB_SIZE / 2);
       }
       this.base.apply(this, arguments); // why am I doing this twice?
     },

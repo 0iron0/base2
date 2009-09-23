@@ -34,11 +34,9 @@ var add = button.extend({
   
   getHtmlTemplate: function(button) {
     var template = document.getElementById(this.get(button, "template"));
-
     if (this.isTemplate(template)) {
       return template;
     }
-    
     return null;
   }
 });

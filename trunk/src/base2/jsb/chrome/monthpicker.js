@@ -1,32 +1,48 @@
 
 var monthpicker = spinner.extend({
+  // constants
+
+  FORMAT: "yyyy-mm",
+  
+  // properties
+  
+  type: "month", // web forms 2.0 type
+  block: 12,
   appearance: "monthpicker",
 
-  // events
-
-  onchange: _date_onchange,
+  /*onchange: function(element) {
+    this.base(element);
+    if (!this.hasClass(element, "jsb-error") && element.value) {
+      var date = this.getValueAsDate(element, true);
+      this.showToolTip(element, chrome.locale.months[date.getUTCMonth()] + " " + date.getUTCFullYear());
+    }
+  },*/
 
   // methods
 
-  getBlockIncrement: function(element) {
-    return this.getUnitIncrement(element) * 12;
-  },
-
   convertValueToNumber: function(value) {
-    return value == "" ? NaN : Date2.parse(value + "-12T");
+    if (value == "" || isNaN(Date2.parse(value + "-01T"))) return NaN;
+    value = value.split("-");
+    return (value[0] * 12) + parseInt(value[1], 10) - 1;
   },
 
   convertNumberToValue: function(number) {
-    return isNaN(number) ? "" : Date2.toISOString(new Date(number)).slice(0, 7);
+    return isNaN(number) ? "" : Date2.toISOString(new Date(~~(number / 12), number % 12, 12)).slice(0, 7);
   },
 
-  increment: function(element, amount, block) {
-    var date = this.getValueAsDate(element) || new Date;
-    if (block) {
-      date.setUTCFullYear(date.getUTCFullYear() + amount);
-    } else {
-      date.setUTCMonth(date.getUTCMonth() + amount);
+  getDefaultValue: function() {
+    var date = new Date;
+    return date.getFullYear() * 12 + date.getMonth();
+  },
+
+  getValueAsNumber: function(element, external) {
+    return external ? Date2.parse(element.value + "-01T00:00Z") : this.base(element);
+  },
+
+  setValueAsNumber: function(element, value, external) {
+    if (external) {
+      value = this.convertValueToNumber(Date2.toISOString(new Date(value)).slice(0, 7));
     }
-    this.setValueAsDate(element, date);
+    this.base(element, value);
   }
 });

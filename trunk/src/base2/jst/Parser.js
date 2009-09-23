@@ -1,5 +1,5 @@
 
-// this needs a re-write but it works well enough for now.
+// This needs a re-write but it works well enough for now.
 
 var Parser = Base.extend({
   escapeChar: "\\",
@@ -20,9 +20,9 @@ var Parser = Base.extend({
   },
   
   _encode: function(string) {    
-    var TRIM = /^=|;+$/g;
-    var BLOCK = /<%[^%]*%([^>][^%]*%)*>/g;
-    var evaluated = this._evaluated = [];
+    var TRIM = /^=|;+$/g,
+        BLOCK = /<%[^%]*%([^>][^%]*%)*>/g,
+        evaluated = this._evaluated = [];
     var evaluate = function(block) {
       block = block.replace(Parser.TRIM, "");
       if (!block) return "";
@@ -42,13 +42,16 @@ var Parser = Base.extend({
     '\\n':  '\\n',
     '\\r':  '\\r'
   }),
+  
   EVALUATED: /\x01(\d+)\x01/g,
+  
   TEXT: new RegGrp({
     "\\x01\\d+\\x01": RegGrp.IGNORE,
     "[^\\x01]+": function(match) {
       return '\necho("' + Parser.ESCAPE.exec(match) + '");';
     }
   }),
+  
   TRIM: /^<%\-\-.*\-\-%>$|^<%\s*|\s*%>$/g
 });
 
