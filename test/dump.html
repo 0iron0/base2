@@ -7,7 +7,16 @@
  </head>
  <body>
   <script type="text/javascript">
+	document.write("<h1>base2</h1>");
 	base2.lang.forEach (base2, function(value, key) {
+		document.write("<p><b>" + key + "</b>: " + value + "</p>");
+	});
+	document.write("<h2>base2.lang</h2>");
+	base2.lang.forEach (base2.lang, function(value, key) {
+		document.write("<p><b>" + key + "</b>: " + value + "</p>");
+	});
+	document.write("<h2>base2.js</h2>");
+	base2.lang.forEach (base2.JavaScript, function(value, key) {
 		document.write("<p><b>" + key + "</b>: " + value + "</p>");
 	});
   </script>
