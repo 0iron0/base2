@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="DOM/events" publish="false" closure="false">
+<package name="dom/events" publish="false" closure="false">
 	<include src="header.js"/>
 	<include src="Event.js"/>
 	<include src="EventDispatcher.js"/>

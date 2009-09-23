@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="jsb" requires="DOM">
+<package name="jsb" requires="dom">
   <include src="package.js"/>
   <include src="header.js"/>
   <include src="behavior.js"/>
