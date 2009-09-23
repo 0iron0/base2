@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="chrome" requires="DOM,jsb">
+<package name="chrome" requires="dom,jsb">
   <include src="package.js"/>
   <include src="header.js"/>
   <include src="../dimensions.js"/>

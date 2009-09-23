@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="DOM/selectors-api" publish="false" closure="false">
+<package name="dom/selectors-api" publish="false" closure="false">
   <include src="header.js"/>
   <include src="StaticNodeList.js"/>
   <include src="NodeSelector.js"/>

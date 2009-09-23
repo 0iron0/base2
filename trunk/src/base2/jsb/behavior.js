@@ -307,7 +307,7 @@ forEach.csv ("querySelector,querySelectorAll", function(name) {
   };
 });
 
-// Additional DOM methods (from base2.DOM).
+// Additional DOM methods (from base2.dom).
 
 forEach ([ // attach generic DOM methods
   EventTarget,
