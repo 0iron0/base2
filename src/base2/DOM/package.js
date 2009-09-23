@@ -1,18 +1,29 @@
 
-var DOM = new base2.Package(this, {
-  name:    "DOM",
-  version: base2.version,
+// Thanks to Diego Perini for help and inspiration.
+
+var dom = new base2.Package(this, {
+  name:    "dom",
+  version:  base2.version,
   imports: "Function2",
   exports:
-    "Interface,Binding,Node,Document,Element,AbstractView,HTMLDocument,HTMLElement,"+
-    "Selector,Traversal,CSSParser,XPathParser,NodeSelector,StaticNodeList,"+
-    "Event,EventTarget,DocumentEvent,ViewCSS,CSSStyleDeclaration,ClassList,ElementView",
+    "Interface,Binding,Node,Document,Element,Traversal,"+          // Core
+    "AbstractView,"+                                               // Views
+    "ViewCSS,CSSStyleDeclaration,"+                                // Style
+    "NodeSelector,StaticNodeList,Selector,CSSParser,XPathParser,"+ // Selectors API
+    "Event,EventTarget,DocumentEvent,"+                            // Events
+    "HTMLDocument,HTMLElement,ClassList,"+                         // HTML
+    "ElementView",                                                 // CSS Object Model
   
   bind: function(node) {
     // Apply a base2 DOM Binding to a native DOM node.
+    /*@if (@_jscript_version < 5.6)
+    if (node && node.getElementById) {
+      node.nodeType = 9;
+    }
+    /*@end @*/
     if (node && node.nodeType) {
-      var base2ID = assignID(node);
-      if (!DOM.bind[base2ID]) {
+      var id = (node.nodeType == 1 ? node.uniqueID : node.base2ID) || assignID(node);
+      if (!_boundElementIDs[id]) {
         switch (node.nodeType) {
           case 1: // Element
             if (typeof node.className == "string") {
@@ -23,7 +34,7 @@ var DOM = new base2.Package(this, {
             }
             break;
           case 9: // Document
-            if (node.writeln) {
+            if (node.getElementById) {
               HTMLDocument.bind(node);
             } else {
               Document.bind(node);
@@ -32,23 +43,19 @@ var DOM = new base2.Package(this, {
           default:
             Node.bind(node);
         }
-        DOM.bind[base2ID] = true;
+        _boundElementIDs[id] = true;
       }
     }
     return node;
   },
   
-  "@MSIE5.+win": {
-    bind: function(node) {
-      if (node && node.writeln) {
-        node.nodeType = 9;
-      }
-      return this.base(node);
-    }
+  isBound: function(node) {
+    return !!_boundElementIDs[node.nodeType == 1 ? node.uniqueID : node.base2ID];
   }
 });
 
 eval(this.imports);
 
-var _MSIE = detect("MSIE");
-var _MSIE5 = detect("MSIE5");
+// legacy support
+base2.DOM = pcopy(dom);
+base2.DOM.namespace += "var DOM=dom;";

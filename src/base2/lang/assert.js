@@ -6,7 +6,7 @@ function assert(condition, message, ErrorClass) {
 };
 
 function assertArity(args, arity, message) {
-  if (arity == null) arity = args.callee.length;
+  if (arity == null) arity = args.callee.length; //-@DRE
   if (args.length < arity) {
     throw new SyntaxError(message || "Not enough arguments.");
   }

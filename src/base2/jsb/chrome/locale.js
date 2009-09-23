@@ -42,9 +42,11 @@ var Locale = Base.extend({
   constructor: function(lang) {
     this.lang = lang.slice(0, 2);
     extend(this, locales[this.lang]);
-    this.days = this.days.split(",");
-    for (var i = 0; i < this.firstDay; i++) this.days.push(this.days.shift());
-    this.months = this.months.split(",");
+    this.days = String2.csv(this.days);
+    for (var i = 0; i < this.firstDay; i++) {
+      this.days.push(this.days.shift());
+    }
+    this.months = String2.csv(this.months);
   }
 });
 extend(Locale.prototype, locales.en);

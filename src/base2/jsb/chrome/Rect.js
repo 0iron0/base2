@@ -11,9 +11,5 @@ var Rect = Base.extend({
   
   contains: function(x, y) {
     with (this) return x >= left && x <= right && y >= top && y <= bottom;
-  },
-  
-  toString: function() {
-    with (this) return [left, top, width, height].join(",");
   }
 });

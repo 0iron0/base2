@@ -1,4 +1,6 @@
 
+// Not used.
+
 var HTMLFormItem = HTMLElement.extend(null, {
   tags: "BUTTON,INPUT,SELECT,TEXTAREA",
   

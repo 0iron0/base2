@@ -1,24 +1,48 @@
 
-var meter = behavior.extend({
-  value: 0,
-  min: 0,
-  max: 1,
+_registerElement("meter", {
+  detect: "max",
 
-  onattach: _meter_layout,
-  onvaluechange: _meter_layout,
-  onminchange: _meter_layout,
-  onmaxchange: _meter_layout
-});
+  display: "inline-block",
 
-function _meter_layout(element) {
-  var min = this.get(element, "min"),
-      max = this.get(element, "max"),
-      value = this.get(element, "value"),
-      relativeValue = (value - min) / (max - min),
-      style = element.style,
-      width = element.clientWidth;
-  style.borderLeftWidth = (relativeValue * width) + "px";
-  if (!_SUPPORTS_BORDER_BOX) {
-    style.width = (width - (relativeValue * width)) + "px";
+  "@Gecko": {
+    display: "-moz-inline-box;display:inline-block"
+  },
+
+  style: {
+    verticalAlign: "middle",
+    backgroundColor: "ThreeDFace",
+    border: "1px solid",
+    padding: "0 2px",
+    fontSize: "smaller",
+    width: "8em",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    boxSizing: "border-box"
+  },
+
+  behavior: {
+    max: 1,
+    min: 0,
+    value: 0,
+
+    onattach: function(element) {
+      this.layout(element);
+    },
+
+    onpropertyset: function(element, event, propertyName) {
+      if (/^(max|min|value)$/.test(propertyName)) {
+        this.layout(element);
+      }
+    },
+
+    layout: function(element) {
+      var min = this.get(element, "min"),
+          relativeValue = (this.get(element, "value") - min) / (this.get(element, "max") - min),
+          width = element[_WIDTH];
+      element.style.borderLeftWidth = ~~(relativeValue * width) + "px";
+      if (!_SUPPORTS_BORDER_BOX) {
+        element.style.width = ~~(width - (relativeValue * width)) + "px";
+      }
+    }
   }
-};
+});

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="JavaScript" publish="false" closure="false">
+<package name="js" publish="false" closure="false">
   <include src="package.js"/>
   <include src="~/Date.js"/>
   <include src="~/Function.js"/>

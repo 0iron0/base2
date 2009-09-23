@@ -28,7 +28,7 @@ var Date2 = _createObject2(
   function(yy, mm, dd, h, m, s, ms) {
     switch (arguments.length) {
       case 0: return new Date;
-      case 1: return typeof yy == "number" ? new Date(yy) : new Date(Date2.parse(yy));
+      case 1: return typeof yy == "string" ? new Date(Date2.parse(yy)) : new Date(yy.valueOf());
       default: return new Date(yy, mm, arguments.length == 2 ? 1 : dd, h || 0, m || 0, s || 0, ms || 0);
     }
   }, "", {
@@ -61,18 +61,20 @@ Date2.parse = function(string, defaultDate) {
   // parse ISO date
   var parts = match(string, _DATE_PATTERN);
   if (parts.length) {
-    if (parts[_DATE_PARTS.Month]) parts[_DATE_PARTS.Month]--; // js months start at zero
+    var month = parts[_DATE_PARTS.Month];
+    if (month) parts[_DATE_PARTS.Month] = String(month - 1); // js months start at zero
     // round milliseconds on 3 digits
     if (parts[_TIMEZONE_PARTS.Hectomicroseconds] >= 5) parts[_DATE_PARTS.Milliseconds]++;
+    var utc = parts[_TIMEZONE_PARTS.UTC] || parts[_TIMEZONE_PARTS.Hours] ? "UTC" : "";
     var date = new Date(defaultDate || 0);
-    var prefix = parts[_TIMEZONE_PARTS.UTC] || parts[_TIMEZONE_PARTS.Hours] ? "UTC" : "";
+    if (parts[_DATE_PARTS.Date]) date["set" + utc + "Date"](14);
     for (var part in _DATE_PARTS) {
       var value = parts[_DATE_PARTS[part]];
       if (value) {
         // set a date part
-        date["set" + prefix + part](value);
+        date["set" + utc + part](value);
         // make sure that this setting does not overflow
-        if (date["get" + prefix + part]() != parts[_DATE_PARTS[part]]) {
+        if (date["get" + utc + part]() != parts[_DATE_PARTS[part]]) {
           return NaN;
         }
       }

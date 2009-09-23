@@ -10,25 +10,13 @@ var HTMLElement = Element.extend(null, {
     if (!element.ownerDocument) {
       element.ownerDocument = Traversal.getOwnerDocument(element);
     }
-  /*@cc_on @*/
-  /*@if (@_jscript_version < 5.7) {
-    for (var i in this.prototype) {
-      if (i != "base" && i != "extend") {
-        var ancestor = element[i];
-        element[i] = this.prototype[i];
-        element[i].ancestor = ancestor;
+    /*@if (@_jscript)
+      for (var name, i = 0; name = _PREFIXES[i]; i++) {
+        name += "Attribute";
+        element["_" + name] = element[name];
       }
-    }
-    // http://www.hedgerwow.com/360/dhtml/ie6_memory_leak_fix/
-    try {
-      return element;
-    } finally {
-      element = null;
-    }
-  }
-  @else @*/
+    /*@end @*/
     return this.base(element);
-  /*@end @*/
   },
 
   extend: function() {
@@ -44,14 +32,18 @@ var HTMLElement = Element.extend(null, {
 });
 
 HTMLElement.extend(null, {
-  tags: "APPLET,EMBED",  
+  tags: "APPLET,EMBED,OBJECT,IFRAME",
   bind: I // Binding not allowed for these elements.
 });
+
+// Build HTMLElement.prototype using global functions to avoid memory leaks.
+
+var _PREFIXES = "get,set,has,remove".split(",");
 
 /*@if (@_jscript_version < 5.7)
   for (var i in HTMLElement.prototype) {
     if (i != "base" && i != "extend") {
-      HTMLElement.prototype[i] = new Function("var a=base2.JavaScript.Array2.slice(arguments),m=base2.DOM.HTMLElement."+i+";a.unshift(this);return m.apply(m,a)");
+      HTMLElement.prototype[i] = new Function("var a=base2.js.Array2.slice(arguments),m=base2.dom.HTMLElement."+i+";a.unshift(this);return m.apply(m,a)");
     }
   }
 /*@end @*/

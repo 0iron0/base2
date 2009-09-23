@@ -3,8 +3,7 @@
 
 var HTMLDocument = Document.extend(null, {
   bind: function(document) {
-    DocumentState.createStateattachments,
-        (document);
+    DocumentState.createState(document);
     return this.base(document);
   }
 });

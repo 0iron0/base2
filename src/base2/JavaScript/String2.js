@@ -37,8 +37,8 @@ function format(string) {
 };
 
 function match(string, expression) {
-  // Same as String.match() except that this function will return an empty
-  // array if there is no match.
+  // Same as String.match() except that this function will return an
+  // empty array if there is no match.
   return (string + "").match(expression) || [];
 };
 

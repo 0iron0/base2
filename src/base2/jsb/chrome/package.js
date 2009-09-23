@@ -5,24 +5,19 @@
 
 base2.global.chrome = new base2.Package(this, {
   name:    "chrome",
-  version: "0.5",
-  imports: "Enumerable,Function2,DOM,jsb",
-  exports: "Popup,MenuList,ToolTip,dropdown,combobox,number,range,progressbar,slider,spinner,timepicker,datepicker,weekpicker,monthpicker,colorpicker",
-  parent:  base2.jsb
+  version: "0.9",
+  imports: "Enumerable,Function2,dom,jsb",
+  exports: // public components
+           "combobox,progressbar,slider,spinner,colorpicker," +
+           "datepicker,weekpicker,monthpicker,timepicker," +
+           // these are for extensibility
+           "Popup,PopupWindow,MenuList,ToolTip,dropdown",
+           
+  parent:  base2.jsb,
+  
+  getBehavior: function(element) {
+    return _attachments[element.uniqueID] || null;
+  }
 });
 
 eval(this.imports);
-
-EventTarget.addEventListener(document, "textresize", function() {
-  Array2.batch(document.getElementsByTagName("input"), function(input,i) {
-    var type = input.className.replace(/^.*jsb\-(\w+).*$/, "$1"),
-        behavior = chrome[type];
-    if (behavior) behavior.layout(input);
-  }, 100);
-}, false);
-
-/*if (detect("MSIE6")) {
-  try {
-    document.execCommand("BackgroundImageCache", false, true);
-  } catch (ex) {}
-}*/

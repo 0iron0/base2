@@ -17,3 +17,4 @@ function _dispatchBlocksModifiedEvent(template) {
   event.initEvent("BlocksModified", false, false);
   this.dispatchEvent(template.parentNode, event);
 };
+

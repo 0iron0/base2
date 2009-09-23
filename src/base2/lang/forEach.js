@@ -11,7 +11,7 @@ function forEach(object, block, context, fn) {
     if (typeof object == "function" && object.call) {
       // Functions are a special case.
       fn = Function;
-    } else if (typeof object.forEach == "function" && object.forEach != arguments.callee) {
+    } else if (typeof object.forEach == "function" && object.forEach != forEach) {
       // The object implements a custom forEach method.
       object.forEach(block, context);
       return;
@@ -29,11 +29,12 @@ forEach.csv = function(string, block, context) {
 };
 
 forEach.detect = function(object, block, context) {
-  forEach (object, function(value, key) {
+  var filter = function(value, key) {
     if (key.indexOf("@") == 0) { // object detection
-      if (detect(key.slice(1))) forEach (value, arguments.callee);
+      if (detect(key.slice(1))) forEach (value, filter);
     } else block.call(context, value, key, object);
-  });
+  };
+  forEach (object, filter);
 };
 
 // These are the two core enumeration methods. All other forEach methods
@@ -48,9 +49,8 @@ function _Array_forEach(array, block, context) {
     }
   } else { // Cater for sparse arrays.
     for (i = 0; i < length; i++) {
-    /*@cc_on @*/
     /*@if (@_jscript_version < 5.2)
-      if ($Legacy.has(array, i))
+      if (array[i] !== undefined && $Legacy.has(array, i))
     @else @*/
       if (i in array)
     /*@end @*/
@@ -61,15 +61,15 @@ function _Array_forEach(array, block, context) {
 
 function _Function_forEach(fn, object, block, context) {
   // http://code.google.com/p/base2/issues/detail?id=10
-  
+
   // Run the test for Safari's buggy enumeration.
   var Temp = function(){this.i=1};
   Temp.prototype = {i:1};
   var count = 0;
   for (var i in new Temp) count++;
-  
+
   // Overwrite the main function the first time it is called.
-  _Function_forEach = (count > 1) ? function(fn, object, block, context) {
+  _Function_forEach = count > 1 ? function(fn, object, block, context) {
     // Safari fix (pre version 3)
     var processed = {};
     for (var key in object) {
@@ -81,11 +81,11 @@ function _Function_forEach(fn, object, block, context) {
   } : function(fn, object, block, context) {
     // Enumerate an object and compare its keys with fn's prototype.
     for (var key in object) {
-      if (fn.prototype[key] === undefined) {
+      if (typeof fn.prototype[key] == "undefined") {
         block.call(context, object[key], key, object);
       }
     }
   };
-  
+
   _Function_forEach(fn, object, block, context);
 };

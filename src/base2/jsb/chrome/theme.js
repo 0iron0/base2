@@ -3,60 +3,49 @@ jsb.theme = new Base({
   detect: K("default"),
 
   "@Windows": {
+    defaultTheme: "classic",
+
+    "@NT5\\.1": { // XP
+      defaultTheme: "luna/blue"
+    },
+
+    "@NT[6-9]": { // Vista
+      defaultTheme: "aero"
+    },
+
     detect: function() {
-      return _WIN_DETECT[_getActiveCaptionColor()] || "royale";
+      var colors = _getColors();
+      return _WIN_DETECT_COLLISION[colors.join("")] || _WIN_DETECT_ACTIVECAPTION[colors[0]] || _WIN_DETECT_GRAYTEXT[colors[1]] || this.defaultTheme;
     },
 
-    "@NT6": { // vista
+    "@NT(6\\.1|[7-9])": { // Windows 7
+      detect: K("aero/7")
+    },
+
+    "@Chrome|Arora": {
       detect: function() {
-        return _WIN_DETECT[_getActiveCaptionColor()] || "aero";
+        var theme = this.base();
+        return !theme || theme == "classic" ? this.defaultTheme : theme;
       }
-    },
-
-    "@NT5": { // xp
-      detect: function() {
-        return _WIN_DETECT[_getActiveCaptionColor()] || "royale";
-      },
-
-      "@MSIE": {
-        detect: function() {
-          var value = _WIN_DETECT[_getActiveCaptionColor()],
-              scrollbarFaceColor = document.documentElement.currentStyle.scrollbarFaceColor;
-          if (value == "classic") {
-            if (scrollbarFaceColor == "#ffffff") return "classic/contrast/white";
-            if (scrollbarFaceColor == "#88c0b8") return "classic/marine";
-          }
-          return value || ({
-            "#ece9d8": "luna/blue",
-            // can't detect olive using scrollbar colour technique
-            "#e0dfe3": "luna/silver",
-            "#ebe9ed": "royale"
-          }[scrollbarFaceColor]) || "royale";
-        }
-      }
-    },
-
-    "@MSIE5": {
-      detect: K("classic")
     }
   },
   
   "@Linux": {
     detect: function() {
-      return _LINUX_DETECT[_getActiveCaptionColor()] || "default";
+      return _LINUX_DETECT_ACTIVECAPTION[_getColors()[0]];
     }
   },
 
   "@Webkit([1-4]|5[01]|52[^89])|Camino|Mac": {
     detect: K("aqua"),
 
-    "@Chrome|Arora": {
+    "@(Chrome|Arora).+win": {
       detect: K("luna/blue")
     }
   }
 });
 
-var _WIN_DETECT = {
+var _WIN_DETECT_ACTIVECAPTION = {
   "#0054e3": "luna/blue",
   "#8ba169": "luna/olive",
   "#c0c0c0": "luna/silver",
@@ -66,20 +55,29 @@ var _WIN_DETECT = {
   "#c4cbde": "aero",
   "#343434": "zune",
   "#c09f79": "human",
-  "#83a67f": "smooth",
-  "#000080": "classic",
-  "#0a246a": "classic/standard",
-  "#800000": "classic/brick",
-  "#008080": "classic/desert",
+  "#83a67f": "smooth"
+}, _WIN_DETECT_GRAYTEXT = {
+  "#808080": "classic",
+  "#8d8961": "classic/brick",
+  "#a28d68": "classic/desert",
   "#588078": "classic/eggplant",
   "#5a4eb1": "classic/lilac",
-  "#484060": "classic/plum",
-  "#808000": "classic/wheat",
-  "#800080": "classic/contrast/black",
-  "#000000": "classic/contrast/white",
-  "#0000ff": "classic/contrast/high1",
-  "#00ffff": "classic/contrast/high2"
-}, _LINUX_DETECT = {
+  "#489088": "classic/marine",
+  "#c6a646": "classic/maple",
+  "#786058": "classic/plum",
+  "#d7a52f": "classic/pumpkin",
+  "#4f657d": "classic/rainyday",
+  "#9f6070": "classic/rose",
+  "#558097": "classic/slate",
+  "#559764": "classic/spruce",
+  "#bcbc41": "classic/wheat"
+}, _WIN_DETECT_COLLISION = {
+  "#0a246a#808080": "classic/standard",
+  "#0000ff#00ff00": "classic/contrast/high1",
+  "#00ffff#00ff00": "classic/contrast/high2",
+  "#800080#00ff00": "classic/contrast/black",
+  "#000000#00ff00": "classic/contrast/white"
+}, _LINUX_DETECT_ACTIVECAPTION = {
   "#c4c6c0": "clearlooks",
   "#eae8e3": "clearlooks",
   "#dfe4e8": "clearlooks",
@@ -101,17 +99,33 @@ function rgb(r, g, b) {
   return "#" + toHex(r) + toHex(g) + toHex(b);
 };
 
-function _getActiveCaptionColor() {
-  var element = document.createElement("input");
-  var head = behavior.querySelector("body,head");
+function _getColors() {
+  var element = document.createElement("input"),
+      style = element.style,
+      head = behavior.querySelector("body,head"),
+      getColor = function(color) {
+        style.color = color;
+        if (color.toLowerCase() == style.color.toLowerCase()) {
+          color = ViewCSS.getComputedPropertyValue(document.defaultView, element, "color");
+        } else {
+          color = style.color;
+        }
+        if (/rgb/.test(color)) color = eval(color);
+        return color;
+      };
   head.appendChild(element);
-  // detect XP theme by inspecting the ActiveCaption colour
-  element.style.color = "ActiveCaption";
-  var color = element.style.color;
-  if (!_WIN_DETECT[color]) {
-    color = ViewCSS.getComputedPropertyValue(document.defaultView, element, "color");
-    if (/rgb/.test(color)) color = eval(color);
-  }
+  // detect OS theme by inspecting the ActiveCaption colour
+  var colors = [getColor("ActiveCaption"), getColor("GrayText")];
   head.removeChild(element);
-  return color;
+  return colors;
 };
+
+var _WINDOW =         "window",
+    _HIGHLIGHT =      "highlight",
+    _HIGHLIGHT_TEXT = "highlighttext";
+
+if (detect("(Webkit([1-4]|5[01]|52[^89])|theme=aqua).+win")) { // webkit pre 528 uses the same colours, no matter the theme
+    _WINDOW =         "#ffffff";
+    _HIGHLIGHT =      "#427cd9";
+    _HIGHLIGHT_TEXT = "#ffffff";
+}

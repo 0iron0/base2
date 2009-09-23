@@ -69,6 +69,7 @@ var LocalFileSystem = FileSystem.extend({
     copy: function(path1, path2) {
       var file1 = _xpcom_createFile(this.makepath(path1));
       var file2 = _xpcom_createFile(this.makepath(path2));
+      
       file1.copyTo(file2.parent, file2.leafName);
     },
     

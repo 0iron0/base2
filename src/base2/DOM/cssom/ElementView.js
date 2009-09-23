@@ -1,117 +1,205 @@
 
 // http://www.w3.org/TR/cssom-view/#the-elementview
 
-var _ABSOLUTE   = /absolute|fixed|relative/,
-    _FIX_BORDER = detect("KHTML") ? /^(TABLE|TD|TH)$/ : {test:False};
-
 var ElementView = Interface.extend({
-  getBoundingClientRect: function(element) {
-    return element.getBoundingClientRect();
-  },
-
   "@!(element.getBoundingClientRect)": {
     getBoundingClientRect: function(element) {
-      var document = element.ownerDocument,
-          view = document.defaultView;
+      var document = element.ownerDocument;
 
       switch (element.nodeName) {
         case "HTML":
           var offset = _offsets.getViewport(document);
           break;
         case "BODY":
-          offset = _offsets.getBody(document);
+          offset = _offsets.getBodyClient(document);
           break;
         default:
-          offset = this.getOffsetFromBody(element);
-          if (_ABSOLUTE.test(view.getComputedStyle(document.body, null).position)) {
-            var bodyOffset = _offsets.getBody(document);
-            offset.left += bodyOffset.left;
-            offset.top += bodyOffset.top;
+          var left = element.offsetLeft,
+              top = element.offsetTop,
+              view = document.defaultView,
+              documentElement = document.documentElement,
+              computedStyle = view.getComputedStyle(element, null);
+              offsetParent = element.offsetParent;
+
+          while (offsetParent && (offsetParent != documentElement || computedStyle.position == "static")) {
+            left += offsetParent.offsetLeft - offsetParent.scrollLeft;
+            top += offsetParent.offsetTop - offsetParent.scrollTop;
+
+            computedStyle = view.getComputedStyle(offsetParent, null);
+            
+            if (_FIX_BORDER.test(offsetParent.nodeName)) {
+              if (offsetParent.clientLeft === undefined) {
+                left += parseInt(computedStyle.borderLeftWidth);
+                top  += parseInt(computedStyle.borderTopWidth);
+              } else {
+                left += offsetParent.clientTop;
+                top  += offsetParent.clientLeft;
+              }
+            }
+            offsetParent = offsetParent.offsetParent;
           }
+          offset = {
+            left: left,
+            top: top
+          };
       }
 
-      offset.left -= view.pageXOffset;
-      offset.top -= view.pageYOffset;
-
       return {
-        left:   offset.left,
         top:    offset.top,
         right:  offset.left + element.clientWidth,
-        bottom: offset.top + element.clientHeight
+        bottom: offset.top + element.clientHeight,
+        left:   offset.left
       };
     },
-    
+
+    "@Webkit5": {
+      getBoundingClientRect: function(element) {
+        // Tweak the above result for Safari 3.x if the document body is absolutely positioned.
+
+        var clientRect = this.base(element);
+
+        if (element.nodeName != "HTML") {
+          var document = element.ownerDocument,
+              offset = _offsets.getBodyOffset(document);
+          if (!offset.isAbsolute) {
+            offset = _offsets.getViewport(document)
+          }
+          clientRect.left += offset.left;
+          clientRect.top += offset.top;
+        }
+
+        return clientRect;
+      }
+    },
+
     "@(document.getBoxObjectFor)": {
       getBoundingClientRect: function(element) {
         var document = element.ownerDocument,
             view = document.defaultView,
+            documentElement = document.documentElement,
             box = document.getBoxObjectFor(element),
             computedStyle = view.getComputedStyle(element, null),
-            left = box.x - parseInt(computedStyle.borderLeftWidth) - view.pageXOffset,
-            top = box.y - parseInt(computedStyle.borderTopWidth) - view.pageYOffset;
-            
-        if (element.nodeName != "HTML") {
-          var rootStyle = view.getComputedStyle(document.documentElement, null);
-          left += parseInt(rootStyle.marginLeft);
-          top += parseInt(rootStyle.marginTop);
+            left = box.x - parseInt(computedStyle.borderLeftWidth),
+            top = box.y - parseInt(computedStyle.borderTopWidth),
+            parentNode = element.parentNode;
+
+        if (element != documentElement) {
+          while (parentNode && parentNode != documentElement) {
+            left -= parentNode.scrollLeft;
+            top -= parentNode.scrollTop;
+            computedStyle = view.getComputedStyle(parentNode, null);
+            if (computedStyle.position != "absolute") {
+              left += parseInt(computedStyle.borderTopWidth);
+              top  += parseInt(computedStyle.borderLeftWidth);
+            }
+            parentNode = parentNode.parentNode;
+          }
+
+          if (computedStyle.position != "fixed") {
+            left -= view.pageXOffset;
+            top -= view.pageYOffset;
+          }
+
+          var bodyPosition = view.getComputedStyle(document.body, null).position;
+          if (bodyPosition == "relative") {
+            var offset = document.getBoxObjectFor(documentElement);
+          } else if (bodyPosition == "static") {
+            offset = _offsets.getGeckoRoot(document);
+          }
+          if (offset) {
+            left += offset.x;
+            top += offset.y;
+          }
         }
         
         return {
-          left: left,
           top: top,
           right: left + element.clientWidth,
-          bottom: top + element.clientHeight
+          bottom: top + element.clientHeight,
+          left: left
         };
       }
     }
   },
 
-  "@MSIE": {
+  "@(jscript)": {
     getBoundingClientRect: function(element) {
-      var clientRect = element.getBoundingClientRect(),
-          document = element.document;
+      // MSIE doesn't bother to calculate client rects for the documentElement.
+
+      var clientRect = this.base(element);
 
       if (element.nodeName == "HTML") {
-        var viewportOffset = _offsets.getViewport(document),
-            root = document.documentElement,
-            left = viewportOffset.left - root.scrollLeft,
-            top = viewportOffset.left - root.scrollTop;
-        return {
-          left: left,
+        var document = Traversal.getDocument(element),
+            viewport = _offsets.getViewport(document),
+            documentElement = document.documentElement,
+            left = viewport.left - documentElement.scrollLeft,
+            top = viewport.left - documentElement.scrollTop;
+        clientRect = {
           top: top,
           right: left + clientRect.right - clientRect.left,
-          bottom: top + clientRect.bottom - clientRect.top
-        };
-      } else {
-        adjust = document.documentMode > 7 ? 0 : -2;
-        return {
-          left: clientRect.left + adjust,
-          top: clientRect.top + adjust,
-          right: clientRect.right + adjust,
-          bottom: clientRect.bottom + adjust
+          bottom: top + clientRect.bottom - clientRect.top,
+          left: left
         };
       }
+      
+      return clientRect;
+    }
+  },
+
+  "@Gecko1\\.9([^\\.]|\\.0)": { // bug in Gecko1.9.0 only
+    getBoundingClientRect: function(element) {
+      var clientRect = this.base(element);
+
+      if (element.nodeName != "HTML" && _offsets.getBodyClient(element.ownerDocument).position == "absolute") {
+        var offset = _offsets.getGeckoRoot(document);
+        return {
+          top:    clientRect.top - offset.y,
+          right:  clientRect.right - offset.x,
+          bottom: clientRect.bottom - offset.y,
+          left:   clientRect.left - offset.x
+        };
+      }
+
+      return clientRect;
     }
   }
 }, {
   getOffsetFromBody: function(element) {
-    var left = 0, top = 0,
-        document = Traversal.getOwnerDocument(element),
-        view = document.defaultView;
-        root = document.documentElement,
-        body = document.body;
-        
-    if (element != body) {
-      var clientRect = this.getBoundingClientRect(element);
-      left = clientRect.left;
-      top = clientRect.top;
-      if (_ABSOLUTE.test(ViewCSS.getComputedPropertyValue(view, element, "position"))) {
-        var offset = this.getBoundingClientRect(body);
-        left -= offset.left;
-        top -= offset.top;
-      } else {
-        left += view ? view.pageXOffset : root.scrollLeft;
-        top += view ? view.pageYOffset : root.scrollTop;
+    var left = 0,
+        top = 0;
+
+    if (element.nodeName != "BODY") {
+      var document = Traversal.getOwnerDocument(element),
+          view = document.defaultView,
+          documentElement = document.documentElement,
+          body = document.body,
+          clientRect = this.getBoundingClientRect(element);
+          
+      left = clientRect.left + Math.max(documentElement.scrollLeft, body.scrollLeft);
+      top = clientRect.top + Math.max(documentElement.scrollTop, body.scrollTop);
+
+      var bodyOffset = _offsets.getBodyOffset(document);
+
+      /*@if (@_jscript)
+        if (_MSIE6 && body.currentStyle.position != "relative") {
+          left -= documentElement.clientLeft;
+          top -= documentElement.clientTop;
+        }
+        if (@_jscript_version == 5.7 || document.documentMode == 7) {
+          var rect = documentElement.getBoundingClientRect();
+          left -= rect.left;
+          top -= rect.top;
+        }
+        if (_QUIRKS_MODE) {
+          left -= body.clientLeft;
+          top -= body.clientTop;
+          bodyOffset.isAbsolute = false;
+        }
+      /*@end @*/
+
+      if (bodyOffset.isAbsolute) {
+        left -= bodyOffset.left;
+        top -= bodyOffset.top;
       }
     }
     
@@ -121,180 +209,61 @@ var ElementView = Interface.extend({
     };
   },
 
-  "@!(element.getBoundingClientRect||document.getBoxObjectFor)": {
-    getOffsetFromBody: function(element) {
-      var left = 0, top = 0,
-          body = element.ownerDocument.body;
-
-      while (element && element != body) {
-        left += element.offsetLeft;
-        top += element.offsetTop;
-        if (_FIX_BORDER.test(element.nodeName)) {
-          top  += (element.clientLeft || 0);
-          left += (element.clientTop || 0);
-        }
-        element = element.offsetParent;
-      }
-      
-      return {
-        left: left,
-        top: top
-      };
-    },
-
-    "@Webkit": {
+  "@!(element.getBoundingClientRect)": {
+    "@Webkit5": {
       getOffsetFromBody: function(element) {
-        var offset = this.base(element),
-            document = element.ownerDocument,
-            view = document.defaultView,
-            body = document.body,
-            position = view.getComputedStyle(element, null).position;
-            
-        if (position == "fixed") {
-          var bodyOffset = _offsets.getBody(document);
-          offset.left -= bodyOffset.left;
-          offset.top  -= bodyOffset.top;
-        } else if ((position != "absolute" || element.offsetParent != body) && !_ABSOLUTE.test(view.getComputedStyle(body, null).position)) {
-          var viewportOffset = _offsets.getViewport(document);
-          offset.left += viewportOffset.left;
-          offset.top  += viewportOffset.top;
-        }
-        
-        return offset;
-      }
-    },
+        // Tweak the above result for Safari 3.x if the document body is absolutely positioned.
 
-    "@Opera": {
-      getOffsetFromBody: function(element) {
-        var offset = this.base(element),
-            document = element.ownerDocument,
-            view = document.defaultView,
-            body = document.body;
-            
-        if (_ABSOLUTE.test(view.getComputedStyle(body, null).position)) {
-          var bodyOffset = _offsets.getBody(document);
-          offset.left -= bodyOffset.left;
-          offset.top  -= bodyOffset.top;
+        var elementOffset = this.base(element);
+
+        if (element.nodeName != "HTML") {
+          var document = element.ownerDocument,
+              offset = _offsets.getBodyOffset(document);
+          if (!offset.isAbsolute) {
+            offset = _offsets.getViewport(document)
+          }
+          elementOffset.left -= offset.left;
+          elementOffset.top -= offset.top;
         }
-        
-        return offset;
+
+        return elementOffset;
       }
     }
   },
 
-  "@Gecko1\\.([^9]|9.0)": {
+  "@Gecko1\\.([^9]|9(\\.0|[^\\.]))": {
     getOffsetFromBody: function(element) {
-      var offset = this.base(element),
-          document = element.ownerDocument,
-          view = document.defaultView;
-          
-      if (!_ABSOLUTE.test(view.getComputedStyle(document.body, null).position)) {
-        var rootStyle = view.getComputedStyle(document.documentElement, null);
-        offset.left -= parseInt(rootStyle.marginLeft);
-        offset.top -= parseInt(rootStyle.marginTop);
+      var offset = this.base(element);
+
+      // slightly different rules when the body is absolutley positioned
+      if (!_offsets.getBodyClient(element.ownerDocument).isAbsolute) {
+        var rootOffset = _offsets.getGeckoRoot(document);
+        offset.left -= rootOffset.x;
+        offset.top -= rootOffset.y;
       }
-      
+
       return offset;
     }
   },
-  
-  // Manage offsetX/Y.
 
-  getOffsetXY: function(element, clientX, clientY) {
-    if (element.clientLeft == null) {
-      var computedStyle = element.ownerDocument.defaultView.getComputedStyle(element, null);
-      clientX -= parseInt(computedStyle.borderLeftWidth);
-      clientY -= parseInt(computedStyle.borderTopWidth);
-    } else {
-      clientX -= element.clientLeft;
-      clientY -= element.clientTop;
-    }
+  // Manage offsetX/Y.
+  
+  getOffsetXY: function(element, clientX, clientY) { // slightly faster if clientLeft/Top are defined
     var clientRect = this.getBoundingClientRect(element);
     return {
-      x: clientX - clientRect.left,
-      y: clientY - clientRect.top
+      x: clientX - clientRect.left - element.clientLeft,
+      y: clientY - clientRect.top - element.clientTop
     }
   },
 
-  "@(element.getBoundingClientRect&&element.clientLeft===0)": { // slightly faster if these properties are defined
+  "@!(element.clientLeft)": {
     getOffsetXY: function(element, clientX, clientY) {
-      var clientRect = element.getBoundingClientRect();
+      var clientRect = this.getBoundingClientRect(element),
+          computedStyle = element.ownerDocument.defaultView.getComputedStyle(element, null);
       return {
-        x: clientX - clientRect.left - element.clientLeft,
-        y: clientY - clientRect.top - element.clientTop
+        x: clientX - clientRect.left - parseInt(computedStyle.borderLeftWidth),
+        y: clientY - clientRect.top - parseInt(computedStyle.borderTopWidth)
       }
     }
   }
 });
-
-
-var _offsets = new Base({
-  getBody: function(document) {
-    var left = 0, top = 0,
-        view = document.defaultView,
-        body = document.body,
-        bodyStyle = view.getComputedStyle(body, null);
-        
-    if (_ABSOLUTE.test(bodyStyle.position)) {
-      left += parseInt(bodyStyle.left) + parseInt(bodyStyle.marginLeft);
-      top  += parseInt(bodyStyle.top) + parseInt(bodyStyle.marginTop);
-      if (bodyStyle.position == "relative") {
-        var rootStyle = view.getComputedStyle(document.documentElement, null);
-        left += parseInt(rootStyle.paddingLeft) + parseInt(rootStyle.marginLeft);
-        top  += parseInt(rootStyle.paddingTop) + parseInt(rootStyle.marginTop);
-      }
-    } else {
-      var dummy = document.createElement("div");
-      body.insertBefore(dummy, body.firstChild);
-      left += dummy.offsetLeft - parseInt(bodyStyle.paddingLeft);
-      top += dummy.offsetTop - parseInt(bodyStyle.paddingTop);
-      body.removeChild(dummy);
-    }
-    
-    return {
-      left: left,
-      top: top
-    };
-  },
-
-  "@Webkit": {
-    getBody: function(document) {
-      var offset = this.base(document),
-          view = document.defaultView,
-          body = document.body;
-          
-      if (!_ABSOLUTE.test(view.getComputedStyle(body, null).position)) {
-        var viewportOffset = this.getViewport(document);
-        offset.left += viewportOffset.left;
-        offset.top  += viewportOffset.top;
-      }
-      return offset;
-    }
-  },
-
-  getViewport: function(document) {
-    var view = document.defaultView,
-        element = document.documentElement;
-    return {
-      left: parseInt(ViewCSS.getComputedPropertyValue(view, element, "margin-left")) || 0,
-      top: parseInt(ViewCSS.getComputedPropertyValue(view, element, "margin-top")) || 0
-    };
-  },
-
-  "@MSIE[56]": {
-    getViewport: K({left: 0, top: 0})
-  },
-
-  "@(true)": {
-    getBody: _memoise("body"),
-    getViewport: _memoise("viewport")
-  }
-});
-
-function _memoise(type) {
-  return function(document) {
-    var key = type + (document.base2ID || assignID(document));
-    if (!_memoise[key]) _memoise[key] = this.base(document);
-    return copy(_memoise[key]);
-  };
-};

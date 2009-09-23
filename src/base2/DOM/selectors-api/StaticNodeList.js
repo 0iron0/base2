@@ -2,15 +2,21 @@
 // http://www.w3.org/TR/selectors-api/#staticnodelist
 
 // A wrapper for an array of elements or an XPathResult.
-// The item() method provides access to elements.
-// Implements Enumerable so you can forEach() to your heart's content... :-)
 
 var StaticNodeList = Base.extend({
   constructor: function(nodes) {
     nodes = nodes || [];
     if (nodes.unsorted) nodes.sort(_SORTER);
-    var i = this.length = nodes.length;
-    while (i--) this[i] = nodes[i];
+    var length = nodes.length, i = 0, j = 0;
+    if (length) this[0] = undefined; // fixes a weird bug in Opera
+    while (i < length) {
+      // For comma separated selectors (e.g. "span,abbr") on platforms
+      // that support sourceIndex, then elements are stored by sourceIndex
+      // to avoid sorting.
+      if (nodes[i]) this[j++] = nodes[i];
+      i++;
+    }
+    this.length = j;
   },
   
   length: 0,
@@ -21,7 +27,7 @@ var StaticNodeList = Base.extend({
       block.call(context, this[i], i, this);
     }
   },
-
+  
   item: Array2.prototype.item,
 
   not: function(test, context) {
@@ -35,21 +41,23 @@ var StaticNodeList = Base.extend({
   "@(XPathResult)": {
     constructor: function(nodes) {
       if (nodes && nodes.snapshotItem) {
-        var i = this.length = nodes.snapshotLength;
-        while (i--) this[i] = nodes.snapshotItem(i);
+        var length = this.length = nodes.snapshotLength, i = 0;
+        while (i < length) this[i] = nodes.snapshotItem(i++);
       } else this.base(nodes);
     }
+  }
+}, {
+  bind: function(staticNodeList) {
+    Base.forEach (this.prototype, function(method, name) {
+      if (staticNodeList[name] === undefined) {
+        staticNodeList[name] = method;
+      }
+    });
+    return staticNodeList;
   }
 });
 
 StaticNodeList.implement(Enumerable);
-
-var _matchesSelector = function(test, context) {
-  if (typeof test != "function") {
-    test = bind("test", new Selector(test));
-  }
-  return this.base(test, context);
-};
 
 StaticNodeList.implement({
   every: _matchesSelector,
@@ -63,9 +71,3 @@ StaticNodeList.implement({
     return new StaticNodeList(this.base(test, context));
   }
 });
-
-var _SORTER = _INDEXED ? function(node1, node2) {
-  return node1.sourceIndex - node2.sourceIndex;
-} : function(node1, node2) {
-  return (Node.compareDocumentPosition(node1, node2) & 2) - 1;
-};

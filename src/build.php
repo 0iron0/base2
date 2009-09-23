@@ -76,6 +76,9 @@ function load_package($path) {
 
 function print_package($package, $pbase) {
 	global $REG_XML, $BASE;
+
+	$before = $package->getAttribute('before');
+	if ($before) readfile(path_resolve($before, $pbase));
 	
 	$name = $package->getAttribute('name');
 	$publish = $package->getAttribute('publish') != 'false';
@@ -100,13 +103,15 @@ function print_package($package, $pbase) {
       }
 			if ($var) {
 				print("var ".$var."=".json_encode(file_get_contents($src)).";\r\n");
-			}
-			else if (!readfile($src)) {
+			} else if (!readfile($src)) {
 				print("alert('BOO! The file \"".$src."\" from your package was not found.');");
 			}
 		}
 	}	
 	if ($publish) print("\r\neval(this.exports);\r\n");
 	if ($closure) print("\r\n}; ////////////////////  END: CLOSURE  /////////////////////////////////////\r\n");
+
+	$after = $package->getAttribute('after');
+	if ($after) readfile(path_resolve($after, $pbase));
 }
 ?>

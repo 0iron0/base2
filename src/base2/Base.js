@@ -6,6 +6,9 @@ var _subclass = function(_instance, _static) {
   base2.__prototyping = this.prototype;
   var _prototype = new this;
   if (_instance) extend(_prototype, _instance);
+  _prototype.base = function() {
+    // call this method from any other method to invoke that method's ancestor
+  };
   delete base2.__prototyping;
   
   // Create the wrapper for the constructor function.
@@ -13,7 +16,7 @@ var _subclass = function(_instance, _static) {
   function _class() {
     // Don't call the constructor function when prototyping.
     if (!base2.__prototyping) {
-      if (this.constructor == arguments.callee || this.__constructing) {
+      if (this.constructor == _class || this.__constructing) {
         // Instantiation.
         this.__constructing = true;
         _constructor.apply(this, arguments);
@@ -32,7 +35,7 @@ var _subclass = function(_instance, _static) {
   if (_static) extend(_class, _static);
   _class.ancestor = this;
   _class.ancestorOf = Base.ancestorOf;
-  _class.base = Undefined;
+  _class.base = _prototype.base;
   _class.prototype = _prototype;
   if (_class.init) _class.init();
   
@@ -50,30 +53,26 @@ var Base = _subclass.call(Object, {
     }
   },
   
-  base: function() {
-    // Call this method from any other method to invoke the current method's ancestor (super).
-  },
-  
   extend: delegate(extend),
   
   toString: function() {
     if (this.constructor.toString == Function.prototype.toString) {
       return "[object base2.Base]";
     } else {
-      return "[object " + this.constructor.toString().slice(1, -1) + "]";
+      return "[object " + String2.slice(this.constructor, 1, -1) + "]";
     }
   }
 }, Base = {
   ancestorOf: function(klass) {
     return _ancestorOf(this, klass);
   },
-  
+
   extend: _subclass,
-    
+
   forEach: function(object, block, context) {
     _Function_forEach(this, object, block, context);
   },
-  
+
   implement: function(source) {
     if (typeof source == "function") {
       ;;; if (_ancestorOf(Base, source)) {

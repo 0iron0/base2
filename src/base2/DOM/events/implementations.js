@@ -1,5 +1,5 @@
 
 Document.implement(DocumentEvent);
-Document.implement(EventTarget);
 
+Document.implement(EventTarget);
 Element.implement(EventTarget);

@@ -1,38 +1,56 @@
 
 var Transitions = Collection.extend({
-  add: function(element, propertyName, params) {
-    var key = element.uniqueID + "." + propertyName;
-    var currentTransition = this.get(key);
-    if (currentTransition) {
-      currentTransition.setSpeed(currentTransition.duration / (params.duration || 1)); // change gears
-      if (currentTransition.compare(params.end, "start")) { // flipped start/end points indicate the reversal of a transition
-        currentTransition.flip();
+  constructor: function(transitions) {
+    this.base(transitions);
+    this.tick = bind(this.tick, this);
+  },
+  
+  add: function(object, propertyName, params) {
+    var key = Transition.getKey(object, propertyName, params),
+        transition = this.get(key);
+    if (transition) {
+      if (transition.duration != params.duration) {
+        transition.setSpeed(transition.duration / (params.duration || 1)); // change gears
+      }
+      if (transition.compare(params.end, "start")) { // flipped start/end points indicate the reversal of a transition
+        transition.reverse();
       }
     } else {
-      this.put(key, element, propertyName, params);
-      if (!this._timer) this.tick();
+      transition = this.put(key, object, propertyName, params);
+      if (!this._timer) {
+        this._timer = setTimeout(this.tick, 4);
+      }
     }
+    return transition;
   },
 
   tick: function() {
-    var now = Date2.now(),
-        completed = [];
-    forEach (this, function(transition, key) {
-      if (!transition.tick(now)) {
-        completed.push(key); // remove later
+    this.invoke("tick", Date2.now());
+
+    var complete = this.filter(function(transition) {
+      return transition.complete;
+    });
+
+    complete.forEach(this.remove, this);
+
+    complete.forEach(function(transition) {
+      if (transition.styleElement) {
+        behavior.dispatchEvent(transition.styleElement, "transitionend", {
+          propertyName: transition.propertyName,
+          elapsedTime: transition.elapsedTime / 1000
+        });
       }
     });
-    forEach (completed, this.remove, this);
+
+    delete this._timer;
     if (this.size() > 0) {
-      this._timer = setTimeout(bind(this.tick, this), 1); // loop
-    } else {
-      delete this._timer;
+      this._timer = setTimeout(this.tick, 4);
     }
   }
 }, {
   Item: Transition,
 
-  create: function(key, element, propertyName, params) {
-    return new this.Item(element, propertyName, params);
+  create: function(key, object, propertyName, params) {
+    return new this.Item(object, propertyName, params);
   }
 });

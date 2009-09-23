@@ -4,91 +4,86 @@
 // getAttribute() will return null if the attribute is not specified. This is
 //  contrary to the specification but has become the de facto standard.
 
-var _ATTRIBUTES = {
-  "class": "className",
-  "for": "htmlFor"
-};
+// Damn. Attributes are hard. All the browsers disagree on how it should be done.
+
+detect("(element.className='test',element.expando=true)"); // Initialise feature detection
 
 var Element = Node.extend({
-  "@MSIE.+win": {
+  // The spec says return an empty string, most browsers disagree and return null.
+  // base2 agrees with most browsers.
+  "@(element.getAttribute('made-up')===''||element.getAttribute('id')!=null||element.getAttribute('expando'))": {
     getAttribute: function(element, name) {
-      if (element.className === undefined) { // XML
-        return this.base(element, name);
-      }
-      var attribute = _getAttributeNode(element, name);
-      if (attribute && (attribute.specified || name == "value")) {
-        if (name == "href" || name == "src") {
-          //element.base = element.getAttribute.ancestor;
-          //return element[element.base ? "base" : "getAttribute"](name, 2);
-          var ancestor = element.getAttribute.ancestor;
-          if (ancestor) element.base = ancestor;
-          return element[element.base ? "base" : "getAttribute"](name, 2);
-        } else if (name == "style") {
-         return element.style.cssText.toLowerCase();
-        } else {
-         return attribute.nodeValue;
+      var attribute = _getAttributeNode(element, name),
+          specified = attribute && attribute.specified;
+      /*@if (@_jscript)
+        if (element.nodeName == "INPUT" && _USE_OUTER_HTML.test(name) && element.outerHTML) {
+          var outerHTML = element.outerHTML || "";
+          with (outerHTML) outerHTML = slice(0, indexOf(">") + 1);
+          return match(outerHTML, name == "type" ? _MATCH_TYPE : _MATCH_VALUE)[1] || null;
         }
-      } else if (name == "type" && element.nodeName == "INPUT") {
-        var outerHTML = element.outerHTML;
-        with (outerHTML) outerHTML = slice(0, indexOf(">") + 1);
-        return match(outerHTML, /type="?([^\s">]*)"?/i)[1] || "text";
+        if ((specified && _USE_IFLAG.test(name)) || (!attribute && @_jscript_version < 5.6)) {
+          var method = "getAttribute";
+          if (element["_" + method]) method = "_" + method;
+          return element[method](name, 2);
+        }
+      /*@end @*/
+      if (specified) {
+        /*@if (@_jscript)
+          if (name == "style") return element.style.cssText.toLowerCase();
+        /*@end @*/
+        return attribute.nodeValue;
       }
       return null;
     },
 
+    hasAttribute: function(element, name) {
+      return this.getAttribute(element, name) != null;
+    }
+  },
+
+  // MSIE5-7 has its own weird dictionary of attribute names
+  "@!(element.getAttribute('class'))": {
     removeAttribute: function(element, name) {
-      if (element.className !== undefined) { // XML
-        name = _ATTRIBUTES[name.toLowerCase()] || name;
-      }
-      this.base(element, name);
+      name = _ATTRIBUTES[name.toLowerCase()] || name;
+      /*@if (@_jscript)
+        var method = "removeAttribute";
+        if (element["_" + method]) method = "_" + method;
+        element[method](name);
+      @else @*/
+        this.base(element, name);
+      /*@end @*/
     },
 
     setAttribute: function(element, name, value) {
-      if (element.className === undefined) { // XML
-        this.base(element, name, value);
-      } else if (name == "style") {
-        element.style.cssText = value;
-      } else {
-        value = String(value);
-        var attribute = _getAttributeNode(element, name);
-        if (attribute) {
-          attribute.nodeValue = value;
+      name = _ATTRIBUTES[name.toLowerCase()] || name;
+      /*@if (@_jscript)
+        if (name == "style") {
+          element.style.cssText = value;
         } else {
-          this.base(element, _ATTRIBUTES[name.toLowerCase()] || name, value);
+          var method = "setAttribute";
+          if (element["_" + method]) method = "_" + method;
+          element[method](name, String(value));
         }
-      }
+      @else @*/
+        this.base(element, name, value);
+      /*@end @*/
     }
   },
 
   "@!(element.hasAttribute)": {
     hasAttribute: function(element, name) {
-      if (element.className === undefined) { // XML
-        return this.base(element, name);
-      }
       return this.getAttribute(element, name) != null;
     }
   },
-  
+
+  // A base2 extension the was originally in the Selectors API spec
   "@!(element.matchesSelector)": {
     matchesSelector: function(element, selector) {
       return new Selector(selector).test(element);
     }
   }
+}, {
+  "@Gecko": {
+    bind: _gecko_bind
+  }
 });
-
-// remove the base2ID for clones
-if (detect("MSIE.+win")) extend(Element.prototype, "cloneNode", function(deep) {
-  var clone = this.base(deep || false);
-  clone.base2ID = undefined;
-  return clone;
-});
-
-var _HTML_ATTRIBUTES = "colSpan,rowSpan,vAlign,dateTime,accessKey,tabIndex,encType,maxLength,readOnly,longDesc";
-// Convert the list of strings to a hash, mapping the lowercase name to the camelCase name.
-extend(_ATTRIBUTES, Array2.combine(_HTML_ATTRIBUTES.toLowerCase().split(","), _HTML_ATTRIBUTES.split(",")));
-
-var _getAttributeNode = document.documentElement.getAttributeNode ? function(element, name) {
-  return element.getAttributeNode(name);
-} : function(element, name) {
-  return element.attributes[name] || element.attributes[_ATTRIBUTES[name.toLowerCase()]];
-};

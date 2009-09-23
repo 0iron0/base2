@@ -2,11 +2,19 @@
 <package name="html5" requires="DOM,jsb">
   <include src="package.js"/>
   <include src="header.js"/>
-  <include src="~/base2/jsb/chrome/Theme.js"/>
+  <include src="../dimensions.js"/>
+  <include src="register.js"/>
+  <include src="~/base2/jsb/chrome/theme.js"/>
   <include src="~/base2/jsb/chrome/styleSheet.js"/>
+  <include src="audio.js"/>
+  <include src="canvas.js"/>
+  <include src="details.js"/>
+  <include src="figure.js"/>
+  <include src="mark.js"/>
   <include src="meter.js"/>
   <include src="progress.js"/>
-  <include src="styleSheet.js"/>
-  <include src="rules.js"/>
+  <include src="time.js"/>
+  <include src="video.js"/>
+  <include src="forms.js"/>
   <include src="init.js"/>
 </package>

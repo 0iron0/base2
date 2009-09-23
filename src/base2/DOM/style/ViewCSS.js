@@ -1,20 +1,14 @@
 
 // http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-ViewCSS
 
-var _NUMBER  = /\d/,
-    _PIXEL   = /^\d+(px)?$/i,
-    _METRICS = /(width|height|top|bottom|left|right|fontSize)$/i,
-    _COLOR   = /color$/i,
-    _BLACK   = "rgb(0, 0, 0)",
-    _WHITE   = "rgb(255, 255, 255)";
-
 var ViewCSS = Interface.extend({
   "@!(document.defaultView.getComputedStyle)": {
-    "@MSIE": {
+    "@(element.currentStyle)": {
       getComputedStyle: function(view, element, pseudoElement) {
         // pseudoElement parameter is not supported
-        var currentStyle = element.currentStyle,
-            computedStyle = {opacity: 1, clip: ViewCSS.getComputedPropertyValue(view, element, "clip")};
+        var currentStyle  = element.currentStyle,
+            computedStyle = _CSSStyleDeclaration_ReadOnly.bind({});
+            
         for (var propertyName in currentStyle) {
           if (_METRICS.test(propertyName) || _COLOR.test(propertyName)) {
             computedStyle[propertyName] = this.getComputedPropertyValue(view, element, propertyName);
@@ -22,117 +16,92 @@ var ViewCSS = Interface.extend({
             computedStyle[propertyName] = currentStyle[propertyName];
           }
         }
+        forEach.csv("backgroundPosition,boxSizing,clip,cssFloat,opacity", function(propertyName) {
+          computedStyle[propertyName] = this.getComputedPropertyValue(view, element, propertyName);
+        }, this);
+        
         return computedStyle;
       }
     }
-  },
-  
-  getComputedStyle: function(view, element, pseudoElement) {
-    return _CSSStyleDeclaration_ReadOnly.bind(this.base(view, element, pseudoElement));
-  }/*,
-
-  "@Opera": {
-    getComputedStyle: function(view, element, pseudoElement) {
-      var computedStyle = this.base(view, element, pseudoElement);
-      var fixedStyle = pcopy(computedStyle);
-      for (var i in computedStyle) {
-        if (_COLOR.test(i)) fixedStyle[i] = _toRGB(computedStyle[i]);
-        else if (typeof computedStyle[i] == "function") {
-          fixedStyle[i] = bind(i, computedStyle);
-        }
-      }
-      return fixedStyle;
-    }
-  }*/
+  }
 }, {
-  VENDOR: "",
-  "@Gecko": {VENDOR: "Moz"},
-  "@KHTML": {VENDOR: "Khtml"},
-  "@Webkit": {VENDOR: "Webkit"},
-  "@Opera": {VENDOR: "O"},
+  prefix: "",
+  "@Gecko":  {prefix: "Moz"},
+  "@KHTML":  {prefix: "Khtml"},
+  "@Webkit": {prefix: "Webkit"},
+  "@Opera":  {prefix: "O"},
+  "@MSIE":   {prefix: "Ms"},
   
   getComputedPropertyValue: function(view, element, propertyName) {
-    return CSSStyleDeclaration.getPropertyValue(this.getComputedStyle(view, element, null), propertyName);
-  },
-  
-  "@MSIE": {
-    VENDOR: "Ms",
-    
-    getComputedPropertyValue: function(view, element, propertyName) {
-      propertyName = this.toCamelCase(propertyName);
-      var currentStyle  = element.currentStyle,
-          value = currentStyle[propertyName];
-      if (propertyName == "opacity" && value == null) return 1;
-      if (propertyName == "clip") {
-        return "rect(" + [
-          currentStyle.clipTop,
-          currentStyle.clipRight,
-          currentStyle.clipBottom,
-          currentStyle.clipLeft
-        ].join(", ") + ")";
-      }
-      if (_METRICS.test(propertyName))
-        return _MSIE_getPixelValue(element, value);
-      if (!_MSIE5 && _COLOR.test(propertyName)) {
-        switch (value) {
-          case "black":
-            return _BLACK;
-          case "white":
-            return _WHITE;
-          case "transparent":
-            return value;
-          default:
-            if (propertyName != "color") element.runtimeStyle.backgroundColor = value;
-            var rgb = _MSIE_getColorValue(element, propertyName == "color" ? "ForeColor" : "BackColor");
-            if (propertyName != "color") element.runtimeStyle.backgroundColor = "";
-            return rgb == _BLACK || rgb == _WHITE ? _toRGB(value) : rgb;
-        }
-      }
-      return value;
-    }
+    var value = CSSStyleDeclaration.getPropertyValue(this.getComputedStyle(view, element, null), propertyName);
+    if (_COLOR.test(propertyName)) value = _toRGB(value);
+    return value;
   },
 
-  toCamelCase: function(string) {
-    return string.replace(/\-([a-z])/g, _toUpperCase);
+  "@!(document.defaultView.getComputedStyle)": {
+    "@(element.currentStyle)": {
+      getComputedPropertyValue: function(view, element, propertyName) {
+        var currentStyle  = element.currentStyle,
+            value = currentStyle[propertyName];
+
+        if (value == null) {
+          propertyName = _getPropertyName(propertyName);
+          value = currentStyle[propertyName] || "";
+        }
+        
+        /*if (value == "inherit") {
+          var parentNode = element.parentNode;
+          if (parentNode && parentNode.currentStyle) {
+            value = this.getComputedPropertyValue(view, parentNode, propertyName) || value;
+          }
+        }*/
+        
+        switch (propertyName) {
+          case "float":
+          case "cssFloat":
+            return currentStyle.cssFloat || currentStyle.styleFloat || "";
+          case "cursor":
+            return value == "hand" ? "pointer" : value;
+          case "opacity":
+            return value == null ? "1" : value;
+          case "clip":
+            return "rect(" + [
+              currentStyle.clipTop,
+              currentStyle.clipRight,
+              currentStyle.clipBottom,
+              currentStyle.clipLeft
+            ].join(", ") + ")";
+          case "backgroundPosition":
+            return currentStyle.backgroundPositionX + " " + currentStyle.backgroundPositionY;
+          case "boxSizing":
+            return value == null ?
+              /^CSS/.test(Traversal.getDocument(element).compatMode) ?
+                "content-box" : "border-box" : value;
+        }
+
+        if (value.indexOf(" ") > 0) return value;
+        
+        if (_METRICS.test(propertyName)) {
+          if (_PIXEL.test(value)) return value;
+          if (value == "auto") return "0px";
+          if (propertyName.indexOf("border") == 0) {
+            if (currentStyle[propertyName.replace("Width", "Style")] == "none") return "0px";
+            value = _NAMED_BORDER_WIDTH[value] || value;
+            if (typeof value == "number") return value + "px";
+          }
+          /*@if (@_jscript)
+            if (_NUMBER.test(value)) return _MSIE_getPixelValue(element, value);
+          /*@end @*/
+        } else if (_COLOR.test(propertyName)) {
+          if (value == "transparent") return value;
+          if (/^(#|rgb)/.test(value)) return _toRGB(value);
+          /*@if (@_jscript)
+            return _MSIE_getColorValue(value);
+          /*@end @*/
+        }
+        
+        return value;
+      }
+    }
   }
 });
-
-var _toUpperCase = flip(String2.toUpperCase);
-
-function _MSIE_getPixelValue(element, value) {
-  if (value == "none") return "0px";
-  if (!_NUMBER.test(value) || _PIXEL.test(value) || value.indexOf(" ") != -1) return value;
-  var styleLeft = element.style.left;
-  var runtimeStyleLeft = element.runtimeStyle.left;
-  element.runtimeStyle.left = element.currentStyle.left;
-  element.style.left = value || 0;
-  value = element.style.pixelLeft;
-  element.style.left = styleLeft;
-  element.runtimeStyle.left = runtimeStyleLeft;
-  return value + "px";
-};
-
-function _MSIE_getColorValue(element, type) {
-  if (element == element.document.documentElement) return _BLACK;
-  // elements need to have "layout" for this to work.
-  var zoom = element.style.zoom;
-  if (!element.currentStyle.hasLayout) {
-    element.style.zoom = "100%"; // runtimeStyle is screwy for zoom
-  }
-  if (element.createTextRange) {
-    var range = element.createTextRange();
-  } else {
-    range = element.document.body.createTextRange();
-    range.moveToElementText(element);
-  }
-  var color = range.queryCommandValue(type);
-  element.style.zoom = zoom;
-  return format("rgb(%1, %2, %3)", color & 0xff, (color & 0xff00) >> 8,  (color & 0xff0000) >> 16);
-};
-
-function _toRGB(value) {
-  if (value.indexOf("#") != 0) return value;
-  var hex = value.slice(1);
-  if (hex.length == 3) hex = hex.replace(/(\w)/g, "$1$1");
-  return "rgb(" + Array2.map(hex.match(/(\w\w)/g), partial(parseInt, undefined, 16)).join(", ") + ")";
-};

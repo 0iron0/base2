@@ -1,6 +1,5 @@
 
-extend(jsb, "createStyleSheet", function(cssText, document) {
-  if (!document) document = global.document;
+extend(jsb, "createStyleSheet", function(cssText) {
   if (typeof cssText != "string") {
     var rules = cssText;
 
@@ -12,58 +11,64 @@ extend(jsb, "createStyleSheet", function(cssText, document) {
       }
     };
 
-    var baseRule = rules["*"] || {};
-    baseRule.toString = function() {
-      return " {\n" +
-        map(this, function(value, propertyName) {
-          if (typeof value == "function") value = "none";
-          return "  " + propertyName.replace(/[A-Z]/g, function(captialLetter) {
-            return "-" + captialLetter.toLowerCase();
-          }) + ": " + value;
-        }).join(";\n") +
-      "\n}";
-    };
-    delete rules["*"];
-
-    var LEADING_CAP = /^[A-Z]/;
-    forEach.detect (rules, function(properties, selector) {
+    var baseRule;
+    
+    var createRule = function(properties, selector) {
       if (/,/.test(selector)) {
-        forEach (new Selector(selector).split(), partial(arguments.callee, properties));
+        forEach (new Selector(selector).split(), partial(createRule, properties));
       } else {
-        var rule = styleSheet[selector];
-        if (!rule) rule = styleSheet[selector] = extend({toString: baseRule.toString}, baseRule);
-        forEach.detect (properties, function(value, propertyName) {
-          if (/^Webkit/.test(propertyName)) arguments.callee(value, "Khtml" + propertyName.slice(6));
-          if (LEADING_CAP.test(propertyName) && propertyName.indexOf(ViewCSS.VENDOR) != 0) {
-            arguments.callee(value, propertyName.replace(LEADING_CAP, String2.toLowerCase));
-            propertyName = ViewCSS.VENDOR + propertyName;
+        if (!baseRule) {
+          baseRule = selector == "*" ? properties : {};
+        }
+        if (selector != "*") {
+          var rule = styleSheet[selector];
+          if (!rule) {
+            rule = styleSheet[selector] = extend({toString: function() {
+              return " {\n" +
+                map(this, function(value, propertyName) {
+                  if (typeof value == "function") value = "none";
+                  return "  " + propertyName.replace(/[A-Z]/g, function(captialLetter) {
+                    return "-" + captialLetter.toLowerCase();
+                  }) + ": " + value;
+                }).join(";\n") +
+              "\n}";
+            }}, baseRule);
           }
-          if (value == "initial") {
-            forEach (rule, function(initialPropertyValue, initialPropertyName) {
-              if (initialPropertyName.indexOf(propertyName) == 0) {
-                delete rule[initialPropertyName];
+          forEach.detect (properties, function(value, propertyName) {
+            if (_style[propertyName] == undefined) {
+              propertyName = CSSStyleDeclaration.getPropertyName(propertyName);
+            }
+            if (_style[propertyName] != undefined) {
+              if (value == "initial") {
+                forEach (rule, function(initialPropertyValue, initialPropertyName) {
+                  if (initialPropertyName.indexOf(propertyName) == 0) {
+                    delete rule[initialPropertyName];
+                  }
+                });
+                delete rule[propertyName];
+              } else {
+                /*@if (@_jscript_version < 5.6)
+                if (propertyName == "cursor" && value == "pointer") value = "hand";
+                /*@end @*/
+                rule[propertyName] = value;
               }
-            });
-            delete rule[propertyName];
-          }
-          rule[propertyName] = value;
-        });
+            }
+          });
+        }
       }
-    });
+    };
+    
+    forEach.detect (rules, createRule);
 
     cssText = styleSheet.toString();
   }
 
-  var host = location.pathname;
-  var script = Array2.item(document.getElementsByTagName("script"), -1);
-  if (script) host = script.src || host;
-  ;;; host = host.replace(/\/build\.php.*$/, '/base2/jsb/chrome/themes/');
-  host = host.replace(/[\?#].*$/, "").replace(/[^\/]*$/, "");
-  
+  // This shouldn't really be here.
+  // JSB shouldn't really know about Chrome. Oh well.
   cssText = cssText.replace(/%theme%/g, "themes/" + jsb.theme);
   
   var URL = /(url\s*\(\s*['"]?)([\w\.]+[^:\)]*['"]?\))/gi;
-  this.base(cssText.replace(URL, "$1" + host + "$2"), document);
+  this.base(cssText.replace(URL, "$1" + _getCurrentHost() + "$2"));
   
   return cssText;
 });

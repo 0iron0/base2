@@ -2,67 +2,86 @@
 // Damn. This is way too big. :-(
 // All this because MSIE does not respect padding in <input> elements.
 
+// Basically, this code places a little widget over the current <input> element.
+// The little widget looks exactly like the chrome control and forwards its
+// events.
+
+// This code nearly works for Opera8. Opera8 suffers the same bug in not respecting
+// the padding in the client area of an <input> box. However, we can't rescroll
+// the element so it actually makes things worse.
+
 var _MSIEShim = {
   onfocus: function(element) {
     this.base.apply(this, arguments);
     var behavior = this, timer;
     if (!shim.control) {
-      shim.control = document.createElement("!");
+      shim.control = document.createElement(detect.MSIE5 ? "span" : "x");
       document.body.insertBefore(shim.control, document.body.firstChild);
       shim.attach(shim.control);
     }
     shim.element = element;
     shim.behavior = behavior;
-    var style = shim.control.runtimeStyle;
-    style.cssText = "position:absolute;border:0;display:none;background-position-x:right";
-    style.pixelHeight = element.clientHeight;
-    style.pixelWidth = behavior.IMAGE_WIDTH;
-    style.backgroundImage = element.currentStyle.backgroundImage;
+    var style = shim.control.style;
+    style.display = "none";
+    style.position = "absolute";
+    style.fontSize = "0";
+    style.border = "0";
+    style.height = element.clientHeight + PX;
+    style.width = behavior._IMAGE_WIDTH + PX;
+    style.backgroundImage = this.getComputedStyle(element, "backgroundImage");
+    //style.background = "red";
     shim.layout();
-    element.attachEvent("onpropertychange", change);
-    element.attachEvent("onfocusout", function() {
-      element.detachEvent("onpropertychange", change);
-      element.detachEvent("onfocusout", arguments.callee);
-      element.scrollLeft = 9999;
-      delete shim.element;
-      style.display = "none";
-      detachEvent("onresize", resize);
-    });
+    var blurType = detect.MSIE && !detect.MSIE5 ? "onfocusout" : "onblur",
+        inputType = detect.MSIE ? "onpropertychange" : "onkeydown",
+        oninput = detect.MSIE ? change : resetScroll;
+    _private.attachEvent(element, inputType, oninput);
+    _private.attachEvent(element, blurType, onblur);
+    
     function change(event) {
-      if (event.propertyName == "value") element.scrollLeft = 9999;
+      if (event.propertyName == "value") resetScroll();
+    };
+    function resetScroll() {
+      element.scrollLeft = 9999;
     };
     function position() {
-      var offset = behavior.getOffsetFromBody(element),
-          rect = element.getBoundingClientRect(),
-          adjustRight = rect.right - rect.left - element.offsetWidth;
-      style.pixelLeft = offset.left + adjustRight + element.clientWidth - behavior.IMAGE_WIDTH + element.clientLeft;
-      style.pixelTop = offset.top + element.clientTop;
+      var offset = ElementView.getOffsetFromBody(element),
+          rect = ElementView.getBoundingClientRect(element),
+          adjustRight = detect.MSIE ? rect.right - rect.left - element.offsetWidth : 0;
+      style.left = (offset.left + adjustRight + element[_WIDTH] - behavior._IMAGE_WIDTH + element.clientLeft) + PX;
+      style.top = (offset.top + element.clientTop) + PX;
       timer = null;
+    };
+    function onblur() {
+      if (document.activeElement == null) {
+        if (event.preventDefault) event.preventDefault();
+      } else {
+        _private.detachEvent(element, inputType, oninput, true);
+        _private.detachEvent(element, blurType, onblur, true);
+        _private.detachEvent(window, "onresize", resize, true);
+        style.display = "none";
+        resetScroll();
+        delete shim.element;
+      }
     };
     function resize() {
       if (!timer) timer = setTimeout(position, 50);
     };
-    attachEvent("onresize", resize);
+    _private.attachEvent(window, "onresize", resize);
     position();
     setTimeout(function() {
-      style.display = "";
+      style.display = "block";
     }, 1);
   },
   
   onmouseover: _shimMouseOverOut,
   onmouseout: _shimMouseOverOut,
-  onmouseup: function(element) {
-    this.base.apply(this, arguments);
-    if (element == shim.element) shim.layout();
-  },
 
-  onkeydown: function(element, event, keyCode) {
-    this.base(element, event, keyCode);
-    if (shim.element == element) shim.layout();
-  },
+  onmousedown: _shimLayout,
+  onmouseup: _shimLayout,
+  onkeydown: _shimLayout,
 
   onkeyup: function(element, event, keyCode) {
-    if (!Popup.current && keyCode == 35) { // END key
+    if (!PopupWindow.current && keyCode == 35) { // END key
       element.scrollLeft = 9999;
     } else {
       this.base(element, event, keyCode);
@@ -75,11 +94,21 @@ var _MSIEShim = {
     if (element == shim.element) {
       shim.layout();
     }
+  },
+  
+  matchesSelector: function(element, selector) {
+    return this.base(element, selector) ||
+      (/^:(hover|active)$/.test(selector) && element == shim.element && this.base(shim.control, selector));
   }
 };
 
 var shim = behavior.extend({
+  jsbExtendedMouse: true,
+  
+  onclick: _shimMouse,
+  ondblclick: _shimMouse,
   onmousedown: _shimMouse,
+  onmouseup: _shimMouse,
   onmousemove: _shimMouse,
 
   onmouseover: _shimMouseOverOut2,
@@ -87,33 +116,40 @@ var shim = behavior.extend({
 
   layout: function() {
     if (this.element) {
-      this.control.runtimeStyle.backgroundPositionY = this.element.currentStyle.backgroundPositionY;
+      this.control.style.backgroundPosition = this.element.style.backgroundPosition;
     }
   }
 });
 
-function _shimMouse(element, event, x, y, screenX, screenY) {
-  if (event.type == "mousedown") {
-    event.preventDefault();
-  }
+function _shimLayout(element, event) {
+  this.base.apply(this, arguments);
+  if (element == shim.element) shim.layout();
+};
+
+function _shimMouse(element, event) {
   event.stopPropagation();
-  if (this.element) {
+  if (event.type == "mousedown") event.preventDefault();
+  this.dispatchEvent(this.element, event.type, event); // event forwarding only works in MSIE
+  /*var method = "on" + event.type; // use this for event forwarding in other browsers
+  if (this.element && this.behavior[method]) {
     var offset = ElementView.getOffsetXY(this.element, event.clientX, event.clientY);
-    this.behavior["on" + event.type](this.element, event, offset.x, offset.y, screenX, screenY);
-  }
+    this.behavior[method](this.element, event, offset.x, offset.y);
+  }*/
   this.layout();
 };
 
-function _shimMouseOverOut(element, event) {
-  if (!(element == shim.element && event.relatedTarget == shim.control)) {
-    this.base(element, event);
+function _shimMouseOverOut(element, event, x, y) {
+  if (element != shim.element || !event.relatedTarget || event.relatedTarget != shim.control) {
+    this.base(element, event, x, y);
   }
   if (shim.element == element) shim.layout();
 };
 
-function _shimMouseOverOut2(element, event) {
+function _shimMouseOverOut2(element, event, x, y) {
+  event.stopPropagation();
   if (this.element && event.relatedTarget != this.element) {
-    this.behavior["on" + event.type](this.element, event);
+    event.target = this.element;
+    this.behavior["on" + event.type](this.element, event, x, y);
   }
   this.layout();
 };

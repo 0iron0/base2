@@ -1,24 +1,20 @@
 
 // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-Registration-interfaces
 
-var _wrappedListeners = {};
-
 var EventTarget = Interface.extend({
   "@!(element.addEventListener)": {
     addEventListener: function(target, type, listener, useCapture) {
       var documentState = DocumentState.getInstance(target);
 
       // assign a unique id to both objects
-      var targetID = target.nodeType == 1 ? target.uniqueID : assignID(target);
-      var listenerID = assignID(listener);
-
+      var targetID = assignID(target),
+          listenerID = assignID(listener),
       // create a hash table of event types for the target object
-      var phase = useCapture ? _CAPTURING_PHASE : _BUBBLING_PHASE;
-      var typeMap = documentState.registerEvent(type, target);
-      var phaseMap = typeMap[phase];
+          phase = useCapture ? _CAPTURING_PHASE : _BUBBLING_PHASE,
+          typeMap = documentState.registerEvent(type, target),
+          phaseMap = typeMap[phase];
+          
       if (!phaseMap) phaseMap = typeMap[phase] = {};
-      // focus/blur (MSIE)
-      if (useCapture) type = _CAPTURE_TYPE[type] || type;
       // create a hash table of event listeners for each object/event pair
       var listeners = phaseMap[targetID];
       if (!listeners) listeners = phaseMap[targetID] = {};
@@ -28,6 +24,7 @@ var EventTarget = Interface.extend({
 
     dispatchEvent: function(target, event) {
       event.target = target;
+      event._userGenerated = true;
       return DocumentState.getInstance(target).handleEvent(event);
     },
 
@@ -45,93 +42,122 @@ var EventTarget = Interface.extend({
     }
   },
 
-  "@(element.addEventListener)": {
-    "@Gecko": {
-      addEventListener: function(target, type, listener, useCapture) {
-        if (type == "mousewheel") {
-          type = "DOMMouseScroll";
-          var originalListener = listener;
-          listener = _wrappedListeners[assignID(listener)] = function(event) {
-            event = Event.cloneEvent(event);
-            event.type = "mousewheel";
-            event.wheelDelta = (-event.detail * 40) || 0;
-            _handleEvent(target, originalListener, event);
-          };
+  addEventListener: function(target, type, listener, useCapture) {
+    var originalListener = listener;
+    if (type == "DOMContentLoaded") {
+      listener = _wrap(type, originalListener, function(event) {
+        event = Event.cloneEvent(event);
+        event.type = type;
+        event.bubbles = event.cancelable = false;
+        EventTarget.removeEventListener(target, type, originalListener, useCapture);
+        _handleEvent(this, originalListener, event);
+      });
+    } else if (type == "mouseenter" || type == "mouseleave") {
+      listener = _wrap(type, originalListener, function(event) {
+        if (Traversal.includes(this, event.target) && !Traversal.includes(this, event.relatedTarget)) {
+          event = copy(event);
+          event.target = this;
+          event.type = type;
+          event.bubbles = event.cancelable = false;
+          _handleEvent(this, originalListener, event);
         }
-        this.base(target, type, listener, useCapture);
-      }
-    },
+      });
+    }
+    this.base(target, _wrappedTypes[type] || type, listener, useCapture);
+  },
 
-    // http://unixpapa.com/js/mouse.html
-    "@webkit[1-4]|KHTML[34]": {
-      addEventListener: function(target, type, listener, useCapture) {
-        if (_MOUSE_BUTTON.test(type)) {
-          var originalListener = listener;
-          listener = _wrappedListeners[assignID(listener)] = function(event) {
-            var button = _TYPE_MAP[event.button] || 0;
-            if (event.button != button) {
+  removeEventListener: function(target, type, listener, useCapture) {
+    this.base(target, _wrappedTypes[type] || type, _unwrap(type, listener), useCapture);
+  },
+  
+  "@Gecko": {
+    addEventListener: function(target, type, listener, useCapture) {
+      if (type == "mousewheel") {
+        var originalListener = listener;
+        listener = _wrap(type, originalListener, function(event) {
+          event = Event.cloneEvent(event);
+          event.type = type;
+          event.wheelDelta = (-event.detail * 40) || 0;
+          _handleEvent(this, originalListener, event);
+        });
+      }
+      this.base(target, type, listener, useCapture);
+    }
+  },
+
+  "@Gecko1\\.[0-3]|Webkit[1-4]": {
+    addEventListener: function(target, type, listener, useCapture) {
+      if (/^mouse/.test(type)) {
+        var originalListener = listener;
+        listener = _wrap(type, originalListener, function(event) {
+          try {
+            if (event.target.nodeType == 3) {
               event = Event.cloneEvent(event);
-              event.button = button;
+              event.target = event.target.parentNode;
             }
-            _handleEvent(target, originalListener, event);
-          };
-        } else if (typeof listener == "object") {
-          listener = _wrappedListeners[assignID(listener)] = bind("handleEvent", listener);
-        }
-        this.base(target, type, listener, useCapture);
+          } catch (x) {
+            // sometimes the target is an anonymous node, ignore these
+            return;
+          }
+          _handleEvent(this, originalListener, event);
+        });
       }
-    },
+      this.base(target, type, listener, useCapture);
+    }
+  },
 
-    "@KHTML": {
-      addEventListener: function(target, type, listener, useCapture) {
-        if (type == "mousewheel") {
-          var originalListener = listener;
-          listener = _wrappedListeners[assignID(listener)] = function(event) {
+  // http://unixpapa.com/js/mouse.html
+  "@webkit[1-4]|KHTML[34]": {
+    addEventListener: function(target, type, listener, useCapture) {
+      var originalListener = listener;
+      if (_MOUSE_BUTTON.test(type)) {
+        listener = _wrap(type, originalListener, function(event) {
+          var button = _BUTTON_MAP[event.button] || 0;
+          if (event.button != button) {
             event = Event.cloneEvent(event);
-            event.wheelDelta /= _DELTA_SCALE;
-            _handleEvent(target, originalListener, event);
-          };
-        }
-        this.base(target, type, listener, useCapture);
+            event.button = button;
+          }
+          _handleEvent(this, originalListener, event);
+        });
+      } else if (typeof listener == "object") {
+        listener = _wrap(type, originalListener, bind("handleEvent", listener));
       }
-    },
+      this.base(target, type, listener, useCapture);
+    }
+  },
 
-    // http://unixpapa.com/js/key.html
-    "@Linux|Mac|Opera": {
-      addEventListener: function(target, type, listener, useCapture) {
-        // Some browsers do not fire repeated "keydown" events when a key
-        // is held down. They do fire repeated "keypress" events though.
-        // Cancelling the "keydown" event does not cancel the repeated
-        // "keypress" events. We fix all of this here...
-        if (type == "keydown") {
-          var originalListener = listener;
-          listener = _wrappedListeners[assignID(listener)] = function(keydownEvent) {
-            var firedCount = 0, cancelled = false;
-            extend(keydownEvent, "preventDefault", function() {
-              this.base();
-              cancelled = true;
-            });
-            function handleEvent(event) {
-              if (cancelled) event.preventDefault();
-              if (event == keydownEvent || firedCount > 1) {
-                _handleEvent(target, originalListener, keydownEvent);
-              }
-              firedCount++;
-            };
-            handleEvent(keydownEvent);
-            target.addEventListener("keyup", function() {
-              target.removeEventListener("keypress", handleEvent, true);
-              target.removeEventListener("keyup", arguments.callee, true);
-            }, true);
-            target.addEventListener("keypress", handleEvent, true);
+  // http://unixpapa.com/js/key.html
+  "@Linux|Mac|Opera": {
+    addEventListener: function(target, type, listener, useCapture) {
+      // Some browsers do not fire repeated "keydown" events when a key
+      // is held down. They do fire repeated "keypress" events though.
+      // Cancelling the "keydown" event does not cancel the repeated
+      // "keypress" events. We fix all of this here...
+      if (type == "keydown") {
+        var originalListener = listener;
+        listener = _wrap(type, originalListener, function(keydownEvent) {
+          var firedCount = 0, cancelled = false;
+          extend(keydownEvent, "preventDefault", function() {
+            this.base();
+            cancelled = true;
+          });
+          function handleEvent(event) {
+            if (cancelled) event.preventDefault();
+            if (event == keydownEvent || firedCount > 1) {
+              _handleEvent(this, originalListener, keydownEvent);
+            }
+            firedCount++;
           };
-        }
-        this.base(target, type, listener, useCapture);
+          var onkeyup = function() {
+            this.removeEventListener("keypress", handleEvent, true);
+            this.removeEventListener("keyup", onkeyup, true);
+          };
+          handleEvent.call(this, keydownEvent);
+          this.addEventListener("keyup", onkeyup, true);
+          this.addEventListener("keypress", handleEvent, true);
+        });
       }
-    },
-
-    removeEventListener: function(target, type, listener, useCapture) {
-      this.base(target, type, _wrappedListeners[listener.base2ID] || listener, useCapture);
+      this.base(target, type, listener, useCapture);
     }
   }
 });
@@ -140,11 +166,3 @@ if (detect("Gecko")) { // this needs to be here
   EventTarget.removeEventListener._delegate = "removeEventListener";
   delete EventTarget.prototype.removeEventListener;
 }
-
-function _handleEvent(target, listener, event) {
-  if (typeof listener == "function") {
-    listener.call(target, event);
-  } else {
-    listener.handleEvent(event);
-  }
-};

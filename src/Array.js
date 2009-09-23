@@ -5,7 +5,7 @@
 // then I'll include this file ;-)
 
 extend(Array.prototype, {
-  "@opera": {
+  "@Opera": {
     shift: function() {
       if (this.callee) {
         var i = 0;

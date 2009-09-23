@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package name="DOM">
+<package name="dom">
   <include src="package.js"/>
+  <include src="header.js"/>
   <include src="Interface.js"/>
   <include src="Binding.js"/>
   <include src="Node.js"/>

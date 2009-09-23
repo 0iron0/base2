@@ -3,7 +3,7 @@
 
 var Rule = Base.extend({
   constructor: function(selector, behavior) {
-    if (!instanceOf(selector, Selector)) {
+    if (!(selector instanceof Selector)) {
       selector = new Selector(selector);
     }
     
@@ -16,7 +16,9 @@ var Rule = Base.extend({
     }
     
     this.refresh = function() {
-      if (behavior.attach) selector.exec(document).forEach(behavior.attach);
+      if (typeof behavior.attach == "function") {
+        selector.exec(document).forEach(behavior.attach);
+      }
     };
 
     this.toString = selector.toString;

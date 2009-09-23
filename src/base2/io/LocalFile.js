@@ -73,6 +73,7 @@ var LocalFile = Base.extend({
       this.close = function() {
         if (mode == WRITE) stream.flush();
         stream.close();
+        
         delete this.read;
         delete this.write;
         delete this.close;
@@ -110,6 +111,7 @@ var LocalFile = Base.extend({
       
       this.close = function() {
         stream.close();
+        
         delete this.read;
         delete this.write;
         delete this.close;

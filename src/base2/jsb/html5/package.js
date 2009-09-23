@@ -1,42 +1,25 @@
 
 base2.global.html5 = new base2.Package(this, {
   name:    "html5",
-  version: "0.1",
-  imports: "Function2,Enumerable,DOM,jsb",
-  exports: "meter,progress",
+  version: "0.4",
+  imports: "Function2,Enumerable,dom,jsb",
+
+  rules: new jsb.RuleList,
+  
+  NOT_SUPPORTED: function() {
+    throw "Not supported in html5.js.";
+  },
 
   get: function(element, propertyName) {
-    var behavior = this.getBehavior(element);
-    if (behavior) {
-      return behavior.get(element, propertyName);
-    }
-    return undefined;
+    return this.getBehavior(element).get(element, propertyName);
   },
 
   set: function(element, propertyName, value) {
-    var behavior = this.getBehavior(element);
-    if (behavior) {
-      behavior.set(element, propertyName, value);
-    }
+    this.getBehavior(element).set(element, propertyName, value);
   },
 
   getBehavior: function(element) {
-    var behavior = this[element.nodeName.toLowerCase()];
-    if (behavior == html5.input || behavior == html5.button) {
-      behavior = behavior[Element.getAttribute(element, "type")];
-    }
-    return behavior;
-  },
-
-  "@MSIE": {
-    init: function() {
-      var newElements =
-        "abbr,article,aside,audio,bb,canvas,datagrid,datalist,details,dialog,eventsource," +
-        "figure,footer,header,mark,menu,meter,nav,output,progress,section,time,video";
-      forEach.csv(newElements, function(tagName) {
-        document.createElement(tagName);
-      });
-    }
+    return this[element.nodeName.toLowerCase()] || behavior;
   }
 });
 

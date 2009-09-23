@@ -17,7 +17,7 @@ function extend(object, source) { // or extend(object, key, value)
         var value = source[key];
         if (value != proto[key]) {
           if (_BASE.test(value)) {
-            _override(object, key, value)
+            object[key] = _override(object, key, value);
           } else {
             object[key] = value;
           }
@@ -26,7 +26,7 @@ function extend(object, source) { // or extend(object, key, value)
     }
     // Copy each of the source object's properties to the target object.
     for (key in source) {
-      if (proto[key] === undefined) {
+      if (typeof proto[key] == "undefined") {
         value = source[key];
         // Object detection.
         if (key.indexOf("@") == 0) {
@@ -37,7 +37,7 @@ function extend(object, source) { // or extend(object, key, value)
           if (ancestor && typeof value == "function") {
             if (value != ancestor) {
               if (_BASE.test(value)) {
-                _override(object, key, value);
+                object[key] = _override(object, key, value);
               } else {
                 value.ancestor = ancestor;
                 object[key] = value;
@@ -50,7 +50,17 @@ function extend(object, source) { // or extend(object, key, value)
       }
     }
   }
-  return object;
+  // http://www.hedgerwow.com/360/dhtml/ie6_memory_leak_fix/
+  /*@if (@_jscript) {
+    try {
+      return object;
+    } finally {
+      object = null;
+    }
+  }
+  @else @*/
+    return object;
+  /*@end @*/
 };
 
 function _ancestorOf(ancestor, fn) {
@@ -64,7 +74,7 @@ function _ancestorOf(ancestor, fn) {
 };
 
 function _override(object, name, method) {
-  // Override an existing method.
+  // Return a method that overrides an existing method.
   var ancestor = object[name];
   var superObject = base2.__prototyping; // late binding for prototypes
   if (superObject && ancestor != superObject[name]) superObject = null;
@@ -77,8 +87,7 @@ function _override(object, name, method) {
   };
   _base.method = method;
   _base.ancestor = ancestor;
-  object[name] = _base;
   // introspection (removed when packed)
   ;;; _base.toString = K(method + "");
-  object = null;
+  return _base;
 };

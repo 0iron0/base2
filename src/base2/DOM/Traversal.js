@@ -1,28 +1,26 @@
 
 // DOM Traversal. Just the basics.
-
-var TEXT = detect("(element.textContent===undefined)") ? "innerText" : "textContent";
-
 var Traversal = Module.extend({
-  getDefaultView: function(node) {
-    return this.getDocument(node).defaultView;
+  contains: function(node, target) {
+    node.nodeType; // throw an error if no node supplied
+    while (target && (target = target[_PARENT]) && node != target) continue;
+    return !!target;
   },
 
-  getFirstElementChild: function(node) {
-    node = node.firstChild;
-    return this.isElement(node) ? node : this.getNextElementSibling(node);
+  getFirstElementChild: function(element) {
+    element = element.firstChild;
+    return this.isElement(element) ? element : this.getNextElementSibling(element);
   },
 
-  getLastElementChild: function(node) {
-    node = node.lastChild;
-    return this.isElement(node) ? node : this.getPreviousElementSibling(node);
+  getLastElementChild: function(element) {
+    element = element.lastChild;
+    return this.isElement(element) ? element : this.getPreviousElementSibling(element);
   },
 
-  getNextElementSibling: function(node) {
+  getNextElementSibling: function(element) {
     // return the next element to the supplied element
-    //  nextSibling is not good enough as it might return a text or comment node
-    while (node && (node = node.nextSibling) && !this.isElement(node)) continue;
-    return node;
+    while (element && (element = element.nextSibling) && !this.isElement(element)) continue;
+    return element;
   },
 
   getNodeIndex: function(node) {
@@ -31,85 +29,91 @@ var Traversal = Module.extend({
     return index;
   },
   
-  getOwnerDocument: function(node) {
+  getOwnerDocument: function(element) {
     // return the node's containing document
-    return node.ownerDocument;
+    return element.ownerDocument;
   },
   
-  getPreviousElementSibling: function(node) {
+  getPreviousElementSibling: function(element) {
     // return the previous element to the supplied element
-    while (node && (node = node.previousSibling) && !this.isElement(node)) continue;
-    return node;
+    while (element && (element = element.previousSibling) && !this.isElement(element)) continue;
+    return element;
   },
 
   getTextContent: function(node, isHTML) {
-    return node[isHTML ? "innerHTML" : TEXT];
+    return node[node.nodeType == 1 ? isHTML ? "innerHTML" : _TEXT_CONTENT : "nodeValue"];
   },
 
-  isEmpty: function(node) {
-    node = node.firstChild;
-    while (node) {
-      if (node.nodeType == 3 || this.isElement(node)) return false;
-      node = node.nextSibling;
+  includes: function(node, target) {
+    return !!target && (node == target || this.contains(node, target));
+  },
+
+  isEmpty: function(element) {
+    element = element.firstChild;
+    while (element) {
+      if (element.nodeType == 3 || this.isElement(element)) return false;
+      element = element.nextSibling;
     }
     return true;
   },
 
   setTextContent: function(node, text, isHTML) {
-    return node[isHTML ? "innerHTML" : TEXT] = text;
+    node[node.nodeType == 1 ? isHTML ? "innerHTML" : _TEXT_CONTENT : "nodeValue"] = text;
   },
 
   "@!MSIE": {
     setTextContent: function(node, text, isHTML) {
       // Destroy the DOM (slightly faster for non-MISE browsers)
-      with (node) while (lastChild) parentNode.removeChild(lastChild);
-      return this.base(node, text, isHTML);
+      with (node) while (lastChild) removeChild(lastChild);
+      this.base(node, text, isHTML);
     }
   },
 
-  "@MSIE": {
-    getDefaultView: function(node) {
-      return (node.document || node).parentWindow;
-    },
-  
-    "@MSIE5": {
-      // return the node's containing document
-      getOwnerDocument: function(node) {
-        return node.ownerDocument || node.document;
-      }
+  "@(jscript<5.6)": {
+    getOwnerDocument: function(element) {
+      return element.document.parentWindow.document;
     }
   }
 }, {
-  TEXT: TEXT,
-  
-  contains: function(node, target) {
-    node.nodeType; // throw an error if no node supplied
-    while (target && (target = target.parentNode) && node != target) continue;
-    return !!target;
-  },
-  
-  getDocument: function(node) {
+  TEXT_CONTENT: _TEXT_CONTENT,
+
+  getDefaultView: function(nodeOrWindow) {
     // return the document object
-    return this.isDocument(node) ? node : node.ownerDocument || node.document;
+    return (nodeOrWindow.ownerDocument || nodeOrWindow.document || nodeOrWindow).defaultView;
+  },
+
+  getDocument: function(nodeOrWindow) {
+    // return the document object
+    return this.isDocument(nodeOrWindow) ?
+      nodeOrWindow : nodeOrWindow.nodeType ? this.getOwnerDocument(nodeOrWindow) : nodeOrWindow.document || null;
   },
   
   isDocument: function(node) {
-    return !!(node && node.documentElement);
+    return !!node && node.nodeType == 9;
   },
-  
+
   isElement: function(node) {
-    return !!(node && node.nodeType == 1);
+    return !!node && node.nodeType == 1;
   },
-  
-  "@(element.contains)": {  
-    contains: function(node, target) {
-      return node != target && (this.isDocument(node) ? node == this.getOwnerDocument(target) : node.contains(target));
+
+  isXML: function(node) {
+    return !this.getDocument(node).getElementById;
+  },
+
+  "@!(document.defaultView)": {
+    getDefaultView: function(nodeOrWindow) {
+      // return the document object
+      return (nodeOrWindow.document || nodeOrWindow).parentWindow;
     }
   },
-  
-  "@MSIE5": {
+
+  "@(jscript<5.6)": {
+    isDocument: function(node) {
+      return !!(node && (node.nodeType == 9 || node.writeln));
+    },
+    
     isElement: function(node) {
-      return !!(node && node.nodeType == 1 && node.nodeName != "!");
+      return !!node && node.nodeType == 1 && node.nodeName != "!";
     }
   }
 });

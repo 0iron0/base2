@@ -72,7 +72,7 @@ var RegGrp = Collection.extend({
   
   init: function() {
     forEach ("add,get,has,put,remove".split(","), function(name) {
-      _override(this, name, function(expression) {
+      this[name] = _override(this, name, function(expression) {
         if (instanceOf(expression, RegExp)) {
           arguments[0] = expression.source;
         }
@@ -112,7 +112,8 @@ var RegGrp = Collection.extend({
       this.replacement = replacement;
       this.toString = K(expression + "");
     },
-    
+
+    disabled: false,
     length: 0,
     replacement: ""
   },

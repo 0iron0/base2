@@ -1,5 +1,5 @@
 
-base2.DOM.bind(document);
+base2.dom.bind(document);
 
 new base2.JSB.Rule("pre", {
   oncontentready: function(element) {
@@ -9,7 +9,7 @@ new base2.JSB.Rule("pre", {
       var engine = names[i];
       var colorizer = Colorizer[engine];
       if (colorizer instanceof Colorizer) {
-        var textContent = base2.DOM.Traversal.getTextContent(element);
+        var textContent = base2.dom.Traversal.getTextContent(element);
         element.innerHTML = colorizer.exec(textContent);
         element.classList.add("highlight");
         if (engine == "html-multi") element.classList.add("html");

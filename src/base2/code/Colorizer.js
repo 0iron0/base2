@@ -32,7 +32,7 @@ var Colorizer = RegGrp.extend({
   
   exec: function(text, secondary) {
     text = this.base(this.escape(text));
-    if (!secondary) { // Not a secondary parse of the text (e.g. CSS within an HTML sample)
+    if (!secondary) { // Not a secondary parse of the text (e.g. CSS within an HTML sample).
       text = this._parseWhiteSpace(text);
       if (this.urls) text = Colorizer.urls.exec(text);
     }

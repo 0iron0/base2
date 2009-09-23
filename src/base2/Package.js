@@ -4,7 +4,7 @@ var Package = Base.extend({
     var pkg = this;
     
     pkg.extend(_public);
-    
+
     if (pkg.name && pkg.name != "base2") {
       if (_public.parent === undefined) pkg.parent = base2;
       if (pkg.parent) pkg.parent.addName(pkg.name, pkg);
@@ -13,13 +13,13 @@ var Package = Base.extend({
     
     if (_private) {
       // This next line gets round a bug in old Mozilla browsers
-      var JSNamespace = base2.JavaScript ? base2.JavaScript.namespace : "";
+      var jsNamespace = base2.js ? base2.js.namespace : "";
       
       // This string should be evaluated immediately after creating a Package object.
-      var namespace = "var base2=(function(){return this.base2})();" + base2.namespace + JSNamespace;
+      var namespace = "var base2=(function(){return this.base2})(),_private=base2.toString;" + base2.namespace + jsNamespace;
       var imports = csv(pkg.imports), name;
       for (var i = 0; name = imports[i]; i++) {
-        var ns = lookup(name) || lookup("JavaScript." + name);
+        var ns = lookup(name) || lookup("js." + name);
         if (!ns) throw new ReferenceError(format("Object not found: '%1'.", name));
         namespace += ns.namespace;
       }
@@ -44,7 +44,7 @@ var Package = Base.extend({
       _private["_label_" + pkg.name] = function() {
         for (var name in pkg) {
           var object = pkg[name];
-          if (object && object.ancestorOf == Base.ancestorOf) { // it's a class
+          if (object && object.ancestorOf == Base.ancestorOf && name != "constructor") { // it's a class
             object.toString = K("[" + packageName + "." + name + "]");
           }
         }
@@ -72,6 +72,9 @@ var Package = Base.extend({
       this[name] = value;
       this.exports += "," + name;
       this.namespace += format("var %1=%2.%1;", name, this.name);
+      if (value && value.ancestorOf == Base.ancestorOf && name != "constructor") { // it's a class
+        value.toString = K("[" + String2.slice(this, 1, -1) + "." + name + "]");
+      }
     }
   },
 

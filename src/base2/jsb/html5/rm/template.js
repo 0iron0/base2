@@ -3,10 +3,10 @@ var template = element.extend({
   onattach: function(template) {
     template.style.display = "none";
     
-    var min   = this.get(template, "repeat-min");
+    var min   = this.get(template, "repeat-min"),
         start = this.get(template, "repeat-start"),
         i = 0;
-        
+
     while (i++ < start) {
       this.addRepetitionBlock(template, null);
     }

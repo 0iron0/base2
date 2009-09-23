@@ -31,7 +31,7 @@ var JSONFileSystem = FileSystem.extend({
   },
   
   mkdir: function(path) {
-    // create a directory
+    // Create a directory.
     this.write(path, {});
   },
   
@@ -42,14 +42,14 @@ var JSONFileSystem = FileSystem.extend({
   },
 
   read: function(path) {    
-    // read text from the JSON object
+    // Read text from the JSON object.
     var file = this[_FETCH](path);
     return typeof file == "object" ?
       new JSONDirectory(file) : file || ""; // make read safe
   },
   
   remove: function(path) {
-    // remove data from the JSON object
+    // Remove data from the JSON object.
     path = path.replace(/\/$/, "").split("/");
     var filename = path.splice(path.length - 1, 1);
     var directory = this[_FETCH](path.join("/"));
@@ -57,7 +57,7 @@ var JSONFileSystem = FileSystem.extend({
   },
 
   write: function(path, data) {
-    // write data to the JSON object
+    // Write data to the JSON object.
     path = path.split("/");
     var filename = path.splice(path.length - 1, 1);
     var directory = this[_FETCH](path.join("/"));

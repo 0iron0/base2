@@ -17,13 +17,5 @@ var MouseEvent = UIEvent.extend({
       event.button = button;
       event.relatedTarget = relatedTarget;
     }
-}, {
-  "@!(document.createEvent('MouseEvents'))": {
-    "@MSIE": {
-      bind: function(event) {
-        event.relatedTarget = event[(event.target == event.fromElement ? "to" : "from") + "Element"];
-        return this.base(event);
-      }
-    }
   }
 });

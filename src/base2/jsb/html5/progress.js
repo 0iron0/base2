@@ -1,39 +1,55 @@
 
-var progress = behavior.extend({
-  max: 1,
-  value: 0,
+_registerElement("progress", {
+  detect: "max",
 
-  HEIGHT: 3000,
-  WIDTH: 3000,
-  CHUNK_WIDTH: 1,
-  CHUNK_HEIGHT: 1,
-
-  "@theme=luna": {
-    CHUNK_WIDTH: 10,
-    CHUNK_HEIGHT: 10
+  display: "inline-block",
+  
+  "@Gecko": {
+    display: "-moz-inline-box;display:inline-block"
   },
 
-  onattach: _progress_layout,
-  onmaxchange: _progress_layout,
-  onvaluechange: _progress_layout
-});
+  style: {
+    width: "8em"
+    // additional styles are defined in jsb.chrome
+  },
 
-function _progress_layout(element) {
-  var max = this.get(element, "max"),
-      value = this.get(element, "value"),
-      relativeValue = value / max,
-      clientWidth = element.clientWidth,
-      clientHeight = element.clientHeight;
+  behavior: {
+    _CHUNK_SIZE: 1,    // some progress bars are shown in chunks
+    _IMAGE_SIZE: 3000, // the actual size of the background image
 
-  if (clientHeight > clientWidth) {
-    var left = (-clientWidth / 2) * (clientWidth + 3) - 2;
-    var top = Math.floor(clientHeight * relativeValue);
-    top = clientHeight - Math.round(top / this.CHUNK_HEIGHT) * this.CHUNK_HEIGHT;
-  } else {
-    left = Math.floor(clientWidth * relativeValue) - this.WIDTH;
-    left = Math.round(left / this.CHUNK_WIDTH) * this.CHUNK_WIDTH;
-    top = (-clientHeight / 2) * (clientHeight + 3) - 2;
+    "@theme=luna": {
+      _CHUNK_SIZE: 10  // luna themes use chunked progress bars
+    },
+
+    max: 1,
+    value: 0,
+
+    onattach: function(element) {
+      this.layout(element);
+    },
+
+    onpropertyset: function(element, event, propertyName) {
+      if (/^(max|value)$/.test(propertyName)) {
+        this.layout(element);
+      }
+    },
+
+    layout: function(element) {
+      var relativeValue = this.get(element, "value") / this.get(element, "max"),
+          clientWidth = element[_WIDTH],
+          clientHeight = element[_HEIGHT];
+
+      if (clientHeight > clientWidth) {
+        var left = (-clientWidth / 2) * (clientWidth + 3) - 2,
+            top = ~~(clientHeight * relativeValue);
+        top = clientHeight - Math.round(top / this._CHUNK_SIZE) * this._CHUNK_SIZE;
+      } else {
+        left = ~~(clientWidth * relativeValue) - this._IMAGE_SIZE;
+        left = Math.round(left / this._CHUNK_SIZE) * this._CHUNK_SIZE;
+        top = (-clientHeight / 2) * (clientHeight + 3) - 2;
+      }
+
+      element.style.backgroundPosition = ~~left + "px " + ~~top + "px";
+    }
   }
-
-  element.style.backgroundPosition = left + "px " + top + "px";
-};
+});

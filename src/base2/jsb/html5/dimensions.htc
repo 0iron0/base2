@@ -1,0 +1,7 @@
+
+<component lightweight="true">
+<script>
+jsb.clientWidth2[uniqueID]=clientWidth;
+jsb.clientHeight2[uniqueID]=clientHeight;
+</script>
+</component>

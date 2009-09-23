@@ -3,22 +3,16 @@
 // Used for fixing event handlers and supporting the Selectors API.
 
 var DocumentState = Base.extend({
-  constructor: function(document) {
+  init: function(document) {
     this.document = document;
     this.events = {};
     this._hoverElement = document.documentElement;
-    this.isBound = function() {
-      return !!DOM.bind[document.base2ID];
-    };
+    var EVENT_HANDLER = /^on((DOM)?\w+|[a-z]+)$/;
     forEach (this, function(method, name, documentState) {
-      if (/^on((DOM)?\w+|[a-z]+)$/.test(name)) {
+      if (EVENT_HANDLER.test(name)) {
         documentState.registerEvent(name.slice(2));
       }
     });
-  },
-
-  includes: function(element, target) {
-    return target && (element == target || Traversal.contains(element, target));
   },
 
   hasFocus: function(element) {
@@ -26,15 +20,17 @@ var DocumentState = Base.extend({
   },
 
   isActive: function(element) {
-    return this.includes(element, this._activeElement);
+    return Traversal.includes(element, this._activeElement);
   },
 
   isHover: function(element) {
-    return this.includes(element, this._hoverElement);
+    return Traversal.includes(element, this._hoverElement);
   },
 
   handleEvent: function(event) {
-    return this["on" + event.type](event);
+    if (!event._userGenerated) {
+      this["on" + event.type](event);
+    }
   },
 
   onblur: function(event) {
@@ -43,10 +39,6 @@ var DocumentState = Base.extend({
 
   onmouseover: function(event) {
     this._hoverElement = event.target;
-  },
-
-  onmouseout: function(event) {
-    delete this._hoverElement;
   },
 
   onmousedown: function(event) {
@@ -66,31 +58,31 @@ var DocumentState = Base.extend({
     this.events[type] = true;
   },
 
-  "@(document.activeElement===undefined)": {
-    constructor: function(document) {
+  "@!(document.activeElement)": {
+    init: function(document) {
       this.base(document);
-      if (this.isBound()) {
+      if (dom.isBound(document)) {
         document.activeElement = document.body;
       }
     },
 
     onfocus: function(event) {
       this.base(event);
-      if (this.isBound()) {
+      if (dom.isBound(this.document)) {
         this.document.activeElement = this._focusElement;
       }
     },
 
     onblur: function(event) {
       this.base(event);
-      if (this.isBound()) {
+      if (dom.isBound(this.document)) {
         this.document.activeElement = this.document.body;
       }
     }
   },
 
   "@!(element.addEventListener)": {
-    constructor: function(document) {
+    init: function(document) {
       this.base(document);
       var dispatcher = new EventDispatcher(this);
       this._dispatch = function(event) {
@@ -105,12 +97,14 @@ var DocumentState = Base.extend({
       };
     },
 
-    registerEvent: function(type, target) {
-      var events = this.events[type];
-      var canDelegate = _CAN_DELEGATE.test(type);
+    registerEvent: function(type, target) { //-@DRE
+      var events = this.events[type],
+          targetIsWindow = target && target.Infinity,
+          canDelegate = !targetIsWindow && !_CANNOT_DELEGATE.test(type);
       if (!events || !canDelegate) {
         if (!events) events = this.events[type] = {};
         if (canDelegate || !target) target = this.document;
+        if (!target) target = this.document;
         this.addEvent(type, target);
       }
       return events;
@@ -126,19 +120,29 @@ var DocumentState = Base.extend({
       };
     },
 
-    "@MSIE.+win": {
-      constructor: function(document) {
+    "@(element.attachEvent)": {
+      init: function(document) {
         this.base(document);
         var forms = {};
         this._registerForm = function(form) {
           var formID = assignID(form);
           if (!forms[formID]) {
             forms[formID] = true;
-            form.attachEvent("onsubmit", this._dispatch);
-            form.attachEvent("onreset", this._dispatch);
+            _private.attachEvent(form, "onsubmit", this._dispatch);
+            _private.attachEvent(form, "onreset", this._dispatch);
+          }
+        };
+        var state = this;
+        this._onselect = function(event) {
+          if (state._activeElement == event.target) {
+            state._selectEvent = copy(event);
+          } else {
+            state._dispatch(event);
           }
         };
       },
+      
+      registered: {},
 
       fireEvent: function(type, event) {
         event = Event.cloneEvent(event);
@@ -147,9 +151,14 @@ var DocumentState = Base.extend({
       },
 
       addEvent: function(type, target) {
-        if (target["on" + type] !== undefined) {
+        var key = assignID(target) + type;
+        if (!this.registered[key] && target["on" + type] !== undefined) {
+          this.registered[key] = true;
           var state = this;
-          target.attachEvent("on" + type, function(event) {
+          _private.attachEvent(target, "on" + type, function(event) {
+            /*@if (@_jscript_version < 5.6)
+            if (event.srcElement && !event.srcElement.nodeName) return;
+            /*@end @*/
             event.target = event.srcElement || target;
             state.handleEvent(event);
             if (state["after" + type]) {
@@ -161,7 +170,7 @@ var DocumentState = Base.extend({
 
       onDOMContentLoaded: function(event) {
         forEach (event.target.forms, this._registerForm, this);
-        this.setFocus(this.document.activeElement);
+        this.activate(this.document.activeElement);
       },
 
       onmousedown: function(event) {
@@ -171,7 +180,7 @@ var DocumentState = Base.extend({
 
       onmouseup: function(event) {
         this.base(event);
-        if (this._button == null) {
+        if (!event._userGenerated && this._button == null) {
           this.fireEvent("mousedown", event);
         }
         delete this._button;
@@ -185,32 +194,23 @@ var DocumentState = Base.extend({
       },
 
       onfocusin: function(event) {
-        this.setFocus(event.target);
+        this.activate(event.target);
         this.onfocus(event);
       },
 
-      setFocus: function(target) {
-        var change = this.events.change && target.onchange !== undefined,
-           select = this.events.select && target.onselect !== undefined;
+      activate: function(element) {
+        var change = this.events.change && element.onchange !== undefined,
+           select = this.events.select && element.onselect !== undefined;
         if (change || select) {
-          var dispatch = this._dispatch;
-          if (change) target.attachEvent("onchange", dispatch);
-          if (select) {
-            var state = this;
-            var onselect = function(event) {
-              if (state._activeElement == target) {
-                state._selectEvent = copy(event);
-              } else {
-                dispatch(event);
-              }
-            };
-            target.attachEvent("onselect", onselect);
-          }
-          target.attachEvent("onblur", function() {
-            target.detachEvent("onblur", arguments.callee);
-            if (change) target.detachEvent("onchange", dispatch);
-            if (select) target.detachEvent("onselect", onselect);
-          });
+          var dispatch = this._dispatch, onselect = this._onselect;
+          if (change) _private.attachEvent(element, "onchange", dispatch);
+          if (select) _private.attachEvent(element, "onselect", onselect);
+          var onblur = function() {
+            _private.detachEvent(element, "onblur", onblur, true);
+            if (change) _private.detachEvent(element, "onchange", dispatch);
+            if (select) _private.detachEvent(element, "onselect", onselect);
+          };
+          _private.attachEvent(element, "onblur", onblur);
         }
       },
 
@@ -224,24 +224,45 @@ var DocumentState = Base.extend({
       },
 
       ondblclick: function(event) {
-        this.fireEvent("click", event);
+        if (!event._userGenerated) this.fireEvent("click", event);
+      },
+
+      "@!(element.onfocusin)": {
+        init: function(document) {
+          this.base(document);
+          var state = this, activeElement = document.activeElement;
+          _private.attachEvent(document, "onpropertychange", function(event) {
+            if (event.propertyName == "activeElement") {
+              if (activeElement) {
+                _private.attachEvent(activeElement, "onblur", onblur);
+              }
+              activeElement = document.activeElement;
+              if (activeElement) {
+                _private.attachEvent(activeElement, "onfocus", onfocus);
+                state.activate(activeElement);
+              }
+            }
+          });
+          function onfocus(event) {
+            _private.detachEvent(event.srcElement, "onfocus", onfocus);
+            event.target = event.srcElement;
+            state.handleEvent(event);
+          };
+          function onblur(event) {
+            _private.detachEvent(event.srcElement, "onblur", onblur);
+            event.target = event.srcElement;
+            state.handleEvent(event);
+          };
+        }
       }
     }
   }
 }, {
-  init: function() {
-    if (global.document) {
-      assignID(document);
-      DocumentState = this;
-      this.createState(document);
-      new DOMContentLoadedEvent(document);
-    }
-  },
-
   createState: function(document) {
-    var base2ID = document.base2ID;
-    if (!this[base2ID]) {
-      this[base2ID] = new this(document);
+    var base2ID = assignID(document);
+    if (!this[base2ID] && !Traversal.isXML(document)) {
+      this[base2ID] = new this();
+      this[base2ID].init(document);
     }
     return this[base2ID];
   },
@@ -251,3 +272,6 @@ var DocumentState = Base.extend({
     return this[document.base2ID] || this.createState(document);
   }
 });
+
+DocumentState.createState(document);
+new DOMContentLoadedEvent(document);

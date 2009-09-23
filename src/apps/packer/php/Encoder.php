@@ -1,7 +1,7 @@
 <?php
 
 class Encoder {
-  private $words;
+  protected $words;
   private $parser;
   private $encoder;
   

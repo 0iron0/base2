@@ -5,6 +5,7 @@ DocumentEvent.implement({
   createEvent: function(document, type) {
     assertArity(arguments);
     assert(Traversal.isDocument(document), "Invalid object.");
+    
     return this.base(document, type);
   }
 });

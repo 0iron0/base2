@@ -44,15 +44,15 @@ var Map = Base.extend({
 
   // Ancient browsers throw an error if we use "in" as an operator.
   has: function(key) {
-  /*@cc_on @*/
-  /*@if (@_jscript_version < 5.5)
-    return $Legacy.has(this, _HASH + key);
-  @else @*/
-    return _HASH + key in this;
-  /*@end @*/
+    key = _HASH + key;
+    /*@if (@_jscript_version < 5.5)
+      return this[key] !== undefined || $Legacy.has(this, key);
+    @else @*/
+      return key in this;
+    /*@end @*/
   },
 
-  merge: function(values) {
+  merge: function(values /*, value1, value2, .. ,valueN */) {
     var put = flip(this.put);
     forEach (arguments, function(values) {
       forEach (values, put, this);

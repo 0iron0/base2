@@ -4,15 +4,15 @@
 var DocumentEvent = Interface.extend({  
   "@!(document.createEvent)": {
     createEvent: function(document, type) {
-      var event = document.createEventObject ? document.createEventObject() : {};
-      event.bubbles = false;
-      event.cancelable = false;
-      event.eventPhase = 0;
-      event.target = document;
-      event.currentTarget = null;
-      event.relatedTarget = null;
-      event.timeStamp = new Date().valueOf();
-      return Event(event);
+      return Event({
+        bubbles: false,
+        cancelable: false,
+        eventPhase: 0,
+        target: document,
+        currentTarget: null,
+        relatedTarget: null,
+        timeStamp: new Date().valueOf()
+      });
     }
   },
   
