@@ -27,13 +27,13 @@ jsonTests.testToString = function() {
   assertEqual(o.toJSONString("test"), quote("test"));
   assertEqual(o.toJSONString("I said: 'quiet'!"), quote("I said: 'quiet'!"));
   assertEqual(o.toJSONString("I said: \"quiet\"!"), quote('I said: \\"quiet\\"!'));
-  assertEqual(o.toJSONString("Line1\nLine2\nLine3"), quote("Line1\\nLine2\\nLine3"));
-  assertEqual(o.toJSONString("Line1\rLine2\rLine3"), quote("Line1\\rLine2\\rLine3"));
-  assertEqual(o.toJSONString("Line1\n\rLine2\r\nLine3"), quote("Line1\\n\\rLine2\\r\\nLine3"));
-  assertEqual(o.toJSONString("Column1\tColumn2"), quote("Column1\\tColumn2"));
-  assertEqual(o.toJSONString("Form1\fForm2"), quote("Form1\\fForm2"));
-  assertEqual(o.toJSONString("Delete\b\b\b\b\b\bBackspace"), quote("Delete\\b\\b\\b\\b\\b\\bBackspace"));
-  assertEqual(o.toJSONString("Del\x7F"), quote("Del\x7F"));
+  assertEqual(o.toJSONString("Line1\nLine2\nLine3"), quote("Line1\\u000aLine2\\u000aLine3"));
+  assertEqual(o.toJSONString("Line1\rLine2\rLine3"), quote("Line1\\u000dLine2\\u000dLine3"));
+  assertEqual(o.toJSONString("Line1\n\rLine2\r\nLine3"), quote("Line1\\u000a\\u000dLine2\\u000d\\u000aLine3"));
+  assertEqual(o.toJSONString("Column1\tColumn2"), quote("Column1\\u0009Column2"));
+  assertEqual(o.toJSONString("Form1\fForm2"), quote("Form1\\u000cForm2"));
+  assertEqual(o.toJSONString("Delete\b\b\b\b\b\bBackspace"), quote("Delete\\u0008\\u0008\\u0008\\u0008\\u0008\\u0008Backspace"));
+  assertEqual(o.toJSONString("Del\x7F"), quote("Del\\u007f"));
   assertEqual(o.toJSONString("\x00"), quote("\\u0000"));
   assertEqual(o.toJSONString("\x01"), quote("\\u0001"));
   assertEqual(o.toJSONString("\x02"), quote("\\u0002"));
@@ -42,13 +42,13 @@ jsonTests.testToString = function() {
   assertEqual(o.toJSONString("\x05"), quote("\\u0005"));
   assertEqual(o.toJSONString("\x06"), quote("\\u0006"));
   assertEqual(o.toJSONString("\x07"), quote("\\u0007"));
-  assertEqual(o.toJSONString("\x08"), quote("\\b"));
-  assertEqual(o.toJSONString("\x09"), quote("\\t"));
-  assertEqual(o.toJSONString("\x0a"), quote("\\n"));
+  assertEqual(o.toJSONString("\x08"), quote("\\u0008"));
+  assertEqual(o.toJSONString("\x09"), quote("\\u0009"));
+  assertEqual(o.toJSONString("\x0a"), quote("\\u000a"));
   //Hexadecimal unicode test depends on Number.toString(16) is in lowercase
   assertEqual(o.toJSONString("\x0b"), quote("\\u000b"));
-  assertEqual(o.toJSONString("\x0c"), quote("\\f"));
-  assertEqual(o.toJSONString("\x0d"), quote("\\r"));
+  assertEqual(o.toJSONString("\x0c"), quote("\\u000c"));
+  assertEqual(o.toJSONString("\x0d"), quote("\\u000d"));
   assertEqual(o.toJSONString("\x0e"), quote("\\u000e"));
   assertEqual(o.toJSONString("\x0f"), quote("\\u000f"));
   assertEqual(o.toJSONString("\x10"), quote("\\u0010"));
@@ -72,17 +72,17 @@ jsonTests.testToDate = function() {
   function d() { return new Date(Date.UTC.apply(this, arguments)); }
   function quote(s) { return '"'+s+'"'; } //we test agains double quotes
   var o=base2.JSON.Date;
-  assertEqual(o.toJSONString(d(1972,11-1,14)), quote("1972-11-14T00:00:00Z"), "Date: date");
+  assertEqual(o.toJSONString(d(1972,11-1,14)), quote("1972-11-14T00:00:00.000Z"), "Date: date");
   // d(0,0,0,15,16,17) results in "Mon Jan 01 1900 16:16:17 GMT+0100 (CET)",
   // so don't test that.
-  assertEqual(o.toJSONString(d(2007,07-1,28,0,28,10)), quote("2007-07-28T00:28:10Z"), "Date: date+time");
+  assertEqual(o.toJSONString(d(2007,07-1,28,0,28,10)), quote("2007-07-28T00:28:10.000Z"), "Date: date+time");
 };
 jsonTests.testToArray = function() {
   var o=base2.JSON.Array;
   assertEqual(o.toJSONString([]), "[]");
   assertEqual(o.toJSONString([1,2,3,4]), "[1,2,3,4]");
-  assertEqual(o.toJSONString(new Array(2)), "[]");
-  assertEqual(o.toJSONString([void 0,1,undefined,2,void true]), "[1,2]");
+  assertEqual(o.toJSONString(new Array(2)), "[null,null]");
+  assertEqual(o.toJSONString([void 0,1,undefined,2,void true]), "[null,1,null,2,null]");
   assertEqual(o.toJSONString(new Array(0,1,2,3)), "[0,1,2,3]");
 };
 jsonTests.testToObject = function() {
