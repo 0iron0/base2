@@ -53,9 +53,7 @@ var _WIN_DETECT_ACTIVECAPTION = {
   "#5e81bc": "royale",
   "#99b4d1": "aero",
   "#c4cbde": "aero",
-  "#343434": "zune",
-  "#c09f79": "human",
-  "#83a67f": "smooth"
+  "#343434": "zune"
 }, _WIN_DETECT_GRAYTEXT = {
   "#808080": "classic",
   "#8d8961": "classic/brick",
@@ -102,8 +100,8 @@ function rgb(r, g, b) {
 function _getColors() {
   var element = document.createElement("input"),
       style = element.style,
-      head = behavior.querySelector("body,head"),
-      getColor = function(color) {
+      body = document.body || behavior.querySelector("head");
+  var getColor = function(color) {
         style.color = color;
         if (color.toLowerCase() == style.color.toLowerCase()) {
           color = ViewCSS.getComputedPropertyValue(document.defaultView, element, "color");
@@ -113,19 +111,9 @@ function _getColors() {
         if (/rgb/.test(color)) color = eval(color);
         return color;
       };
-  head.appendChild(element);
+  body.appendChild(element);
   // detect OS theme by inspecting the ActiveCaption colour
   var colors = [getColor("ActiveCaption"), getColor("GrayText")];
-  head.removeChild(element);
+  body.removeChild(element);
   return colors;
 };
-
-var _WINDOW =         "window",
-    _HIGHLIGHT =      "highlight",
-    _HIGHLIGHT_TEXT = "highlighttext";
-
-if (detect("(Webkit([1-4]|5[01]|52[^89])|theme=aqua).+win")) { // webkit pre 528 uses the same colours, no matter the theme
-    _WINDOW =         "#ffffff";
-    _HIGHLIGHT =      "#427cd9";
-    _HIGHLIGHT_TEXT = "#ffffff";
-}

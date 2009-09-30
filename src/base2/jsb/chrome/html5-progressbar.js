@@ -1,0 +1,4 @@
+
+// stub
+
+var progressbar = null;

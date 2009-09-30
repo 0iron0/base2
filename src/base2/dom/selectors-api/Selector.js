@@ -49,7 +49,7 @@ var Selector = Base.extend({
           args = ["e0,c"],
           states = [],
           vars = (isTest ? "" : "_query.complete=false;") + "_indexed++;" +
-            "var r=[],l,d=e0.nodeType==9?e0:e0.ownerDocument||Traversal.getDocument(e0),t=d.getElementById?'toUpperCase':'toString',u,v={},k=0,p0;",
+            "var r=[],l,d=e0.nodeType==9?e0:e0.ownerDocument||Traversal.getDocument(e0),to=d.getElementById?'toUpperCase':'toString',u,v={},k=0,p0;",
           tags = [],
           caches = [],
           selectors = _parser.format(this).split(","),
@@ -182,9 +182,9 @@ var Selector = Base.extend({
               parts = match(selector.slice(indexOfID), _PARSE_ID_SELECTOR),
               id = parts[1] || "",
               selectBy = parts[2] || "";
-          // Use a standard query for XML documents, disconnected elements and platforms
-          // with broken getElementById().
-          var block = parseSelector(selector, isTest);
+          // Use a standard query for XML documents, disconnected elements and
+          // platforms with broken getElementById().
+          var block = parseSelector(selector);
           fn += "if(!_byId||!d.getElementById||(e0!=d&&Node.compareDocumentPosition(e0,d)&1)){" + closeBlock(block) + "}";
           // Now build an optimised query to get the element by ID.
           fn += format("else{var e%1=_byId(d,'%2');if(e%1&&(e0==d||Traversal.contains(e0,e%1))){", ++group, id);
@@ -208,14 +208,19 @@ var Selector = Base.extend({
         fn = fn.replace(/getElementsByTagName\('\*'\)/g, "all");
       /*@end @*/
       vars += "var reg=[" + _reg.join(",") + "];";
-      vars += Array2.map(tags, function(tagName, i) {
-        return "var t" + i + "='" + tagName + "'" + (tagName == tagName.toUpperCase() ? ";" : "[t]();");
-      }).join("");
-      vars += Array2.map(caches, function(group) {
-        return "var s" + group + "={};";
-      }).join("");
+      forEach (tags, function(name, i) {
+        var NAME = name.toUpperCase();
+        // Some platforms (MSIE) do not convert tag names to uppercase for the new HTML5 elements.
+        if (document.createElement(name.toLowerCase()).nodeName != NAME) {
+          fn = fn.replace(new RegExp("nodeName==t" + i + "\\b", "g"), "nodeName[to]==t" + i);
+        }
+        vars += "var t" + i + "='" + name + "'" + (name == NAME ? ";" : "[to]();");
+      });
+      forEach (caches, function(group) {
+        vars += "var s" + group + "={};";
+      });
       forEach (states, function(group, i) {
-        states[i] = "i" + group;
+        states[i] = "i" + group + "?i" + group + "-1:0";
         args.push("a" + group);
       });
       fn = _parser.unescape(vars + fn);
@@ -261,13 +266,13 @@ var Selector = Base.extend({
 
   "@(true)": {
     exec: function(node, count) {
-      this.base;
+      var dummy = this.base;
       var result = _catchSelectorError(this, node || document, count);
       return count == 1 ? result : new StaticNodeList(result);
     },
     
     test: function(element) {
-      this.base;
+      var dummy = this.base;
       return !!_catchSelectorError(this, element);
     }
   }

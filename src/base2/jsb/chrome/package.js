@@ -5,7 +5,7 @@
 
 base2.global.chrome = new base2.Package(this, {
   name:    "chrome",
-  version: "0.9",
+  version: "0.9.1",
   imports: "Enumerable,Function2,dom,jsb",
   exports: // public components
            "combobox,progressbar,slider,spinner,colorpicker," +

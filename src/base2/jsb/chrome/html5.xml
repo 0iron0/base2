@@ -4,7 +4,7 @@
   <include src="header.js"/>
   <include src="html5-dimensions.js"/>
   <include src="locale.js"/>
-  <include src="theme.js"/>
+  <include src="colors.js"/>
   <include src="_MSIEShim.js"/>
   <include src="Popup.js"/>
   <include src="PopupWindow.js"/>
@@ -15,7 +15,7 @@
   <include src="combobox.js"/>
   <include src="number.js"/>
   <include src="range.js"/>
-  <include src="progressbar.js"/>
+  <include src="html5-progressbar.js"/>
   <include src="slider.js"/>
   <include src="spinner.js"/>
   <include src="timepicker.js"/>
