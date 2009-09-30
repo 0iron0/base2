@@ -3,7 +3,7 @@
 
 base2.global.jsb = new base2.Package(this, {
   name:    "jsb",
-  version: "0.9.6",
+  version: "0.9.7",
   imports: "Function2,Enumerable,dom",
   exports: "Animation,Rule,RuleList,behavior",
 

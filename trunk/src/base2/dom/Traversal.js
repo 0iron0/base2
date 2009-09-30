@@ -2,8 +2,8 @@
 // DOM Traversal. Just the basics.
 var Traversal = Module.extend({
   contains: function(node, target) {
-    node.nodeType; // throw an error if no node supplied
-    while (target && (target = target[_PARENT]) && node != target) continue;
+    var dummy = node.nodeType; // throw an error if no node supplied
+    while (target && (target = target.parentNode) && node != target) continue;
     return !!target;
   },
 
@@ -84,8 +84,8 @@ var Traversal = Module.extend({
 
   getDocument: function(nodeOrWindow) {
     // return the document object
-    return this.isDocument(nodeOrWindow) ?
-      nodeOrWindow : nodeOrWindow.nodeType ? this.getOwnerDocument(nodeOrWindow) : nodeOrWindow.document || null;
+    return this.isDocument(nodeOrWindow) ? nodeOrWindow
+      : nodeOrWindow.nodeType ? this.getOwnerDocument(nodeOrWindow) : nodeOrWindow.document;
   },
   
   isDocument: function(node) {
@@ -102,7 +102,6 @@ var Traversal = Module.extend({
 
   "@!(document.defaultView)": {
     getDefaultView: function(nodeOrWindow) {
-      // return the document object
       return (nodeOrWindow.document || nodeOrWindow).parentWindow;
     }
   },

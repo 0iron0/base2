@@ -15,12 +15,10 @@ try {
   _input.type = "color";
 } catch (x) {}
 if (_input.type != "color") {
-  html5.rules.put("input[type=color]", _FORMS_JS + "#chrome.colorpicker");
+  _rules["input[type=color]"] = _FORMS_JS + "#chrome.colorpicker";
 }
 
-var _cssText = new RegGrp({
-  "\\*?\\.jsb\\-progressbar": "progress"
-}).exec(jsb.theme.cssText);
+var _cssText = jsb.theme.cssText;
 
 forEach ({
   form: "checkValidity,dispatchFormChange,dispatchFormInput",
@@ -32,8 +30,13 @@ forEach ({
   _registerElement(tagName, {detect: "checkValidity", methods: methods});
 });
 
+_registerElement("datalist", {
+  detect:  "options",
+  display: "none"
+});
+
 if (!detect("(hasFeature('WebForms','2.0'))")) {
-  html5.rules.merge({
+  extend(_rules, {
     "form": _FORMS_JS + "#html5.form",
     "button,input,textarea,select": _FORMS_JS + "#chrome",
     "input[type=number]": _FORMS_JS + "#chrome.spinner",
@@ -49,10 +52,10 @@ if (!detect("(hasFeature('WebForms','2.0'))")) {
     "button[type=move-down],button.html5-move-down": _RM_JS + "#jsb.rm.movedown"
   });
   if (_input.autofocus === undefined) {
-    html5.rules.put("button[autofocus],input[autofocus],textarea[autofocus],select[autofocus]", {
+    _rules["button[autofocus],input[autofocus],textarea[autofocus],select[autofocus]"] = {
       onattach: function(element) {
         try {
-          //if (this._element && this.compareDocumentPosition()) {
+          //if (this._element && this.compareDocumentPosition()) { //-@DRE
             element.focus();
             if (element.select) element.select();
           //  this._element = element;
@@ -61,7 +64,7 @@ if (!detect("(hasFeature('WebForms','2.0'))")) {
           // the control is probably hidden
         }
       }
-    });
+    };
   }
   _styleSheet[".html5-template"] = {display:"none!"};
   _cssText = new RegGrp({

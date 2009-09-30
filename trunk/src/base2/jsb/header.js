@@ -43,7 +43,7 @@ var _style = document.createElement("span").style;
 function _getCurrentHost() {
   var host = location.pathname,
       script = Array2.item(document.getElementsByTagName("script"), -1);
-      
+
   if (script) host = script.src || host;
   ;;; host = host.replace(/build\.php\?package=([\w\/]+)package\.xml.*$/, "$1");
   return host.replace(/[\?#].*$/, "").replace(/[^\/]*$/, "");

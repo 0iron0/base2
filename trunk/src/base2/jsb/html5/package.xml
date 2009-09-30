@@ -4,17 +4,16 @@
   <include src="header.js"/>
   <include src="../dimensions.js"/>
   <include src="register.js"/>
-  <include src="~/base2/jsb/chrome/theme.js"/>
-  <include src="~/base2/jsb/chrome/styleSheet.js"/>
-  <include src="audio.js"/>
+  <include src="../chrome/theme.js"/>
+  <include src="../chrome/colors.js"/>
+  <include src="../chrome/styleSheet.js"/>
   <include src="canvas.js"/>
   <include src="details.js"/>
-  <include src="figure.js"/>
-  <include src="mark.js"/>
+  <include src="ratio.js"/>
   <include src="meter.js"/>
   <include src="progress.js"/>
   <include src="time.js"/>
-  <include src="video.js"/>
+  <include src="media.js"/>
   <include src="forms.js"/>
   <include src="init.js"/>
 </package>

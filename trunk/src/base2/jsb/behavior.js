@@ -147,23 +147,22 @@ var _Behavior = Base.extend({
 
     // special cases
     if (propertyName == "textContent") {
-      propertyName = Traversal.TEXT_CONTENT;
+      return element[Traversal.TEXT_CONTENT];
     }
     
     var attributes = this.constructor.modifications[element.uniqueID] || this,
-        defaultValue = attributes[propertyName],
-        value;
+        defaultValue = attributes[propertyName];
 
     if (propertyName != "type") {
-      value = element[propertyName];
+      var value = element[propertyName];
     }
     if (value === undefined) {
-      value = Element.getAttribute(element, propertyName);
+      value = Element.getAttribute(element, propertyName.toLowerCase());
     }
     if (value == null) return defaultValue;
-    
+
     switch (typeof defaultValue) {
-      case "boolean": return true;
+      case "boolean": return value !== false;
       case "number":  return value - 0;
     }
     return value;
@@ -172,29 +171,24 @@ var _Behavior = Base.extend({
   set: function(element, propertyName, value) {
     // Set a DOM property.
 
+    var originalValue = this.get(element, propertyName);
+    
     // special cases
     var isInnerHTML = propertyName == "innerHTML";
     if (isInnerHTML || propertyName == "textContent") {
       Traversal.setTextContent(element, value, isInnerHTML);
-      // Don't send an event for these modifications
     } else {
-      var originalValue = element[propertyName];
-      if (originalValue === undefined) {
-        originalValue = this.get(element, propertyName);
-        if (typeof this[propertyName] == "boolean" && !value) {
-          Element.removeAttribute(element, propertyName);
-        } else {
-          Element.setAttribute(element, propertyName, value);
-        }
+      if (typeof this[propertyName] == "boolean" && !value) {
+        Element.removeAttribute(element, propertyName.toLowerCase());
       } else {
-        element[propertyName] = value;
+        Element.setAttribute(element, propertyName.toLowerCase(), value);
       }
-      if (originalValue !== this.get(element, propertyName)) {
-        this.dispatchEvent(element, "propertyset", {
-          propertyName: propertyName,
-          originalValue: originalValue
-        });
-      }
+    }
+    if (originalValue !== this.get(element, propertyName)) {
+      this.dispatchEvent(element, "propertyset", {
+        propertyName: propertyName,
+        originalValue: originalValue
+      });
     }
   },
 
@@ -278,6 +272,8 @@ var _Behavior = Base.extend({
       }
     }
   }
+}, {
+  modifications: {}
 });
 
 var behavior = _Behavior.prototype;

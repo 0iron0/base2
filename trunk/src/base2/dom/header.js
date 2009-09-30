@@ -9,7 +9,7 @@ var _element = document.createElement("span"),
 var _TEXT_CONTENT = detect("(element.textContent)") ? "textContent" : "innerText";
 
 var _USE_IFLAG      = /^(action|cite|codebase|data|href|longdesc|lowsrc|src|usemap)$/i,
-    _USE_OUTER_HTML = /^(type|value)$/i;
+    _USE_OUTER_HTML = /^(type|value)$/i; //-@DRE
 
 var _PARENT = detect("(element.parentElement)") ? "parentElement" : "parentNode";
 
@@ -43,7 +43,7 @@ var _ATTRIBUTES = {
 };
 
 // These mappings are for MSIE5.x
-var _HTML_ATTRIBUTES =
+var _HTML_ATTRIBUTES = // A lot of these attributes are deprecated and I could probably safely remove them. -@DRE
   "accessKey,allowTransparency,cellPadding,cellSpacing,codeBase,codeType,colSpan,dateTime,"+
   "frameBorder,longDesc,maxLength,noHref,noResize,noShade,noWrap,readOnly,rowSpan,tabIndex,useMap,vAlign";
 // Convert the list of strings to a hash, mapping the lowercase name to the camelCase name.

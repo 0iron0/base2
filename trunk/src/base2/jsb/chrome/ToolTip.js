@@ -32,11 +32,9 @@ var ToolTip = Popup.extend({
     behavior.animate(this.body, {opacity: 0});
   },
 
-  "@MSIE[56]": {
-    // Popups are layered on top of an iframe for MSIE5/6. This is to
-    // prevent select boxes from bleeding through.
-    // It's too complicated to animate the iframe as well. So we'll turn off
-    // the animation.
+  "@MSIE": {
+    // Opacity is implemented using a CSS filter in MSIE.
+    // This affects the rendering of text (it looks squidgy), so we turn it off.
     
     fadeIn: Undefined,
     

@@ -1,31 +1,12 @@
 
-var _border = extend({}, {
-  color:               "threedface",
-
-  "@theme=luna\\/blue": {
-    color:             "#7f9db9"
-  },
-
-  "@theme=luna\\/olive": {
-    color:             "#a4b97f"
-  },
-
-  "@theme=luna\\/silver": {
-    color:             "#a5acb2"
-  },
-
-  "@theme=royale": {
-    color:             "#a7a6aa"
-  },
-
-  "@theme=aero": {
-    color:             "#abadb3 #dbdfe6 #e3e9ef #e2e3ea"
-  },
-
-  "@theme=zune": {
-    color:             "#969696"
-  }
-});
+var _borderColor = {
+  "aero":        "#abadb3 #dbdfe6 #e3e9ef #e2e3ea",
+  "luna/blue":   "#7f9db9",
+  "luna/olive":  "#a4b97f",
+  "luna/silver": "#a5acb2",
+  "royale":      "#a7a6aa",
+  "zune":        "#969696"
+}[jsb.theme] || "threedface";
 
 jsb.theme.cssText = jsb.createStyleSheet({
   "*": {
@@ -36,7 +17,7 @@ jsb.theme.cssText = jsb.createStyleSheet({
     "@!theme=classic": {
       padding:                 "2px",
       border:                  "1px solid",
-      borderColor:             _border.color
+      borderColor:             _borderColor
     },
 
     "@theme=aqua": {
@@ -84,21 +65,21 @@ jsb.theme.cssText = jsb.createStyleSheet({
     MozUserSelect:            "none!", // still buggy in webkit
 
     "@MSIE": { // hide text for purely visual controls (MSIE)
-      textIndent:         0,
+      textIndent:             0,
 
       "@MSIE(5.5|6|7)": {
-        lineHeight:       999
+        lineHeight:           999
       },
 
       "@MSIE[^567]": {
-        lineHeight:       999,
-        verticalAlign:    "middle" // Argh! This is bad. It means that the normal vertical alignment doesn't work. :(
+        lineHeight:           999,
+        verticalAlign:        "middle" // Argh! This is bad. It means that the normal vertical alignment doesn't work. :(
       }
     }
   },
 
   ".jsb-progressbar,.jsb-slider": {
-    verticalAlign:        "middle" // not sure about this
+    verticalAlign:         "middle" // not sure about this
   },
 
   ".jsb-progressbar": {
@@ -442,11 +423,7 @@ jsb.theme.cssText += "\n" + jsb.createStyleSheet({
   "@Safari.+win" : {
     "@!theme=aqua": {
       "input,select": {
-        outlineColor:  _border.color,
-
-        "@theme=classic": {
-          outlineColor:  "threedface"
-        }
+        outlineColor:  _borderColor
       }
     }
   }

@@ -88,6 +88,6 @@ Date2.parse = function(string, defaultDate) {
     }
     return date.valueOf();
   } else {
-    return Date.parse(string);
+    return NaN;
   }
 };

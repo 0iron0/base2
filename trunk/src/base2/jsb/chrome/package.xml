@@ -5,6 +5,7 @@
   <include src="../dimensions.js"/>
   <include src="locale.js"/>
   <include src="theme.js"/>
+  <include src="colors.js"/>
   <include src="_MSIEShim.js"/>
   <include src="Popup.js"/>
   <include src="PopupWindow.js"/>

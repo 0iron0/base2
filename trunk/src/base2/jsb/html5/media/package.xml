@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package name="media" publish="false" closure="true">
+  <include src="header.js"/>
+  <include src="media.js"/>
+  <include src="audio.js"/>
+  <include src="video.js"/>
+  <include src="flash.js"/>
+</package>
