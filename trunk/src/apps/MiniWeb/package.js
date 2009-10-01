@@ -23,6 +23,10 @@ var MiniWeb = new base2.Package(this, {
   terminal: null,
   
   init: function() {
+    if (base2.version.indexOf("1.1 (alpha") == 0) { // temporary fix -@DRE
+      base2.dom.name = "DOM";
+    }
+    
     // create page style
     document.write("<style>html,body{margin:0;padding:0;height:100%;overflow:hidden}#window{width:100%;height:100%;}</style>");
     
