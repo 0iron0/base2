@@ -7,7 +7,7 @@
     Doeke Zanstra
 */
 
-// timestamp: Thu, 01 Oct 2009 12:09:51
+// timestamp: Thu, 01 Oct 2009 14:12:38
 
 var base2 = {
   name:    "base2",
@@ -1777,7 +1777,7 @@ lang.extend = extend;
 
 // legacy support
 base2.JavaScript = pcopy(js);
-base2.JavaScript.namespace += "var JavaScript=js;";
+base2.namespace += "var JavaScript=js;";
 
 }; ////////////////////  END: CLOSURE  /////////////////////////////////////
 
