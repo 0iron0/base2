@@ -9,11 +9,11 @@ var MiniWeb = new base2.Package(this, {
   name:    "MiniWeb",
   exports: "Client,Server,JSONFileSystem,JSONDirectory,FileSystem,Command,Interpreter,Terminal,Request,History",
   imports: "Enumerable,io",
-  version: "0.7.1",
+  version: "0.7.2",
   
   $$: {data: {}},
   
-  DOCTYPE: '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">',
+  DOCTYPE: '<!doctype html>',
   SCRIPT:  '<script type="text/javascript">\r\n%1\r\n<\/script>',
   
   client: null,

@@ -60,7 +60,7 @@ var Client = Base.extend({
   navigateTo: function(url) {
     // load a new page
     var hash = /^#/.test(url) ? url.slice(1) : url;
-    if (this.address != hash) {      
+    if (this.address != hash) {
       var request = new Request("HEAD", hash);
       if (request.status == 301) {
         hash = request.getResponseHeader("Location");
@@ -74,7 +74,7 @@ var Client = Base.extend({
     
     // insert a script
     var script = "parent.MiniWeb.register(this);var base2=parent.base2;" + 
-      base2.namespace + lang.namespace + "JavaScript.bind(this);";
+      base2.namespace + lang.namespace + "js.bind(this);";
     script = format(MiniWeb.SCRIPT, script);
     var html = this.response.replace(/(<head[^>]*>)/i, "$1\n" + script);
     
