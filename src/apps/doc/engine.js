@@ -73,14 +73,13 @@ var LIST = /[^\s,]+/g;
 base2["#name"] = "base2";
 window["#name"] = "global";
 
-if (base2.version.indexOf("1.1 (alpha") == 0) { // temporary fix -@DRE
-  base2.dom["#name"] = "DOM";
-}
-
 forEach (base2.exports.match(LIST), function(name) {
   var property = this[name];
   if (property instanceof Function || property instanceof Package) {
     property["#name"] = this["#name"] + "." + name;
+    if (property.name == "dom" && base2.version.indexOf("1.1 (alpha") == 0) { // temporary fix -@DRE
+      property["#name"] = "base2.DOM";
+    }
     if (property instanceof Package) {
       doc.show[name] = true;
       property.imports = property.imports.split(",").join(", ");
