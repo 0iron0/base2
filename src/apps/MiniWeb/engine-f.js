@@ -7,14 +7,14 @@
     Doeke Zanstra
 */
 
-// timestamp: Wed, 23 Sep 2009 19:38:57
+// timestamp: Thu, 01 Oct 2009 12:09:51
 
 var base2 = {
   name:    "base2",
-  version: "1.1 (alpha1)",
+  version: "1.1 (alpha3)",
   exports:
     "Base,Package,Abstract,Module,Enumerable,Map,Collection,RegGrp," +
-    "Undefined,Null,This,True,False,assignID,detect,global",
+    "I,II,K,Undefined,Null,This,True,False,assignID,detect,global",
   namespace: ""
 };
 
@@ -1506,7 +1506,7 @@ Date2.parse = function(string, defaultDate) {
     }
     return date.valueOf();
   } else {
-    return Date.parse(string);
+    return NaN;
   }
 };
 
@@ -2739,11 +2739,11 @@ var MiniWeb = new base2.Package(this, {
   name:    "MiniWeb",
   exports: "Client,Server,JSONFileSystem,JSONDirectory,FileSystem,Command,Interpreter,Terminal,Request,History",
   imports: "Enumerable,io",
-  version: "0.7.1",
+  version: "0.7.2",
   
   $$: {data: {}},
   
-  DOCTYPE: '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">',
+  DOCTYPE: '<!doctype html>',
   SCRIPT:  '<script type="text/javascript">\r\n%1\r\n<\/script>',
   
   client: null,
@@ -2935,7 +2935,7 @@ var Client = Base.extend({
   navigateTo: function(url) {
     // load a new page
     var hash = /^#/.test(url) ? url.slice(1) : url;
-    if (this.address != hash) {      
+    if (this.address != hash) {
       var request = new Request("HEAD", hash);
       if (request.status == 301) {
         hash = request.getResponseHeader("Location");
@@ -2949,7 +2949,7 @@ var Client = Base.extend({
     
     // insert a script
     var script = "parent.MiniWeb.register(this);var base2=parent.base2;" + 
-      base2.namespace + lang.namespace + "JavaScript.bind(this);";
+      base2.namespace + lang.namespace + "js.bind(this);";
     script = format(MiniWeb.SCRIPT, script);
     var html = this.response.replace(/(<head[^>]*>)/i, "$1\n" + script);
     
