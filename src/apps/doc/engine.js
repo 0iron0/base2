@@ -73,6 +73,10 @@ var LIST = /[^\s,]+/g;
 base2["#name"] = "base2";
 window["#name"] = "global";
 
+if (base2.version.indexOf("1.1 (alpha") == 0) { // temporary fix -@DRE
+  base2.dom["#name"] = "DOM";
+}
+
 forEach (base2.exports.match(LIST), function(name) {
   var property = this[name];
   if (property instanceof Function || property instanceof Package) {
