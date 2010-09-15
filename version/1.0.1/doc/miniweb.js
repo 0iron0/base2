@@ -11,7 +11,7 @@
 
 var base2 = {
   name:    "base2",
-  version: "1.0",
+  version: "1.0.1x",
   exports:
     "Base,Package,Abstract,Module,Enumerable,Map,Collection,RegGrp," +
     "Undefined,Null,This,True,False,assignID,detect,global",
@@ -1102,6 +1102,7 @@ function instanceOf(object, klass) {
 // http://wiki.ecmascript.org/doku.php?id=proposals:typeof
 
 function typeOf(object) {
+  if (object == global) return "object";
   var type = typeof object;
   switch (type) {
     case "object":
@@ -2837,7 +2838,7 @@ var Client = Base.extend({
     // refresh the current page from the last response
     
     // insert a script
-    var script = "parent.MiniWeb.register(this);var base2=parent.base2;" + 
+    var script = "parent.base2.MiniWeb.register(this);var base2=parent.base2;" +
       base2.namespace + lang.namespace + "JavaScript.bind(this);";
     script = format(MiniWeb.SCRIPT, script);
     var html = this.response.replace(/(<head[^>]*>)/i, "$1\n" + script);
